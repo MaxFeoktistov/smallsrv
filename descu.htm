@@ -1,0 +1,1289 @@
+<html><head>
+<style>
+font.h{font-size:9pt; line-height:10pt}
+</style>
+</head><body BGCOLOR=#ffffff text=#000000>
+<!--#include virtual="menue.htm" -->       
+
+<center><h1>Small HTTP server</h1>(Description for Linux version)</center>
+<p><a name=C></a><H3>Contents</h3><table cellspacing=3 cellpadding=8 border=0 width=100%><tr valign=top><td width=60%>
+<ul>
+<li><a href=#W1>Capabilities</a>
+<li><a href=licenseu.txt>License.</a>
+<li><a href=#h>How to...?</a>
+<li><a href=#h1>Directories and files names</a>
+<li><a href=#h2>Options and command line parameters</a>
+<li><a href=#ip>Allowed  and denied IP ranges.</a>
+<li><a href=#li>Limits.</a>
+
+<li><a href=#h3>Running scripts</a>
+<li><a href=#S>Server Side Includes (SSI)</a>
+<li><a href=#cf>Countries features</a>
+<li><a href=#P>Proxy server</a>
+<li><a href=#D>DNS server</a>
+<li><a href=#M>SMTP server</a>
+<li><a href=#P>POP3 server & proxy</a>
+<li><a href=#F>FTP server & proxy</a>
+<li><a href=#T>TLS/SSL server</a>
+<li><a href=#L>Conclusion.</a>
+</ul></td><td><ul><ul><ul>&nbsp; </ul></ul></ul></td>
+<td align=left bgcolor=#e0fff0 width=20%><center><h4>If server works it's available:</h4></center>
+<font size=2 class=h><b>
+<a href=http://127.0.0.1/$_admin_$conf>Setting / Current state</a><br>
+<a href=http://127.0.0.1/$_admin_$host>Users & Virtual Hosts</a><br>
+<a href=http://127.0.0.1/$_admin_$state>Current statistics</a><br>
+<a href=http://127.0.0.1/$_wmail_$ >Web mail</a>
+<hr><center>Online:</center>
+<a href=http://smallsrv.com/index.htm#new>What's new?</a><br></b>(Last version, Forum, etc.)<br>
+<b><a href=http://smallsrv.com/webmail.exe>Download Web Mail</a><br></b>An external script gives Web intrface for working with mail</sup><br>
+<b><a href=http://smallsrv.com/sendmail.exe>Download Sendmail emulator</a><br></b></sup><br>
+<b><a href=http://smallsrv.com/donation.shtml>Donation</a><br>
+</b>
+<hr>
+<B>Contacts:<BR></b>
+<script language=Javascript>//<!--
+var h=";smallsrv";
+var e=".com";
+function E(s,a,b,c)
+{var x,z,l,t;
+ x=a + c + b +"64" + h + e;
+ z=c+b; l="<"; t="a";
+ document.write('<b>'+s+'</b>: '+l+t+" href=m"+t+"ilto"+z+"58;"+x+" >"+x+l+"/"+t+"><br>");
+};
+E("Author","max","#","&");
+h=";smallsrv";
+e=".com";
+E("Author","max","#","&");
+E("Support","support","#","&");
+E("Sales","sales","#","&");
+
+// -->
+</script>
+<noscript> max (press Shift and "2" )smallsrv.com</noscript>
+</font>
+<hr>
+
+<br>
+<a href=mailto:support@smallsrv.com>E-mail...</a>
+</b></font></td></tr></table>
+
+<br><hr><a name=W></a><center><br><h2>What's this?</h2></center>
+<p> This very small utility turns your computer into a fully functional
+Web-server, Mail server, DNS server, FTP server, DHCP server. The program itself requires a minimal set of system resources, so
+the server's functioning doesn't influence your computer's performance. This
+server can function under a LAN networking or even under a Dial-Up
+networking. Webmasters can run this utility on their local computers and
+debug their CGI-scripts without going on-line.
+<a name=W1><p></a><p> This is probably the smallest HTTP server, but you shouldn't
+underestimate its capabilities.
+<br><center><h2>Capabilities.</h2></center><ul>
+<li>GET method support (HTTP/1.0-1.1)
+<li>POST method support
+<li>Multitasking. -- simultaneous data transfer and requests
+reception from several remote users with a delay depending on the channel's
+quality.
+<li>High performance. The server transfers data without any delay.
+<li>CGI-scripts
+<li>Server Side Includes (SSI).
+<li>Dynamical output of information about requests. The 16 Kb cache is
+provided for the protocol. After its overflow earlier data are replaced by
+newer ones. The "save" option writes every 4-8 Kb of the protocol on your hard
+disk.
+<li>Requests control protects your information.
+<br>
+<br> Also: <br>
+
+<li> Mail
+
+<font size=2 class=f>
+<ul>
+ <li> POP3 server.
+ <li> SMTP server.
+ <li> Anti-spam filters. Good, bad, and gray lists common and personal for each user.
+ <li> Forwarding and possibilities to execute scripts for income messages.
+ <li> Execute external anti-virus
+</ul>
+</font>
+
+
+<li> FTP server
+
+<font size=2 class=f>
+<ul>
+ <li> Virtual directories for FTP
+ <li> FTP proxy.
+</ul>
+</font>
+
+<li> HTTP proxy server
+
+<font size=2 class=f>
+<ul>
+ <li>  HTTP, FTP, HTTPS request supported
+ <li>  Store lot of traffic, fast access.
+ <li>  Internal continues downloading when connection broken.
+ <li>  Server can request compressed and unpack reply on fly  (with an external Zlib library)
+</ul>
+</font>
+
+<li> DNS server
+<font size=2 class=f>
+<ul>
+ <li> Option for dinamicaly check a serverice on remote host and if the service down,  change one IP address to other.
+ <li> Reqursion from root DNS or from DNS of provider. Caching.
+ <li> Option for autoreply to request to resolve IPv6 name. (for networks that don't use Internet through IPv6).
+ <li> DNSBL server (work with SMTP)
+</ul>
+</font>
+
+<li> DHCP server
+<li> Full detail statistics. Include statiscs by countries!
+<li> Web and local administration
+<li> IPv6 support
+<li> SSL/TLS support with an external library.
+<li> GZip compression support with an external Zlib library.
+</ul>
+
+
+</ul>
+ Compactness is one of the greatest features of this product. Its
+functioning doesn't obstruct your work. This server uses a minimal set of
+system resources necessary for a quick data transfer.
+
+<p><a href=#C>Contents</a><hr><center><a name=h></a><br><h2>How to...?</h2></center>
+ Well, it is fairly easy - unpack archive to the directory.
+ Add executable mode attribute to httpd.exe
+E.g use command
+<br><tt>chmod 0500 httpd.exe</tt><br> or  may be
+<br><tt>chmod a+x httpd.exe</tt><br>
+File httpd.cfg is to be in the same directory as httpd.exe  This file
+may content uncripted passwords, therefor  hight recomended to disable reading
+this file for other and for group. Use <br><tt>chmod 0600 httpd.cfg</tt><br>
+Now you may run httpd.exe To run it as daimon type <tt>httpd.exe hide</tt>
+or you may add <tt>hide</tt> keyword to httpd.cfg.
+In httpd.cfg remote administration is disable, after unpacking and
+to view statistic httpd.cfg contents administrator's acount.
+The name is "admin", password is "none".
+First time you must manualy edit httpd.cfg
+in line  "user=admin;none;/var/shttps;A"  change "none" to your password.
+To enable Web administration uncomment "radmin" keyword.
+After it you may use <A href=http://127.0.0.1/$_admin_$conf>Setting / Current state</a>
+to option server.<br>
+
+<center><a name=h1><p></a><br><h2>Directories, files and scripts.</h2></center>
+ The server works with certain directories and files names. Your
+site is supposed to be in the directory specified during settings.
+The files that have "executable for other" mode attribute
+are files to run. If server has a right to change current user,
+the scripts will be run from  user's id  of the file.
+The files that have "readable for other" mode attribute are files to return.
+
+If the file name is not specified in request, i.e. the request ends in '/',
+the server will show the default file which name was specified
+either during setting.
+Server can support many virtual hosts. Each virtual host has its own root
+directory, and also can include virtual directories common for all.
+<p> ASIS files also support. Those files content HTTP header in the beginning.
+Such files are being used for redirect inbound request to other site. This
+file must begins with keyword "Status: " after this returning code and your
+header is going. After header one line is empty, and data. Extension must be
+<b>.asi</b> or <b>.asis</b><br>
+
+<p><a href=#C>Contents</a><hr><center><a name=h2><p></a><br><h2>Options and command line parameters.</h2></center>
+ You can option via Web interface if remote administration is enabled,
+or you can manual edit <i>httpd.cfg</i>
+or just add parameters to command line. In many case you don't need to change
+settings manually but if you really want to, you can do with next keys.
+
+<table border=1><tr bgcolor=#C0F0FF align=center><td><b>Parametr and comment</b></td><td><b>Key</b></td></tr>
+<tr align=center bgcolor=#C0FFF8><td colspan=2><b>General Setting</td></tr>
+<tr><td><b>Don't out log to terminal.</b></td><td><b>noicon</b></td></tr>
+<tr><td><b>Start as daimon.</b></td><td><b>hide</b></td></tr>
+<tr><td><b>Detail log for POP/SMTP/FTP.</b> Otherwise only basic event are added to log.</td><td><b>detail</b></td></tr>
+<tr><td><b>Disable saving log.</b></td><td><b>nolog</b></td></tr>
+<tr><td><b>Log filename.</b></td><td><b>log=<i>name.log</i></b></td></tr>
+<tr><td><b>Create a daily log (new log created after each day).</b>It's necessary to get statistics for a day. Server will every day rename old log file (add date to name). It's necessary to get statistics for a day.</td><td><b>logday</b></td></tr>
+<tr><td><b>Enable remote administration.</b> Otherwise, only statistics will be available for administrators.</td><td><b>radmin</b></td></tr>
+<tr><td><b>Number of simultaneous requests from each host.
+</b>You can restrict number of simulate
+request from the same host. Usually one browser creates four simulate
+connections. Some browsers try to create much more simulate connections.
+This restriction includes all TCP connections (HTTP,FTP,POP,SMTP,Proxy)</td><td><b>from_same_host=##</b></td></tr>
+<tr><td><b>No restrict the number of simultaneous connections from each host</b></td><td><b>nofrom_same_host</b></td></tr>
+
+
+
+<tr><td><b>Don't trim log lines</b></td><td><b>nolimitlog</b></td></tr>
+<tr><td><b>Limit the length of the log lines</b> The length of each line should not exceed this value</td><td><b>limitlog=value</b></td></tr>
+
+<tr><td><b>IPs that can access this server. Separe single IP by comma and IP ranges with hyphens.</td><td><b>ip_range={#.#.#.#[-#.#.#.#],}</b></td></tr>
+<tr><td><b>Deny IPs that can't access this server. Separe single IP by comma and IP ranges with hyphens.</td><td><b>ip_deny={#.#.#.#[-#.#.#.#],}</b></td></tr>
+
+<tr><td><b>IPv6 IPs that can access this server. Separe single IP by comma and IP ranges with hyphens. E.g. ::1,FE80::-FEFF::</b><td><b>ip6_range=value</b></td></tr>
+<tr><td><b>IPv6 Deny IPs that can't access this server. Separe single IP by comma and IP ranges with hyphens.</b><td><b>ip6_deny=value</b></td></tr>
+
+
+<tr><td><b>Don't save uncrypted passwords in config file</b></td><td><b>cryptpwd</b></td></tr>
+<tr><td><b>Remove passwords from the log</b></td><td><b>delpwd</b></td></tr>
+<tr><td><b>Save passwords as MD5 Digest (RFC2069/RFC2617)</b></td><td><b>md5pwd</b></td></tr>
+<tr><td><b>Realm - string for MD5 Digest (RFC2069/RFC2617)</b></td><td><b>md5realm=path</b></td></tr>
+<tr><td><b>Using MD5 Digest for authorization if posible (RFC2069/RFC2617)</b></td><td><b>md5digest</b></td></tr>
+<tr><td><b>Using paranoidal variant of MD5 Digest for authorization if posible (RFC2617 qop=auth)</b></td><td><b>md5paranoidal</b></td></tr>
+
+
+
+
+<tr><td><b>IPs from that can administrate this server.</b> Separe single IP by comma and IP ranges with hyphens. E.g. 192.168.0.1-192.168.0.16,127.0.0.1</td><td><b>adm_range=value</b></td></tr>
+<tr><td><b>Deny IPs from that can't administrate this server.</b> Separe single IP by comma and IP ranges with hyphens.</td><td><b>adm_deny=value</b></td></tr>
+<tr><td><b>IPv6 IPs from that can administrate this server.</b> Separe single IP by comma and IP ranges with hyphens. E.g. ::1,FE80::-FEFF::</td><td><b>adm6_range=value</b></td></tr>
+<tr><td><b>IPv6 Deny IPs from that can't administrate this server.</b> Separe single IP by comma and IP ranges with hyphens.</td><td><b>adm6_deny=value</b></td></tr>
+<tr><td><b>Enable 2 point in filenames (may be dangerous)</b></td><td><b>twopoint</b></td></tr>
+
+
+
+<tr align=center bgcolor=#c0fff8><td colspan=2><b>HTTP server</b></td></tr>
+
+
+<tr><td><b>Disable HTTP server.</b></td><td><b>nomax</b></td></tr>
+<tr><td><b>IPs that can access this server.</b> Separe single IP by comma and IP ranges with hyphens. E.g. 192.168.0.1-192.168.0.16,127.0.0.1</td><td><b>http_range=value</b></td></tr>
+<tr><td><b>Deny IPs that can't access this server.</b> Separe single IP by comma and IP ranges with hyphens.</td><td><b>http_deny=value</b></td></tr>
+<tr><td><b>IPv6 IPs that can access this server.</b> Separe single IP by comma and IP ranges with hyphens. E.g. ::1,FE80::-FEFF::</td><td><b>http6_range=value</b></td></tr>
+<tr><td><b>IPv6 Deny IPs that can't access this server.</b> Separe single IP by comma and IP ranges with hyphens.</td><td><b>http6_deny=value</b></td></tr>
+<tr><td><b>Bind to all addapters</b></td><td><b>nohttp_bind</b></td></tr>
+<tr><td><b>IPs and IPv6 to bind, through coma.</b> (0.0.0.0 - bind to all IP; ::0 bind to all IPv6)</td><td><b>http_bind=value</b></td></tr>
+<tr><td><b>Also work through IPv6</b></td><td><b>httpipv6</b></td></tr>
+<tr><td><b>Don't restrict speed of outgoing transfer</b></td><td><b>nohttp_speed</b></td></tr>
+<tr><td><b>Limit for summary speed of outgoing transfer for all connections from the same IP (KBytes/minute)</b></td><td><b>http_speed=value</b></td></tr>
+<tr><td><b>How many another connections must have activity, to check on speed limitation</b></td><td><b>http_spdusr=value</b></td></tr>
+<tr><td><b>PHP.</b> Specify location of "php-cgi.exe" or "phpisapi.dll"</td><td><b>php=path</b></td></tr>
+<tr><td><b>Disable share dir.</b></td><td><b>noshare</b></td></tr>
+<tr><td><b>Do not show directory listing</b></td><td><b>nooutdir</b></td></tr>
+<tr><td><b>Don't break CGI, when connection closed</b></td><td><b>nbrkcgi</b></td></tr>
+<tr><td><b>Advanced code for control header.</b></td><td><b>header=value</b></td></tr>
+<tr><td><b>Use 'chunked' transfer for SSI.</b></td><td><b>ssi_chunk</b></td></tr>
+<tr><td><b>Disable multi stream download for one file.</b></td><td><b>nomsd</b></td></tr>
+<tr><td><b>Use gzip packing, if posible.</b></td><td><b>http_gzip</b></td></tr>
+<tr><td><b>DLL library ZLib.</b></td><td><b>gz_lib=path</b></td></tr>
+<tr><td><b>Pack if size of file great then</b></td><td><b>gz_low=value</b></td></tr>
+<tr><td><b>Don't pack files with next sufixes</b></td><td><b>nogz_ext=value</b></td></tr>
+<tr><td><b>IP database file for countries features.</b></td><td><b>ip_base=path</b></td></tr>
+<tr><td><b>Add REMOTE_COUNTRY variable to CGI/SSI enviroment.</b></td><td><b>ip_cntr</b></td></tr>
+<tr><td><b>Enable return country info for '/$_ip2country_$?ip=x.</b>x.x.x' request</td><td><b>ip2cntr_srv</b></td></tr>
+<tr><td><b>$_ip2country_$ service for authorized users only</b></td><td><b>ip2cntr_aut</b></td></tr>
+<tr><td><b>Enable DNS over HTTP(S).</b></td><td><b>http_doh</b></td></tr>
+<tr><td><b>No limitation for HTTP</b></td><td><b>nohttp_ltime</b></td></tr>
+<tr><td><b>Time per that will calculating limits (in seconds)</b></td><td><b>http_ltime=value</b></td></tr>
+<tr><td><b>Limit per IP (Kb)</b></td><td><b>http_ip_limit=value</b></td></tr>
+<tr><td><b>Limit per network (Kb)</b></td><td><b>http_net_limit=value</b></td></tr>
+<tr><td><b>Total limit for server (Kb)</b></td><td><b>http_limit=value</b></td></tr>
+<tr><td><b>Timeout, before resend request again.</b> In milliseconds</td><td><b>dnstimeout=value</b></td></tr>
+
+<tr><td><b>TCP/IP port for HTTP server.</b> Usually it's 80</td><td><b>port=##</b></td></tr>
+<tr><td><b>Number of HTTP requests working simultaneous.</b>
+Approcsimately 20Kb of memory is reserved for each thread. Usually 12 connections are enought for 3-8 visitors per minute.</td><td>
+<b>max=##</b></td></tr>
+<tr><td><b>Default file name.</b> Name when requested URL finished by "/".
+(Wildcards are accepted, such as index.* to allow any index file in folder)</td><td><b>def=<i>name.ext</i></b></td></tr>
+<tr><td><b>Error file.</b> Full path to file or script that will be returned if requested file is not found. For CGI or SSI  PATH_INFO variable will contents the name of requested file.</b></td><td><b>error=<i>path\name.ext</i></b></td></tr>
+<tr><td><b>Default web foulder.</b></td><td><b>dir=<i>root_dir_name</i></b></td></tr>
+<tr><td><b>Share dir.</b> If you want this dir to be CGI current dir always, direct it here. Otherwise CGI current dir will be CGI script dir.</td><td><b>share=<i>path</i></b></td></tr>
+<tr><td><b>Enable Server Side Includes (SSI) checking in HTML files. By default SSI checking in .sht*,.sml*,.asp* files only.  Warning: SSI processing uses more memory,
+and and creates a small delay</td><td><b>ssihtm</b></td></tr>
+<tr><td>Key to check SSI in .sht*,.sml*,.asp* files only.</td><td><b>nossihtm</b></td></tr>
+<tr><td><b>The limit of receiving by POST method in bytes.</b> Don't direct big value because it's may preoccupy your PC and network.</td><td><b>post_limit=##</b></td></tr>
+<tr><td><b>Limit of time for CGI execution.</b> In seconds.</td><td><b>cgi_timeout=##</b></td></tr>
+<tr><td colspan=2><center><b>Mime types</b></center>
+Define extended mime type for extension. E.g. for <i>.bmp</i> mime type may be <i>image/bitmap</i>
+<div align=right><b>mime="<i>.ext1;mime-type1;.ext2;mime-type2;...;.extN;mime-typeN</i>"</b></div></td></tr>
+<tr><td colspan=2><center><b>Virtual hosts and virtual directory</b></center>
+Web root dir for specific hostname. You may add many hosts with its own folder.
+You may add many virtual <i><b>/</b>directory<b>/</b></i> common for all hosts. "
+The name of virtual directory is to be between two forward-slash (/).
+<div align=right><b>hostpath="<i>hostname;path</i>"</b><br>Key may be repeated more then once.</div></td></tr>
+<tr align=center bgcolor=#C0FFF8><td colspan=2><b>Proxy server</b></td></tr>
+<tr><td><b>Disable HTTP proxy.</b></td><td><b>noproxy</b></td></tr>
+<tr><td><b>TCP/IP port for proxy server.</b></td><td><b>proxy=</b><i>#port</i></b></td></tr>
+<tr><td><b>How many proxy requests will be working in the same time.</b></td><td><b>proxy_max=</b><i>#max</i></b></td></tr>
+<tr><td><b>Cache size (Kb).</b> It's memory cache size.</td><td><b>cache=</b><i>proxy_cach_size</i></b></td></tr>
+<tr><td><b>IP ranges for which, this server is avilable.</b> IP adresses through comma and range, low hyphenate high. E.g. 192.168.0.1-192.168.0.16,127.0.0.1
+</td><td><b>proxy_range={#.#.#.#[-#.#.#.#],}</b></td></tr>
+<tr><td><b>Disable to save cache in hard disk.</b></td><td><b>noproxy_dir</b></td></tr>
+<tr><td><b>Cache proxy directory.</b></td><td><b>proxy_dir=<i>path</i></b></td></tr>
+<tr><td><b>For how many days files will be saved.</b> Proxy can delete downloaded files from cache proxy directory after
+several days of last download.
+In any case, if user press "Reload" button files download again.</td><td><b>proxy_time=<i>#days</i></b></td></tr>
+<tr><td><b>Ignore NO-CACHE in control headers of the pages.</b>
+HTTP protocol has an opportunity to disable caching for page. Often site holders use this option to calculate the number of vistors.
+In any case, if user press "Reload" button files download again.</td><td><b>ignocache</b></td></tr>
+<tr><td><b>Proxy for avtorized users only.</b> Proxy will be available for defined users with proxy access flag only</td><td><b>proxyusers</b></td></tr>
+<tr><td><b>Disable Proxy server.</b></td><td><b>noproxy_max</b></td></tr>
+<tr><td><b>Bind to all addapters</b></td><td><b>noproxy_bind</b></td></tr>
+<tr><td><b>IPs and IPv6 to bind, through coma.</b> (0.0.0.0 - bind to all IP; ::0 bind to all IPv6)</td><td><b>proxy_bind=value</b></td></tr>
+<tr><td><b>Also work through IPv6</b></td><td><b>proxyipv6</b></td></tr>
+<tr><td><b>Don't save big files.</b> Limit (bytes)</td><td><b>proxy_fsize=value</b></td></tr>
+<tr><td><b>Calculate days from last access.</b> (Otherwise from the day of download)</td><td><b>proxy_laccess</b></td></tr>
+<tr><td><b>Don't cache page if request content cookies.</b></td><td><b>proxy_hrd</b></td></tr>
+<tr><td><b>IPv6 IPs that can access this server.</b> Separe single IP by comma and IP ranges with hyphens. E.g. ::1,FE80::-FEFF::</td><td><b>proxy6_range=value</b></td></tr>
+<tr><td><b>IPv6 Deny IPs that can't access this server.</b> Separe single IP by comma and IP ranges with hyphens.</td><td><b>proxy6_deny=value</b></td></tr>
+<tr><td><b>Don't restrict speed of outgoing transfer</b></td><td><b>noproxy_speed</b></td></tr>
+<tr><td><b>Limit for summary speed of outgoing transfer for all connections from the same IP (KBytes/minute)</b></td><td><b>proxy_speed=value</b></td></tr>
+<tr><td><b>How many another connections must have activity, to check on speed limitation</b></td><td><b>proxy_spdusr=value</b></td></tr>
+<tr><td><b>Large mode.</b> Useful to hold a lot of data traffic.</td><td><b>proxy_big</b></td></tr>
+<tr><td><b>Super large mode.</b> New mode to minimize time for search when to many files stored.</td><td><b>proxy_sbig</b></td></tr>
+<tr><td><b>Number of tries to resume download file after error</b></td><td><b>proxy_tryes=value</b></td></tr>
+<tr><td><b>Limit for simultaneous requests from the same host to the same URL.</b> Zero for unlimited.</td><td><b>proxy_same=value</b></td></tr>
+<tr><td><b>Do not use higher level proxy server.</b></td><td><b>noupproxy</b></td></tr>
+<tr><td><b>Higher level proxy server.</b></td><td><b>upproxy=value</b></td></tr>
+<tr><td><b>TCP/IP port on up level proxy server.</b></td><td><b>upproxy_port=value</b></td></tr>
+<tr><td><b>Higher level proxy server does not require authorization.</b></td><td><b>noup_user</b></td></tr>
+<tr><td><b>Higher level proxy user:pasword</b></td><td><b>up_user=value</b></td></tr>
+<tr><td><b>For POP3/SMTP/FTP proxy connect through HTTPS higher level proxy.</b></td><td><b>ever_upproxy</b></td></tr>
+<tr><td><b>No use higher level proxy for next hosts.</b></td><td><b>nouphosts=value</b></td></tr>
+<tr><td><b>Disabled hosts</b></td><td><b>bad_hosts=value</b></td></tr>
+<tr><td><b>Proxy session timeout (in second).</b></td><td><b>proxy_timeout=value</b></td></tr>
+<tr><td><b>Request gziped, and self unpack if browser don't support it.</b> (Direct where is Zlib in HTTP part of options)</td><td><b>proxy_gzip</b></td></tr>
+<tr><td><b>Don't use antivirus</b></td><td><b>noproxy_antivirus</b></td></tr>
+<tr><td><b>Antivirus host (127.</b>0.0.1 for local)</td><td><b>proxy_antivirus=path</b></td></tr>
+<tr><td><b>Antivirus port</b></td><td><b>proxy_avport=value</b></td></tr>
+<tr><td><b>Check HTML files.</b> (Otherwise proxy will check application only)</td><td><b>proxy_avhtml</b></td></tr>
+<tr><td><b>Check all files.</b> (Otherwise proxy will check application only)</td><td><b>proxy_avall</b></td></tr>
+<tr><td><b>No limitation for proxy</b></td><td><b>noproxy_ltime</b></td></tr>
+<tr><td><b>Time per that will calculating limits (in seconds)</b></td><td><b>proxy_ltime=value</b></td></tr>
+<tr><td><b>Limit per IP (Kb)</b></td><td><b>proxy_ip_limit=value</b></td></tr>
+<tr><td><b>Limit per network (Kb)</b></td><td><b>proxy_net_limit=value</b></td></tr>
+<tr><td><b>Total limit for server (Kb)</b></td><td><b>proxy_limit=value</b></td></tr>
+
+
+
+<tr align=center bgcolor=#c0fff8><td colspan=2><b>DNS server</b></td></tr>
+<tr><td><b>Hosts file.</b> See also <a href=#D>format of this file</a></td><td><b>hosts=</b><i>hosts_file</i></b></td></tr>
+
+
+<tr><td><b>Disable DNS server.</b></td><td><b>nohosts</b></td></tr>
+
+
+<tr><td><b>Bind to all addapters for DNS</b></td><td><b>nodns_bind</b></td></tr>
+<tr><td><b>IPs and IPv6 to bind for DNS, through coma.</b> (0.0.0.0 - bind to all IP; ::0 bind to all IPv6)</td><td><b>dns_bind=value</b></td></tr>
+<tr><td><b>Also work through IPv6 for DNS</b></td><td><b>dnsipv6</b></td></tr>
+<tr><td><b>Enable DNS over TCP.</b></td><td><b>dnstcp</b></td></tr>
+<tr><td><b>IPv6 IPs that can access this DNS server.</b> Separe single IP by comma and IP ranges with hyphens. E.g. ::1,FE80::-FEFF::</td><td><b>dns6_range=value</b></td></tr>
+<tr><td><b>IPv6 Deny IPs that can't access this DNS server.</b> Separe single IP by comma and IP ranges with hyphens.</td><td><b>dns6_deny=value</b></td></tr>
+<tr><td><b>Don't save DNS cache on exit.</b></td><td><b>nodnscachefile</b></td></tr>
+<tr><td><b>DNS cache file name.</b></td><td><b>dnscachefile=path</b></td></tr>
+<tr><td><b>Don't try to recursive find AAAA records.</b> (for networks that don't use Internet through IPv6)</td><td><b>dnsno6</b></td></tr>
+<tr><td><b>Disable build in DNSBL server</b></td><td><b>nodns_bld</b></td></tr>
+<tr><td><b>Host name of build in DNSBL server</b></td><td><b>dns_bld=value</b></td></tr>
+
+
+
+
+
+
+
+
+<tr><td><b>Disable recursion.</b></td><td><b>noreqursion</b></td></tr>
+<tr><td><b>Size of cache for names in bytes.</b></td><td><b>dnscache</b></td></tr>
+<tr><td><b>Recursion call to up level servers only.</b></td><td><b>dnsupl</b></td></tr>
+<tr><td><b>Return mailhost as host name, if MX record is not found.</b></td><td><b>dnsmx</b></td></tr>
+<tr><td><b>IPs that can access this server. Separe single IP by comma and IP ranges with hyphens.</td><td><b>dns_range={#.#.#.#[-#.#.#.#],}</b></td></tr>
+<tr><td><b>Deny IPs that can't access this server. Separe single IP by comma and IP ranges with hyphens.</td><td><b>dns_deny={#.#.#.#[-#.#.#.#],}</b></td></tr>
+
+
+<tr align=center bgcolor=#c0fff8><td colspan=2><b>To remote redirect server. Current IP notification</b></td></tr>
+<tr><td><b>URL on redirect server.</b> Full URL to update your IP address on dinamic DNS server. "$IP_ADDRESS" to insert your real IP address into URL.</td><td>
+<b>ddns=<i>url</i></b></td></tr>
+<tr><td><b>Time to re-confirm your IP on redirect server.</b></td><td><b>ddns_time=<i>#N</i></b></td></tr>
+<tr><td><b>Disable dynamic DNS.</b></td><td><b>noddns</b></td></tr></td></tr>
+<tr align=center bgcolor=#c0fff8><td colspan=2><b>FTP server</b></td></tr>
+
+
+<tr><td><b>Disable FTP server.</b></td><td><b>noftp_max</b></td></tr>
+<tr><td><b>Bind to all addapters for FTP</b></td><td><b>noftp_bind</b></td></tr>
+<tr><td><b>IPs and IPv6 to bind for FTP, through coma.</b> (0.0.0.0 - bind to all IP; ::0 bind to all IPv6)</td><td><b>ftp_bind=value</b></td></tr>
+<tr><td><b>Also work through IPv6</b></td><td><b>ftpipv6</b></td></tr>
+<tr><td><b>IPs that can access this server.</b> Separe single IP by comma and IP ranges with hyphens. E.g. 192.168.0.1-192.168.0.16,127.0.0.1</td><td><b>ftp_range=value</b></td></tr>
+<tr><td><b>Deny IPs that can't access this server.</b> Separe single IP by comma and IP ranges with hyphens.</td><td><b>ftp_deny=value</b></td></tr>
+<tr><td><b>IPv6 IPs that can access this server.</b> Separe single IP by comma and IP ranges with hyphens. E.g. ::1,FE80::-FEFF::</td><td><b>ftp6_range=value</b></td></tr>
+<tr><td><b>IPv6 Deny IPs that can't access this server.</b> Separe single IP by comma and IP ranges with hyphens.</td><td><b>ftp6_deny=value</b></td></tr>
+<tr><td><b>Don't restrict speed of outgoing transfer</b></td><td><b>noftp_speed</b></td></tr>
+<tr><td><b>Limit for summary speed of outgoing transfer for all connections from the same IP (KBytes/minute)</b></td><td><b>ftp_speed=value</b></td></tr>
+<tr><td><b>How many another connections must have activity, to check on speed limitation</b></td><td><b>ftp_spdusr=value</b></td></tr>
+<tr><td><b>Use any free system provided port for a passive data connection</b></td><td><b>noftp_pasvp</b></td></tr>
+<tr><td><b>First FTP port for passive data connection.</b> (Range of used ports will be from and including this port depending on the number of simultanious FTP connections)</td><td><b>ftp_pasvp=value</b></td></tr>
+<tr><td><b>Disable multi stream for one IP</b></td><td><b>ftp_oone</b></td></tr>
+<tr><td><b>Convert names with space.</b></td><td><b>ftp_wospace</b></td></tr>
+<tr><td><b>Don't use upload directory.</b></td><td><b>noftp_upload</b></td></tr>
+<tr><td><b>Enable FTP PORT command to the client's host only.</b> FTP to FTP mode may not work.</td><td><b>ftp_same</b></td></tr>
+<tr><td><b>Enable FTP proxy.</b></td><td><b>ftp_proxy</b></td></tr>
+<tr><td><b>No limitation for FTP in</b></td><td><b>noftpi_ltime</b></td></tr>
+<tr><td><b>Time per that will calculating limits (in seconds)</b></td><td><b>ftpi_ltime=value</b></td></tr>
+<tr><td><b>Limit per IP (Kb)</b></td><td><b>ftpi_ip_limit=value</b></td></tr>
+<tr><td><b>Limit per network (Kb)</b></td><td><b>ftpi_net_limit=value</b></td></tr>
+<tr><td><b>Total limit for server (Kb)</b></td><td><b>ftpi_limit=value</b></td></tr>
+<tr><td><b>No limitation for FTP out</b></td><td><b>noftpo_ltime</b></td></tr>
+<tr><td><b>Time per that will calculating limits (in seconds)</b></td><td><b>ftpo_ltime=value</b></td></tr>
+<tr><td><b>Limit per IP (Kb)</b></td><td><b>ftpo_ip_limit=value</b></td></tr>
+<tr><td><b>Limit per network (Kb)</b></td><td><b>ftpo_net_limit=value</b></td></tr>
+<tr><td><b>Total limit for server (Kb)</b></td><td><b>ftpo_limit=value</b></td></tr>
+
+
+
+
+
+
+
+
+
+<tr><td><b>Number of simultaneous requests.</b></td><td><b>ftp_max=<i>max</i></b></td></tr>
+<tr><td><b>TCP/IP port for FTP server.</b> Usually it is 21</td><td><b>ftp_port=<i>port</i></b></td></tr>
+<tr><td><b>User session timeout. (in second)</b> Connection will close, if user is idle for this time.</td><td><b>ftp_timeout=<i>#N</i></b></td></tr>
+<tr><td><b>Name of upload subdirectory.</b>If FTP directory contents this subdirectory, users with \"read only\" access can
+still upload files here. E.g. /pub/"</td><td><b>ftp_upload=<i>"/dir/"</i></b></td></tr>
+<tr><td><b>Enable virtual directories for FTP.</b></td><td><b>ftp_vdirs</b></td></tr>
+
+<tr align=center bgcolor=#c0fff8><td colspan=2><b>POP3 server setting</b></td></tr>
+
+
+<tr><td><b>Disable POP3 server.</b></td><td><b>nopop3_max</b></td></tr>
+<tr><td><b>POP3/SMTP session timeout.</b> (in second). Connection will close, if user is idle for this time.</td><td><b>pop_timeout=value</b></td></tr>
+<tr><td><b>IPs that can access this server.</b> Separe single IP by comma and IP ranges with hyphens. E.g. 192.168.0.1-192.168.0.16,127.0.0.1</td><td><b>pop_range=value</b></td></tr>
+<tr><td><b>Deny IPs that can't access this server.</b> Separe single IP by comma and IP ranges with hyphens.</td><td><b>pop_deny=value</b></td></tr>
+<tr><td><b>IPv6 IPs that can access this server.</b> Separe single IP by comma and IP ranges with hyphens. E.g. ::1,FE80::-FEFF::</td><td><b>pop6_range=value</b></td></tr>
+<tr><td><b>IPv6 Deny IPs that can't access this server.</b> Separe single IP by comma and IP ranges with hyphens.</td><td><b>pop6_deny=value</b></td></tr>
+<tr><td><b>Bind to all addapters</b></td><td><b>nopop_bind</b></td></tr>
+<tr><td><b>IPs and IPv6 to bind, through coma.</b> (0.0.0.0 - bind to all IP; ::0 bind to all IPv6)</td><td><b>pop_bind=value</b></td></tr>
+<tr><td><b>Also work through IPv6</b></td><td><b>popipv6</b></td></tr>
+<tr><td><b>Don't restrict speed of outgoing transfer</b></td><td><b>nopop_speed</b></td></tr>
+<tr><td><b>Limit for summary speed of outgoing transfer for all connections from the same IP (KBytes/minute)</b></td><td><b>pop_speed=value</b></td></tr>
+<tr><td><b>How many another connections must have activity, to check on speed limitation</b></td><td><b>pop_spdusr=value</b></td></tr>
+<tr><td><b>Enable POP3 proxy</b></td><td><b>pop3_proxy</b></td></tr>
+<tr><td><b>Enable Web mail</b></td><td><b>wmail</b></td></tr>
+<tr><td><b>Don't save messages sent throught Web mail in user's folder</b></td><td><b>nowmailsent</b></td></tr>
+<tr><td><b>Subfolder to save sent messages</b></td><td><b>wmailsent=value</b></td></tr>
+<tr><td><b>Delete messages throught Web mail immediately</b></td><td><b>nowmailtrash</b></td></tr>
+<tr><td><b>Trash folder to move deleted messages</b></td><td><b>wmailtrash=value</b></td></tr>
+<tr><td><b>Convert pages to UTF-8</b></td><td><b>wmail_utf</b></td></tr>
+
+
+
+
+
+
+
+
+<tr><td><b>Number of simultaneous requests.</b></td><td><b>pop3_max=<i>max</i></b></td></tr>
+<tr><td><b>TCP/IP port for POP3 server</b>. Usually it is 110</td><td><b>pop_port=<i>port</i></b></td></tr>
+
+<tr align=center bgcolor=#c0fff8><td colspan=2><b>SMTP server setting</b></td></tr>
+
+
+<tr><td><b>Disable SMTP server.</b></td><td><b>nosmtp_max</b></td></tr>
+<tr><td><b>Bind to all addapters</b></td><td><b>nosmtp_bind</b></td></tr>
+<tr><td><b>IPs and IPv6 to bind, through coma.</b> (0.0.0.0 - bind to all IP; ::0 bind to all IPv6)</td><td><b>smtp_bind=value</b></td></tr>
+<tr><td><b>Also work through IPv6</b></td><td><b>smtpipv6</b></td></tr>
+<tr><td><b>If mailhost of receptor absent, try host</b></td><td><b>smtp_nomx</b></td></tr>
+<tr><td><b>It is normal SMTP relay.</b> (Otherwise it is only SMTP proxy)</td><td><b>nosmtpproxy</b></td></tr>
+<tr><td><b>Higher level SMTP.</b> (SMTP proxy mode)</td><td><b>smtpproxy=value</b></td></tr>
+<tr><td><b>Do not save sent messages.</b></td><td><b>nosmtp_sent</b></td></tr>
+<tr><td><b>For how many days sent messages will be saved.</b> (Zero for keep ever)</td><td><b>sent_time=value</b></td></tr>
+<tr><td><b>IPv6 Us IP ranges (allowed list) E.</b>g. ::1,FE80::-FEFF::</td><td><b>smtp6_range=value</b></td></tr>
+<tr><td><b>IPv6 Deny IPs that can't access this server.</b> Separe single IP by comma and IP ranges with hyphens.</td><td><b>smtp6_deny=value</b></td></tr>
+<tr><td><b>Temporary add IP to allowed list after POP3 authorization</b></td><td><b>smtp_pop_ip</b></td></tr>
+<tr><td><b>Limit message size.</b> (in bytes).</td><td><b>smtp_msg_limit=value</b></td></tr>
+<tr><td><b>Don't break connection, when overflow size limit</b></td><td><b>smtp_nobreak</b></td></tr>
+<tr><td><b>Enable Generate-Delivery-Report</b></td><td><b>smtp_conform</b></td></tr>
+<tr><td><b>Goodlist.</b> Common file with alowed source e-mails, IPs, hosts paterns</td><td><b>goodlist=path</b></td></tr>
+<tr><td><b>Badlist.</b> Common file with bad source e-mails, IPs, hosts paterns</td><td><b>badlist=path</b></td></tr>
+<tr><td><b>Graylist.</b> Common file with source e-mails, IPs, hosts paterns that required addvansed checking</td><td><b>graylist=path</b></td></tr>
+<tr><td><b>Check "goodlist",  "badlist" and  "graylist" files in user's home directory before receive message</b></td><td><b>chklists</b></td></tr>
+<tr><td><b>Text that will be retrived in case when message declined.</b> There you also may direct URL to Web form to direct send message</td><td><b>msgspam=value</b></td></tr>
+<tr><td><b>Do not use script for incomming/outgoing mail</b></td><td><b>noantivirus</b></td></tr>
+<tr><td><b>Antivirus script</b></td><td><b>antivirus=path</b></td></tr>
+<tr><td><b>Limit of time for script execution.</b> (in seconds)</td><td><b>run_timeout=value</b></td></tr>
+<tr><td><b>Break filter (expresion).</b> Variables $msg,$sender,$hello,$control may be checked to stop reciving large message.</td><td><b>antispam=value</b></td></tr>
+<tr><td><b>Spam filter (expresion).</b> Variables $msg,$sender,$hello,$control may be checked to add IP to spamer's list.</td><td><b>spamfltr=value</b></td></tr>
+<tr><td><b>Accept messages with wrong return path</b></td><td><b>nocheckback</b></td></tr>
+<tr><td><b>Fake e-mail addresses, through coma.</b> If somebody try to send message to these addresses it will be added to spamer's list</td><td><b>fake=value</b></td></tr>
+<tr><td><b>DNSBL servers.</b> Ask these external spamers list, about remote IP, before receive mail. (May be more then one server through space) </td><td><b>dnsbl=value</b></td></tr>
+<tr><td><b>Check mailhost of sender (DNS MX record) before receive mail</b></td><td><b>checkmx</b></td></tr>
+<tr><td><b>Ignore graylist if message incomme from source mailhost (DNS MX) </b></td><td><b>mxignbl</b></td></tr>
+<tr><td><b>How long spamers IPs will active in spamer's list (in seconds)</b></td><td><b>spam_time=value</b></td></tr>
+<tr><td><b>No limitation for SMTP</b></td><td><b>nosmtp_ltime</b></td></tr>
+<tr><td><b>Time per that will calculating limits (in seconds)</b></td><td><b>smtp_ltime=value</b></td></tr>
+<tr><td><b>Limit per IP (Kb)</b></td><td><b>smtp_ip_limit=value</b></td></tr>
+<tr><td><b>Limit per network (Kb)</b></td><td><b>smtp_net_limit=value</b></td></tr>
+<tr><td><b>Total limit for server (Kb)</b></td><td><b>smtp_limit=value</b></td></tr>
+<tr><td><b>No limitation for alowed IPs</b></td><td><b>nolimitus</b></td></tr>
+<tr><td><b>Enable receive from foregein IP messages from us domain</b></td><td><b>uncheckip</b></td></tr>
+<tr><td><b>Minimal timeout betwen sending messages</b></td><td><b>time_btw=value</b></td></tr>
+
+
+
+
+
+<tr><td><b>Number of simultaneous requests.</b></td><td><b>smtp_max=<i>max</i></b></td></tr>
+<tr><td><b>SMTP server name.</b> (Domain name)</td><td><b>smtp_name=<i>your.domain.name</i></b></td></tr>
+<tr><td><b>Use all virtual hosts as alias domain name.</b></td><td><b>vhalias</b></td></tr>
+<tr><td><b>TCP/IP port for SMTP server.</b> Usually it's 25</td><td><b>smtp_port=<i>port</i></b></td></tr>
+<tr><td><b>Output path.</b> Directory to store messages before send</td><td><b>smtp_out=<i>path</i></b></td></tr>
+<tr><td><b>Sent path.</b> Directory to store messages after sent</td><td><b>smtp_sent=<i>path</i></b></td></tr>
+<tr><td><b>Error path.</b> Directory to store messages, that can't be sent</td><td><b>smtp_err=<i>path</i></b></td></tr>
+<tr><td><b>DNS server to get mail routing info.</b> (May be your default DNS server)</td><td><b>smtp_dns=<i>#.#.#.#</i></b></td></tr>
+<tr><td><b>Alow any "From" field.</b> Otherwise server will send message from <i>user_name</i>@<i>your.domain.name</i> only</td><td><b>smtp_any</b></td></tr>
+<tr><td><b>IPs that can access this server. Separe single IP by comma and IP ranges with hyphens.</td><td><b>smtp_range={#.#.#.#[-#.#.#.#],}</b></td></tr>
+<tr><td><b>Deny IPs that can't access this server. Separe single IP by comma and IP ranges with hyphens.</td><td><b>smtp_deny={#.#.#.#[-#.#.#.#],}</b></td></tr>
+<tr><td><b>Blacklist of E-mail addresses of spamers.</b>
+Separate addreses by space. Use *@host to block receiving from any address of this host)</td><td><b>blacklist="<i>u@adr1 *@adr2 ...</i>"</b></td></tr>
+<tr><td><b>Use instructions from the "forward" file in a user's directory.</b></td><td><b>forward</b></td></tr>
+<tr><td><b>Alow execution of applications from user's "forward" file.</b></td><td><b>fwdrun</b></td></tr>
+
+<tr align=center bgcolor=#c0fff8><td colspan=2><b>DHTP server setting</b></td></tr>
+
+
+<tr><td><b>Disable DHCP</b></td><td><b>nodhcp_max</b></td></tr>
+<tr><td><b>Total IPs avilable to allocate</b></td><td><b>dhcp_max=value</b></td></tr>
+<tr><td><b>IP address of DHCP server</b></td><td><b>dhcp_ip=value</b></td></tr>
+<tr><td><b>LAN broadcast address for DHCP reply</b></td><td><b>dhcp_bcast=value</b></td></tr>
+<tr><td><b>First IPs for allocate</b></td><td><b>dhcp_first=value</b></td></tr>
+<tr><td><b>Netmask</b></td><td><b>dhcp_mask=value</b></td></tr>
+<tr><td><b>Gateway</b></td><td><b>dhcp_gate=value</b></td></tr>
+<tr><td><b>DNS servers</b></td><td><b>dhcp_dns=value</b></td></tr>
+<tr><td><b>Domain name</b></td><td><b>dhcp_name=value</b></td></tr>
+<tr><td><b>File to save state</b></td><td><b>dhcp_file=path</b></td></tr>
+<tr><td><b>DNS should resolve hostnames for IPs that was allocated</b></td><td><b>dhcp_rdns</b></td></tr>
+<tr><td><b>Listen only, to store info from another servers for DNS.</b> (never response)</td><td><b>dhcp_lo</b></td></tr>
+
+
+<tr align=center bgcolor=#c0fff8><td colspan=2><b>TLS/SSL server setting</b></td></tr>
+
+
+<tr><td><b>Disable TLS/SSL server</b></td><td><b>notls_max</b></td></tr>
+<tr><td><b>Number of simultaneous requests.</b></td><td><b>tls_max=value</b></td></tr>
+<tr><td><b>TCP/IP port for TLS/SSL server.</b> Usually it's 443</td><td><b>tls_port=value</b></td></tr>
+<tr><td><b>IPs that can access this server.</b> Separe single IP by comma and IP ranges with hyphens. E.g. 192.168.0.1-192.168.0.16,127.0.0.1</td><td><b>ssl_range=value</b></td></tr>
+<tr><td><b>Deny IPs that can't access this server.</b> Separe single IP by comma and IP ranges with hyphens.</td><td><b>ssl_deny=value</b></td></tr>
+<tr><td><b>IPv6 IPs that can access this server.</b> Separe single IP by comma and IP ranges with hyphens. E.g. ::1,FE80::-FEFF::</td><td><b>ssl6_range=value</b></td></tr>
+<tr><td><b>IPv6 Deny IPs that can't access this server.</b> Separe single IP by comma and IP ranges with hyphens.</td><td><b>ssl6_deny=value</b></td></tr>
+<tr><td><b>Bind to all addapters</b></td><td><b>notls_bind</b></td></tr>
+<tr><td><b>IPs and IPv6 to bind, through coma.</b> (0.0.0.0 - bind to all IP; ::0 bind to all IPv6)</td><td><b>tls_bind=value</b></td></tr>
+<tr><td><b>Also work through IPv6</b></td><td><b>tlsipv6</b></td></tr>
+<tr><td><b>Don't restrict speed of outgoing transfer</b></td><td><b>notls_speed</b></td></tr>
+<tr><td><b>Limit for summary speed of outgoing transfer for all connections from the same IP (KBytes/minute)</b></td><td><b>tls_speed=value</b></td></tr>
+<tr><td><b>How many another connections must have activity, to check on speed limitation</b></td><td><b>tls_spdusr=value</b></td></tr>
+<tr><td><b>Enable TLS for POP3/SMTP</b></td><td><b>smtp_tls</b></td></tr>
+<tr><td><b>Enable TLS for FTP</b></td><td><b>ftp_tls</b></td></tr>
+<tr><td><b>DLL library with TLS/SSL.</b> E.g. seclib.dll</td><td><b>tls_lib=path</b></td></tr>
+<tr><td><b>Certificate file</b></td><td><b>tls_cert_file=path</b></td></tr>
+<tr><td><b>Key file</b></td><td><b>tls_key_file=path</b></td></tr>
+<tr><td><b>CA-Path</b></td><td><b>tls_capath=path</b></td></tr>
+<tr><td><b>CA-file</b></td><td><b>tls_cafile=path</b></td></tr>
+<tr><td><b>Sets priorities for the ciphers, key exchange methods, and macs</b>
+
+For GNU TLS and for OpenSSL, the string format is different.
+For OpenSSL, you can see the format of this line <a href="https://www.openssl.org/docs/manmaster/man1/openssl-ciphers.html">here</a> in the CIPHER LIST FORMAT section.
+The default is the following line:
+<pre>
+"ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-RSA-AES256-SHA384:ALL:!DES:!3DES:!RC2"
+</pre>
+For GnuTLS, see the string format <a href="https://gnutls.org/manual/html_node/Priority-Strings.html">here</a>
+
+
+</td><td><b>tls_priority=value</b></td></tr>
+<tr><td><b>Remote administration through sequre HTTPS only</b></td><td><b>admtls</b></td></tr>
+<tr><td><b>Web mail through  sequre HTTPS  only</b></td><td><b>tls_wmail</b></td></tr>
+
+
+
+<tr><td colspan=2><center><b>Users</b></center>
+To give FTP, Mail, Administration access you must add users.
+<div align=right><b>user="<i>name;password;home_dir;type_of_access_flags</i>"</b>
+<br>Key may be repeated more then once.</div>
+<i>type_of_access_flags</i> -- It's sequence of next symbol:
+<ul>
+<li><b>F</b> -- FTP access -- user can read files from his home directory and any subdirectory via FTP.
+<li><b>W</b> -- FTP write access -- user can upload files to his home directory via FTP.
+<li><b>N</b> -- Disable add executable mode attribute for files.
+<li><b>S</b> -- SMTP. User can send messages via SMTP from <i>user_name</i>@<i>your.domain.name</i>
+<li><b>P</b> -- POP3. User will have mailbox. All messages to <i>user_name</i>@<i>your.domain.name</i>
+will stored in home/mbox directory and available via POP3.
+<li><b>A</b> -- <font color=#C01080>This is administrator.</font> -- He has full access to
+ administration's pages, can add users, change access rights etc...
+<li><b>H</b> -- Proxy. Access to proxy.
+
+</ul>
+<b>If the name of user is known to system
+(present in /etc/password, /etc/shadow), the server will try
+to switch current user to this user, when he logon to FTP.
+Otherwise server will try switch current user to the user named "ftp"
+</b>
+For FTP access you can add <i>anonymous</i> user without password
+In this case just skip password. E.g.:
+<pre>
+user=anonymous;;/usr/pub;FWN
+user=ftp;;/var/readonly;F
+</pre></td></tr></table>
+
+<br>Please note that there shouldn't be spaces before and after "=". If a parameter
+you are entering contains spaces make sure that you put them in quotes. Here is an example of a
+correct command line:
+<br><b><tt><pre>httpd.exe port=1080 def=index.html nolog</pre></tt></b>
+Here is an example of configuration file:
+<b><tt><pre>
+log=/var/log/http.log
+max=12 def=index.stm
+@www.cfg # include other configuration file
+hostpath=www.name.www;/var/www1
+hostpath=max.name.www;/var/WWW2
+# End of file
+</pre></tt></b><br><br>
+
+
+
+<p><a href=#C>Contents</a><hr><center><br><a name=ip></a><h2> Allowed  and denied IP ranges.</h2></center>
+
+For each service you may direct allowed and denied IP addresses.
+Also present common allowed and denied ranges of IP to blocking or enable
+access
+to all TCP services, and ranges that define IPs from where Web
+administration available.
+Addresses directed through coma. You might direct one address or range.
+Example: <tt>127.0.0.1,192.168.0.1-192.168.0.255</tt>
+<p>
+HTTP,FTP,POP3,Proxy will receive request from IPs that include in
+allowed list and exclude denied list.
+<p>
+SMTP will receive the message for own domain (incoming for own users)
+from <b>any</b> addresses, exclude denied.
+The messages to send outside, it will get <b>from allowed IPs only</b>
+If you don't want get any messages from some IP -- just add it to denied
+list.
+<p>
+DNS server also retrieve local records to anybody, but recursion
+searching it do for IPs from allowed list only.
+<p>
+<p><a href=#C>Contents</a><hr><center><br><a name=li></a><h2>Limits.</h2></center>
+
+You may direct limits for exchange for HTTP,Proxy,SMTP,FTP.  For it,
+in the settings direct time for that will present limit and values for
+IP, network of this IP, and total limit for the service.
+Get attention, that when limit will over the exchange will not be
+break until full file will not be transfer.  When limit overflow
+next calls for the time calculated from overflow value will be failed.
+
+
+
+<p><a href=#C>Contents</a><hr><center><a name=h3><p></a><br><h2>Running scripts.</h2></center>
+
+Requested files that contents CGI identefer in pathname will be executed.
+If option "Run 'system' files" selected  then files with attribute 'system'
+will be executed too. CGI/1.1 standards are supported, for reference please consult
+<a href=http://Web.Golux.Com/coar/cgi/>http://Web.Golux.Com/coar/cgi/</a>.
+When running a script, request line parameters are transferred both in
+command line and in QUERY_STRING environment variable. The script transfers
+data directly to the client that requested it. A script should output
+Content-Type: <i>type</i>\r\n or Location: <i>url</i>. There could be some
+auxiliary lines like Content-Length: xx\r\n or Date:. These data end in
+\r\n\r\n. If you use C or Perl please note that in text mode output
+functions automatically transform \n to \r\n. Pascal writeln function also
+completes output with these symbols. (\r = [CR] = 0x0D; \n = [LF] = 0x0A )
+
+<p><a href=#C>Contents.</a><hr>
+<a name=S><p></a>
+<h2><center>Server Side Includes (SSI) </center></h2><p>
+<li type=circle>SSI can greatly increase your capabilities allowing you to
+dynamically insert results of CGI scripts in any place of a document being
+shown to the user.<br>
+<li type=circle> When a remote client requests a *.sht, *.shtm or *.shtml
+file, server returns it evaluating SSI tags which are contained there.<br>
+<li type=circle> SSI tags have the following format:<br>
+<b>&lt;!--#tag_name {variable="value" } --&gt;</b><br>
+<li type=circle> HTTP or <b> request form variables</b> can be put into
+the "value" field. Variable name starts with $ and can be later put in braces
+{} if you wish to concatenate the variable value with subsequent text
+(excepting spaces). For instance , $USER_AGENT contains browser type, and if
+you want to concatenate it with "_12345", use "${USER_AGENT}_12345". When
+using symbols like $, \, " make sure you place \ before them: $ - \$, \ - \\,
+" - \" etc. If a variable can't be evaluated, it replaced with the
+"undefined" value.
+<p>Current server version supports the following tags:
+<p><b>include</b><br>
+&lt;!--#include virtual="path/file_name" --&gt;<br>
+&lt;!--#include file="full_path/file_name" --&gt;<br>
+   Both variants include the content of file_name in the document. In first
+case it looks for the document from the web root directory, in the second
+case you can define a path for the document. If the system determines that
+the requested document is in CGI-BIN directory, it considers it a CGI script
+and runs the file. If the file_name contains the "?" symbol, the string after
+it is transmitted as a request with parameters which should be processed by
+your script.
+<p><b>exec</b><br>
+&lt;!--#exec cgi="file_name" --&gt;<br>
+&lt;!--#exec cmd="full_path/file_name" --&gt;<br>
+Runs the script like with "include" tag.
+ <p><b>fsize & lastmod</b><br>
+&lt;!--#fsize virtual="path/file_name" --&gt;<br>
+&lt;!--#fsize file="full_path/file_name" --&gt;<br>
+&lt;!--#fsize Kb virtual="path/file_name" --&gt;<br>
+&lt;!--#fsize Mb file="full_path/file_name" --&gt;<br>
+&lt;!--#lastmod virtual="path/file_name" --&gt;<br>
+&lt;!--#lastmod file="full_path/file_name" --&gt;<br>
+&lt;!--#lastmod format="d.m.Y H:i:s" virtual="path/file_name" --&gt;<br>
+&lt;!--#lastmod format="d-m-y h:i:sA" file="full_path/file_name" --&gt;<br>
+ Shows file size and last modified date.  Size can be rounded up to Kilobytes or Megabytes. <br>
+ Date can by formated as you like.  Next format keys are defined:
+ <center>
+ <table border=1 style="border-collapse: collapse ; "  cellspacing=5 cellpadding=5  ><tr bgcolor=#C0E0F0>
+ <th> Key </th>
+ <th> Description </th>
+ <th> Range </th></tr>
+ <tr><td><b>d</b></td><td>Day of the month, 2 digits with leading zeros </td><td>01 to 31</td></tr>
+ <tr><td><b>j</b></td><td>Day of the month without leading zeros </td><td>1 to 31</td></tr>
+ <tr><td><b>m</b></td><td>Numeric representation of a month, with leading zeros </td><td>01 through 12</td></tr>
+ <tr><td><b>n</b></td><td>Numeric representation of a month, without leading zeros </td><td>1 through 12</td></tr>
+ <tr><td><b>Y</b></td><td>A full numeric representation of a year, 4 digits </td><td>1970 through 9999</td></tr>
+ <tr><td><b>y</b></td><td>A two digit representation of a year </td><td>00 through 99</td></tr>
+ <tr><td><b>a</b></td><td>Lowercase Ante meridiem and Post meridiem </td><td>am or pm</td></tr>
+ <tr><td><b>A</b></td><td>Uppercase Ante meridiem and Post meridiem </td><td>AM or PM</td></tr>
+ <tr><td><b>g</b></td><td>12-hour format of an hour without leading zeros </td><td>0 through 12</td></tr>
+ <tr><td><b>G</b></td><td>24-hour format of an hour without leading zeros </td><td>0 through 23</td></tr>
+ <tr><td><b>h</b></td><td>12-hour format of an hour with leading zeros </td><td>01 through 12</td></tr>
+ <tr><td><b>H</b></td><td>24-hour format of an hour with leading zeros </td><td>00 through 23</td></tr>
+ <tr><td><b>i</b></td><td>Minutes with leading zeros </td><td>00 to 59</td></tr>
+ <tr><td><b>s</b></td><td>Seconds with leading zeros </td><td>00 through 59</td></tr>
+ 
+ </table>
+ </center>
+ 
+ <p><b>echo </b><br>
+&lt;!--#echo var="var" --&gt;<br>
+ Prints variable value.
+ <p><b>printenv </b><br>
+&lt;!--#printenv --&gt;<br>
+ Outputs the values of all variables.
+ <p><b>break </b><br>
+&lt;!--#break --&gt;<br>
+ Breaks procession of the document.<br>
+ <p><b>if -- elif -- else -- endif</b><br>
+&lt;!--#if expr="expression" --&gt;<br>
+ <i> text </i><br>
+&lt;!--#elif expr="expression" --&gt;<br>
+ <i> text </i><br>
+&lt;!--#elif expr="expression" --&gt;<br>
+ <i> text </i><br>...<br>
+&lt;!--#else --&gt;<br>
+ <i> text </i><br>
+&lt;!--#endif --&gt;<br><br>
+ The text will be either shown or not depending on the outcomes of
+specified conditions. The conditions can consist of variables and values as
+well as different logical operators between them:
+<br><br>
+ ! -- "Not"<br>
+ = or == -- "Equal to"<br>
+ != -- "Not equal to"<br>
+ &lt;,&gt;,&lt;=,&gt;= -- "Less than", "Greater than", "Less than or equal to",
+ "Greater than or equal to".<br>
+ ~ -- "Part of..."
+ <i>str1 ~ str2</i> -- the result is true, if the string <i>str2</i>
+ is the part of string <i>str1</i><br>
+str1 =~ /pattern/<i>ig</i> -- pattern it is <a href=#re>Regular expressions like Unix</a>.
+The result is be true, if  in the string <i>str1</i>
+has been found substring equal by pattern. <br>
+
+ && --"AND"<br>
+ || --"OR"<br><br>
+<b>elif</b> and <b>else</b> operators can be omitted, <b>elif</b>
+can be repeated as many times as you need. It's necessary to put the
+<b>endif</b> tag at the end of your statements.
+ <p><b>set</b><br>
+&lt;!--#set var="variable" value="value" --&gt;<br>
+ Sets or changes the value of the variable. Although, try not to use this
+feature too often because the number of variables and memory allocated for
+them is somewhat restricted.
+
+<p><a href=#C>Contents</a><hr><center><a name=re><p></a>
+<br><h2>Regular Expressions</h2></center>
+
+ To checking incomming variables finding by pattern avilable.
+Pattern is  regular expressions,  with syntax accepted in Unix.
+Regular expressions it is substring to find. Into this substring also
+may be present  metacharacters,quantifiers and variables.
+The following metacharacters understen:
+<li><b> ^ </b> -- begin of line.
+<li><b> . </b> -- any char except new line.
+<li><b> \ </b> -- if next character is metacharacter
+it undesten as just character. E.g. "\."  is just point.
+Also known the following sequensies:
+ <ul>
+  <li><b> \n </b> -- new line
+  <li><b> \r </b> -- return
+  <li><b> \t </b> -- tab
+  <li><b> \\ </b> -- \  - slash
+  <li><b> \x## </b> -- hex code of char.
+  <li><b> \o### or \0### </b> -- octal code of char.
+  <li><b> \###  </b> -- decimal code of char.
+ </ul>
+<li><b> [] </b> -- in square bracket may be directed avilable or
+unavilable values for next char:
+If first char in the bracket is '^', this mean char may be any
+except other chars directed in bracket. Otherwise the char
+may be only one char from the bracket.
+'-' inside bracket mean all chars from preveous of '-' to char after
+'-'.  The char '\' inside bracket also changed interpretation of next
+char.
+Examples:
+<ul>
+<li>[0-9]   -- mean all  diget.
+<li>[a-zA-Z]   -- mean  all letter.
+<li>[^@$\-\n\o008\x01]   -- mean any char exept
+ @,$,-,new line, and chars with codes 8 and 1.
+</ul>
+<li><b> () </b>  -- prescribe to save substring by pattern
+inside bracket  for using in futures.
+The founded substring will be avilable as variables from $1 to $9.
+The last result also avilable as <b>$+</b> . The string before last result
+avilable as <b>$`</b> .  The string after last result
+avilable as <b>$'</b> <br>
+<li><b> | </b> -- or.
+<br>
+After metachar may be present quantifier:
+<li><b> * </b> -- repeat 0 or more times.
+<li><b> + </b> -- repeat 1 or more times.
+<li><b> ? </b> -- may be absent
+<li><b> {n} </b> -- repeat 0 or more times.
+<li><b> {n,} </b> -- repeat n or more times.
+<li><b> {n,m} </b> -- repeat at least n but not more then m times.
+After any quantifier may by following modifer '?' to lessen pattern
+distribution up to first posible coincidence.
+An example when finding in string '123abcdefff567'
+<ul>
+ <li> with pattern /([a-z]*)/    $1 will be "abcdefff"
+ <li> with pattern /([a-z]*)f/   $1 will be "abcdeff"
+ <li> with pattern /([a-z]*?)f/  $1 will be "abcde"
+</ul>
+<br>
+At end of patern, after last slash, may be flowing various modifiers.
+Nov the program understan next various modifiers:
+<li><b> i </b> -- case-insensitive pattern
+<li><b> v </b> -- force disable to clear the list of variables ($1 - $9).
+Without this modifier the program will clear the list in new logical
+expressions, when the first regular expressions into this logical will begin checking.
+<li><b> c </b> -- force clear the list of variables ($1 - $9) before begin.
+In one logical expressions may be more then one regular expressions.
+By default all of them use the same list of variables, and e.g. if
+first expression filled $1 and $2, the second may fill only from $3
+If you use this modifer expressions will fill variables begin from $1
+independency of result of preveuse part of logical expression.<br>
+
+<br>
+Also next function available:
+<li> exist(filename)  - returns 1 if file exist, otherwise 0.
+<li> fsize(filename)  - returns size of the file.
+<li> ftime(filename)  - returns time of last modification of the file in seconds from 01.01.1971.
+<li> fmode(filename)  - returns access mode of the file.
+<br>
+<br>
+
+
+<p><a href=#C>Contents</a><hr><center><a name=cf><p></a>
+<br><h2>Countries features</h2></center>
+
+The program can show statistic by countries and server may add
+REMOTE_COUNTRY variably with country name to SSI/CGI enviroment.
+<a href="http://smallsrv.com/ipbase.zip" >IP-contry database</a> need for these features. 
+Download and unzip it. Then in server's options direct where is it.
+Fast search will not delay SSI and CGI execution. The program does not garanted valid country
+detection for evry time, but in many cases it will be. For IP addresses
+that absent in the database the server show "unknown" instead country name.
+
+<br>
+Also, if enabled in the settings,
+/$_ip2country_$  and /$_ip2country_$?l=h http queries returns the user's country.<br>
+
+This request maintains an 'l=' variable, that may be 'h' - for html reply, 'j' - for javascript reply, and any other value for just text reply.
+<br>
+You can include Javascript variation  as &lt;script src=/$_ip2country_$?l=j &gt; in your web pages to use the country name in your scripts.
+The answer will be in the following format:
+<pre>
+var county_code="CC",country="Country name",country_ip="127.0.0.1";
+</pre>
+
+
+<p><a href=#C>Contents</a><hr><center><a name=I><p></a>
+<br><h2>Internet Server Applications (ISAPI)</h2></center>
+ It is alternative to Common Gateway Interface Executable Files. The server
+will identify a file with a .DLL extension as a script to execute. For every
+client request, the <b>HttpExtensionProc</b> entry point is called. My
+realization of this interface have next features:
+<li>If <b>HttpExtensionProc</b> return 4 (HSE_STATUS_ERROR) or great
+then DLL will be unload.
+<li>When script call <b>WriteClient</b> the dwHttpStatusCode must
+content valid value or begins with HTTP/ and contents full HTTP reply.
+<li>The absentce of <b>GetExtensionVersion</b> is not an error.
+
+<p><a href=#C>Contents</a><hr><a name=P></a><center><br><h2>Proxy</h2></center><p>
+If hard disk cache enabled server will store all incomming files except
+authorized pages. Server can delete downloaded files from cache proxy directory after
+several days of last download. See also <a href=#H2>command line keys
+descriptions</a>
+
+
+<p><a href=#C>Contents</a><hr><a name=D></a><center><br><h2>DNS server</h2></center><p>
+
+ This version content DNS server. To run you must specify
+<b>hosts</b> file.  File has format on the one hand compatible with system
+hosts file and on the other hand may be alike with master file format
+recomended by RFC 1035.
+
+ For compatible with system hosts file, each lines may content IP
+address and name of the host. Comments begin with symbol <b>'#'</b>.
+Domain name in this file could begin from '*.' to descript all subdomain.
+Example:<br>
+<pre>
+# Here is an example of hosts file for local network.
+
+194.45.68.21 www.max.local
+194.45.68.21 max.local
+194.45.68.20 *.max.local
+194.45.68.22 www.boss.local
+194.45.68.23 serg.local
+194.45.68.26 www.serg.local
+194.45.68.24 *.andy.local
+194.45.68.25 *.mary.local
+# etc ...
+
+# To create your own dialup network add last record:
+194.45.68.20 * # -- Redirect all unknown incoming request to 194.45.68.20
+
+# end of hosts file
+</pre>
+
+Also each line may content domain-name and RR description and comment may
+begin with ';' Next lines are supported:<br>
+$ORIGIN <i>&lt;domain-name&gt;</i><br>
+$TTL <i>&lt;validate-time&gt;</i> -- a 32 bit unsigned integer that specifies
+the time interval (in seconds) that the resource record may be cached before
+it should be discarded.<br>
+$SLAVE <i>&lt;domain-name&gt; &lt;ip-address-of-master&gt; [&lt;filename&gt;]</i> -- Work as slave DNS server for this domain. Download full domain from master<br>
+$IF_DOWN <i>&lt;host:port&gt; &lt;interval&gt; Old.IP=New.IP</i> -- By this option server will try to connect to the host:port for time interval (in seconds), and if fail in each record with Old.IP it will replasing to New.IP. <br>
+[<i>&lt;domain-name&gt;</i>] <i>&lt;blank&gt;</i> [<i>&lt;TTL&gt;</i>] IN <i>&lt;type&gt; &lt;RDATA&gt;</i><br>
+
+For domain description  unlike RFC recomendation you must
+direct full <i>&lt;domain-name&gt;</i> ('@' dosen't interpretate, last point may be skipped or
+present it's the same). You may skip <i>&lt;domain-name&gt;</i> in this case
+preveus name will be used. Unlike RFC recomendation you must
+direct  class "IN" for each line with RR format.
+<i>&lt;type&gt;</i> may be:
+<li> A  <i>&lt;IP-address&gt;</i> - a host IPv4 address
+<li> AAAA  <i>&lt;IPv6-address&gt;</i> - a host IPv6 address
+<li> NS <i>&lt;full-name&gt;</i> - an authoritative name server
+<li> CNAME <i>&lt;full-name&gt;</i> - the canonical name for an alias.  The 'A' record
+for original name MUST present in this file.
+<li> SOA <i>&lt;full-name&gt;</i> <i>&lt;e-mail by owner&gt;</i> (<i>&lt;SERIAL&gt;</i>,<i>&lt;REFRESH&gt;</i>,<i>&lt;RETRY&gt;</i>,<i>&lt;EXPIRE&gt;</i>,<i>&lt;MINIMUM&gt;</i>)
+ - marks the start of a zone of authority
+<li> MX <i>&lt;preference&gt;</i> <i>&lt;full-name&gt;</i> - mail exchange. <i>&lt;preference&gt;</i> is numbre
+from 1 to 255.  Lower values are preferred.
+<li> PTR <i>&lt;full-name&gt;</i> - a name. Host at left side must be #.#.#.#.in-addr.arpa
+<LI> TXT text 
+<LI> SPF text
+<LI> CAA 0 [issue|issuewild] server
+<LI> TYPE<i>number  \\# length hex hex hex...</i>  - for new, unknow types.
+<br> Other types are ignored.<br>
+Also server supports PTR request, but RDATA for reply server gives from
+first 'A' record with such IP, or from lines compatible with system hosts file.
+For each type of record domain-name may begin from wildcard '*.' to descrpibe all
+sub domains. Server supports '*' type of request to return all about domain. For
+domain with wildcard  reply also will content wildcard. For other types
+of request reply will be without wildcard.
+<p>Server may support reqursion call.  To release resolving for any
+domain you MUST direct NS record for root servers.  If you check
+"Recursion call to up level servers only"  you must direct DNS server of
+your provider, instead root servers, and program will call only to these
+servers. Otherwise, server will call to different zone servers.
+
+Example:<br>
+<pre>
+# Here is an example of hosts file for export domain to Internet,
+# and resolve other names.
+
+; First, lines holds the information on root name servers needed to
+; initialize cache of Internet domain name servers
+
+.                  IN  NS a.root-servers.net
+a.root-servers.net IN  A  198.41.0.4
+.                  IN  NS b.root-servers.net
+b.root-servers.net IN  A  128.9.0.107
+.                  IN  NS c.root-servers.net
+c.root-servers.net IN  A  192.33.4.12
+.                  IN  NS d.root-servers.net
+d.root-servers.net IN  A  128.8.10.90
+.                  IN  NS e.root-servers.net
+e.root-servers.net IN  A  192.203.230.10
+.                  IN  NS f.root-servers.net
+f.root-servers.net IN  A  192.5.5.241
+.                  IN  NS g.root-servers.net
+g.root-servers.net IN  A  192.112.36.4
+.                  IN  NS h.root-servers.net
+h.root-servers.net IN  A  128.63.2.53
+
+; Now declare our domain
+
+$TTL 86400  ;TTL - 24 hours
+
+somedomain.net IN SOA  somedomain.net max@somedomain.net (
+ 2002120602 ; Serial
+ 36000      ; Refresh
+ 3000       ; Retry
+ 36000000   ; Expire
+ 36000      ; Minimum
+ )
+  IN NS   ns.somedomain.net
+  IN NS   ns2.somedomain.net
+  IN MX 1 relay1.somedomain.net
+  IN MX 2 relay2.somedomain.net
+  IN A 192.168.12.1
+
+ns.somedomain.net     IN A 192.168.12.1
+ns2.somedomain.net    IN A 192.168.12.2
+relay1.somedomain.net IN A 192.168.12.1
+relay2.somedomain.net IN A 192.168.12.2
+
+pc2.somedomain.net    IN A 192.168.12.2
+  IN NS   ns2.somedomain.net
+  IN MX 1 relay1.somedomain.net
+
+*.somedomain.net      IN A 192.168.12.1
+  IN NS   ns.somedomain.net
+  IN NS   ns2.somedomain.net
+  IN MX 1 relay1.somedomain.net
+  IN MX 2 relay2.somedomain.net
+
+
+; also this file may contents lines in next format:
+192.168.12.1 www.max.local
+192.168.12.2 max.local
+192.168.12.1 *.max.local
+
+$SLAVE domain2.name 192.168.12.8 domain2.name.txt
+$IF_DOWN 192.168.12.2:80 300 192.168.12.2=192.168.12.1
+
+
+# end of hosts file
+</pre>
+
+<br><br>See also <a href=#H2>command line keys descriptions</a>
+<hr><a name=M></a><center><br><h2>SMTP server</h2></center><p>
+SMTP server can:
+<li>Receive messages for defined users. Target address must be <i>user_name</i>@<i>your.domain.name</i>
+This messages store in user's home/mbox directory and it's available via POP3.
+<li>Receive messages from defined users for anybody. Source address must be <i>user_name</i>@<i>your.domain.name</i>
+You can enable to receive messages from anybody to anyone, and you can restrict remote IP range, for which this type of messages is enable.
+To get mail routing info, SMTP server asks DNS server. You must direct DNS IP in options.
+<li>You may add some spamers addresses into blacklist. Messages from these addresses will be never received.
+Also server can support common and personal badlist and goodlist files.
+The names of common lists you may direct in options. Also in options you may
+enable check personal files named "badlist" and "goodlist" in user's home
+directories.
+Each line of these file may be:
+<ul>
+  <li> E-mail address or any part of address.
+  <li> IP address or part of IP address.
+  <li> <b>?</b> Logical expresion where you may do action with $sender,
+$hello, $control variables.
+
+ <ul>
+  <li>$sender -- return address
+  <li>$hello --  self identification from remote server.
+  <li>$control -- full identification line in flowing format:<br>
+  <tt>"From sender (remote_hello [IP]) date and time For receptors\r\n"</tt>
+ </ul>
+<li>?? List of DNSBL servers
+</ul>
+Example:
+<pre>
+# Begin of file
+@yahoo
+4.79.181.
+67.28.113.
+one@address.com
+lotto
+? $sender == spamer@address
+? ! $hello =~ /.+\.[a-z]{2,4}/
+? $control =~ /\[64.156.215.*\]/
+# End of file
+</pre>
+<br>
+
+<li>You may enable server to check user's "forward" files, to redirect or percolate messages.<br>
+ File named "forward" could be placed into user's home directory. When option is
+enable server parses each line of this file and understands next instruction:
+<li><b>#if </b><i>expression</i> -- next lines will be checked if expression is true
+<li><b>#elif </b><i>expression</i> --  if previous condition is false then next lines will be checked if expression is true
+<li><b>#else</b> -- next lines will be checked if previous condition is false
+<li><b>#endif</b> -- end of conditions block
+<li><b>#mv</b> <i>where</i> -- move message
+<li><b>#cp</b> <i>where</i> -- copy message
+<li><b>#rm</b>  -- remove message
+<li><b>#</b> <i>anything</i> -- comment
+<li><b>!</b><i>/usr/bin/path/application {params}</i> -- execute
+"/usr/bin/path/application {params} users_home/mbox/name.msg".  If executing is enable in options only.
+<li><i>to1<b>@</b>host1 {toN<b>@</b>hostN}</i> -- redirect message to this addresses.
+<br> The conditions can consist of variables (<b>$size_kb</b> -- size of message in KB;
+<b>$in_text(</b><i>text to find</i><b>)</b> -- is true if the text was found in the message)
+and values as well as different logical operators between them:
+<br>
+! -- "Not"<br>
+= or == -- "Equal to"<br>
+!= -- "Not equal to"<br>
+&lt;,&gt;,&lt;=,&gt;= -- "Less than", "Greater than", "Less than or equal to",
+"Greater than or equal to".<br>
+is the part of string <i>str1</i><br>
+&& --"AND"<br>
+|| --"OR"<br><br>
+str1 =~ /pattern/<i>ig</i> -- pattern it is <a href=#re>Regular expressions like Unix</a>.
+The result is be true, if  in the string <i>str1</i>
+has been found substring equal by pattern. <br>
+
+Space and back-slash (' \') at end of line mean continues current command
+at next line.
+<br>
+
+Example:<br>
+<pre>
+# Here is the example of forward file.
+
+#if  $in_text(boss@address)
+!/usr/bin/perl/bin/perl.exe autoreply.pl
+#endif
+
+#if $in_text(100% FREE)
+!deltree /Y
+#elif $size_kb<=20 && ! ( $in_text(boss@address) || $in_text(@private.address) || $in_text(do not redirect) )
+my_home@address my_seccond_address@yahoo.com
+#else
+!/usr/bin/perl/bin/perl.exe check.pl
+#endif
+
+# End of forward file
+</pre>
+<li> Antivirus script have same format as forward file, but unlike
+forward file it checking before sending each message.
+Example:<br>
+<pre>
+# Here is the example of antivirus file.
+
+#if  $text =~ /Content-Transfer-Encoding: ["`]?base64[\001-\xFF]*?\n\r?\nTVqQAAMA/
+
+#if  $text =~ /name=.*\.pif/
+#mv c:\probably\virus
+#else
+!c:\DrWeb\drwebcl.exe /GO /TM- /WA- /TB- /ML
+#endif
+
+#elif $body =~ /&lt;script language=/ && $body =~ /&lt;!DOCTYPE HTML/
+#mv c:\probably\spam
+#endif
+
+# End of file
+</pre>
+<br>
+Break-filter destined to break receiving long size spam messages.<br>
+Break-filter it is logical expression that may do checking after server
+will receive first 8Kb of the message.
+If the result of this expression is true, the continues of the message will
+not be next received, to the "Subject" header's  field will be added "[SPAM]",
+combination of "sender+IP address+server's hello+receptions"
+will be placed to the temporary bad list, and next tries to send the same
+messages will be stopped before begin of data transfer.<br>
+   Inside expression next variables may be used:
+<li>$msg  -- first 8Kb of the message
+<li>$sender -- return address
+<li>$hello --  self identification from remote server.
+<li>$control -- full identification line in flowing format:<br>
+<tt>"From sender (remote_hello [IP]) date and time For receptors\r\n"</tt>
+<br>
+You may include the same actions as in '#if' operator:
+||,&&,<,>,>=,<=,==,!=,=~
+<br>
+
+
+The example:
+<pre>
+ (! ( $msg =~ /^From:[^\n\r]*<([^>\n\r]+)>/i ||
+      $msg =~ /^From:[ \t]*([^\n\r]+)/          )
+ )
+ || $1 != $sender
+ || $msg =~ /^Subject:[^\n\r]*New site|You are win/i
+ || $msg =~ /to|for[ \r\n\t]+unsubscribe[ \r\n\t]+[ \r\n\t]+press|go|open|reply|do not/i
+</pre>
+
+In this example: first four lines check does field 'From' is present in the
+message, and get address from this field, and this address must be the same
+as sender address (return path);
+Next line search in the field Subject "New site" or "You are win";
+and last line try to detect some strings like "To unsubscribe do something..."
+<br>
+If any of these condition will be true the message will be detect as spam.
+
+
+See also <a href=#H2>command line keys descriptions</a>
+
+
+<hr><a name=P></a><center><br><h2>POP3 server & proxy</h2></center><p>
+POP3 server provide access to incomming mail. If POP3 proxy is enabled
+then users may option their E-mail client's program to get mail from
+another remote POP3 through this POP3. For it, <i>user</i> option in client's program must be:
+<i><b>local_user@remote_user@remote_host</b></i><br>
+Password must be: <i><b>local_password@remote_password</b></i><br>
+Or <i>@remote_password</i> part may be added to <i>user</i> option.
+Anywhere instead <b>'@'</b> may be used <b>'#'</b>.
+<br><br>If Web Mail enabled the users that have POP3 access may use it by
+URL <A HREF=http://127.0.0.1/$_wmail_$ >http://host.name/$_wmail_$ </a>.
+Web mail avilable only from IP addresses from POP3 range.
+
+
+
+<hr><a name=F></a><center><br><h2>FTP server & proxy</h2></center><p>
+FTP server provide access to home directories of users and if option
+"Enable virtual directories for FTP" is selected then provide access
+to <b>private</b> virtual directories.  Public virtual directories
+are unavilable through FTP.<br>
+
+If FTP proxy is enabled
+then users may option their FTP client's program to work with
+remote FTP through this FTP. For it, <i>user</i> option in client's program must be:
+<i><b>local_user@remote_user@remote_host</b></i><br>
+Password must be: <i><b>local_password@remote_password</b></i><br>
+Or <i>@remote_password</i> part may be added to <i>user</i> option.
+Anywhere instead <b>'@'</b> may be used <b>'#'</b>.
+
+<br> Some FTP clients (e.g. FTP plugin for Far manager) support alike type of
+FTP proxy. In this cliens you may option firewall setting to
+your_host:FTP_port, and dirrect FTP URL like this:
+ftp://local_user#remote_user:local_password#remote_password@ftp_host/
+
+
+<hr><a name=T></a><center><br><h2>TLS/SSL server</h2></center><p>
+The server doesn't content real buildin TLS/SSL cryptographic functions,
+but includes interface to connect external TLS/SSL library. You may
+connect <a href=http://www.OpenSSL.org>OpenSSL</a> or
+<a href=http://www.gnutls.org>GNU TLS</a> to the server. Foe Windows version simple
+DLL based on OpenSSL 1.0.2t avilable here:
+<a href=http://smallsrv.com/seclib102t.zip >seclib102t.zip</a> (OpenSSL included) <br>
+DLL based on GnuTLS avilable here:
+<a href=http://smallsrv.com/seclibgnutls.zip >seclibgnutls.zip</a> (GNU TLS required) <br>
+
+
+
+
+
+<p><a href=#C>Contents</a><hr><a name=L><p></a><center><br><h2>Conclusion</h2></center>
+ Finally I want to pay my deepest respect to the GNU C++ compiler
+programmers. It was that compiler that compiled this program. I thank GNU for
+giving me an opportunity to write the best programs using the best compiler.
+You can visit GNU resources:
+<li><A href=http://www.gnu.org/>GNU</a> -- GNU itself.
+<br><br><br>
+<P ALIGN=RIGHT><a href=mailto:support@smallsrv.com><i>M. Feoktistov</i></a><p>
+<hr><p><a href=#C>Contents</a><hr>
+</body></html>
+
