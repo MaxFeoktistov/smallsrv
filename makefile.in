@@ -123,7 +123,7 @@ FAKELIBS64=$(addprefix fakelibs64/,$(FLIBS))
 
 #all: o64/httpdu.exe o/httpd.exe
 
-all: o/httpd.exe
+#all: o/httpd.exe
 
 #o64/libsecgnutls.so o64/libsec.so
 

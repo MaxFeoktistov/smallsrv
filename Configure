@@ -268,6 +268,7 @@
  }
  
   open(FILE, "<makefile.in") || die("Can\'t open makefile.in\n");
+  open(OFILE, ">Makefile") || die("Can\'t open Makefile\n");
   
   if(!$withoutfakelibs)
   {
@@ -290,8 +291,8 @@ FAKELIBS64=$(addprefix fakelibs64/,$(FLIBS64))
     }
   }
 
-  print  $mf;
-  print  "\nall: /dev/shm/shttps/o/1.x o/1.x $all\n\n";
+  print OFILE $mf;
+  print OFILE "\nall: /dev/shm/shttps/o/1.x o/1.x $all\n\n";
   
  L2: 
   while(<FILE>)
@@ -342,8 +343,9 @@ FAKELIBS64=$(addprefix fakelibs64/,$(FLIBS64))
       s/^i64:(.*)o64\/libsecgnutls.so(.*)/i64: $1 $2/g;
     }
     
-    print $_;
+    print OFILE $_;
   }
   
+  close OFILE;
   close FILE;
   
