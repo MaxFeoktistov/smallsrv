@@ -1,0 +1,14 @@
+-c                                                                
+-fpack-struct                                                      
+-m486                                                              
+-s                                                                 
+-O2                                                                
+-fno-implicit-templates                                            
+-fsjlj-exceptions                                                  
+-Zpe                                                               
+-fconserve-space
+-ID:\DJGPP\INCLUDE\WIN32
+-DSERVICE=1
+-mrtd
+sethttp3.cpp
+-o sethttp3.o

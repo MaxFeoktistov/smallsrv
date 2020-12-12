@@ -1,0 +1,37 @@
+OUTPUT_FORMAT("coff-go32")
+ENTRY(PEStart)
+SECTIONS
+{
+  .text  0x401000 : {
+    crt0pe.o(.text)
+    . = ALIGN(0x4);
+    djgpp_first_ctor = . ;
+    *(.ctor0)
+    *(.ctor1)
+    *(.ctor2)
+    *(.ctor)
+    djgpp_last_ctor = . ;
+    djgpp_first_dtor = . ;
+    *(.dtor)
+    djgpp_last_dtor = . ;
+ _beg_code = .;
+    djo/ndp.o(.text)
+    djo/pkoulz.o(.text)
+    *(.text)
+ _end_code = . - 16;
+    etext  =  . ; _etext = .;
+    . = ALIGN(0x10);
+  }
+  .data  ADDR(.text)+SIZEOF(.text) : {
+    *(.data)
+     edata  =  . ; _edata = .;
+  }
+  .bss  SIZEOF(.data) + ADDR(.data) :
+  {
+    *(.datan)
+    . = ALIGN(0x10);
+    first_bss = . ;
+    *(.bss)
+     end = . ; _end = .;
+  }
+}
