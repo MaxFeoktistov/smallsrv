@@ -1,0 +1,351 @@
+#!/usr/bin/perl
+
+#
+# Copyright (C) 1999-2020 Maksim Feoktistov.
+#
+# This file is part of Small HTTP server project.
+# Author: Maksim Feoktistov 
+#
+#
+# Small HTTP server is free software: you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License.
+#
+# Small HTTP server is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see https://www.gnu.org/licenses/ 
+#
+# Contact addresses for Email:  support@smallsrv.com
+#
+# 
+#
+
+
+
+ $mf="\n";
+ $all='';
+ 
+ $sec=' libgnutls.so libssl.so';
+ $sec64=' libgnutls.so libssl.so';
+ 
+ if($#ARGV >=0 )
+ {
+ L1:
+   foreach $_ (@ARGV)
+   {
+     if(/help/ || /--\?/)
+     {
+       print  '
+   Configure Makefile  to build Small HTTP server.
+   
+   keys:
+   
+   --target="i32 i64 win arm"   -- select one or more target throught space.
+   --gcc="gcc -m32"  -- select compiler for i32
+   --gcc64="gcc -m64"  -- select compiler for i64
+   --wingcc="wine c:\\\\MINGW\\\\bin\\\\gcc.exe" -- direct compiler for win version
+   --windir="c:\\\\MINGW" -- direct base dir for windows headers and libraries
+   --winsslinclude="c:\\\\openssl\\\\include" -- direct include dir for windows OpenSSL
+   --winssllib="c:\\\\openssl\\\\lib" -- direct lib dir for windows OpenSSL
+   --wingnutlsinclude="c:\\\\openssl\\\\include" -- direct include dir for windows GnuTLS
+   --wingnutlslib="c:\\\\openssl\\\\lib" -- direct lib dir for windows GnuTLS
+   --armgcc="arm-linux-gnueabi-gcc"  -- direct compiler for arm
+   --arminclude="/usr/src/crossarm/include"
+   --armlib="/usr/src/crossarm/lib"
+   --withoutIPv6    --  IPv4 only
+   --withoutFUTEX    -- do not use futex (Linux specifed feature)
+   --withoutPOOL    -- use select instead pool
+   --withoutMD5    -- without MD5 
+   --withoutfakelibs    -- without fakelibs  (with fakelibs the program can run in another Linux systems)
+';
+      exit 0;
+     }
+     if(/--target=(.*)/)
+     {
+       $all = $1;
+       $target=1;
+       next L1;
+     }
+     if(/--gcc=(.*)/)
+     {
+       $a = $1;
+       $gcc=1;
+       $mf .=  "GPP=$a\nGCC=$a\n";
+       next L1;
+     }
+     if(/--gcc64=(.*)/)
+     {
+       $a = $1;
+       $gcc64=1;
+       $mf .=  "GPP64=$a\nGCC64=$a\n";
+       next L1;
+     }
+     if(/--winegcc=(.*)/)
+     {
+       $a = $1;
+       $winegcc=1;
+       $mf .=  "WINEGPP=$a\nWINEGCC=$a\n";
+       $b=$a;
+       $b =~ s/[a-z0-9_.]+exe/as.exe/ ;
+       $mf .=  "WINEAS=$b\n";
+       $b=$a;
+       $b =~ s/[a-z0-9_.]+exe/windres.exe/ ;
+       $mf .=  "WINERES=$b\n";
+       if( $a =~ /[ \t]+([a-zA-Z_0-9.\\\/\-]+)\\bin\\/ )
+       {
+         $b=$1;
+         $mf .=  "MGDIR=$b\n";
+       }
+       elsif( $a =~ /^([a-zA-Z_0-9.\\\/\-]+)[\\\/]bin[\\\/]/ )
+       {
+         $b=$1;
+         $b =~ s/^wine[ ]+// ;
+         $mf .=  "MGDIR=$b\n";
+       }
+       next L1;
+     }
+     if(/--windir=(.*)/)
+     {
+       $a = $1;
+       $mf .=  "MGDIR=$a\n";
+       next L1;
+     }
+     if(/--winsslinclude=(.*)/)
+     {
+       $a = $1;
+       $winissl=1;
+       $mf .=  "SSLIDIR=$a\n";
+       next L1;
+     }
+     if(/--winssllib=(.*)/)
+     {
+       $a = $1;
+       $winlssl=1;
+       $mf .=  "SSLLIBDIR=$a\n";
+       next L1;
+     }
+     if(/--wingnutlsinclude=(.*)/)
+     {
+       $a = $1;
+       $winigtls=1;
+       $mf .=  "GNUTSLIDIR=$a\n";
+       next L1;
+     }
+     if(/--wingnutlslib=(.*)/)
+     {
+       $a = $1;
+       $winlgtls=1;
+       $mf .=  "GNUTSLLIBDIR=$a\n";
+       next L1;
+     }
+     if(/--armgcc=(.*)/)
+     {
+       $a = $1;
+       $armgcc=1;
+       $mf .=  "ATGPP=$a\nATGCC=$a\n";
+       next L1;
+     }
+     if(/--arminclude=(.*)/)
+     {
+       $a = $1;
+       $mf .=  "ATINCLUDE=$a\n";
+       next L1;
+     }
+     if(/--armlib=(.*)/)
+     {
+       $a = $1;
+       $mf .=  "ATLIB=$a\n";
+       next L1;
+     }
+     if(/--withoutIPv6/)
+     {
+       $withoutIPv6 = 1;
+       next L1;
+     }
+     if(/--withoutPOOL/)
+     {
+       $withoutPOOL = 1;
+       next L1;
+     }
+     if(/--withoutFUTEX/)
+     {
+       $withoutFUTEX = 1;
+       next L1;
+     }
+     if(/--withoutMD5/)
+     {
+       $withoutMD5 = 1;
+       next L1;
+     }
+     if(/--withoutfakelibs/)
+     {
+       $withoutfakelibs = 1;
+       next L1;
+     }
+     
+     print  "Unknow key $_\n";
+     exit -1;
+   }
+ }
+
+ if(! $target )
+ {
+   if( stat('/usr/lib/i386-linux-gnu') )
+   {
+      $all = 'i32';
+   }
+ 
+   if( stat('/usr/lib/x86_64-linux-gnu') )
+   {
+     $all .= ' i64';
+   }
+
+   if(!$winegcc)
+   {
+    if( stat('/usr/bin/wine')    )
+    {
+     $home=$ENV{'HOME'} ;
+     if( stat("$home/.wine/drive_c/MINGW") )
+     {
+       $a='wine C:\\\\MINGW\\\\bin\\\\gcc.exe';
+       $b='wine C:\\\\MINGW\\\\bin\\\\as.exe';
+       $c='wine C:\\\\MINGW\\\\bin\\\\windres.exe';
+       $mf .=  "WINEGPP=$a\nWINEGCC=$a\nWINEAS=$b\nWINERES=$c\nMGDIR=C:\\\\MINGW\n";
+       $all .= ' win';
+     }
+     elsif( stat("$home/.wine/drive_c/MinGW") )
+     {
+       $a='wine C:\\\\MinGW\\\\bin\\\\gcc.exe';
+       $b='wine C:\\\\MinGW\\\\bin\\\\as.exe';
+       $c='wine C:\\\\MinGW\\\\bin\\\\windres.exe';
+       $mf .=  "WINEGPP=$a\nWINEGCC=$a\nWINEAS=$b\nWINERES=$c\nMGDIR=C:\\\\MinGW\n";
+       $all .= ' win';
+     }
+    }
+   } 
+   else
+   { 
+     $all .= ' win';
+   }
+ }
+ 
+ if($all =~ /i32/   )
+ {
+   if( (!stat('/usr/lib/i386-linux-gnu/libssl.so') ) || !stat('/usr/include/openssl') )
+   {
+      print STDERR 'i32: Not found OpenSSL library or OpenSSL header files.  Build without seclib.so';
+      $woseclib32=1;
+      $sec =~ s/libssl.so//;
+   }
+   if( ((!stat('/usr/lib/i386-linux-gnu/libgnutls.a') ) && !stat('/usr/lib/i386-linux-gnu/libgnutls.so') ) || !stat('/usr/include/gnutls') )
+   {
+      print STDERR 'i32: Not found GnuTLS library or GnuTLS header files.  Build without libgnutls.so';
+      $wolibgnutls32=1;
+      $sec =~ s/libgnutls.so//;
+   }
+ 
+ }
+ 
+ if($all =~ /i64/   )
+ {
+   if( (!stat('/usr/lib/x86_64-linux-gnu/libssl.so') ) || !stat('/usr/include/openssl') )
+   {
+      print STDERR 'i64: Not found OpenSSL library or OpenSSL header files.  Build without seclib.so';
+      $woseclib64=1;
+      $sec64 =~ s/libssl.so//;
+   }
+   if( ((!stat('/usr/lib/x86_64-linux-gnu/libgnutls.a') ) && !stat('/usr/lib/i386-linux-gnu/libgnutls.so') ) || !stat('/usr/include/gnutls') )
+   {
+      print STDERR 'i64: Not found GnuTLS library or GnuTLS header files.  Build without libgnutls.so';
+      $wolibgnutls64=1;
+      $sec64 =~ s/libgnutls.so//;
+   }
+ 
+ }
+ 
+  open(FILE, "<makefile.in") || die("Can\'t open makefile.in\n");
+  open(OFILE, ">Makefile") || die("Can\'t open Makefile\n");
+  
+  if(!$withoutfakelibs)
+  {
+    $mf .= sprintf('
+    
+FLIBS=libc.so libdl.so libpthread.so %s
+FAKELIBS=$(addprefix fakelibs/,$(FLIBS))
+FLIBS64=libc.so libdl.so libpthread.so %s
+FAKELIBS64=$(addprefix fakelibs64/,$(FLIBS64))
+    
+    ',$sec,$sec64);
+  
+    if( $all =~ /i32/)
+    {
+      $all = '$(FAKELIBS) ' . $all;
+    }
+    if( $all =~ /i64/)
+    {
+      $all = '$(FAKELIBS64) ' . $all;
+    }
+  }
+
+  print OFILE $mf;
+  print OFILE "\nall: /dev/shm/shttps/o/1.x o/1.x $all\n\n";
+  
+ L2: 
+  while(<FILE>)
+  {
+    if(/^([A-Z0-9]+=)/)
+    {
+      $a=$1;
+      if($mf =~ /\n$a/m )
+      {
+        next L2;
+      }
+    }
+    if($withoutPOOL)
+    {
+      s/-DUSE_POOL//g;
+    }
+    if($withoutIPv6)
+    {
+      s/-DUSE_IPV6//g;
+    }
+    if($withoutFUTEX)
+    {
+      s/-DUSE_FUTEX//g;
+    }
+    if($withoutMD5)
+    {
+      s/-DWITHMD5//g;
+    }
+    if($withoutfakelibs)
+    {
+      s/-Lfakelibs[0-9]*//g;
+    }
+    if($woseclib32)
+    {
+      s/^i32:(.*)o\/libsec.so(.*)/i32: $1 $2/g;
+    }
+    if($wolibgnutls32)
+    {
+      s/^i32:(.*)o\/libsecgnutls.so(.*)/i32: $1 $2/g;
+    }
+    
+    if($woseclib64)
+    {
+      s/^i64:(.*)o64\/libsec.so(.*)/i64: $1 $2/g;
+    }
+    if($wolibgnutls64)
+    {
+      s/^i64:(.*)o64\/libsecgnutls.so(.*)/i64: $1 $2/g;
+    }
+    
+    print OFILE $_;
+  }
+  
+  close OFILE;
+  close FILE;
+  

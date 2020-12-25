@@ -1,0 +1,41 @@
+
+
+
+                  Notes for multi languages support
+
+     The  Small  HTTP  server  ver 3.06 support separate language file. This
+give  possibility to make any localisation of the program. The language file
+named  'shs_lang.cfg'.  The  file  is  the  same  for  Windows and for Linux
+versions.  If  this  file  is  placed  in  the  same  directory where placed
+configuration  file,  the  program load strings from this file. Localisation
+files that are already available, placed into 'langpacks' directory.
+     If  the  file for your language is not precent there, then you can make
+it yourself, just translate the file from some other language. If you do it,
+then you  may  send  me the result, it will be including in the next packages
+and it will be a vailable for download on the site.
+
+shs_lang.cfg file format:
+
+     It  is  text  file. The file including the records for strings constant
+that using the program. Each record it is:
+
+MNEMOTIC_NAME=some text<LF><LF>
+
+     (<LF>  --  mean new line) The records separated by empty line. The text
+into  the  record  may  be  multiline,  but  all new line characters will be
+removed   when   loading.  To  insert  new  line  in  the  string  use  '\n'
+construction.  Also  if you would like to include backslash in the text then
+use two backslash '\\' instead. Another interpreted char it is \r, \",\' .
+     Some  strings  used for format output. In these strings the % sign must
+be replaced to %% (two procent sing).
+     Some  string  include  HTML  formatting  and  in some case HTTP header.
+Please,  be  careful,  do  not  change  this  parts of string, otherwise the
+program will not work correct.
+
+And very importing record it is:
+
+charset=; charset=windows-1250
+
+     There  you may direct the charset that will be using. If the charset is
+utf-8 the Windows version of the program will try to convert the strings for
+dialog-windows to unicode.

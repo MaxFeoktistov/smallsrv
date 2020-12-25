@@ -1,0 +1,110 @@
+#
+# Copyright (C) 1999-2020 Maksim Feoktistov.
+#
+# This file is part of Small HTTP server project.
+# Author: Maksim Feoktistov 
+#
+#
+# Small HTTP server is free software: you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License.
+#
+# Small HTTP server is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see https://www.gnu.org/licenses/ 
+#
+# Contact addresses for Email:  support@smallsrv.com
+#
+# 
+#
+
+
+
+
+CFLAGS= -fpack-struct -m486 -s -O2 -malign-loops=0 -malign-jumps=0 -malign-functions=0 -fno-verbose-asm -fno-implicit-templates -mno-svr3-shlib -mno-align-double \
+ -mno-fancy-math-387 -static -fsjlj-exceptions -fconserve-space -ID:\DJGPP\INCLUDE\WIN32 -mrtd -Zpe
+ 
+LFLAGS= -s -Zpe -mrtd -static  -fsjlj-exceptions -fpack-struct -m486 -O2 -malign-jumps=0 -malign-functions=0 -fno-verbose-asm -fno-implicit-templates -mno-svr3-shlib -mno-align-double  -mno-fancy-math-387 -fconserve-space -LD:\DJGPP\LIB
+ 
+SOBJ= ndp.o pkoulz.o stpdta.o sethttp3.o
+SOBJR= ndp.o pkoulz.o stpdtar.o sethttp3r.o
+OBJ=  ndp.o pkoulz.o srv0a.o
+DEF= -DRICON -DONEFILE -DSERVICE -DFREE_VER -DFREEVER -DV_FULL=1 -DUSE_IPV6
+# LIB= -luser -lkern -lgdi -lshell -lcdlg -lwadv
+#      -luser -lkern -lsock -lgdi -lshell -lcdlg -lwadv
+
+OOBJS=$(addprefix djo/,$(OBJ))
+OSOBJS=$(addprefix djo/,$(SOBJ))
+OSROBJS=$(addprefix djo/,$(SOBJR))
+
+all: djo/http.exe djo/shttp3.exe djo/shttp3r.exe
+
+djo/http.exe: $(OOBJS)
+	gcc -specs=specs.dj -o djo/a.out $(LFLAGS) -nostartfiles -nodefaultlibs -Xlinker -Map -Xlinker djo/flxmap  $^ -luser -lkern -lws2 -lgdi -lshell -lcdlg -lwadv 
+	make_pe.exe  -p 0x3C00000 -o $@  djo/a.out
+	cpres.exe copyres.exe $@
+
+
+djo/shttp3.exe: $(OSOBJS)
+	gcc  -specs=specs.dj -o djo/a.out  $(LFLAGS)  -nostartfiles  -nodefaultlibs $^ -luser -lkern -lgdi -lshell -lcdlg -lwadv
+	make_pe.exe -o $@ djo/a.out
+	cpres.exe copyres.exe $@
+
+djo/shttp3r.exe: $(OSROBJS)
+	gcc -specs=specs.dj -o djo/a.out $(LFLAGS)  -nostartfiles  -nodefaultlibs $^ -luser -lkern -lgdi -lshell -lcdlg -lwadv
+	make_pe.exe -o $@ djo/a.out
+	cpres.exe copyres.exe $@
+
+
+djo/%.o: %.cpp
+	gcc -specs=specs.dj -c  $(CFLAGS) $(DEF) $^ -o $@
+
+djo/sethttp3r.o: sethttp3.cpp
+	gcc -specs=specs.dj -c  $(CFLAGS) $(DEF) -DRUS $^ -o $@
+
+djo/%.o: %.s
+	as $^ -o $@
+
+djo/stpdta.o: stpdta.s djo/http.bin  djo/uninst.bin djo/http.bin djo/ind1.bin djo/eshs_lang.bin djo/shs_lang.bin djo/lnotes.bin djo/lic.bin
+	cd djo ; as ../stpdta.s -o stpdta.o ; cd ..
+
+djo/stpdtar.o: stpdtar.s djo/uninst.bin djo/http.bin djo/ind1r.bin djo/eshs_lang.bin djo/shs_lang.bin djo/lnotes.bin djo/licr.bin
+	cd djo ; as ../stpdtar.s -o stpdtar.o ; cd ..
+
+
+
+djo/http.bin: djo/http.exe
+	bin2c $< $@
+
+djo/uninst.bin: uninst.exe
+	bin2c $< $@
+
+djo/%.bin: %.htm
+	bin2c $< $@
+
+djo/%.bin: %.txt
+	bin2c $< $@
+
+djo/%.bin:  %.htm
+	bin2c  $< $@
+
+djo/licr.bin : licr06.txt 
+	bin2c  $< $@
+
+djo/lic.bin :  license06.txt 
+	bin2c  $< $@
+
+djo/shs_lang.bin :  ru/shs_lang.cfg 
+	bin2c  $< $@
+
+djo/eshs_lang.bin : en/shs_lang.cfg 
+	bin2c  $< $@
+
+djo/lnotes.bin :  lang_notes.txt 
+	bin2c  $< $@
+
+ 
