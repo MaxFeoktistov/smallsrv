@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2020 Maksim Feoktistov.
+ * Copyright (C) 1999-2021 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov 
@@ -835,7 +835,7 @@ void AddToLogDNS(const char *t,int n,
 #endif
      p1,l,p2,count_of_tr,pval,t);
      pprot+=sprintf(pprot,"%c%s %s(%d)%s",l,t,ttt,n,ad);
- RelProt(&stime);
+     RelProt(&stime);
 };
 
 
@@ -936,7 +936,7 @@ struct DNSReq
 
 
   int NextSend(int rs);
-  int ReReq(int rs,char *name);
+  int ReReq(int rs,char *name,int rtyp=rtypeA);
   int  FindNSResend(int rs,NSRecordLst *ns,char *bfx,int min=0);
   void SendReply(d_msg  *pdm);
   void SendErrReply(d_msg  *pdm,char *);
@@ -1505,7 +1505,7 @@ int FndRec::Find(NSRecordArray *a, char *nm, ulong hash, long type)
  int ret=0;
  NSRecord *f=0;
 
- debug("find %s %X %X",nm,  hash,  type);
+// debug("find %s %X %X",nm,  hash,  type);
  do{
 
    f=FindRec(a,f,hash,nm);
@@ -1523,11 +1523,12 @@ int FndRec::Find(NSRecordArray *a, char *nm, ulong hash, long type)
      //if(nss<MAX_REPL_NSHST)nshst[nns++]=f;
      ns.Add(f);
    }
-   else if(f->type==rtypeCNAME && type==rtypeA)
+   else if(f->type==rtypeCNAME) // && type==rtypeA)
    {
      //if(cn_cnt<5)cname[cn_cnt++]=f;
      cname.Add(f);
-     ++ret;
+     //if( type==rtypeA || type == rtypeAAAA)
+       ++ret;
    }
 
    if(f->type==rtypeSOA)
@@ -1961,19 +1962,21 @@ DNSReq *FindReqById(ulong id)
   return 0;
 }
 
-int DNSReq::ReReq(int rs,char *name)
+int DNSReq::ReReq(int rs,char *name,int rtyp)
 {
   DNSReq *nxt;
   NSRecordLst  lst;
 
 
-     debug("DNS Reqursion get %s %u %u",name,rcnt,ttcnt);
+     debug("DNS Reqursion get %s %u %u type:%u",name,rcnt,ttcnt,rtyp);
      if( rcnt>3 || ttcnt>24 ) return 0;
 
      if((nxt=GetFreeReq(this,MkName(name) ) ) )
      {
 
-       nxt->rcnt++;
+//       nxt->rcnt++;
+       rcnt++;   
+       nxt->rcnt=rcnt;
        nxt->lnk=this - dreq;
        //debug("DNS Reqursion get %s %u link=%u %X %X",name,rcnt,nxt->lnk, nxt,this);
 
@@ -1982,9 +1985,10 @@ int DNSReq::ReReq(int rs,char *name)
        strcpy(nxt->dmmx+13,name);
        nxt->l= ConvertDomain(nxt->dmmx+12,(d_msg *) (nxt->dmmx))-nxt->dmmx;
         //th.l= CopyDName(dmm.buf,bfr)-th.dmmx;
-       DWORD_PTR(nxt->dmmx[nxt->l])=0x1000100;
+//       DWORD_PTR(nxt->dmmx[nxt->l])=0x1000100;
+       DWORD_PTR(nxt->dmmx[nxt->l])=0x1000000 | htons(rtyp) ;
        nxt->l+=4;
-       nxt->typ=rtypeA;
+       nxt->typ=rtyp; //rtypeA;
        lst.n=0;
        if(! (nxt->FindNSResend(rs,&lst,name)) )
        {
@@ -2138,7 +2142,7 @@ union{
  memset(&th,0,sizeof(th));
 // memset(&s_clt,0,sizeof(s_clt));
 // s_clt.sin_port==0x3500;
-DDEBUG("Enter")
+//DDEBUG("Enter")
  th.cnt=1;
  th.state=dnsstWAIT_REPLY|dnsstUSED;
  s=0;
@@ -2302,7 +2306,7 @@ lb_tcpudp:
     th.doh_ptr=0;
  lbDOH:   
  
-   DDEBUG("DD")
+//   DDEBUG("DD")
 
  
    DWORD_PTR(dmmc[th.l])=0;
@@ -2595,19 +2599,47 @@ lbRedirect:
          //if( !(pdreq=GetFreeReq(&th,MkName(t1)) ) )continue;
          t1=fnd.cname.hst[fnd.cname.n-1]->Data();
          if(pdreq==&th)if( !(pdreq=GetFreeReq(&th,hshx)) ) continue;
-         pdreq->ReReq(s,t1);
+         pdreq->ttcnt++;
+         pdreq->ReReq(s,t1,pdreq->typ);
        }
      }
-     else
+  /*   
+     else if(fnd.cname.n)
      {
-             
-             
+         pdreq->state|=dnsstWAIT_CNAME;
+         pdreq->state&=~dnsstWAIT_REPLY;
+         //if( !(pdreq=GetFreeReq(&th,MkName(t1)) ) )continue;
+         t1=fnd.cname.hst[fnd.cname.n-1]->Data();
+         if(pdreq==&th)if( !(pdreq=GetFreeReq(&th,hshx)) ) continue;
+         pdreq->ReReq(s,t1,pdreq->typ);
+        
+     } */
+     else  
+     {
+       
+         /*
+        if(pdreq->typ != rtypeCNAME && pdreq->typ != rtypeA && fnd.Find(cash_rr,bfx,xhst,) )
+        {
+            
+        }  
+        */
+        
   //    debug("Not found in cashe: %u %u %u",fnd.rp.n, fnd.cname.n,fnd.ns.n);
        pdreq->state|=dnsstWAIT_REPLY;
        if(pdreq==&th)if(!(pdreq=GetFreeReq(&th,th.hsh)))continue;
-       if(s_flg&FL_DNSUPLVL && ! (pdreq->state&dnsstUSOA) )fnd.ns.n=0;
-
-
+       /*
+       if(fnd.cname.n)
+       {
+           
+         fnd.ns.n=0;
+//         if(! pdreq->FindNSResend(s,& fnd.ns,fnd.cname.hst[fnd.cname.n-1]->Data()) )goto lbErrSend;
+         sprintf(bfx,"%.64s",fnd.cname.hst[fnd.cname.n-1]->Data());
+       }
+       else
+           */
+       {    
+         if(s_flg&FL_DNSUPLVL && ! (pdreq->state&dnsstUSOA) )fnd.ns.n=0;
+       }  
        if(! pdreq->FindNSResend(s,& fnd.ns,bfx) )goto lbErrSend;
        //pdreq->NextSend(s);
      }
@@ -2627,11 +2659,11 @@ lbRedirect:
 
        if(pdreq->state)
        {
-   // debug("Add to cash time=%u",time(0) );
+   // debug("Add to cash time=%u",cur_time );
         j=cash_rr->AddRRfromReply(pdm,t, ( (char *)pdm+th.l),pdreq->typ );
         if(!dmm.ancount)pdreq->repled.AddIP(ADDR4(& sa_client ) );
 
-   //      debug("pdreq found %u %u",pdreq->state,j);
+//    debug("pdreq found %u %u %s",pdreq->state,j,bfx);
 
   //  debug("End add to cash time=%u",time(0) );
 
@@ -2752,7 +2784,7 @@ lbRedirect:
 
        }
       }
-//      else   {    debug("Id not found %X ",th.us_id);      }
+      else   {    debug("Id not found %X %s",th.us_id,bfx);      }
 
    }
 
@@ -3409,11 +3441,11 @@ int LoadDomain(char *file)
 
  FILETIME tft;
 
- DDEBUG("Init")
+// DDEBUG("Init")
 
  if(file)
  {
- DDEBUG("I")
+// DDEBUG("I")
   if( (s=_lopen(file,0) ) <0 )
   {
    er1:
@@ -3430,7 +3462,7 @@ int LoadDomain(char *file)
 //   hostfile[j]=0;
    i=1;
    for(t=hostfile;*t;++t)if(*t=='\n') ++i;
- DDEBUG("I2")
+// DDEBUG("I2")
   // Cur_hsts=xhsts=new HSTRecord *[i+10];
    k=0;
    t=hostfile;
@@ -3461,7 +3493,7 @@ int LoadDomain(char *file)
 
 
 
-   DDEBUG("IE")
+ //  DDEBUG("IE")
    MyLock(nsmut);
    //Cur_hsts=hsts;
    trr=host_rr;
@@ -3491,7 +3523,7 @@ int LoadDomain(char *file)
  
    return 1;
  }
- DDEBUG("I.")
+// DDEBUG("I.")
 
  return 0;
 }
@@ -3800,7 +3832,7 @@ union{
   
 
 //  CreateThread(&secat,0x8000,(TskSrv)SetDNSServ,(void *)(k*9),0,(ulong *)&i);
- DDEBUG("-")
+// DDEBUG("-")
   if(s_flg&FL_DNSTCP)
   {
 #ifdef USE_IPV6
@@ -3839,7 +3871,7 @@ union{
 #endif
    CreateThread(&secat,0x8000,(TskSrv)SetDNSServ,(void *)(k*9+1),0,(ulong *)&i);
   }
-  DDEBUG("3")
+//  DDEBUG("3")
 
  }while(pbnd && ++k < MAX_ADAPT);
 

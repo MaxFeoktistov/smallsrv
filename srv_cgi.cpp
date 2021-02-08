@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2020 Maksim Feoktistov.
+ * Copyright (C) 1999-2021 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov 
@@ -273,7 +273,7 @@ hwr,hwre
  };
  if(pst && loc) i = pst-loc;
  else i=Tin;
- if(i>8192)i=8192;
+ if(((uint)i)>8192)i=8192;
  if((p=new char[0x14900+leenv+i*2]))
  {pp=p;
   // *p++='\n';
@@ -368,11 +368,14 @@ hwr,hwre
            if(i){l=i ; goto lbrd;}
          }    
          xchg(hrde,hrd);
-         if(!ll){HttpReturnError("Error in script:\r\n"); ll=1;}
-         else 
-         {
-            if( send(s,"\r\n\r\n<hr>",8,0) <=0) goto tp; 
-         }    
+         if(! (s_flgs[2]&FL2_NOERROUT) )
+         {    
+            if(!ll){HttpReturnError("Error in script:\r\n"); ll=1;}
+            else 
+            {
+                if( send(s,"\r\n\r\n<hr>",8,0) <=0) goto tp; 
+            } 
+         }   
          goto lbrd;
         }
         GetExitCodeProcess(pi.hProcess,(ulong *)&ec);
@@ -495,7 +498,7 @@ ex:
    if(hwrp)CloseHandle(hwrp);
   }
 
- }else dbg("No Memory");
+ }else{ dbg("No Memory");  }
  CloseHandle(hwr);
  CloseHandle(hrd);
  CloseHandle(hwre);
@@ -662,7 +665,8 @@ DBG();
 DBG();
  if(pst && loc) i = pst-loc;
  else i=Tin;
- if(i>8192)i=8192;
+ 
+ if(((uint)i)>8192)i=8192;
   
  if( (p=(char * )malloc(0x14800+i)/* new char[0x14100]*/ )  )
  { pp=p;
@@ -784,14 +788,15 @@ DBG();
          if(RESelect(0,0x10000,1,hrd)) goto lbrd;
          if(!ll)
          {
-
+           if(! (s_flgs[2]&FL2_NOERROUT) )
              HttpReturnError("Error in script:\r\n"); 
-             ll=1;
+           ll=1;
              
          }
          else 
          {
-            if( send(s,"\r\n\r\n<hr>",8,0) <=0) goto tp; 
+            if(! (s_flgs[2]&FL2_NOERROUT) )
+              if( send(s,"\r\n\r\n<hr>",8,0) <=0) goto tp; 
          }    
   
          xchg(hrde,hrd);
@@ -949,7 +954,11 @@ DBG();
 //  debug("!******** p=0x%X",p);
   free(pp); //delete p;
 DBG();
- }else dbg("No Memory");
+ }else
+ { 
+     dbg("No Memory"); 
+   //  debug("i=%u %s %d",i,loc,errno);
+ }
  close(hwrp);
  close(hrdp);
  close(hwr);

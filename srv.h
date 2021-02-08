@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2020 Maksim Feoktistov.
+ * Copyright (C) 1999-2021 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov 
@@ -335,6 +335,9 @@ int FndLimit(int lst,LimitCntr **ip, LimitCntr **net, ulong );
 #define FL2_IPCNTRAUT 0x1000000
 #define FL2_DOH 0x2000000
 #define FL2_FTPTLS 0x4000000
+
+#define FL2_NOERROUT 0x8000000
+#define FL2_SEPARATELOG 0x10000000
 
 //#define FL2_WMAILSENT   0x8000
 
@@ -785,8 +788,10 @@ CntrCode  * FindCntr(ulong ip);
 extern char *lang_data;
 extern char *conf_name;
 
+
     
 };  // extern "C"
+
 void RelProt(SYSTEMTIME *stime);
 void RelProt();
 char* CopyBB(char *y,char *t);

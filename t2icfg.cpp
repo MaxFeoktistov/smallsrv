@@ -204,6 +204,7 @@ SPD(0,http)
 {"ip2cntr_srv"  ,2,FL2_IPCONTRY,(uint *)0, CS( t2T_3645830 )},
 {"ip2cntr_aut"  ,2,FL2_IPCNTRAUT,(uint *)0, CS( t2T_3765166 )},
 {"http_doh"  ,2,FL2_DOH,(uint *)0, CS( t2T_2243001 )},
+{"noerrout"  ,2,FL2_NOERROUT,(uint *)0, CS( t2T_3104751 )},
 
 
 XLIMIT(http,"HTTP",7),

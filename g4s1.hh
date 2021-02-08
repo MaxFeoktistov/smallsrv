@@ -371,6 +371,17 @@
 #define x_t2T_2243001 S1t2T_2243001
 
 #ifdef MAINSTR
+ char S1t2T_3104751[] = "Don't out error stream (STDERR) from CGI"
+ " scripts to remote users";
+ char *lS1t2T_3104751 = S1t2T_3104751;
+#else
+ extern char *lS1t2T_3104751;
+ extern char S1t2T_3104751[];
+#endif
+#define t2T_3104751 lS1t2T_3104751
+#define x_t2T_3104751 S1t2T_3104751
+
+#ifdef MAINSTR
  char S1t2T_4067961[] = "Size of DNS cache (in records).";
  char *lS1t2T_4067961 = S1t2T_4067961;
 #else

@@ -26,6 +26,8 @@
 #ifndef BVPRINTF_H
 #define BVPRINTF_H
 
+#include <stdarg.h>
+
 extern "C"
 {
 

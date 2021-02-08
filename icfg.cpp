@@ -201,6 +201,7 @@ SPD(0,http)
 {"ip2cntr_srv"  ,2,FL2_IPCONTRY,(uint *)0, CS("Enable return country info for '/$_ip2country_$?ip=x.x.x.x' request")},
 {"ip2cntr_aut"  ,2,FL2_IPCNTRAUT,(uint *)0, CS("$_ip2country_$ service for authorized users only")},
 {"http_doh"  ,2,FL2_DOH,(uint *)0, CS("Enable DNS over HTTP(S).")},
+{"noerrout"  ,2,FL2_NOERROUT,(uint *)0, CS("Don't out error stream (STDERR) from CGI scripts to remote users")},
 
 
 XLIMIT(http,"HTTP",7),

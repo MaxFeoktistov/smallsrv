@@ -240,27 +240,27 @@ char llist[]=
 "<textarea name=v rows=30 cols=80 >" LF
 ;*/
 #define llist LLIST
-/*
+//*
 char llist_end[]=
-"</textarea>" LF
+//"</textarea>" LF
 "<br>" LF
 "</td>" LF
 "<td>" LF
 "  " LF
 
-    LLEND
+" %s "  // LLEND
 
 "  <br>" LF
 "  </td>" LF
 "  </tr></table>" LF
 "  " LF
 "<center>" LF
-"<input type=submit name=submit value=\"" sSubmit "\">" LF
+"<input type=submit name=submit value=\"%s\" >" LF   //" sSubmit "\">" LF
 "</center>" LF
 "</form>" LF
-    ;*/
+    ; //*/
 
-#define llist_end  LLEND
+//#define llist_end  LLEND
 
 /*
 char HDR_OPT[]=
@@ -279,16 +279,17 @@ sFORWARD
 ;*/
 
 #define HdForward sFORWARD
-/*
+//*
 char HdForwardEnd[]=
 
-"</textarea>" LF
+//"</textarea>" LF
 "<br>" LF
 "</td>" LF
 "<td>" LF
-"  " LF
+"" LF
 
-sFORWARD2
+//sFORWARD2
+"%s"
 
 "" LF
 "  <br>" LF
@@ -296,12 +297,12 @@ sFORWARD2
 "  </tr></table>" LF
 "  " LF
 "<center>" LF
-"<input type=submit name=submit value=\"" sSubmit "\">" LF
+"<input type=submit name=submit value=\"%s\" >" LF   // sSubmit "\">" LF
 "</center>" LF
 "</form>" LF
-    ;*/
+    ; //  */
     
-#define HdForwardEnd sFORWARD2
+//#define HdForwardEnd sFORWARD2
 /*
 char ns_lst[]=
 
@@ -320,8 +321,8 @@ char ns_lst_end[]=
 
 
 
-"</textarea>" LF
-"<br>" LF
+//"</textarea>" LF
+//"<br>" LF
 "<script language=javascript >" LF
 "" LF
 "var names=Array('','www.','ftp.','mail.','ns.', 'ns2.','mx.','ns3.');" LF
@@ -406,8 +407,8 @@ char ns_lst_end[]=
 
 
 char conf_htm_end[]=
-"</textarea>" LF
-"<br>" LF 
+//"</textarea>" LF
+//"<br>" LF 
 "</td></tr></table>" LF
 "<center>" LF
 "<input type=submit name=submit value=Submit>" LF
@@ -2258,7 +2259,7 @@ char **advname[]=
 char *lstfmt[]=
 {
  llist,llist,llist,HdForward//,HdForward
-     ,ns_lst, "<br>This is an easy way to copy configuration from one server to another, but be careful. Restart the server after saving the file for the changes to take effect.<br><br><center><textarea name=v rows=30 cols=80 >"   //conf_htm
+     ,ns_lst, "<br>This is an easy way to copy configuration from one server to another, but be careful. Restart the server after saving the file for the changes to take effect."   //conf_htm
 };
 
 char *lstfmtend[]=
@@ -2266,6 +2267,11 @@ char *lstfmtend[]=
  llist_end,llist_end,llist_end,HdForwardEnd,
      //,HdForwardEnd,
  ns_lst_end, conf_htm_end
+};
+char *lstfmtend2[]=
+{
+ LLEND,LLEND,LLEND,sFORWARD2,
+ "", ""
 };
 
 char *lstdesc[]=
@@ -2303,6 +2309,10 @@ void WMail::OutList(int nn)
 
  S_printf((nn&0x80)? alist_comon: llist_comon ,nn+31,lstname[n],lstdesc[n] );
  S_printf(lstfmt[n]);
+ S_printf(
+"</ul> " LF
+"</ul> " LF
+"<br><br><center><textarea name=v rows=30 cols=80 >");
  if(nn&0x80)
  {
   if(! *advname[n] ) goto lbEndListOut ;
@@ -2325,8 +2335,9 @@ void WMail::OutList(int nn)
 // else {   tt=""; }
 
 lbEndListOut:
-
- S_printf( lstfmtend[n] ); // ,lstname[n],lstdesc[n],tt );
+ S_printf("</textarea>" LF
+"<br>" LF );
+ S_printf( lstfmtend[n], lstfmtend2[n], sSubmit ); // ,lstname[n],lstdesc[n],tt );
 
 }
 

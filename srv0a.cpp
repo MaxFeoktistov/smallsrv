@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2020 Maksim Feoktistov.
+ * Copyright (C) 1999-2021 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov 
@@ -73,9 +73,10 @@ void WINAPI NThandler(DWORD fdwControl)
 #endif
 
 #ifdef USE_FUTEX
-const  struct timespec timeout_50ms={0,50000000};
+const struct timespec timeout_50ms={0,50000000};
 #endif
 void MyLock(volatile int &x){int a=(int) GetCurrentThreadId();
+   int dead_lock_chk=128;
 #if 1
 #ifdef SYSUNIX
   // usleep(10);
@@ -83,7 +84,6 @@ void MyLock(volatile int &x){int a=(int) GetCurrentThreadId();
 #else
    Sleep(1);
 #endif
-   int dead_lock_chk=128;
 
    do{ while(x && x!=a && --dead_lock_chk>0)
 #ifdef USE_FUTEX
@@ -104,7 +104,12 @@ void MyLock(volatile int &x){int a=(int) GetCurrentThreadId();
 #else
  int b;
  while(x!=a){
-  while(x){Sleep(20); if(x==a)goto ex2;}
+  while(x)
+  {
+       Sleep(20); 
+       if(x==a)goto ex2;
+       if(--dead_lock_chk<0){ x=a; goto ex2; }  
+  }
   if((b=InterlockedExchange((long *)&x,a)))x=b;
  }
  ex2:;
