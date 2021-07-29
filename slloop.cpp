@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2020 Maksim Feoktistov.
+ * Copyright (C) 1999-2021 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov 
@@ -39,9 +39,11 @@ void  SignalHandler(int)
   */
  }
 };
+
 void  SignalUSR(int)
 {
- RelProt();
+ //RelProt();
+ UDoneSepLog();
  signal(SIGUSR1,SignalUSR);
 }
 
@@ -73,7 +75,8 @@ extern "C" ulong _etext,_edata;
 jmp_buf  jmp_env;
 
 #endif
-int ext_cntr,ext_cntr2;
+int ext_cntr,ext_cntr2,ext_cntr3,ext_cnt4;
+time_t last_ext_time;
 
 #if  (!defined(ARM)) 
 //&& !defined(x86_64)
@@ -87,7 +90,7 @@ void DebugStack(u_long *esp1)
  if(ext_cntr) return;
  ext_cntr++;
  int i=0;
- u_long rez[4];
+ u_long rez[6];
  u_long min;
 // mesp=esp+128;
 // mlesp=(((ulong)esp)+0xFFF) & ~0xFFF;
@@ -98,6 +101,8 @@ void DebugStack(u_long *esp1)
  rez[0]=min;
  rez[1]=(u_long)&_edata;
  rez[2]=(u_long)&_etext;
+ rez[3]=0;
+ rez[4]=0;
  
  if( esp< (u_long *) &_edata )
  {
@@ -111,14 +116,14 @@ void DebugStack(u_long *esp1)
    {
      rez[i]=*esp;
      i++;
-     if(i>=3)break;
+     if(i>=5)break;
    }
    esp++;  
  }
 #ifdef x86_64 
- debug("In stack (%lX-%lX) found %u return address: %lX %lX %lX\n",esp1,mesp,i,rez[0],rez[1],rez[2]);
+ debug("In stack (%lX-%lX) found %u return address: %lX %lX %lX %lX %lX\n",esp1,mesp,i,rez[0],rez[1],rez[2],rez[3],rez[4]);
 #else 
- debug("In stack (%X-%X) found %u return address: %X %X %X\n",esp1,mesp,i,rez[0],rez[1],rez[2]);
+ debug("In stack (%X-%X) found %u return address: %X %X %X %X %X\n",esp1,mesp,i,rez[0],rez[1],rez[2],rez[3],rez[4]);
 #endif 
 
  ext_cntr--;
@@ -132,7 +137,19 @@ void signalSegv(int , siginfo_t* info, ucontext_t* ptr)
  int i;   
  int ll;
  Req *r;
+ time_t  tt;
 
+ if(!ext_cntr3){
+  ext_cntr3++;
+  tt=time(0); 
+  if( tt<last_ext_time)
+  {
+     if(ext_cnt4>3) goto lbRestart;    
+  } 
+  else ext_cnt4=0;
+  last_ext_time=tt+20;
+  ext_cnt4++;
+  
 #ifdef FIX_EXCEPT
  
  unsave_limit=1;
@@ -163,6 +180,7 @@ void signalSegv(int , siginfo_t* info, ucontext_t* ptr)
 //   DebugStack((ulong *) ll);
  
 #endif     
+   ext_cntr3--;  
    longjmp(r->jmp_env,1);     
    return ;
   }    
@@ -173,9 +191,12 @@ void signalSegv(int , siginfo_t* info, ucontext_t* ptr)
 #endif
  
  
+ }
  
+lbRestart: 
  if(is_no_exit)
- {is_no_exit=0;
+ {
+  is_no_exit=0;
   s_aflg|=AFL_EXIT;
   StopSocket();
   unsave_limit=1;
@@ -225,12 +246,12 @@ void signalSegv(int , siginfo_t* info, ucontext_t* ptr)
 
  
 #endif     
-  longjmp(jmp_env,1);
+ }
+ longjmp(jmp_env,1);
   //execve(cmdline,,)
 //   if( !vfork() )
 //     execl(__argv[0],__argv[0],0);
 //   exit(0);
- }
 };
 
 
@@ -256,7 +277,10 @@ fd_set er_set;
  char *t,*p;
 
  __argv=argv;
-
+ #ifdef SEPLOG
+ gLog.Init(0);//"");
+#endif
+ 
 #ifdef FIX_EXCEPT
 
     

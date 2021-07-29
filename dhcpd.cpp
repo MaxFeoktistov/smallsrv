@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2020 Maksim Feoktistov.
+ * Copyright (C) 1999-2021 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov 
@@ -28,6 +28,20 @@
 #endif
 
 #include "dhcp.h"
+
+#ifdef SEPLOG
+
+#undef debug
+#undef AddToLog
+#undef AddToLogDNS
+
+#define debug(a...)  sepLog[9]->Ldebug(a)
+#define AddToLog(a...)  sepLog[9]->LAddToLog(a)
+#define AddToLogDNS(a...)  sepLog[9]->LAddToLogDNS(a)
+
+
+#endif
+
 
 struct DHCPbase *dhcp_ar,*last_dhcp_loaded;
 int DHCPMutex, sizeSize,dhcp_need_save;
@@ -251,10 +265,14 @@ int UDPSrvSock(int port,char *adapter)
   setsockopt(s,SOL_SOCKET,SO_BROADCAST,(char *)&one,sizeof(one));
   sa_server.sin_addr.s_addr=ConvertIP(adapter);  //htonl(INADDR_ANY);
   sa_server.sin_port=htons(port);
+try_bind_again:  
  if(bind(s,(struct sockaddr *) &sa_server, sizeof(sa_server) )
    )
    {
      debug("Error. Could not bind socket to port %u. (%d)" SER  ,port, WSAGetLastError() Xstrerror(errno));
+
+     if(ChkWaitBind())goto try_bind_again;
+
      shutdown( s, 2 );
      closesocket( (int) s);
      return 0;

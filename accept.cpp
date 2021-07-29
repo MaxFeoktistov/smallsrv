@@ -323,7 +323,13 @@ cnt:
 int Req::HttpReturnError(char *err,int errcode)
 {char out_buf[2124];
  int l;
+#ifdef SEPLOG
+  l=flsrv[1];
+  if(l>=10)l=0;
+  sepLog[l]->LAddToLog(err,s,FmtShortErr);
+#else 
  AddToLog(err,s,FmtShortErr);
+#endif 
  SendChk(out_buf,sprintf(out_buf,
  (l=fl&0xE0000)? //2,3,4
   "%u %s\r\n\r\n":"HTTP/1.0 %u Error\r\nContent-Type: text/html\r\n\r\n"

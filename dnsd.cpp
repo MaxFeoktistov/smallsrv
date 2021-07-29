@@ -28,6 +28,19 @@
 #include "mstring1.h"
 #endif
 
+#ifdef SEPLOG
+
+#undef debug
+#undef AddToLog
+#undef AddToLogDNS
+
+#define debug(a...)  sepLog[7]->Ldebug(a)
+#define AddToLog(a...)  sepLog[7]->LAddToLog(a)
+#define AddToLogDNS(a...)  sepLog[7]->LAddToLogDNS(a)
+
+
+#endif
+
 #if defined(SYSUNIX) && (! defined(ARM) ) 
 #include <netinet/ip.h>
 
@@ -75,7 +88,7 @@
 #define dbg6(a) AddToLogDNS(a,0,(sockaddr_in *) &sa);
 #define dbg4(a) debug(a)
 //pprot+=sprintf(pprot,"\r\n!%s\r\n",a);
-#define dbg5(a) pprot+=sprintf(pprot,"\r\n!%X\r\n",a);
+//#define dbg5(a) pprot+=sprintf(pprot,"\r\n!%X\r\n",a);
 
 #define DDEBUG(a)
 // debug("%s:%u " a ,__FILE__,__LINE__  );
@@ -177,7 +190,7 @@ const uchar ArrTYPE[]={1,1,5,0,15,0,16,99, 2, 0, 2,  0, 0xC,0,28,0,6};
 //                     A A CNM MX  TXT SPF NS   NSA     PTR       SOA
 
 
-
+const uchar DNSSupportedTYpes[]={1,2,5,6,12,15,16,28,99};
 //#define intel16(a)  (((a)>>8ul)|(((a)&0xFF)<<8ul))
 
 #ifdef SYSUNIX
@@ -780,28 +793,95 @@ struct CheckPoint
 CheckPoint *DRList;
 ulong check_state;
 
-void AddToLogDNS(const char *t,int n,
-#ifdef USE_IPV6
-    sockaddr_in6
-#else
-   sockaddr_in
-#endif
-    *sa
-    ,char *ad) //="")
+struct DNSLogRepeat
 {
- SYSTEMTIME stime;
- int ll,l,p1,p2;
- char *ttt;
- GetLocalTime(&stime);
+ char name[128];
+ union{
+  TSOCKADDR   sa;
+  sockaddr_in sa4;
+ };
+ time_t first,last;
+ int cnt;
+ 
+ int cmp(const char *t,TSOCKADDR  *sa);
+ void set(const char *t,TSOCKADDR  *sa);
+ void out();
+};
+
+#define REPEAT_Q_SIZE 24
+#undef printf
+DNSLogRepeat  logrepeat[REPEAT_Q_SIZE+1];
+time_t log_flash_time;
+int log_flash_pos;
+
+int DNSLogRepeat::cmp(const char *t,TSOCKADDR  *psa){
+ if(!cnt)return -1;
+ 
+//  dprint("cmp |%s| |%s|\r\n",t,name);
 #ifdef USE_IPV6
- char addr6[64];
- IP2S(addr6,(sockaddr_in *)sa);
- p1=htons((ushort)sa->sin6_port);
+ //if(psa->sin6_port != sa.sin6_port) return -1;
+ if(((sockaddr_in6 *)psa)->sin6_family==AF_INET6)
+ {
+   if( memcmp(psa->sin6_addr.s6_addr16,sa.sin6_addr.s6_addr16,sizeof(sa.sin6_addr.s6_addr16) ) )  return -1;
+ }
+ else
+ {
+   if( ((sockaddr_in *)psa)->sin_addr.s_addr != sa4.sin_addr.s_addr  ) return -1;
+ }
 #else
- p1=htons((ushort)sa->sin_port);
+ //if( psa->sin_port != sa.sin_port ) return -1;
+ if( psa->sin_addr.s_addr != sa.sin_addr.s_addr  ) return -1;
 #endif
- GetProt();
- if(n==257) ttt="CAA"; 
+ 
+ 
+ return stricmp(name,t);
+    
+};
+
+void DNSLogRepeat::set(const char *t,TSOCKADDR  *psa)
+{
+  // DBGLINE
+  memcpy(&sa,psa,sizeof(sa));
+  sprintf(name,"%.92s",t);
+  first=cur_time;
+  last=cur_time;
+  cnt=1;
+}
+
+
+void DNSLogRepeat::out()
+{
+  char  bt[80];
+  DBGLINE
+  if(cnt>1)
+  {
+   DBGLINE
+   sprintf(bt,"repeated %u times in the %us (:%2.2u:%2.2u - %2.2u:%2.2u)",cnt,last-first, (first/60)%60,first%60,(last/60)%60,last%60 );
+   AddToLogDNS(name,-3,&sa,bt); 
+  } 
+  cnt=0;
+}
+
+
+#ifdef SEPLOG
+
+#define pprot  lpprot 
+#define f_prot lf_prot
+#define pcnt   lpcnt  
+#define b_prot lb_prot
+
+void TLog::LAddToLogDNS(const char *t,int n,TSOCKADDR  *sa,char *ad)
+#else
+void AddToLogDNS(const char *t,int n,TSOCKADDR *sa ,char *ad) //="")
+#endif
+{
+ int ll,l,p1,p2,ltbr,i;
+ char *ttt;
+ char tbfr[128]; 
+ SYSTEMTIME stime;
+ 
+ 
+  if(n==257) ttt="CAA"; 
  else if((ttt=memchr(NSTypes,n,sizeof(NSTypes))))
   ttt=NSTypesTXT[ttt-NSTypes];
  else ttt="";
@@ -809,9 +889,40 @@ void AddToLogDNS(const char *t,int n,
  p2=n?53:67;
  if(//t==REQURSION_CALL ||
    t[0]=='(')
- {l-=2;
+ {
+   l-=2;
  }
 
+ if(n==-3)
+ {
+  ltbr=sprintf(tbfr,"%s %.64s",t,ad);
+ }
+ else
+ {
+ 
+  ltbr=sprintf(tbfr,"%c%s %s(%d)%.64s",l,t,ttt,n,ad);
+
+  if(t!=REQURSION_CALL)
+   for(i=0;i<REPEAT_Q_SIZE; i++)if( ! logrepeat[i].cmp(tbfr,sa) )
+   {
+     logrepeat[i].cnt++;
+     logrepeat[i].last=cur_time;
+     if( (!log_flash_time) || log_flash_pos==i ){log_flash_time=cur_time+20; log_flash_pos=i; }
+     return;
+   }
+ }
+ 
+#ifdef USE_IPV6
+ char addr6[64];
+ IP2S(addr6,(sockaddr_in *)sa);
+ p1=htons((ushort)sa->sin6_port);
+#else
+ p1=htons((ushort)sa->sin_port);
+#endif
+ 
+
+ GetLocalTime(&stime);
+ GetProt();
  pprot+=sprintf(pprot,//FmtBasic,
  "\r\n!-%c%2.2u/%2.2u %2.2u:%2.2u:%2.2u ["
 #ifdef USE_IPV6
@@ -834,10 +945,62 @@ void AddToLogDNS(const char *t,int n,
 #endif
 #endif
      p1,l,p2,count_of_tr,pval,t);
-     pprot+=sprintf(pprot,"%c%s %s(%d)%s",l,t,ttt,n,ad);
+//     pprot+=sprintf(pprot,"%c%s %s(%d)%s",l,t,ttt,n,ad);
+     memcpy(pprot,tbfr,ltbr+1);
+     pprot+=ltbr;
      RelProt(&stime);
+     if(  t!=REQURSION_CALL && n!=-3 )
+     {
+       time_t tb;
+       if(!logrepeat[0].cnt)
+       {
+         i=0;
+       }
+       else
+       {
+         tb=logrepeat[0].last;
+         l=0;
+         for(i=1;i<REPEAT_Q_SIZE; i++)
+         {
+           if(!logrepeat[0].cnt)goto lbFoundFree;
+           if(tb>logrepeat[i].last) { tb=logrepeat[i].last; l=i; }
+
+         }
+         i=l;
+         logrepeat[i].out();
+       }
+    lbFoundFree:   
+   // dprint("Set %u %s\n",i,tbfr);
+       logrepeat[i].set(tbfr,sa);
+     }
 };
 
+void FlashRepeatLog()
+{
+ int i;
+ time_t  dtime=cur_time-32;
+ time_t  mindtime=cur_time-3600;
+   log_flash_time=0;
+   for(i=0;i<REPEAT_Q_SIZE; i++)
+   {
+    if( logrepeat[i].cnt )
+    {
+     if(logrepeat[i].last<dtime ||logrepeat[i].first < mindtime  )  
+     {
+       if(logrepeat[i].cnt>1)
+       {
+         logrepeat[i].out();
+       }
+       logrepeat[i].cnt=0;
+     }
+     else
+       if(logrepeat[i].cnt>1)log_flash_time=cur_time+20;
+    } 
+   }
+   
+}
+
+inline void ChkFlashRepeatLog(){if(log_flash_time && log_flash_time<cur_time)FlashRepeatLog(); }
 
 #define MAX_REPL_HST 32
 #define MAX_REPL_NSHST 10
@@ -1008,7 +1171,6 @@ int DNSReq::NextSend(int rs)
 
 debug("No unrepled NS");
   return 0;
-  
 }
 
 
@@ -2338,7 +2500,21 @@ lb_tcpudp:
       debug("dmm.qdcount = %u",dmm.qdcount);  
     }
     if(dmm.arcount)th.state|=dnsstEDNS;
-    if(dns_dos_limit && (th.typ==rtypeANY || th.typ==rtypeAXFR) && CheckDNSDoS((sockaddr_in *) &sa_client) )
+    
+    if(DNS_DoS_hosts[0] && bfx[0] && stristr(DNS_DoS_hosts,bfx))
+    {
+      AddToLogDNS(bfx,i,&sa_client,"DoS detected" );  
+      continue;
+    }
+//     else
+//     {
+//       debug("Debug DoS: \"%s\" \"%s\"\r\n",bfx,DNS_DoS_hosts)  ;
+//     }    
+    
+    if(    dns_dos_limit && 
+        //  (th.typ==rtypeANY || th.typ==rtypeAXFR)
+           (! memchr((void *)DNSSupportedTYpes,th.typ,sizeof(DNSSupportedTYpes)  ) )
+           && CheckDNSDoS((sockaddr_in *) &sa_client) )
     {
       AddToLogDNS("DoS detected",i,&sa_client,(char *) ((isTCP)?" TCP":(th.doh_ptr)?"DoH":"") );  
       continue;
@@ -2845,7 +3021,10 @@ lbRedirect:
    }
 
  }// Select
- //else{}
+ else
+ {
+   if( ! isTCP )ChkFlashRepeatLog();
+ }
 
  if(!is_no_exit)return 0;
 //lb_cnt_loop:
@@ -3590,6 +3769,7 @@ int ReinitDNSSocket(int k,int tcp)
      return -1;
     }
     setsockopt(s,SOL_SOCKET,SO_REUSEADDR,(char *)&one,sizeof(one));
+try_bind_again:   
     if(
      bind(s,(struct sockaddr *) & dns_bindaddr[k].sa_server,
 #ifdef USE_IPV6
@@ -3601,6 +3781,9 @@ int ReinitDNSSocket(int k,int tcp)
    )
    {
      debug("Error. Could not bind socket. (%d)" SER ,WSAGetLastError() Xstrerror(errno));
+
+     if(ChkWaitBind())goto try_bind_again;
+     
      closesocket( (int) s);
      return -2;
    }
@@ -3786,6 +3969,7 @@ union{
      
    //sa_server.sin_addr.s_addr=0;  //htonl(INADDR_ANY);
    sa_server.sin_port=0x3500;  //htons(53);
+try_bind_again:   
    if(
      bind(sdn,(struct sockaddr *) &sa_server,
 #ifdef USE_IPV6
@@ -3799,6 +3983,9 @@ union{
 
    err:
      debug("Error. Could not bind socket. (%d)" SER ,WSAGetLastError() Xstrerror(errno));
+
+     if(ChkWaitBind())goto try_bind_again;
+
      //shutdown( sdn, 2 );
      //closesocket( (int) sdn);
       CloseSocket(sdn);
@@ -3855,13 +4042,18 @@ union{
     sdnt = socket(AF_INET,SOCK_STREAM,IPPROTO_TCP);
    }
    setsockopt(sdnt,SOL_SOCKET,SO_REUSEADDR,(char *)&one,sizeof(one));
+try_bind_again2:   
    if(bind(sdnt,(struct sockaddr *) &sa_server,
 #ifdef USE_IPV6
    (sa_server.sin_family==AF_INET)?sizeof(sa_server):sizeof(sa_server6)
 #else
    sizeof(sa_server)
 #endif
-   ))goto err;
+   ))
+   {    
+       if(ChkWaitBind())goto try_bind_again2;
+       goto err;
+   }    
    listen(sdnt,3);
 
    soc_srv[7+k*9]=sdnt;
@@ -3984,16 +4176,19 @@ void Secondary::LoadSecondary()
 
    next_chk=cur_time+60;
 
-   debug("DNS: try to load domain %s from  %u.%u.%u.%u:%u",host,
 #ifndef SYSUNIX
+   debug("DNS: try to load domain %s from  %u.%u.%u.%u:%u",host,
      sa.sin_addr.S_un.S_un_b.s_b1,  sa.sin_addr.S_un.S_un_b.s_b2,
      sa.sin_addr.S_un.S_un_b.s_b3,  sa.sin_addr.S_un.S_un_b.s_b4
-#else
-     sa.sin_addr.s_addr&0xFF, BYTE_PTR(sa.sin_addr.s_addr,1),
-     BYTE_PTR(sa.sin_addr.s_addr,2), BYTE_PTR(sa.sin_addr.s_addr,3)
-#endif
        , htons( (ushort)sa.sin_port )
    );
+#else
+   debug("DNS: try to load domain %s from  %u.%u.%u.%u:%u",host,
+     sa.sin_addr.s_addr&0xFF, BYTE_PTR(sa.sin_addr.s_addr,1),
+     BYTE_PTR(sa.sin_addr.s_addr,2), BYTE_PTR(sa.sin_addr.s_addr,3)
+       , htons( (ushort)sa.sin_port )
+   );
+#endif
  
    if(
        (s=socket(AF_INET,SOCK_STREAM,IPPROTO_TCP)) < 0){
@@ -4284,5 +4479,8 @@ void Secondary::LoadFile()
 
 #undef MkName
 
-
+#undef pprot 
+#undef f_prot
+#undef pcnt  
+#undef b_prot
 

@@ -655,7 +655,7 @@ int Req::CallUp(User *puser)
 #endif
 
 char * Rnames[]={"port","dnscache","ipv6","hosts","bind",0};
-char * BRnames[]={"bad_","nouph","upproxy",0};
+char * BRnames[]={"bad_","nouph","upproxy","dos_h",0};
 int CfgParam::IsR()
 {int i;
  if( name )

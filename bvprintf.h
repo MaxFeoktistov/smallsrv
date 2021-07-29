@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2020 Maksim Feoktistov.
+ * Copyright (C) 1999-2021 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov 
@@ -33,6 +33,11 @@ extern "C"
 
 #define BFR_LIM 0x800
 
+#if defined(x86_64) || defined(AT_ARM) || defined(DJGPP)
+#define V_CDECL
+#else
+#define V_CDECL  __attribute__((cdecl))    
+#endif    
 
 typedef int (*PrintFlush)(void *,char *,ulong);
 
@@ -42,14 +47,20 @@ struct BFILE
  char *bfr,*t;
  PrintFlush Flush;
  void  Init(void *p,PrintFlush f,char *b ){par=p; Flush=f; bfr=t=b;  }
- int   bvprintf(const char *fmt,
+ 
+ 
+ 
 #ifdef USEVALIST
-                va_list v
+ int   bvprintf(const char *fmt, va_list v);
+#define mva_list va_list
 #else                
-                void **v
+ int   bvprintf(const char *fmt,  void **v) ;
+#undef  mva_list
+#define mva_list void ** 
 #endif                
-               );
- int   bprintf(const char *fmt,...)
+
+ int bprintf(const char *fmt,...) V_CDECL
+#ifdef BPRINTF_INLINE
  { 
 #ifdef USEVALIST
    va_list a;
@@ -63,7 +74,9 @@ struct BFILE
      return bvprintf(fmt,(void **) ((&fmt)+1 )) ;
 #endif     
      
- };
+ }
+#endif
+ ;
  int fflush()
  { int r;
    if( (r=t-bfr) )

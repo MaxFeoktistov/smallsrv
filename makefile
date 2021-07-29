@@ -36,7 +36,8 @@ G=  -g  -Os
 
 OPT= -pipe  \
  -fno-implicit-templates  -fno-stack-protector -fno-stack-check -fno-verbose-asm -fno-nonansi-builtins -fno-access-control  -fno-optional-diags -momit-leaf-frame-pointer\
- -DUSE_IPV6 -DUSE_FUTEX -DUSE_POOL -fno-exceptions  -Wno-deprecated  -fno-bounds-check -fno-tree-bit-ccp -fno-builtin -mno-red-zone -DFREEVER  -DWITHMD5 -DFIX_EXCEPT -DUSEVALIST
+ -DUSE_IPV6 -DUSE_FUTEX -DUSE_POOL -fno-exceptions  -Wno-deprecated  -fno-bounds-check -fno-tree-bit-ccp -fno-builtin -mno-red-zone -DFREEVER  -DWITHMD5 -DFIX_EXCEPT \
+  -DUSEVALIST -DSEPLOG
 
 #-fdelete-null-pointer-checks  -fdelayed-branch  -fdelete-dead-exceptions
 # -fnobounds-check
@@ -63,16 +64,42 @@ ULCFLAGS= -mlittle-endian -marm  -mno-thumb-interwork -mthumb -march=armv7 -mfix
           
 S= -s
 
-WINEGPP=wine c:\\MINGW2\\bin\\gcc.exe
-WINEGCC=wine c:\\MINGW2\\bin\\gcc.exe
-WINEAS=wine  c:\\MINGW2\\bin\\as.exe
-WINERES=wine c:\\MINGW2\\bin\\windres.exe
-MGDIR=c:\\MINGW2
+#WINEGPP=wine c:\\MINGW2\\bin\\gcc.exe
+#WINEGCC=wine c:\\MINGW2\\bin\\gcc.exe
+#WINEAS=wine  c:\\MINGW2\\bin\\as.exe
+#WINERES=wine c:\\MINGW2\\bin\\windres.exe
+#MGDIR=c:\\MINGW2
+#WININC= -I$(MGDIR)\\include -I$(MGDIR)\\lib\\gcc\\mingw32\\8.2.0\\include 
+#WINLIB= -L$(MGDIR)\\lib 
+
+# WINEGPP=wine c:/mingw-w64/i686-8.1.0-win32-dwarf-rt_v6-rev0/mingw32/bin/gcc.exe -m32 -DMINGW64
+# WINEGCC=wine c:/mingw-w64/i686-8.1.0-win32-dwarf-rt_v6-rev0/mingw32/bin/gcc.exe -m32 -DMINGW64
+# WINEAS=wine  c:/mingw-w64/i686-8.1.0-win32-dwarf-rt_v6-rev0/mingw32/bin/as.exe
+# WINERES=wine c:/mingw-w64/i686-8.1.0-win32-dwarf-rt_v6-rev0/mingw32/bin/windres.exe
+# MGDIR=c:/mingw-w64/i686-8.1.0-win32-dwarf-rt_v6-rev0/mingw32/i686-w64-mingw32/
+# WININC= -Ic:/mingw-w64/i686-8.1.0-win32-dwarf-rt_v6-rev0/mingw32/include -Ic:/mingw-w64/i686-8.1.0-win32-dwarf-rt_v6-rev0/mingw32/i686-w64-mingw32/include
+# WINLIB= -Lc:/mingw-w64/i686-8.1.0-win32-dwarf-rt_v6-rev0/mingw32/i686-w64-mingw32/lib
+
+
 
 # WINEGPP=wine c:\\MinGW\\bin\\gcc.exe
 # WINEGCC=wine c:\\MinGW\\bin\\gcc.exe
 # WINEAS=wine  c:\\MinGW\\bin\\as.exe
 # WINERES=wine c:\\MinGW\\bin\\windres.exe
+
+# WINEGPP=x86_64-w64-mingw32-gcc -m32
+# WINEGCC=x86_64-w64-mingw32-gcc -m32
+# WINEAS=x86_64-w64-mingw32-as
+# WINERES=x86_64-w64-mingw32-windres
+
+WINEGPP=i686-w64-mingw32-gcc -m32 -DMINGW64
+WINEGCC=i686-w64-mingw32-gcc -m32 -DMINGW64
+WINEAS=i686-w64-mingw32-as
+WINERES=i686-w64-mingw32-windres
+MGDIR=/usr/i686-w64-mingw32
+WININC= -I$(MGDIR)/include -I/usr/lib/gcc/i686-w64-mingw32/5.3-win32/include
+WINLIB= -L$(MGDIR)/lib
+
 
 
 
@@ -82,9 +109,42 @@ WINEBIN2S=./bin2s
 
 #WINECFLG=  -Iwinclude  -I$(MGDIR)\\include -fpack-struct -O2 -fno-verbose-asm -fno-implicit-templates -mno-svr3-shlib -mno-align-double -mno-fancy-math-387 -fconserve-space  -DSERVICE -DFREE_VER  -DFREEVER -DV_FULL=1 -DUSE_IPV6 -DMINGW -DRICON -mrtd
 
-WINECFLG=  -Os -nostdinc -Iwinclude  -I$(MGDIR)\\include -I$(MGDIR)\\lib\\gcc\\mingw32\\8.2.0\\include -fno-implicit-templates -mno-align-double -mno-fancy-math-387 -fconserve-space  -fno-rtti -fno-threadsafe-statics -fno-access-control -fno-nonansi-builtins -fno-elide-constructors -fno-enforce-eh-specs -DSERVICE -DFREE_VER  -DFREEVER -DV_FULL=1 -DUSE_IPV6 -DMINGW -DRICON -mwindows -fno-optional-diags -momit-leaf-frame-pointer -mno-red-zone -fno-exceptions  -fno-stack-protector -no-pie -fno-ms-extensions -fno-stack-check -mno-stack-arg-probe 
-          
-WINELFLG=    -mwindows -L$(MGDIR)\\lib -luser32 -lkernel32 -lws2_32 -lgdi32 -lshell32 -lcomdlg32  -ladvapi32 -Xlinker --heap  -Xlinker 0x20000000 -Wl,--subsystem,windows  -nostartfiles -nodefaultlibs -Xlinker -Map -Xlinker wo/flxmap  -Xlinker --entry=_start    -fno-optional-diags -momit-leaf-frame-pointer  -mno-red-zone -fno-exceptions  -fno-stack-protector -fno-ms-extensions -no-pie -fno-stack-check -mno-stack-arg-probe
+WINECFLG= -Os -nostdinc -Iwinclude  $(WININC) -fno-implicit-templates -mno-align-double -mno-fancy-math-387 -fconserve-space  -fno-rtti -fno-threadsafe-statics -fno-access-control -fno-nonansi-builtins -fno-elide-constructors -fno-enforce-eh-specs -DSERVICE -DFREE_VER  -DFREEVER -DV_FULL=1 -DUSE_IPV6 -DMINGW -DRICON -mwindows -fno-optional-diags -momit-leaf-frame-pointer -mno-red-zone -fno-exceptions  -fno-stack-protector -no-pie -fno-ms-extensions -fno-stack-check -mno-stack-arg-probe -fmax-errors=10 -DSEPLOG
+           
+WINELFLG=  -mwindows $(WINLIB) -luser32 -lkernel32 -lws2_32 -lgdi32 -lshell32 -lcomdlg32  -ladvapi32 -Xlinker --heap  -Xlinker 0x20000000 -Wl,--subsystem,windows  -nostartfiles -nodefaultlibs -Xlinker -Map -Xlinker wo/flxmap  -Xlinker --entry=_start    -fno-optional-diags -momit-leaf-frame-pointer  -mno-red-zone -fno-exceptions  -fno-stack-protector -fno-ms-extensions -no-pie -fno-stack-check -mno-stack-arg-probe
+
+#WINECFLG=  -nostdinc -Iwinclude  -I$(MGDIR)\\include -I$(MGDIR)\\lib\\gcc\\mingw32\\8.2.0\\include -fno-implicit-templates -mno-align-double -mno-fancy-math-387 -fconserve-space  -fno-rtti -fno-threadsafe-statics -fno-access-control -fno-nonansi-builtins -fno-elide-constructors -fno-enforce-eh-specs -DSERVICE -DFREE_VER  -DFREEVER -DV_FULL=1 -DUSE_IPV6 -DMINGW -DRICON -mwindows -fno-optional-diags -momit-leaf-frame-pointer -mno-red-zone -fno-exceptions  -fno-stack-protector -no-pie -fno-ms-extensions -fno-stack-check -mno-stack-arg-probe 
+           
+#WINELFLG=    -mwindows -L$(MGDIR)\\lib -luser32 -lkernel32 -lws2_32 -lgdi32 -lshell32 -lcomdlg32  -ladvapi32 -Xlinker --heap  -Xlinker 0x20000000 -Wl,--subsystem,windows  -nostartfiles -nodefaultlibs -Xlinker -Map -Xlinker wo/flxmap  -Xlinker --entry=_start    -fno-optional-diags -momit-leaf-frame-pointer  -mno-red-zone -fno-exceptions  -fno-stack-protector -fno-ms-extensions -no-pie -fno-stack-check -mno-stack-arg-probe
+
+# 
+# WINECFLG=  -Os -nostdinc -Iwinclude  -I$(MGDIR)/include -I/usr/lib/gcc/i686-w64-mingw32/5.3-win32/include -fno-implicit-templates -mno-align-double -mno-fancy-math-387 -fconserve-space  -fno-rtti -fno-threadsafe-statics -fno-access-control -fno-nonansi-builtins -fno-elide-constructors -fno-enforce-eh-specs -DSERVICE -DFREE_VER  -DFREEVER -DV_FULL=1 -DUSE_IPV6 -DMINGW -DRICON -mwindows -fno-optional-diags -momit-leaf-frame-pointer -mno-red-zone -fno-exceptions  -fno-stack-protector -no-pie -fno-ms-extensions -fno-stack-check -mno-stack-arg-probe 
+#           
+# WINELFLG=    -mwindows -L$(MGDIR)/lib -luser32 -lkernel32 -lws2_32 -lgdi32 -lshell32 -lcomdlg32  -ladvapi32 -Xlinker --heap  -Xlinker 0x20000000 -Wl,--subsystem,windows  -nostartfiles -nodefaultlibs -Xlinker -Map -Xlinker wo/flxmap  -Xlinker --entry=_start    -fno-optional-diags -momit-leaf-frame-pointer  -mno-red-zone -fno-exceptions  -fno-stack-protector -fno-ms-extensions -no-pie -fno-stack-check -mno-stack-arg-probe
+# 
+
+
+WIN64EGPP=x86_64-mingw32-gcc -m64 -DMINGW64
+WIN64EGCC=x86_64-mingw32-gcc -m64 -DMINGW64
+WIN64EAS=x86_64-mingw32-as
+WIN64ERES=x86_64-mingw32-windres
+MG64DIR=/usr/x86_64-mingw32
+WIN64INC= -I$(MG64DIR)/include -I/usr/lib/gcc/x86_64-mingw32/5.3-win32/include
+WIN64LIB= -L$(MG64DIR)/lib
+
+
+
+
+WIN64E=wine
+WIN64EBIN2S=./bin2s 
+
+
+WIN64ECFLG= -Os -nostdinc -Iwinclude  $(WIN64INC) -fno-implicit-templates -mno-align-double -mno-fancy-math-387 -fconserve-space  -fno-rtti -fno-threadsafe-statics -fno-access-control -fno-nonansi-builtins -fno-elide-constructors -fno-enforce-eh-specs -DSERVICE -DFREE_VER  -DFREEVER -DV_FULL=1 -DUSE_IPV6 -DMINGW -DRICON -mwindows -fno-optional-diags -momit-leaf-frame-pointer -mno-red-zone -fno-exceptions  -fno-stack-protector -no-pie -fno-ms-extensions -fno-stack-check -mno-stack-arg-probe -fmax-errors=10  -DSEPLOG
+           
+WIN64ELFLG=  -mwindows $(WIN64LIB) -luser32 -lkernel32 -lws2_32 -lgdi32 -lshell32 -lcomdlg32  -ladvapi32 -Xlinker --heap  -Xlinker 0x20000000 -Wl,--subsystem,windows  -nostartfiles -nodefaultlibs -Xlinker -Map -Xlinker wo/flxmap  -Xlinker --entry=_start    -fno-optional-diags -momit-leaf-frame-pointer  -mno-red-zone -fno-exceptions  -fno-stack-protector -fno-ms-extensions -no-pie -fno-stack-check -mno-stack-arg-probe
+
+
+
 
 
 
@@ -123,6 +183,8 @@ WINOOBJS= wo/fwnd.o $(addprefix wo/,$(AOBJS)) wo/bvprintf.o wo/srvdat.o wo/isapi
 #all: o/httpd.exe
 
 #o64/libsecgnutls.so o64/libsec.so
+
+#all: wo/tstwin.o
 
 all: /dev/shm/shttps/o/1.x o/1.x getstr i32 i64 arm win
 
@@ -411,7 +473,7 @@ dist:   o/dist/libsec.so o/dist/license06.txt o/adist/license06.txt o/dist/libse
 	cd o/adist/ ; arm-linux-gnueabi-strip httpd.exe ;  chown -R root:root  * ; chmod -R 0444 *  ; chmod -R a+X * ; chmod  0700 httpd.exe libsec.so ; chmod  0755 sndmsg ; chmod  0600 httpd.cfg ;  rm -f shttparmlnx.tgz ; tar -czf shttparmlnx.tgz * ; chmod a+rw shttparmlnx.tgz
 
 
-dist64: o64/dist/libsec.so o64/dist/libsecgnutls.so o64/distu/libsec.so o64/distu/libsecgnutls.so o64/dist/langpacks/ru/shs_lang.cfg o64/dist/langpacks/en/shs_lang.cfg o64/dist/descu.htm o64/distu/descu.htm  o64/dist/license06.txt o64/distu/license06.txt
+dist64: o64/dist/libsec.so o64/dist/libsecgnutls.so o64/distu/libsec.so o64/distu/libsecgnutls.so o64/dist/langpacks/ru/shs_lang.cfg o64/dist/langpacks/en/shs_lang.cfg o64/dist/descu.htm o64/distu/descu.htm  o64/dist/license06.txt o64/distu/license06.txt o64/distu/langpacks/ru/shs_lang.cfg o64/distu/langpacks/en/shs_lang.cfg 
 	cp o64/httpd.exe o64/dist/
 	cd o64/dist/ ; strip httpd.exe ; chown -R root:root  * ; chmod -R 0444 *  ; chmod -R a+X * ; chmod  0700 httpd.exe libsec.so libsecgnutls.so ; chmod  0755 sndmsg ; chmod  0600 httpd.cfg ;  rm -f shttplnx64.tgz ; tar -czf shttplnx64.tgz * ; chmod a+rw shttplnx64.tgz
 	cp o64/httpdu.exe o64/distu/httpd.exe
@@ -419,7 +481,7 @@ dist64: o64/dist/libsec.so o64/dist/libsecgnutls.so o64/distu/libsec.so o64/dist
 
 
 sinst:  o/dist/httpd.exe o/dist/shttplnx.tgz o/adist/shttparmlnx.tgz o64/dist/shttplnx64.tgz  o64/distu/shttplnx64u.tgz
-	chmod 0666 wo/shttps_mg.exe wo/shttpsr_mg.exe
+	chmod 0666 wo/shttps*.exe
 	for i in wo/shttps_mg.exe wo/shttpsr_mg.exe o/dist/shttplnx.tgz o/adist/shttparmlnx.tgz o64/dist/shttplnx64.tgz o64/distu/shttplnx64u.tgz ; do cp $$i /mnt/d/var/www/pre/ ; done
 	mv /mnt/d/shttps/httpd.exe /mnt/d/shttps/oldhttpd.exe
 	cp o/dist/httpd.exe /mnt/d/shttps/
@@ -491,11 +553,11 @@ wo/libsecgnutls.dll: wo/libsecgnutls.o
 
 
 clean:
-	rm -f $(OOBJS) $(OOBJS64) $(ROBJS) $(MIPSOBJ) $(WINOOBJS) httpd.exe r/httpd.exe mips/httpd.exe $(ARMOBJ)
+	rm -f $(OOBJS) $(OOBJS64) $(ROBJS) $(MIPSOBJ) $(WINOOBJS) httpd.exe r/httpd.exe mips/httpd.exe $(ATOBJS) $(ARMOBJ) 
 
 
 
-o/srv0a.o o64/srv0a.o wo/srv0a.o r/srv0a.o lpc/srv0a.o at/srv0a.o : g4strc.h srv0a.cpp slloop.cpp srvars.cpp
+o/srv0a.o o64/srv0a.o wo/srv0a.o r/srv0a.o lpc/srv0a.o at/srv0a.o : g4strc.h srv0a.cpp slloop.cpp srvars.cpp seplog.cpp onelog.cpp
 o/adminr.o o64/adminr.o r/adminr.o wo/adminr.o at/adminr.o : g4strc.h adminr.cpp t2icfghtm.cpp g4strhtm.hh
 o/stat.o o64/stat.o wo/stat.o r/stat.o at/stat.o mips/stat.o : g4strc.h stat.cpp cstat.cpp statusr.cpp
 o/smptps.o o64/smptps.o r/smptps.o mips/smptps.o at/smptps.o : g4strc.h smptps.cpp pop3d.cpp
@@ -576,10 +638,13 @@ ATLIB2=/home/max/electr/atmel/SAM9-L9260_Rev.D/sources/rd/usr/lib
 ATINCLUDE2=/home/max/electr/atmel/SAM9-L9260_Rev.D/sources/rd/usr/include
 ATLIB=/usr/src/at/musl-1.0.4/lib
 ATINCLUDE=/usr/src/at/musl-1.0.4/include
-ATFLAGS= -mlittle-endian -marm  -mcpu=arm926ej-s -mthumb-interwork  -msoft-float -Uarm  -nostdinc -I$(ATINCLUDE)  -I/usr/src/uC/uClinux-dist/lib/zlib -I/usr/local/arm-linux/lib/gcc/arm-linux/4.4.2/include -Wno-deprecated-declarations -Wno-conversion  -Wno-write-strings  -fno-access-control  -fno-nonansi-builtins -fno-elide-constructors -fno-enforce-eh-specs  -fno-for-scope  -fno-implicit-templates -fno-implicit-inline-templates -fnothrow-opt  -fno-pretty-templates  -fno-rtti  -fno-weak -nostdinc++  -Wnoexcept   -fno-exceptions -Wno-format -fpermissive -DARM -DLINUX  -DSYSUNIX -DNOTINTEL -DAT_ARM -DFREEVER -DTELNET -DUSE_IPV6 -DV_FULL=1 -DUSE_FUTEX -DUSE_POOL -DWITHMD5 -DFIX_EXCEPT
+ATFLAGS= -mlittle-endian -marm  -mcpu=arm926ej-s -mthumb-interwork  -msoft-float -Uarm  -nostdinc -I$(ATINCLUDE)  -I/usr/src/uC/uClinux-dist/lib/zlib -I/usr/local/arm-linux/lib/gcc/arm-linux/4.4.2/include -Wno-deprecated-declarations -Wno-conversion  -Wno-write-strings  -fno-access-control  -fno-nonansi-builtins -fno-elide-constructors -fno-enforce-eh-specs  -fno-for-scope  -fno-implicit-templates -fno-implicit-inline-templates -fnothrow-opt  -fno-pretty-templates  -fno-rtti  -fno-weak -nostdinc++  -Wnoexcept   -fno-exceptions -Wno-format -fpermissive -DARM -DLINUX  -DSYSUNIX -DNOTINTEL -DAT_ARM -DFREEVER -DTELNET -DUSE_IPV6 -DV_FULL=1 -DUSE_FUTEX -DUSE_POOL -DWITHMD5 -DFIX_EXCEPT -DUSEVALIST 
 
 
-ATOBJS=$(addprefix at/,$(LIOBJS))
+
+ATOBJS0=to_linux.o srv0a.o srv_ssi.o srv_cgi.o req.o accept.o adminr.o restart.o proxy.o musers.o conf.o t2icfg.o stat.o icfgjs.o ftpd.o smptps.o smtpcl.o mailip.o dnsd.o tlsm.o gz.o dhcpd.o wmbx.o bvprintfv.o telnet.o md5.o msprintfchk.o
+
+ATOBJS=$(addprefix at/,$(ATOBJS0))
 
 at/%.o : %.cpp
 	  $(ATGPP) -c $(S) $(ATFLAGS) -o $@  $<

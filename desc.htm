@@ -253,6 +253,10 @@ window by Pause/Continue button in Service Control Manatger.
 <tr><td><b>Disable saving log.</b></td><td><b>nolog</b></td></tr>
 <tr><td><b>Log filename.</b></td><td><b>log=<i>name.log</i></b></td></tr>
 <tr><td><b>Create a daily log (new log created after each day).</b>It's necessary to get statistics for a day. Server will every day rename old log file (add date to name). It's necessary to get statistics for a day.</td><td><b>logday</b></td></tr>
+<tr><td><b>Separate log for each server</b></td><td><b>seplog</b></td></tr>
+<tr><td><b>Don't out error stream (STDERR) from CGI scripts to remote users</b></td><td><b>noerrout</b></td></tr>
+<tr><td><b>Dublicate CGI stderr to http.err log</b></td><td><b>dupstderr</b></td></tr>
+
 <tr><td><b>Enable remote administration.</b> Otherwise, only statistics will be available for administrators.</td><td><b>radmin</b></td></tr>
 <tr><td><b>Number of simultaneous requests from each host.
 </b>You can restrict number of simulate
@@ -431,6 +435,7 @@ In any case, if user press "Reload" button files download again.</td><td><b>igno
 <tr><td><b>Disable build in DNSBL server</b></td><td><b>nodns_bld</b></td></tr>
 <tr><td><b>Host name of build in DNSBL server</b></td><td><b>dns_bld=value</b></td></tr>
 <tr><td><b>Detect DoS request.</b> Number of DoS-like requests to block IP</td><td><b>dns_detect_dos=value</b></td></tr>
+<tr><td><b>A space-separated list of bad hostnames.</b> DoS detection names</td><td><b>dns_dos_hosts=value</b></td></tr>
 
 
 

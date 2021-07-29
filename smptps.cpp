@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2020 Maksim Feoktistov.
+ * Copyright (C) 1999-2021 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov 
@@ -25,6 +25,16 @@
 
 #ifndef SRV_H
 #include "srv.h"
+#endif
+
+#ifdef SEPLOG
+
+#undef debug
+#undef AddToLog
+
+#define debug(a...)  sepLog[3]->Ldebug(a)
+#define AddToLog(a...)  sepLog[3]->LAddToLog(a)
+
 #endif
 
 int   SmtpMutex;
@@ -123,13 +133,13 @@ int GetCMD(int s,char *b,int timo) //=POPTimeout)
   if(l>510)break;
   if(ll<=0)
   {if( RESelect(ttimo,0,1,s) <=0)
-   {dbg("Timeout");
+   {dbgs("Timeout");
     return -1;
    };
    ioctlsocket(s,FIONREAD,(ulong *)&ll);
   }
   if(recv(s,b+l,1,0)<=0)
-  {dbg("Connection closed");
+  {dbgs("Connection closed");
    return -1;
   }
   --ll;
@@ -205,6 +215,17 @@ int IsUsHost(char *t)
 int Req::RGetCMD(char *b)
 {char *t;
  int i,j;
+#ifdef  SEPLOG
+ uint k=flsrv[1];
+ if(k>=10)k=3;
+
+#undef debug
+#undef AddToLog
+
+#define debug(a...)  sepLog[k]->Ldebug(a)
+#define AddToLog(a...)  sepLog[k]->LAddToLog(a)
+ 
+#endif 
  i=0;
  do{
   if((j=Recv(b+i,512-i))<=0)
@@ -218,9 +239,21 @@ int Req::RGetCMD(char *b)
   b[i]=0;
  }while( !(t=strchr(b,'\n')) );
  DWORD_PTR(t[-1])=0;
- if(s_flg&FL_FULLLOG)AddToLog(b,s,FmtShort);
+ if(s_flg&FL_FULLLOG)
+ {    
+     AddToLog(b,s,FmtShort);
+ }    
  return DWORD_PTR(*b)|0x20202020;
 }
+#ifdef SEPLOG
+
+#undef debug
+#undef AddToLog
+
+#define debug(a...)  sepLog[3]->Ldebug(a)
+#define AddToLog(a...)  sepLog[3]->LAddToLog(a)
+
+#endif
 
 ulong BadMSGID[17],iBadMSGID;
 ulong SpamMSGID[17],iSpamMSGID;

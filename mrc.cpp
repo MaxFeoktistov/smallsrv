@@ -78,7 +78,7 @@ HMENU MkMnu(//const
  HMENU r=(crm)(); //CreateMenu();
  while(mr->id)
  {
-  if(mr->flg&MF_POPUP)
+  if(mr->flg&MF_POPUP && (ulong)mr->id<128)
   {
    next_id=mr[mr->id].id;
    ((mrc_mnu *)mr)[mr->id].id=0;

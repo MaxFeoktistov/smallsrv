@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2020 Maksim Feoktistov.
+ * Copyright (C) 1999-2021 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov 
@@ -99,6 +99,9 @@
 #pragma GCC diagnostic ignored "-Wformat-security"
 #pragma GCC diagnostic ignored "-Wformat-extra-args"
 #pragma GCC diagnostic ignored "-Wunused-result"
+#ifndef AT_ARM
+#pragma GCC diagnostic ignored "-Wliteral-suffix"
+#endif
 //#pragma GCC diagnostic ignored "-fpermissive"
 
 #define CloseHandle  close
@@ -352,13 +355,20 @@ extern pthread_t dnstthr;
 #define fork vfork
 #endif
 
+
+#define dprint(a...) 
+//printf(a)
+#define DBGLINE  
+// dprint("%s:%u\r\n",__FILE__,__LINE__);
+
+#define MIN_PTR 0x80000
+
+
 #ifdef USE_FUTEX
 
 #include <sys/syscall.h>
 
-#ifndef ARM9  
- #include <linux/futex.h>
-#else
+#if  defined(ARM9)  || defined(AT_ARM)
 // #include <linux/futex.h> 
 // #define STRING2(x) #x
 // #define STRING(x) STRING2(x)
@@ -367,6 +377,11 @@ extern pthread_t dnstthr;
 
 #define SYS_futex 240
 #define FUTEX_WAIT  0
+#define FUTEX_WAKE  1
+
+#else
+
+ #include <linux/futex.h>
 
 #endif
 inline int futex(int *uaddr, int futex_op, int val,

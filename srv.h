@@ -30,6 +30,7 @@
 #define SRV_H
 void dbgf(char *er,int s);
 #define dbg(er) dbgf(er,s)
+#define dbgs(er) dbgf(er,s)
 void xdie(char *);
 #define die(e) {xdie(e); return -1;}
 
@@ -97,6 +98,10 @@ struct Req
 #define F_GZ  0x8
 #define F_CHUNKED 0x400
 #define F_DIGET_UNAVILABLE 0x800
+#define F_STDERRSEL 0x1000
+#define F_NAMEOUTED 0x2000
+#define F_ERROUTED 0x4000
+ 
  ulong freqcnt;
 
  //char *req,*pst,*trn,**http_var,**req_var,*dir;
@@ -237,7 +242,7 @@ union{sockaddr_in6 sa_c6; sockaddr_in sa_c;};
  int CheckNonce(char *nonce,char *opaque);
  int IP2country();
  int ChkFTPSec(FTPSecCon *);
-
+ void OutErr(char *t);
 };
 
 int FndLimit(int lst,LimitCntr **ip, LimitCntr **net, ulong );
@@ -338,6 +343,7 @@ int FndLimit(int lst,LimitCntr **ip, LimitCntr **net, ulong );
 
 #define FL2_NOERROUT 0x8000000
 #define FL2_SEPARATELOG 0x10000000
+#define FL2_DUBSTDERR   0x20000000
 
 //#define FL2_WMAILSENT   0x8000
 
@@ -369,7 +375,7 @@ struct xsrv
 
 extern const char FmtBasic[],FmtBasicC[],FmtShort[],FmtShortErr[],FmtShortR[],FmtShrt[],FmtShrtR[];
 int InitSecDLL();
-void AddToLog(char *t,int s,const char *fmt=FmtBasic);
+void AddToLog(char *t,int s,const char *fmt=FmtBasic,...);
 int PrepCfg(char *fname);
 void InitParam(char *cln);
 typedef ulong WINAPI (*TskSrv)(void *);
@@ -494,7 +500,7 @@ extern uchar C3C9cnt,E589cnt;
 
 extern host_dir hsdr;
 #define  LOG_SIZE 0x8000
-extern char b_prot[],*pprot,*f_prot,*smtp_name,*dns_server_for_mail,*out_path,*err_path
+extern char *smtp_name,*dns_server_for_mail,*out_path,*err_path
  ,*def_name,*error_file,*perl,*cgi_detect,*blacklist,*bad_hosts,*flog,*doc_dir,*phtml_dir,*nohosts,*fake,
   end,*last_cfg,*eenv,*dnsblname;
 extern char *srv_str[];
@@ -526,11 +532,6 @@ extern User *userList;
 int IsPwd(ulong a,ulong b, char *pas);
 ulong Rnd();
 
-inline void GetProt(){MyLock(pcnt);
-#ifdef SYSUNIX
- oldprot=pprot;
-#endif
-};
 void ShowProt();
 
 char **CGIListNext(char **a,char *bfr);
@@ -709,13 +710,15 @@ int BSend(int s,char *b,int l);
 void LoadDomainM();
 void CloseSocket(int);
 char* OutLL(long x0, long x1,char *t);
-void AddToLogDNS(const char *t,int n,
+
 #ifdef USE_IPV6
-    sockaddr_in6
+#define  TSOCKADDR  sockaddr_in6
 #else
-   sockaddr_in
+#define  TSOCKADDR  sockaddr_in
 #endif
-    *sa,char *ad="");
+
+
+void AddToLogDNS(const char *t,int n,TSOCKADDR *sa,char *ad="");
 int FNCATRIBUTE LZZUnpk(uchar *t,uchar *s0);
 int LoadContries();
 char *GetCntr(ulong ip);
@@ -723,6 +726,7 @@ extern int doh_pipe[2];
 #define doh_r doh_pipe[0]
 #define doh_w doh_pipe[1]
 
+extern char *anFnd[];
 //------------------------------
 
 struct MHinfo
@@ -788,12 +792,113 @@ CntrCode  * FindCntr(ulong ip);
 extern char *lang_data;
 extern char *conf_name;
 
+int ChkWaitBind();
+
+extern const uchar isCountAr[];
+extern char NSTypes[];
+extern char *NSTypesTXT[];
+extern char *DNS_DoS_hosts;
+
+ 
+#ifdef USEVALIST
+#define mva_list va_list
+#else                
+#undef  mva_list
+#define mva_list void ** 
+#endif                
+
+
+#ifdef SEPLOG
+
+struct TLog
+{
+  const char *suffix;  
+  char *lpprot,*lf_prot,*loldprot; 
+  int  lpcnt;
+  int  msk,llastday;
+  char lb_prot[LOG_SIZE];
+  char aabfr[0x1000]; 
+
+  void RelProt(SYSTEMTIME *stime);
+  void RelProt();
+  void LAddToLog(char *t,int s,const char *fmt=FmtBasic,...);
+  void LAddToLogDNS(const char *t,int n,TSOCKADDR  *sa,char *ad="");
+  void MkFileName(char *t,int n);
+  void Init(int n);
+  //{lpprot=lf_prot=lb_prot; suffix=s ;  lb_prot[0]=0; lpcnt=0; msk=1<<n;};
+  void GetProt();
+void ShowProt();
+void Ldebug(const char *a,...);
+void Lvdebug(const char *a,  mva_list v);
+
+    
+};
+
+extern TLog gLog;
+
+#ifdef TELNET
+
+#define N_LOG  11
+#define CGI_ERR_LOG 10
+
+#else
+#define N_LOG  10
+#define CGI_ERR_LOG 6
+#endif
+extern TLog *sepLog[N_LOG];
+extern TLog  *shown_log;
+
+extern int oldchecked,mutex_pcnt;
+extern uint logsigmsk;
+
+void InitSepLog();
+void DoneSepLog();
+void UDoneSepLog();
+extern "C" void edebug(const char *a,...);
+extern "C" void tlsdebug(const char *a,...);
+
+
+TLog *GetLogS(int s);
+//TLog *GetLogN(int n){ return (s_flgs2[2]&FL2_SEPARATELOG)?gLog:gLog[n]  };
+//inline TLog *GetLogN(int n){ return sepLog[n];  };
+
+
+#define debug(a...)  gLog.Ldebug(a)
+#define AddToLog(a...)  gLog.LAddToLog(a)
+#define AddToLogDNS(a...)  gLog.LAddToLogDNS(a)
+extern char *b_prot,*pprot;
+extern char *SrvNameSufix[];
+#undef dbg
+#define  dbg(t) OutErr(t)
+
+
+#else
+
+#define  InitSepLog()
+#define  DoneSepLog()  RelProt()
+#define  UDoneSepLog()  RelProt()
+extern char b_prot[],*pprot,*f_prot;
+
+inline void GetProt(){MyLock(pcnt);
+#ifdef SYSUNIX
+ oldprot=pprot;
+#endif
+};
+
+
+#endif
 
     
 };  // extern "C"
 
+#ifndef SEPLOG
+
 void RelProt(SYSTEMTIME *stime);
 void RelProt();
+#define tlsdebug debug
+
+#endif
+
 char* CopyBB(char *y,char *t);
 
 extern uint  dns_dos_limit;

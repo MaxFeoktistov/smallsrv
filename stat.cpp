@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2020 Maksim Feoktistov.
+ * Copyright (C) 1999-2021 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov 
@@ -403,6 +403,26 @@ uint fFindRefHTTPHst(StatLog *psl,char *bfr)
 #undef send
 #define send(a,b,c,d) Send(b,c)
 #define isStatContry 2
+#ifdef SEPLOG
+#define   logHTTP   0
+#define   logProxy  0x10
+#define   logFTP    0x20
+#define   logSMTP   0x30
+#define   logPOP3   0x40
+#define   logTLS    0x50
+#define   logDNS    0x70
+
+#else
+
+#define   logHTTP   0
+#define   logProxy  0
+#define   logFTP    0
+#define   logSMTP   0
+#define   logPOP3   0
+#define   logTLS    0
+#define   logDNS    0
+
+#endif
 
 
 char strKb[]="K";
@@ -424,6 +444,11 @@ void Req::OutStatTblBody(StatLog *psl,tfFind fnd,  //char *bfr,
  char *pfor= GetVar(req_var,"for");
  ulong fip=0;
  
+ if(!Name)
+ {
+   bf->bprintf("\nBad name??? <BR>\n");
+   return ;    
+ }    
  
  if(pfor)
  {
@@ -585,7 +610,7 @@ const uchar isCountAr[]= {
 0, // &fFindEventSumary,             "Сумарно по портам"
 0|isStatContry, // &fFindHTTPUser,                ,"HTTP вызовы"
 0|isStatContry, // &fFindHTTPUNet,                ,"HTTP подсети"
-0|isStatContry, // &fFindSSLUser,                 ,"SSL/TLS вызовы"
+0|isStatContry|logTLS, // &fFindSSLUser,                 ,"SSL/TLS вызовы"
 0, // &fFindHost,                    ,"Запрошенные хосты"
 0, // &fFindURLHTTP,                 ,"Страницы"
 0, // &fFindRefHTTP,                 ,"Ссылки"
@@ -603,30 +628,30 @@ const uchar isCountAr[]= {
 0, // &fFindHTTPHour,                ,"HTTP заходы по часам"
 0, // &fFindCountry,                 ,"HTTP заходы по странам. (нужна база IP)"
 #if  V_FULL
-0|isStatContry, // &fFindProxyUser,               ,"Proxy вызовы"
-1, // &fFindProxyIn  ,               ,"Proxy. Запрошенный входящий трафик (в байтах)"
-1, // &fFindProxyInNC,               ,"Proxy. Запрошенный трафик без учета возвращенного из кеша (в байтах)"
-1, // &fFindProxyOut ,               ,"Proxy. Исходящий трафик (в байтах)"
-1, // &fFindProxyInU ,               ,"Пользователи Proxy. Запрошенный входящий трафик (в байтах)"
-1, // &fFindProxyInUNC,              ,"Пользователи Proxy. Запрошенный трафик без учета возвращенного из кеша (в байтах)"
-1, // &fFindProxyOutU ,              ,"Пользователи Proxy. Исходящий трафик (в байтах)"
-0, // &fFindURLProxy,                ,"Proxy страницы"
-0, // &fFindRefProxy,                ,"Proxy ссылки"
-0|isStatContry, // &fFindFTPUser,                 ,"FTP вызовы"
-0, // &fFindFTPLogin,                , sFTP_LOGIN
-0, // &fFindFTPdownload,             ,"FTP. Утянули"
-0, // &fFindFTPupload,               ,"FTP. Залили"
-1, // &fFindFTPdownloadU,            ,"FTP. Утянули (в байтах)"
-1, // &fFindFTPuploadU,              ,"FTP. Залили (в байтах)"
-0|isStatContry, // &fFindPOPUser  ,               ,"POP3 вызовы"
-0, // &fFindPOPLogin,                , sPOP_LOGIN
-1, // &fFindPOPx,                    ,"POP трафик сообщений (в байтах)"
-0|isStatContry, // &fFindSMTPUser,                ,"SMTP вызовы"
-1, // &fFindSMTPxIP,                 ,"SMTP трафик сообщений (в байтах)"
-1, // &fFindSMTPs,                   ,"SMTP трафик сообщений от пользователей (в байтах)"
-1, // &fFindSMTPr,                   ,"SMTP трафик сообщений для пользователей (в байтах)"
-0|isStatContry, // &fFindDNSUser,                 ,"DNS вызовы"
-0, // &fFindDNSHost,                 ,"DNS хосты"
+0|isStatContry|logProxy, // &fFindProxyUser,               ,"Proxy вызовы"
+1|logProxy, // &fFindProxyIn  ,               ,"Proxy. Запрошенный входящий трафик (в байтах)"
+1|logProxy, // &fFindProxyInNC,               ,"Proxy. Запрошенный трафик без учета возвращенного из кеша (в байтах)"
+1|logProxy, // &fFindProxyOut ,               ,"Proxy. Исходящий трафик (в байтах)"
+1|logProxy, // &fFindProxyInU ,               ,"Пользователи Proxy. Запрошенный входящий трафик (в байтах)"
+1|logProxy, // &fFindProxyInUNC,              ,"Пользователи Proxy. Запрошенный трафик без учета возвращенного из кеша (в байтах)"
+1|logProxy, // &fFindProxyOutU ,              ,"Пользователи Proxy. Исходящий трафик (в байтах)"
+0|logProxy, // &fFindURLProxy,                ,"Proxy страницы"
+0|logProxy, // &fFindRefProxy,                ,"Proxy ссылки"
+0|isStatContry|logFTP, // &fFindFTPUser,                 ,"FTP вызовы"
+0|logFTP, // &fFindFTPLogin,                , sFTP_LOGIN
+0|logFTP, // &fFindFTPdownload,             ,"FTP. Утянули"
+0|logFTP, // &fFindFTPupload,               ,"FTP. Залили"
+1|logFTP, // &fFindFTPdownloadU,            ,"FTP. Утянули (в байтах)"
+1|logFTP, // &fFindFTPuploadU,              ,"FTP. Залили (в байтах)"
+0|isStatContry|logPOP3, // &fFindPOPUser  ,               ,"POP3 вызовы"
+0|logPOP3, // &fFindPOPLogin,                , sPOP_LOGIN
+1|logPOP3, // &fFindPOPx,                    ,"POP трафик сообщений (в байтах)"
+0|isStatContry|logSMTP, // &fFindSMTPUser,                ,"SMTP вызовы"
+1|logSMTP, // &fFindSMTPxIP,                 ,"SMTP трафик сообщений (в байтах)"
+1|logSMTP, // &fFindSMTPs,                   ,"SMTP трафик сообщений от пользователей (в байтах)"
+1|logSMTP, // &fFindSMTPr,                   ,"SMTP трафик сообщений для пользователей (в байтах)"
+0|isStatContry|logDNS, // &fFindDNSUser,                 ,"DNS вызовы"
+0|logDNS, // &fFindDNSHost,                 ,"DNS хосты"
 #endif
 0
 };
@@ -637,7 +662,8 @@ int GetFuncType(tfFind f)
  return 0;
 }
 
-const char *anFnd[]=
+//const 
+char *anFnd[]=
 {
 #ifdef RUS
  "Сумарно по портам"
@@ -688,54 +714,56 @@ const char *anFnd[]=
 #endif
 
 #else
-  sSUMMARY_B
-, sHTTP_CALL
+  x_sSUMMARY_B
+, x_sHTTP_CALL
 , "HTTP subnets"
-, sSSL_CALL
-, sREQUESTED
+, x_sSSL_CALL
+, x_sREQUESTED
 ,"Pages"
 ,"Referer"
 ,"External referer"
 ,"Hosts of referer"
 ,"Browsers"
 ,"Errors"
-, sHTTP__INC
-, sHTTP__OUT
-, sHTTP_BY_H
-, sHTTP_BY_H0
+, x_sHTTP__INC
+, x_sHTTP__OUT
+, x_sHTTP_BY_H
+, x_sHTTP_BY_H0
 ,"HTTP. Time for exchange (ms)"
 ,"HTTP. Time for exchange by hosts (ms)"
 ,"~HTTP. Average speed (Bytes/s)"
 ,"HTTP calls by hours"
 ,"HTTP calls by countries. (the base of IP need)"
 #if V_FULL
-, sPROXY_CAL
-, sPROXY__RE
-, sPROXY__IN
-, sPROXY__OU
-, sPROXY_USE
-, sPROXY_USE0
-, sPROXY_USE1
-, sPROXY_PAG
-, sPROXY_REF
-, sFTP_CALLS
-, sFTP_LOGIN
-, sFTP_DOWNL
-, sFTP_UPLOA
-, sFTP_DOWNL1
-, sFTP_UPLOA1
-, sPOP__CALL
-, sPOP_LOGIN
-, sPOP_DATA_
-, sSMTP_CALL
-, sSMTP_DATA
-, sSMTP_DATA0
-, sSMTP_DATA1
-, sDNS_CALLS
-, sDNS_HOSTS
+, x_sPROXY_CAL
+, x_sPROXY__RE
+, x_sPROXY__IN
+, x_sPROXY__OU
+, x_sPROXY_USE
+, x_sPROXY_USE0
+, x_sPROXY_USE1
+, x_sPROXY_PAG
+, x_sPROXY_REF
+, x_sFTP_CALLS
+, x_sFTP_LOGIN
+, x_sFTP_DOWNL
+, x_sFTP_UPLOA
+, x_sFTP_DOWNL1
+, x_sFTP_UPLOA1
+, x_sPOP__CALL
+, x_sPOP_LOGIN
+, x_sPOP_DATA_
+, x_sSMTP_CALL
+, x_sSMTP_DATA
+, x_sSMTP_DATA0
+, x_sSMTP_DATA1
+, x_sDNS_CALLS
+, x_sDNS_HOSTS
 #endif
 #endif
 ,0
+
+
 };
 
 #include "statusr.cpp"
@@ -752,7 +780,7 @@ int Req::HTTPOutStatistics(char *bfr,char *log,int tbl,int dt)
  union {
   char *t1;
   StatLog *psl1;
-  ushort *st1;
+ // ushort *st1;
  };
  StatLog *tsl,*tsl1;
  char *t2,*t3,*t;
@@ -766,8 +794,9 @@ int Req::HTTPOutStatistics(char *bfr,char *log,int tbl,int dt)
   statbasepoint=log;
 #endif
  char *pfor,*pfort,*pfip;
+ uint statdays[12];
   
- 
+
  if((psl=ParseFile(log,bfr+0x4000)))
  {
   if( (pfor=GetVar(req_var,"for")) )
@@ -836,6 +865,8 @@ int Req::HTTPOutStatistics(char *bfr,char *log,int tbl,int dt)
    t1=bfr+0x3000;
    j=0;
 
+   memset(statdays,0,sizeof(statdays)) ;
+
    do
    {if(!(fnds.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
     {i=0;
@@ -850,24 +881,42 @@ int Req::HTTPOutStatistics(char *bfr,char *log,int tbl,int dt)
       ,i,tbl,i/100,i%100
      ); //,0);
     // */
-     if(i){st1[j++]=i;  if(j>365) break; }
-     else
+     if(i){
+         //st1[j++]=i; 
+         //if(j>365) break; 
+         j=i/100;
+         j--;
+         if((uint)j<12)
+         {
+           statdays[j]|=1u<<(i%100);
+         }   
+         dprint("i=%u j=%u statdays[j]=%X\n",i,j,statdays[j]);
+     }
+     else if(! (statdays[0]&1)  )
+     {    
      // send(s,bfr,sprintf(bfr,
-     bfl.bprintf(
-      "|<a href=/$_admin_$state?n=%i&t=%u>today</a>| &nbsp;" HTML_LN
-      ,i,tbl,i/100,i%100);
+      bfl.bprintf(
+       "|<a href=/$_admin_$state?n=0&t=%u>today</a>| &nbsp;" HTML_LN
+       ,tbl);
       //,0);
+      statdays[0]|=1;
+     }
 
     }
    }while(FindNextFile(hdl,&fnds));
    FindClose(hdl);
-   qsort(st1,j,2,(cmpf)cmpw);
+   //qsort(st1,j,2,(cmpf)cmpw);
    //mqsort(st1,j,(cmpf)cmpw,(cmpf)xchgw);
-   for(i=0;i<j;++i)
-   {
-     bfl.bprintf( "|<a href=/$_admin_$state?n=%u&t=%u>%u/%u</a>| &nbsp;" HTML_LN
-      ,st1[i],tbl,st1[i]/100,st1[i]%100 );
-   }
+//    for(i=0;i<j;++i)
+//    {
+//      bfl.bprintf( "|<a href=/$_admin_$state?n=%u&t=%u>%u/%u</a>| &nbsp;" HTML_LN
+//       ,st1[i],tbl,st1[i]/100,st1[i]%100 );
+//    }
+    for(i=0;i<12;++i)
+       for(j=1;j<=31;++j)
+         if( statdays[i] & (1<<j) )  
+           bfl.bprintf( "|<a href=/$_admin_$state?n=%u&t=%u>%u/%u</a>| &nbsp;" HTML_LN
+                       ,(i+1)*100+j,tbl,i+1,j );  
   };
  }
  

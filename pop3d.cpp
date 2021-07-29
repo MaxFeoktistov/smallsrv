@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2020 Maksim Feoktistov.
+ * Copyright (C) 1999-2021 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov 
@@ -21,6 +21,16 @@
  *
  * 
  */
+
+#ifdef SEPLOG
+
+#undef debug
+#undef AddToLog
+
+#define debug(a...)  sepLog[4]->Ldebug(a)
+#define AddToLog(a...)  sepLog[4]->LAddToLog(a)
+
+#endif
 
 
 

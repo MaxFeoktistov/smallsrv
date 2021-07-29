@@ -114,6 +114,16 @@
 #define x_t2T_4078374 S1t2T_4078374
 
 #ifdef MAINSTR
+ char S1t2T_2946294[] = "Separate log for each server";
+ char *lS1t2T_2946294 = S1t2T_2946294;
+#else
+ extern char *lS1t2T_2946294;
+ extern char S1t2T_2946294[];
+#endif
+#define t2T_2946294 lS1t2T_2946294
+#define x_t2T_2946294 S1t2T_2946294
+
+#ifdef MAINSTR
  char S1t2T_4199171[] = "Don't restrict speed of outgoing transfer";
  char *lS1t2T_4199171 = S1t2T_4199171;
 #else
@@ -382,6 +392,16 @@
 #define x_t2T_3104751 S1t2T_3104751
 
 #ifdef MAINSTR
+ char S1t2T_3457564[] = "Dublicate CGI stderr to http.err log";
+ char *lS1t2T_3457564 = S1t2T_3457564;
+#else
+ extern char *lS1t2T_3457564;
+ extern char S1t2T_3457564[];
+#endif
+#define t2T_3457564 lS1t2T_3457564
+#define x_t2T_3457564 S1t2T_3457564
+
+#ifdef MAINSTR
  char S1t2T_4067961[] = "Size of DNS cache (in records).";
  char *lS1t2T_4067961 = S1t2T_4067961;
 #else
@@ -443,6 +463,17 @@
 #endif
 #define t2T_6448516 lS1t2T_6448516
 #define x_t2T_6448516 S1t2T_6448516
+
+#ifdef MAINSTR
+ char S1t2T_5042572[] = "A space-separated list of bad hostnames."
+ " DoS detection names";
+ char *lS1t2T_5042572 = S1t2T_5042572;
+#else
+ extern char *lS1t2T_5042572;
+ extern char S1t2T_5042572[];
+#endif
+#define t2T_5042572 lS1t2T_5042572
+#define x_t2T_5042572 S1t2T_5042572
 
 #ifdef MAINSTR
  char S1t2T_5252181[] = "Don't save big files. Limit (bytes)";

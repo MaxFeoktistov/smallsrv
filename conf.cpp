@@ -355,6 +355,9 @@ void CheckValidCGIIdent()
  LoadContries();
 #endif
 
+#ifdef SEPLOG
+ InitSepLog();
+#endif 
 
 }
 //----
@@ -850,6 +853,8 @@ int LoadLangCfg(char *fname)
            if(cp->desc && cp->desc==p && (cp->desc<lang_data || cp->desc>b) ){cp->desc=b ;}    
            if(cp->adv && cp->adv==p && (cp->adv<lang_data || cp->adv > b)){cp->adv=b ;}    
          }   
+         for(int j=0; anFnd[j] ; j++ )
+            if(anFnd[j] == p)  anFnd[j]=b;
          *(LangData[i].t)=b;
      
          goto  ExLP2;  

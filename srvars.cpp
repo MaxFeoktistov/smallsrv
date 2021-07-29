@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2020 Maksim Feoktistov.
+ * Copyright (C) 1999-2021 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov 
@@ -27,8 +27,6 @@ char *last_cfg;
 char *cmdline;
 host_dir hsdr={0,0,0};
 //char b_prot[0x4580];
-char b_prot[LOG_SIZE+0x1280];
-char *pprot=b_prot,*f_prot=b_prot;
 char efix[0x100];
 int count_of_tr;
 int post_limit=0x30000,DnsTms=800;
@@ -40,7 +38,9 @@ char *ftp_upload;
 ulong max_msg_size=0x100000;
 char *smtp_name="shttp.srv";
 char *dns_server_for_mail="127.0.0.1";
+#ifdef TELNET
 char *tel_cmd="/bin/bash -i -s";
+#endif
 
 char *out_path=
 #ifndef SYSUNIX
@@ -215,6 +215,8 @@ char *serv_pth_cl;
 #ifndef SYSUNIX
 HICON  hicon;
 
+char dprbuf[256];
+int hstdout;//=(int)GetStdHandle((ulong)STD_OUTPUT_HANDLE);
 
 #ifndef RICON
 uchar icn[]={
@@ -259,32 +261,11 @@ NOTIFYICONDATA nid={
 sizeof(NOTIFYICONDATA),
 0,2904,NIF_ICON|NIF_MESSAGE|NIF_TIP,
 WM_USER,0,"Small Server"
-#ifndef CD_VER
-#ifdef FREEVER
-//free
-#else
-"(UNREGISTERED)"
-#endif
-#endif
 };
 #endif
 
 #define wnd_name (nid.szTip)
-char about[sizeof(ABOUT_STR)+96]= ABOUT_STR
-// #ifndef CD_VER
-// #ifdef RUS
-// #ifdef FREEVER
-// "Версия без регистрации.\r\n" ;
-// #else
-// "Ознакомительный режим\r\nПожалуйста зарегистрируйтесь!\r\n";
-// #endif
-// char more14[]="21 день для ознакомления прошли."
-// #else
-//  sUNREGISTR ;
-// char more14[]= sFREE____D
-// #endif
-// #endif
-;
+char about[sizeof(ABOUT_STR)+96]= ABOUT_STR;
 
 HANDLE htrd,hProcess;
 ulong trd_id;
@@ -326,7 +307,10 @@ int doh_pipe[2];
 char *tls_priority;
 
 char *conf_name;
-uint  dns_dos_limit=60; 
+uint  dns_dos_limit=40; 
+char *DNS_DoS_hosts="";
+//char DNS_DoS_hosts[300];
+
 /*
 =
 #ifndef SYSUNIX
@@ -336,4 +320,37 @@ uint  dns_dos_limit=60;
 #endif
 ;
 */
+#ifdef SEPLOG
+TLog gLog;
 
+char *SrvNameSufix[]={
+"",            //     0
+".proxy",      //     1
+".ftp",        //     2
+".smtp",       //     3
+".pop",        //     4
+".ssl",        //     5
+#ifndef TELNET
+".http.err",   //     10
+#else
+".telnet",   //     6
+#endif
+".dns",        //     7
+"",            //     8
+".dhcp"        //     9
+#ifdef TELNET
+,".http.err"   //     10
+#endif
+};
+TLog *sepLog[N_LOG]; // ARRAY_SIZE(SrvNameSufix) ];
+char *b_prot=gLog.lb_prot;
+char *pprot;
+uint logsigmsk;
+int mutex_pcnt;
+
+#else
+char b_prot[LOG_SIZE+0x1280];
+char *pprot=b_prot,*f_prot=b_prot;
+
+
+#endif

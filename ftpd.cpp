@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2020 Maksim Feoktistov.
+ * Copyright (C) 1999-2021 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov 
@@ -41,6 +41,16 @@
 #undef send
 #define send(a,b,c,d) xx
 //BSend(a,b,c)
+
+#ifdef SEPLOG
+
+#undef debug
+#undef AddToLog
+
+#define debug(a...)  sepLog[2]->Ldebug(a)
+#define AddToLog(a...)  sepLog[2]->LAddToLog(a)
+
+#endif
 
 int first_pass_port;
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2020 Maksim Feoktistov.
+ * Copyright (C) 1999-2021 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov 
@@ -100,6 +100,8 @@ int Req::Admin()
  host_dir *ab;
  int i,j,k;
 
+ DBGLINE
+
  BFILE bfl;
 
    p=b=loc+8192+260;
@@ -133,6 +135,8 @@ int Req::Admin()
    }
 
    bfl.fflush();
+
+   DBGLINE
 
 
 
@@ -534,18 +538,100 @@ if(0){
       HTTPOutUsersPage(&bfl); //b);
       break;
    case 0x74617473 x4CHAR("stat") :
-     j=255;
+       DBGLINE 
+       j=255;
      if( (u=GetVar(req_var,"t")) )j=atoui(u);
      if( flog && (u=GetVar(req_var,"n")) && ((k=atoui(u))<3232) )
-     {l=sprintf(b,"%s",flog);
+     {
+#define MAX_LOG_SIZE   0x4000000      
+      
+#ifdef SEPLOG
+      int hh[10]; 
+      int ll;
+      if( (FL2_SEPARATELOG & s_flgs[2])    )
+      {
+          i2=0;  
+          u=0;
+          for(i=0;i<10;i++)
+          {
+            hh[i]=0;  
+            if(i==6 || i==8 || j==5) continue;   
+            if((i) && sepLog[i] ==&gLog )   continue;
+            if( j!=255 && j )
+            {
+               l= isCountAr[i]>>4;
+               if(l!=i)  continue; 
+            }    
+            if(i2>=MAX_LOG_SIZE)continue;    
+            sepLog[i]->MkFileName(b,k);
+            if( (hh[i]=_lopen(b,0))>0)
+            {
+               l=FileSize(hh[i]); 
+               i2+=l;
+            }
+
+    
+          }
+          l=i2;
+      }
+      else
+      {
+         gLog.MkFileName(b,k);  
+         memset(hh,0,sizeof(hh));
+         l=0;
+         MyLock(mutex_pcnt);
+         
+         if((hh[0]=_lopen(b,0))>0)
+         {
+           l=FileSize(hh[0]);    
+         }    
+      }
+     
+      if(l>MAX_LOG_SIZE)l=MAX_LOG_SIZE;
+      if(l)
+      {    
+        do{
+            ///if((u=new char[l+64]))break;
+            if( (u=(char *)malloc(l+64) ) )break;
+            debug("No enought memory to load log (%u) bytes. Try half (%u)",l,l>>1);
+            if((l>>=1)<0x4000)
+            {
+              goto lbEndStat;
+            };
+        }while(1);
+        ll=0;  
+        for(i=0;i<10;i++)if(hh[i]>0)
+        {
+         i2=_hread(hh[i],u+ll,l-ll);
+         ll+=i2;
+         if(ll>=l)break;
+        }  
+      } 
+      
+   lbEndStat:
+      for(i=0;i<10;i++)if(hh[i]>0)_lclose(hh[i]);
+      MyUnlock(mutex_pcnt);
+      if(u)
+      {
+       for(i2=0;i2<l;i2++)if(!u[i2])u[i2]=' ';
+       u[l]=0;
+       DBGLINE
+       HTTPOutStatistics(loc,u,j,k);
+       free(u);  
+       break;
+      }    
+      
+      
+#else
+         
+      l=sprintf(b,"%s",flog);
       if( !(t=strrchr(b,'.')) )t=b+l;
       if(k)sprintf(t,"%4.4u",k);
       MyLock(pcnt);
-#if 1
 
+      
       if((i=_lopen(b,0))>0)
       {l=_llseek(i,0,2);
-#define MAX_LOG_SIZE   0x4000000      
        if(l>MAX_LOG_SIZE)l=MAX_LOG_SIZE;
        do{
         ///if((u=new char[l+64]))break;
@@ -563,15 +649,15 @@ if(0){
        if(i2!=l)
        {
         debug("Error read log (%u of %u)  bytes.  (%d %s)",i2,l,errno, strerror(errno));
-           
        }
        _lclose(i);
+       
        MyUnlock(pcnt);
        if(i2<=0)goto lbStat;
        l=i2;
        for(i2=0;i2<l;i2++)if(!u[i2])u[i2]=' ';
        u[l]=0;
-       
+       DBGLINE
        HTTPOutStatistics(loc,u,j,k);
        i2=0;
      ///  delete u;
@@ -579,16 +665,37 @@ if(0){
        break;
       }
       MyLock(pcnt);
-#else
-      HTTPFOutStatistics(loc+i+1,loc,j,k);
-      break;
 
 #endif
      }
    lbStat:
+#ifdef SEPLOG
+    if( (u=(char *)malloc(LOG_SIZE*8) ) )
+    {
+        
+       i2=0;
+       for(i=0;i<10;i++) 
+       {
+         if(i==6 || i==8) continue;   
+         if((!i) || sepLog[i] !=&gLog )
+         {
+            memcpy(u+i2,sepLog[i]->lb_prot,l=sepLog[i]->lpprot-sepLog[i]->lb_prot);
+            i2+=l;
+         }   
+       }
+       u[i2]=0;
+       HTTPOutStatistics(loc,u,j,3232);
+       i2=0;
+     ///  delete u;
+       free(u);
+        
+        
+    }    
+#else
      memcpy(loc,b_prot,i=pprot-b_prot);
      loc[i]=0;
      HTTPOutStatistics(loc+i+1,loc,j,3232);
+#endif     
      break;
    case 0x72737573 x4CHAR("susr") :
      HTTPUserStat();
@@ -601,7 +708,38 @@ if(0){
    {HTTPOutRegPage(); break;}
 #endif
 #endif
-   case 0x6C676F6C x4CHAR("logl") : HTTPOutCurentLog(b); break;
+   case 0x6C676F6C x4CHAR("logl") : 
+#ifdef SEPLOG
+    b_prot=gLog.lb_prot;
+    pprot=gLog.lpprot;
+    if( FL2_SEPARATELOG & s_flgs[2]     )
+    {    
+      j=0;  
+      if( (u=GetVar(req_var,"t")) )
+      {
+        j=atoui(u);
+        if((uint)j<10){
+            b_prot=sepLog[j]->lb_prot;
+            pprot=sepLog[j]->lpprot;
+        }    
+      }
+      u=SrvNameSufix[j];
+      if(*u == '.')u++;
+      
+      bfl.bprintf( "<h2>%s</h2><table border=0 width=100%%><tr align=center><td><a href=\"?t=0\">General</a></td>" LF, u );
+      for(j=1;j<10;j++)
+        if(sepLog[j]!=&gLog)  
+        {
+            u=SrvNameSufix[j];
+            if(*u != '.')continue;
+            u++; 
+            bfl.bprintf( "<td><a href=\"?t=%u\">%s</a></td>" LF ,j, u); 
+        }    
+      bfl.bprintf( "</tr></table>");
+      bfl.fflush();
+    }  
+#endif       
+       HTTPOutCurentLog(b); break;
    default:
      HttpReturnError( sERROR__BA );
   }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2020 Maksim Feoktistov.
+ * Copyright (C) 1999-2021 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov 
@@ -97,7 +97,8 @@ void RestartServer(char *u,int cnt)
   //system(__argv[0]);
 #ifndef _BSD_VA_LIST_
   unsave_limit=1;
-  RelProt();
+  //RelProt();
+  DoneSepLog();
   sleep(1);
   if(!fork())
 #else
@@ -105,7 +106,8 @@ void RestartServer(char *u,int cnt)
   is_no_exit=0;
   usleep(500000);
   unsave_limit=1;
-  RelProt();
+  //RelProt();
+  DoneSepLog();
   sleep(1);
 #endif
   { //fprintf(stderr, "Restart... (%d)\n",errno);
@@ -302,6 +304,20 @@ char * GetNextBindAddr(char *p, void *sa_server)
 
 //int CreateSrv(int max_c,int flg, int &s,int s_port=80)
 static int bind_wait_close;
+
+int ChkWaitBind()
+{
+   if(!bind_wait_close)
+   {
+     debug("Wait 3 seconds for close old instance of server and try again...");  
+     Sleep(3000);
+     bind_wait_close++;
+     return 1;
+   } 
+   return 0;
+    
+}
+
 int CreateSrv(int j)
 {
  int i,s,k=0,jj=j%MAX_SERV;
@@ -385,13 +401,16 @@ try_bind_again:
 #endif
    //shutdown( s, 2 );
    //closesocket( (int) s);
+   if(ChkWaitBind())goto try_bind_again;
+   /*
    if(!bind_wait_close)
    {
      debug("Wait 3 seconds for close old instance of server and try again...");  
      Sleep(3000);
      bind_wait_close++;
      goto try_bind_again;
-   }    
+   } 
+   */
      
    CloseSocket(s);
 
@@ -505,7 +524,17 @@ int InitApplication()
 
   hProcess=GetCurrentProcess();
 #endif
+
+#ifdef SEPLOG  
+#define  pprot  gLog.lpprot   
+#define  GetProt() gLog.GetProt()
+#define  RelProt() gLog.RelProt()
+  InitSepLog();
+#endif  
+
+
   GetProt();
+  
   pprot+=sprintf(pprot,"%s\r\n\r\n",about);
   i=0;
   if(max_srv[0])
@@ -571,7 +600,7 @@ int InitApplication()
   else
 #endif
   if(
-   InitLib((TFprintf) &debug, (TFtransfer) (&JustSnd), (TFtransfer) (&JustRcv),
+   InitLib((TFprintf) &tlsdebug, (TFtransfer) (&JustSnd), (TFtransfer) (&JustRcv),
 //   InitLib((TFprintf) &debug, (TFtransfer) (&Req::JustSend), (TFtransfer) (&Req::JustRecv),
 //   InitLib((TFprintf) &debug, dynamic_cast<TFtransfer>(&Req::JustSend), (TFtransfer)  static_cast<void *>(&Req::JustRecv),
    CApath,CAfile,s_cert_file, s_key_file)
@@ -664,12 +693,20 @@ int InitApplication()
                        0,0,480,480,0,0, hinstance, 0);
   GetClientRect(mwnd,&rc);
 
+  hmnu=MkMnu(mnu2,CreatePopupMenu);
+  /*
+  mnu3[0].id=(ulong)hmnu;
+  hmmnu=MkMnu(mnu4,CreateMenu);
+  */
   ewnd=CreateWindowEx(WS_EX_CLIENTEDGE,"EDIT",b_prot,
         WS_BORDER|WS_CHILD|WS_VISIBLE|ES_MULTILINE|
         ES_READONLY|WS_VSCROLL,
         rc.left,rc.top,rc.right,rc.bottom,
-        mwnd,(HMENU)101,hinstance, 0);
-  InsertMenu(GetSystemMenu(mwnd,0),0,MF_POPUP|MF_BYPOSITION|MF_HILITE,(uint)(hmnu=MkMnu(mnu2,CreatePopupMenu)),"&Server");
+        mwnd,(HMENU) //hmmnu 
+         101
+        ,hinstance, 0);
+  InsertMenu(GetSystemMenu(mwnd,0),0,MF_POPUP|MF_BYPOSITION|MF_HILITE,(uint)hmnu,"&Server");
+  
   nid.hWnd=mwnd; nid.hIcon=hicon;
   if(! (s_flg&0x10) )s_aflg|=!Shell_NotifyIcon(NIM_ADD,&nid);
   SendMessage(ewnd,WM_SETFONT,(ulong)GetStockObject(17),1);
@@ -691,4 +728,8 @@ int InitApplication()
  return 1;
 #endif
 }
+
+#undef pprot
+#undef RelProt
+#undef GetProt
 

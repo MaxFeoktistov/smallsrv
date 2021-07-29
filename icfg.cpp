@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2020 Maksim Feoktistov.
+ * Copyright (C) 1999-2021 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov 
@@ -112,7 +112,9 @@ CfgParam ConfigParams[]={
 {"logday",0,FL_LOGDAY,(uint *)0, CS(sNEW_LOG_F )},
 {"nolimitlog",1,0,(uint *)0, CS("Don't trim log lines")},
 {"limitlog",0,4096,(uint *)&trim_log_lines, CS("Limit the length of the log lines. The length of each line should not exceed this value"  )},
-
+#ifdef SEPLOG
+{"seplog",2,FL2_SEPARATELOG,(uint *)0, CS("Separate log for each server")},
+#endif
 
 #endif
 
@@ -202,6 +204,9 @@ SPD(0,http)
 {"ip2cntr_aut"  ,2,FL2_IPCNTRAUT,(uint *)0, CS("$_ip2country_$ service for authorized users only")},
 {"http_doh"  ,2,FL2_DOH,(uint *)0, CS("Enable DNS over HTTP(S).")},
 {"noerrout"  ,2,FL2_NOERROUT,(uint *)0, CS("Don't out error stream (STDERR) from CGI scripts to remote users")},
+#ifdef SEPLOG
+{"dupstderr",2,FL2_DUBSTDERR,(uint *)0, CS("Dublicate CGI stderr to http.err log")},
+#endif
 
 
 XLIMIT(http,"HTTP",7),
@@ -228,6 +233,7 @@ RANGES(dns,sIP_RANGES,sIP_RANGESD)
 {"nodns_bld",1,0,(uint *)0, CS("Disable build in DNSBL server" )},
 {"dns_bld",63,0,(uint *)&dnsblname, CS("Host name of build in DNSBL server" )},
 {"dns_detect_dos"  ,0,0x1000000,(uint *)&dns_dos_limit, CS("Detect DoS request. Number of DoS-like requests to block IP (0 - disable)")},
+{"dns_dos_hosts",299,0,(uint *)&DNS_DoS_hosts, CS("A space-separated list of bad hostnames. DoS detection names" )},
 
 /*
 #ifndef SYSUNIX

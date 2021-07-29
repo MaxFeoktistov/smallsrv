@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2020 Maksim Feoktistov.
+ * Copyright (C) 1999-2021 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov 
@@ -25,6 +25,16 @@
 
 #ifndef SRV_H
 #include "srv.h"
+#endif
+
+#ifdef SEPLOG
+
+#undef debug
+#undef AddToLog
+
+#define debug(a...)  sepLog[6]->Ldebug(a)
+#define AddToLog(a...)  sepLog[6]->LAddToLog(a)
+
 #endif
 
 #include <pty.h>

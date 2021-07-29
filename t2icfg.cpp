@@ -2,7 +2,7 @@
 //  GENERATED FILE, DON'T  EDIT THIS!  !!!  Edit t2icfg.cpp instead...
 
 /*
- * Copyright (C) 1999-2020 Maksim Feoktistov.
+ * Copyright (C) 1999-2021 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov 
@@ -115,7 +115,9 @@ CfgParam ConfigParams[]={
 {"logday",0,FL_LOGDAY,(uint *)0, CS(sNEW_LOG_F )},
 {"nolimitlog",1,0,(uint *)0, CS( t2T_1872208 )},
 {"limitlog",0,4096,(uint *)&trim_log_lines, CS( t2T_4078374   )},
-
+#ifdef SEPLOG
+{"seplog",2,FL2_SEPARATELOG,(uint *)0, CS( t2T_2946294 )},
+#endif
 
 #endif
 
@@ -205,6 +207,9 @@ SPD(0,http)
 {"ip2cntr_aut"  ,2,FL2_IPCNTRAUT,(uint *)0, CS( t2T_3765166 )},
 {"http_doh"  ,2,FL2_DOH,(uint *)0, CS( t2T_2243001 )},
 {"noerrout"  ,2,FL2_NOERROUT,(uint *)0, CS( t2T_3104751 )},
+#ifdef SEPLOG
+{"dupstderr",2,FL2_DUBSTDERR,(uint *)0, CS( t2T_3457564 )},
+#endif
 
 
 XLIMIT(http,"HTTP",7),
@@ -231,6 +236,7 @@ RANGES(dns,sIP_RANGES,sIP_RANGESD)
 {"nodns_bld",1,0,(uint *)0, CS( t2T_1641062  )},
 {"dns_bld",63,0,(uint *)&dnsblname, CS( t2T_2559746  )},
 {"dns_detect_dos"  ,0,0x1000000,(uint *)&dns_dos_limit, CS( t2T_6448516 )},
+{"dns_dos_hosts",299,0,(uint *)&DNS_DoS_hosts, CS( t2T_5042572  )},
 
 /*
 #ifndef SYSUNIX

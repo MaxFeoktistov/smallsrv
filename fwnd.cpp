@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2020 Maksim Feoktistov.
+ * Copyright (C) 1999-2021 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov 
@@ -187,7 +187,11 @@ long CALLBACK DefProc(HWND hwnd, UINT msg,UINT wparam, LONG lparam)
     }
     if(wstate)
     {ShowWindow(hwnd,SW_RESTORE);
-     wstate=0; ShowProt();
+     wstate=0; 
+#ifdef SEPLOG
+     shown_log->
+#endif     
+     ShowProt();
     }
     SetForegroundWindow(hwnd);
     if(msg==WM_CLOSE) if(MessageBox(0, sDO_YOU_WA ,wnd_name,MB_YESNO|MB_ICONQUESTION) != IDNO)break;
@@ -426,6 +430,33 @@ long CALLBACK DefProc(HWND hwnd, UINT msg,UINT wparam, LONG lparam)
        }
       ShellExecute(0,"open",p,0,0,SW_SHOWNORMAL);
       return 1;
+#endif
+#ifdef SEPLOG      
+     case 360:
+     case 361:
+     case 362:
+     case 363:
+     case 364:
+     case 365:
+     case 366:
+     case 367:
+     case 368:
+     case 369:
+       // DBGLINE 
+        if((uint)(i-=360)<10)
+        { 
+         //  DBGLINE 
+          // ModifyMenu(hmnu, 359,MF_BYCOMMAND,  )
+              
+             CheckMenuItem(hmnu,360+oldchecked,MF_BYCOMMAND|MF_UNCHECKED);
+             CheckMenuItem(hmnu,360+i,MF_BYCOMMAND|MF_CHECKED);
+             oldchecked=i;
+             shown_log=sepLog[i];
+             shown_log->ShowProt();
+        }    
+
+       // dprint("i=%d\n",i);
+        return 1;   
 #endif
      case 150:/*"E&xit" */
      lbCancel:

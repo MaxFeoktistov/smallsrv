@@ -27,7 +27,7 @@
 
 
 
-@opt=`./t/httpd.exe --help`;
+@opt=`./o/httpd.exe --help`;
 
 $i=0;
 foreach $s  (@opt)

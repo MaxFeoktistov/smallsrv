@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2020 Maksim Feoktistov.
+ * Copyright (C) 1999-2021 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov 
@@ -22,9 +22,14 @@
  * 
  */
 
-
+#ifndef MINGW64
 #define _WINDOWS_
-
+#else
+#ifndef _X86_
+#define _X86_
+#endif
+#define __CRT__NO_INLINE 1
+#endif
 
 
 //#pragma GCC diagnostic ignored "-Wstrict-prototypes"
@@ -45,6 +50,9 @@ typedef void* HKEY;
 #include <sys/types.h>
 #include <ctype.h>
 #include "mstring1.h"
+#ifdef MINGW64
+#include <winsock2.h>
+#endif
 #include <windows.h>
 
 
@@ -54,13 +62,26 @@ typedef struct fd_set {
   int  fd_array[64];   /* an array of SOCKETs */
 }fd_set;
 
+#ifdef MINGW64
 
 //#include <winsock2.h>
+#include <winsock_IPv6.h>
+
+#undef DJGPP
+
+#else // Not MINGW64
+
 #include <winsock.h>
 
 #ifdef MINGW
 #include <winsock_IPv6.h>
 #undef DJGPP
+#endif
+
+
+
+
+
 #endif
 
 #ifdef  DJGPP 
@@ -69,10 +90,17 @@ int PASCAL __WSAFDIsSet(int, fd_set *);
 };
 #endif
 
+//#ifndef MINGW64
+
+
 #include <shellapi.h>
 #include <shlobj.h>
 #include <commdlg.h>
 #include <winsvc.h>
+
+//#endif
+
+
 #define sprintf wsprintf
 #define vsprintf wvsprintf
 
@@ -105,11 +133,12 @@ extern mrc_obj dlg2[];
 extern mrc_mnu mnu2[];
 extern //const 
        mrc_mnu mnu3[];
+extern mrc_mnu mnu4[];
 extern const char *url_desc[];
 extern char fnamebuf[512],hstflt[];
 extern OPENFILENAME ofn;
 extern BROWSEINFO binf;
-extern HMENU hmnu;
+extern HMENU hmnu,hmmnu;
 extern HWND dwnd2,dwndc;
 
 extern SECURITY_ATTRIBUTES secat;
@@ -295,6 +324,9 @@ extern void *id_heap;
 inline void * WMALLOC(int n){return HeapAlloc(id_heap,HEAP_ZERO_MEMORY,n);}
 inline void * WREALLOC(void *p,int n){return  HeapReAlloc(id_heap,HEAP_ZERO_MEMORY,p,n); }
 inline void   WFREE(void *p) { HeapFree(id_heap,0,p); }
+#undef  malloc
+#undef  Malloc
+#undef  free
 #define malloc WMALLOC
 #define Malloc WMALLOC
 #define free WFREE
@@ -322,6 +354,16 @@ inline void operator delete(void *a,unsigned int)
 long long atoll(const char *a);
 
 #endif
+
+extern char dprbuf[256];
+extern int hstdout;
+#define dprint(a...)  
+//_hwrite(hstdout,dprbuf,wsprintf(dprbuf,a )) ; Sleep(10);
+#define DBGLINE  
+//dprint("%s:%u\r\n",__FILE__,__LINE__); 
+
+
+#define MIN_PTR (void *)0x40000
 
 #ifdef DJGPP
 #define Malloc malloc

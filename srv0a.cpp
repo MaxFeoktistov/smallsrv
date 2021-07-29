@@ -73,7 +73,7 @@ void WINAPI NThandler(DWORD fdwControl)
 #endif
 
 #ifdef USE_FUTEX
-const struct timespec timeout_50ms={0,50000000};
+const  struct timespec timeout_50ms={0,50000000};
 #endif
 void MyLock(volatile int &x){int a=(int) GetCurrentThreadId();
    int dead_lock_chk=128;
@@ -128,8 +128,19 @@ void MyUnlockOwn(volatile int &x){
 
 #ifndef SYSUNIX
 ushort wb_prot[LOG_SIZE+0x1080];
+
+#ifdef SEPLOG
+TLog  *shown_log=&gLog;
+int oldchecked;
+void TLog::ShowProt()
+{
+  if(shown_log!=this)return ; 
+#define b_prot lb_prot
+#else
 void ShowProt()
 {
+#endif
+
  if( (s_flgs[2]&FL2_UTF)  && utf2unicode((uchar *)b_prot,wb_prot)>0)    
  {
     SetWindowTextW(ewnd,(LPCWSTR)wb_prot); 
@@ -137,7 +148,7 @@ void ShowProt()
  else SetWindowText(ewnd,b_prot);
  SendMessage(ewnd,EM_LINESCROLL,0,SendMessage(ewnd,EM_GETLINECOUNT,0,0)-4);
 };
-
+#undef b_prot
 char err_msg[260];
 char* strerror(int ErrorCode)
 {
@@ -155,211 +166,29 @@ void xdie(char *er)
  return;
 }
 
-void RelProt(SYSTEMTIME *stime)
-{int l,ll;
- SYSTEMTIME lTime;
- FILETIME CrTime1,CrTime;
- char *t;
-#ifdef SYSUNIX
- if(!(s_flg&FL_NOICON))printf("%s",oldprot);
-#endif
-#ifndef CD_VER
- if(flog &&  ( (l=(pprot-f_prot)) >= unsave_limit ) )
- {
-#ifndef SYSUNIX
-  if( (ll=_lopen(flog,1))>0)
-  {_llseek(ll,0,2);
-#else
-  if(puid!=geteuid()){
-//printf("\nkill %d %d\n",puid,geteuid());
-  kill(ppid,SIGUSR1); return;}
-
-  if((ll=open(flog,O_APPEND|O_WRONLY))>0)
-  {
-#endif
-   _hwrite(ll,f_prot,l);
-   GetFileTime((FHANDLE) ll,&CrTime1,0,0 );
-   _lclose(ll);
-   if(s_flg&FL_LOGDAY)
-   {
-#ifndef SYSUNIX
-    FileTimeToLocalFileTime(&CrTime1,&CrTime);
-    FileTimeToSystemTime(&CrTime,&lTime);
-#else
-    memcpy(&lTime,localtime((const time_t *) &CrTime1),sizeof(lTime));
-#endif
-//  printf("stime->wDay %u == lTime.wDay %u ;stime->wHour =%u, lTime.wHour=%u ",stime->wDay,lTime.wDay,stime->wHour, lTime.wHour );
-    if( (stime->wDay!=lTime.wDay)
-#ifdef SYSUNIX
-     || (lastday!=stime->wDay) )
-    {struct stat stt;
-     if(stime->wDay==lTime.wDay && lTime.wDay==1 )
-      if(--lTime.ttm.tm_mon<0)lTime.ttm.tm_mon=11;
-     lTime.wDay=lastday;
-     lastday=stime->wDay;
-#else
-    ){
-#endif
-     if(t=strrchr(flog,'.') )*t=0;
-     sprintf(pprot+16,"%.255s%2.2u%2.2u",flog,lTime.wMonth,lTime.wDay);
-#ifdef SYSUNIX
-    if(stat(pprot+16,&stt)>=0 ){
-       struct tm *ttm;
-       char *tt;
-       char ddir[280];
-
-       tt=strrchr(pprot+16,'/');
-       ttm=localtime(&stt.st_ctime);
-       if(tt)
-       {
-         *tt=0;  
-         sprintf(ddir,"%.255s/%u",pprot+16,ttm->tm_year+1900);
-         mkdir(ddir,0700);
-         sprintf(ddir,"%.255s/%u/%.20s",pprot+16,ttm->tm_year+1900,tt+1);
-         *tt='/';  
-       }
-       else
-       {
-         sprintf(ddir,"%u",ttm->tm_year+1900);
-         mkdir(ddir,0700);
-         sprintf(ddir,"%u/%.20s",ttm->tm_year+1900,pprot+16);
-       }
-       if(rename(pprot+16,ddir) )
-       {
-           if(t)*t='.';
-           goto lbRenErr;
-       }
-    }
-#else
-
-#ifndef INVALID_FILE_ATTRIBUTES
-#define INVALID_FILE_ATTRIBUTES  ((ulong)-1)
-#endif
-     if(GetFileAttributes(pprot+16)!=INVALID_FILE_ATTRIBUTES )
-     {
-      char *tt;
-      WIN32_FIND_DATA  fdt;
-      SYSTEMTIME sTim2;
-      HANDLE hh2;
-      char ddir[280];
-
-      hh2=FindFirstFile(pprot+16,&fdt);
-      if(hh2!=INVALID_HANDLE_VALUE)
-      {
-         FindClose(hh2);     
-         FileTimeToSystemTime(&fdt.ftCreationTime,&sTim2);
-         
-         
-       tt=strrchr(pprot+16,'/');
-       if(tt)
-       {
-         *tt=0;  
-         sprintf(ddir,"%.255s/%u",pprot+16,sTim2.wYear);
-         CreateDirectory(ddir,&secat);
-         sprintf(ddir,"%.255s/%u/%.20s",pprot+16,sTim2.wYear,tt+1);
-         *tt='/';  
-       }
-       else
-       {
-         sprintf(ddir,"%u",sTim2.wYear);
-         CreateDirectory(ddir,&secat);
-         sprintf(ddir,"%u/%.20s",sTim2.wYear,pprot+16);
-       }
-       if(!MoveFile(pprot+16,ddir) )
-       {
-           if(t)*t='.';
-           goto lbRenErr;
-       }
-      }
-     }         
-#endif
-     if(t)*t='.';
-        
-     MoveFile(flog,pprot+16);
-#ifndef SYSUNIX
-     if( (ll=_lcreat(flog,0))>0)
-     {_hwrite(ll,f_prot,l);
-      GetSystemTimeAsFileTime(&CrTime);
-      SetFileTime((HANDLE)ll,&CrTime,&CrTime,&CrTime);
-#else
-     if( (ll=creat(flog,0600))>0)
-     {_hwrite(ll,f_prot,l);
-#endif
-      _lclose(ll);
-     }
-    }
-   }
-  }
-lbRenErr:;  
-  f_prot=pprot;
- };
-#endif
- if((pprot-b_prot)>LOG_SIZE)
- {pprot-=0x1000;f_prot-=0x1000; memcpy(b_prot,b_prot+0x1000,pprot-b_prot);};
-
-#ifndef SYSUNIX
- if(!wstate)ShowProt();
-#endif
- pval++;
- MyUnlock(pcnt);
-};
-void RelProt()
-{SYSTEMTIME stime;
- GetLocalTime(&stime);
- RelProt(&stime);
-};
-
-extern "C" void debug(const char *a,...)
-{
-#if defined(ARM) || defined(x86_64)
-va_list v;
-
- va_start(v,a);
-#endif
-
-
-
-GetProt();
- DWORD_PTR(*pprot)=0x0A0D;
-#ifdef SYSUNIX
-//char * t;
-//  t=pprot;
-#endif
- pprot+=
-#ifndef SYSUNIX
- wvsprintf
-#else
-
-
- vsprintf
-#endif
- (pprot+=2,a,(
-#if  defined(ARM) || defined(x86_64)
-v)
-#else
-#ifdef _BSD_VA_LIST_
- _BSD_VA_LIST_
-#else
- //void *
- va_list
-#endif
- ) ((&a)+1)
-#endif
- );
- DWORD_PTR(*pprot)=0x0A0D;
- pprot+=2;
-#ifdef SYSUNIX
-// printf("%s",t);
-#endif 
- RelProt();
+#ifdef SEPLOG
+void Req::OutErr(char *er)
+{char buf1[200];
+ uint k=flsrv[1];
+ if(k>=N_LOG)k=0;   
+ sprintf(buf1,"Error: %.160s\r\n",er);
+ sepLog[k]->LAddToLog(buf1,s);
 }
 
+void dbgf(char *er,int s)
+{char buf1[200];
+ TLog *t=GetLogS(s);
+ sprintf(buf1,"Error: %s\r\n",er);
+ t->LAddToLog(buf1,s);
+}
+
+#else
 void dbgf(char *er,int s)
 {char buf1[200];
  sprintf(buf1,"Error: %s\r\n",er);
  AddToLog(buf1,s);
 }
-
+#endif
 const char FmtBasicC[]=">Keep-Alive\r\n%.4000s";
 const char FmtBasic[] =">\r\n%.4000s";
 const char FmtShort []=">>%.256s\r\n";
@@ -437,75 +266,13 @@ char *TrimLogLines(char *s)
  return t;
 }
 
-void AddToLog(char *t,int s,const char *fmt)
-{SYSTEMTIME stime;
-#ifdef USE_IPV6
- struct sockaddr_in6
-#else
- struct sockaddr_in
-#endif
-  xsa[2];
-#define sa  (*(sockaddr_in *)xsa)
-#define san (*(sockaddr_in *)(xsa+1))
- int ll,l;
- l=sizeof(xsa[0]);
- char *x,*y;
 
-// printf("s=%d \n",s);
- if(s){
-  getpeername(s,(sockaddr*) (xsa),&l);
-  getsockname(s,(sockaddr *) (xsa+1),&l);
- }else memset(&sa,0,sizeof(xsa));
-
- GetLocalTime(&stime);
-#ifdef USE_IPV6
- char addr6[64];
- IP2S(addr6,(sockaddr_in *)xsa);
-#endif
- GetProt();
- if(FmtShortErr == fmt)
- {
-   DWORD_PTR(*pprot)=0x21215E x4CHAR("^!!");
-   pprot+=3;
- }
- pprot+=sprintf(pprot,
- "\r\n!-%c%2.2u/%2.2u %2.2u:%2.2u:%2.2u ["
-#ifdef USE_IPV6
-  "%s"
+#ifdef  SEPLOG
+#include "seplog.cpp"
 #else
-  "%u.%u.%u.%u"
+#include "onelog.cpp"
 #endif
-
- ":%u%c%u] (t%d %d) "
- ,fmt[0],
-  stime.wDay,stime.wMonth,stime.wHour,stime.wMinute,stime.wSecond,
-#ifndef USE_IPV6
-#ifndef SYSUNIX
-   sa.sin_addr.S_un.S_un_b.s_b1,  sa.sin_addr.S_un.S_un_b.s_b2,
-   sa.sin_addr.S_un.S_un_b.s_b3,  sa.sin_addr.S_un.S_un_b.s_b4,
-#else
-   sa.sin_addr.s_addr&0xFF ,  BYTE_PTR(sa.sin_addr.s_addr,1),
-   BYTE_PTR(sa.sin_addr.s_addr,2),BYTE_PTR(sa.sin_addr.s_addr,3),
-#endif
-#else
-   addr6,
-#endif
-   htons((ushort)sa.sin_port),fmt[0],
-   htons((ushort)san.sin_port),
-   count_of_tr //s
-   ,pval);
-   x=pprot;
-   pprot+=sprintf(pprot,fmt+1,t)-2;
-   if(trim_log_lines)pprot=TrimLogLines(x)-2;
-   if(FL1_DELPAS&s_flgs[1])
-   {for(l=0;DLST[l];++l)if((y=stristr(x,DLST[l])))
-    {y+=strlen(DLST[l]); while(*((uchar *)y)>0xD) *y++='*';}
-   }
- RelProt(&stime);
-#undef sa
-#undef san
-};
-
+  
 #ifdef SERVICE
 void CloseService()
 {if(sesh && ServiceStatus.dwCurrentState!=SERVICE_STOPPED)
@@ -549,7 +316,8 @@ void CloseServer()
 #endif
  is_no_exit=0;
  unsave_limit=1;
- RelProt();
+ //RelProt();
+ DoneSepLog();
  DestroyWindow(mwnd);
  DestroyIcon(
 #ifndef DJGPP     
@@ -756,6 +524,8 @@ int PASCAL WinMain( HINSTANCE hinst, HANDLE prev_inst, LPSTR cmline, int cmdshow
    debug( sRUN_AS_AP );
   }
  }
+  hstdout=(int)GetStdHandle((ulong)STD_OUTPUT_HANDLE);
+  DBGLINE
  return RMain(0);
 }
 
@@ -770,6 +540,9 @@ extern "C" int RMain(void *)
  int ll;
 // ulong ull;
 // };
+#ifdef SEPLOG 
+ gLog.Init(0); //"");
+#endif 
  if(strstr(cmdline," --v") )
  {
    _hwrite((int)GetStdHandle((ulong)STD_OUTPUT_HANDLE),sSMALL_HTT "\n",sizeof(sSMALL_HTT)+1);

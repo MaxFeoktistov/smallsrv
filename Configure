@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 
 #
-# Copyright (C) 1999-2020 Maksim Feoktistov.
+# Copyright (C) 1999-2021 Maksim Feoktistov.
 #
 # This file is part of Small HTTP server project.
 # Author: Maksim Feoktistov 
@@ -49,6 +49,8 @@
    --gcc64="gcc -m64"  -- select compiler for i64
    --wingcc="wine c:\\\\MINGW\\\\bin\\\\gcc.exe" -- direct compiler for win version
    --windir="c:\\\\MINGW" -- direct base dir for windows headers and libraries
+   --wininc=" -Ic:\\\\MINGW\\\\include" -- direct include flags for windows headers
+   --winlib=" -Lc:\\\\MINGW\\\\lib" -- direct lib flags for windows libraries
    --winsslinclude="c:\\\\openssl\\\\include" -- direct include dir for windows OpenSSL
    --winssllib="c:\\\\openssl\\\\lib" -- direct lib dir for windows OpenSSL
    --wingnutlsinclude="c:\\\\openssl\\\\include" -- direct include dir for windows GnuTLS
@@ -60,6 +62,7 @@
    --withoutFUTEX    -- do not use futex (Linux specifed feature)
    --withoutPOOL    -- use select instead pool
    --withoutMD5    -- without MD5 
+   --commonLog    -- without separate log 
    --withoutfakelibs    -- without fakelibs  (with fakelibs the program can run in another Linux systems)
 ';
       exit 0;
@@ -112,6 +115,18 @@
      {
        $a = $1;
        $mf .=  "MGDIR=$a\n";
+       next L1;
+     }
+     if(/--wininc=(.*)/)
+     {
+       $a = $1;
+       $mf .=  "WININC=$a\n";
+       next L1;
+     }
+     if(/--winlib=(.*)/)
+     {
+       $a = $1;
+       $mf .=  "WINLIB=$a\n";
        next L1;
      }
      if(/--winsslinclude=(.*)/)
@@ -181,6 +196,12 @@
        $withoutMD5 = 1;
        next L1;
      }
+     if(/--commonLog/)
+     {
+       $commonLog = 1;
+       next L1;
+     }
+     
      if(/--withoutfakelibs/)
      {
        $withoutfakelibs = 1;
@@ -204,34 +225,54 @@
      $all .= ' i64';
    }
 
+   
+   
    if(!$winegcc)
    {
-    if( stat('/usr/bin/wine')    )
+
+    if( chkmingw64('i686-w64-mingw32') || chkmingw64('x86_64-w64-mingw32') || chkwinemingw() )
     {
-     $home=$ENV{'HOME'} ;
-     if( stat("$home/.wine/drive_c/MINGW") )
-     {
-       $a='wine C:\\\\MINGW\\\\bin\\\\gcc.exe';
-       $b='wine C:\\\\MINGW\\\\bin\\\\as.exe';
-       $c='wine C:\\\\MINGW\\\\bin\\\\windres.exe';
-       $mf .=  "WINEGPP=$a\nWINEGCC=$a\nWINEAS=$b\nWINERES=$c\nMGDIR=C:\\\\MINGW\n";
-       $all .= ' win';
-     }
-     elsif( stat("$home/.wine/drive_c/MinGW") )
-     {
-       $a='wine C:\\\\MinGW\\\\bin\\\\gcc.exe';
-       $b='wine C:\\\\MinGW\\\\bin\\\\as.exe';
-       $c='wine C:\\\\MinGW\\\\bin\\\\windres.exe';
-       $mf .=  "WINEGPP=$a\nWINEGCC=$a\nWINEAS=$b\nWINERES=$c\nMGDIR=C:\\\\MinGW\n";
-       $all .= ' win';
-     }
+         $all .= ' win';
     }
+#     elsif( stat('/usr/bin/wine')    )
+#     {
+#      $home=$ENV{'HOME'} ;
+#      if( stat("$home/.wine/drive_c/MINGW") )
+#      {
+#        $a='wine C:\\\\MINGW\\\\bin\\\\gcc.exe';
+#        $b='wine C:\\\\MINGW\\\\bin\\\\as.exe';
+#        $c='wine C:\\\\MINGW\\\\bin\\\\windres.exe';
+#        $mf .=  "WINEGPP=$a\nWINEGCC=$a\nWINEAS=$b\nWINERES=$c\nMGDIR=C:\\\\MINGW\n";
+#        $all .= ' win';
+#      }
+#      elsif( stat("$home/.wine/drive_c/MinGW") )
+#      {
+#        $a='wine C:\\\\MinGW\\\\bin\\\\gcc.exe';
+#        $b='wine C:\\\\MinGW\\\\bin\\\\as.exe';
+#        $c='wine C:\\\\MinGW\\\\bin\\\\windres.exe';
+#        $mf .=  "WINEGPP=$a\nWINEGCC=$a\nWINEAS=$b\nWINERES=$c\nMGDIR=C:\\\\MinGW\n";
+#        $all .= ' win';
+#      }
+#     }
    } 
    else
    { 
      $all .= ' win';
    }
  }
+ else
+ {
+   if($all =~ /win/ &&  !$winegcc  )
+   {
+    if( (! chkmingw64('i686-w64-mingw32')) && ( !chkmingw64('x86_64-w64-mingw32') ) && ! chkwinemingw )
+    {
+      print STDERR "MinGW GCC not found.  Use --winegcc key to build version for Windows\n";
+    }
+   
+   }
+ 
+ }
+ 
  
  if($all =~ /i32/   )
  {
@@ -321,6 +362,11 @@ FAKELIBS64=$(addprefix fakelibs64/,$(FLIBS64))
     {
       s/-DWITHMD5//g;
     }
+    if($commonLog)
+    {
+      s/-DSEPLOG//g;
+    }
+    
     if($withoutfakelibs)
     {
       s/-Lfakelibs[0-9]*//g;
@@ -349,3 +395,74 @@ FAKELIBS64=$(addprefix fakelibs64/,$(FLIBS64))
   close OFILE;
   close FILE;
   
+  
+  
+sub chkmingw64
+{
+ my ($mingw) = @_;
+ my($sdir) ;
+ if( stat("/usr/bin/$mingw-gcc")  || stat("/usr/local/bin/$mingw-gcc") )
+ {
+    $mf .=  "WINEGPP=$mingw-gcc -m32 -DMINGW64\nWINEGCC=$mingw-gcc -m32 -DMINGW64\nWINEAS=$mingw-as\nWINERES=$mingw-windres\nMGDIR=/usr/$mingw\nWINLIB= -L\$(MGDIR)/lib\n";
+    $sdir = "/usr/lib/gcc/$mingw/";
+   if( !opendir(DIR, $sdir) )
+   {
+     print STDERR "Can't open $sdir\n";
+   }
+   else
+   {
+      while(readdir(DIR))
+      {
+        if(/win32/)
+        {
+          $MINGWVERDIR=$_;
+          last;
+        }
+        if(/posix/)
+        {
+          $MINGWVERDIR=$_;
+        }
+      
+      }
+      closedir DIR;
+   }
+  
+   
+   $mf .= "WININC= -I/usr/$mingw/include -I/usr/lib/gcc/$mingw/$MINGWVERDIR/include\n";
+
+    
+   return 1;
+  }
+
+  return 0;
+ 
+
+
+}
+
+
+sub chkwinemingw
+{
+    if( stat('/usr/bin/wine')    )
+    {
+     $home=$ENV{'HOME'} ;
+     if( stat("$home/.wine/drive_c/MINGW") )
+     {
+       $a='wine C:\\\\MINGW\\\\bin\\\\gcc.exe';
+       $b='wine C:\\\\MINGW\\\\bin\\\\as.exe';
+       $c='wine C:\\\\MINGW\\\\bin\\\\windres.exe';
+       $mf .=  "WINEGPP=$a\nWINEGCC=$a\nWINEAS=$b\nWINERES=$c\nMGDIR=C:\\\\MINGW\n";
+       return 1;
+     }
+     elsif( stat("$home/.wine/drive_c/MinGW") )
+     {
+       $a='wine C:\\\\MinGW\\\\bin\\\\gcc.exe';
+       $b='wine C:\\\\MinGW\\\\bin\\\\as.exe';
+       $c='wine C:\\\\MinGW\\\\bin\\\\windres.exe';
+       $mf .=  "WINEGPP=$a\nWINEGCC=$a\nWINEAS=$b\nWINERES=$c\nMGDIR=C:\\\\MinGW\n";
+       return 1;
+     }
+    }
+    return 0;
+}
+

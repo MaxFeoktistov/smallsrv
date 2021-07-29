@@ -42,8 +42,8 @@ FSLUSHS "ADMIN$",0
 };
 
 
-char *tipes[]={"text/html","image/gif","image/jpeg","image/jpeg","text/plain","text/css","application/octet-stream","application/x-javascript","*/*","application/octet-stream","*/*",0};
-const ulong *ext_types= (ulong *)(void *)".HTM.GIF.JPG.JPE.TXT.CSS.CLA.JS\x00.ASI\x00\x00\x00\x00\x00\x00";
+char *tipes[]={"text/html","image/gif","image/jpeg","image/jpeg","text/plain","text/css","application/octet-stream","application/x-javascript","*/*","application/octet-stream","*/*","image/png",0};
+const ulong *ext_types= (ulong *)(void *)".HTM.GIF.JPG.JPE.TXT.CSS.CLA.JS\x00.ASI.PNG\x00\x00\x00\x00\x00\x00";
 //                                         0   1   2   3   4   5   6  7      8
 
 
@@ -746,6 +746,7 @@ lcgi:
     {
       req=in_buf+dirlen-4;
       DWORD_PTR(*req)=0x3D727265 x4CHAR("err=") ;
+      fl|=F_PHP;
       AddToLog(in_buf+dirlen,s);
     }
     else
@@ -765,7 +766,7 @@ lcgi:
    }
   }
   else {in_buf=trn; in_buf[h]='(';}
-  HttpReturnError(in_buf+dirlen);
+  HttpReturnError(in_buf+dirlen,404);
   goto ex2a;
  };
  l1l[0]=fd.nFileSizeLow;
@@ -910,7 +911,7 @@ ex2b:
 
 
 #ifdef WITHMD5
-#undef debug
+//#undef debug
 int nonceCounter,nonceFirst,tempKey;
 int Req::SendDigestAuthReq(char *bfr){
  ulong opaque;   

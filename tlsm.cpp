@@ -32,6 +32,18 @@
 #define DBG_PRINT(a...)
 //debug
 
+#ifdef SEPLOG
+
+#undef debug
+#undef AddToLog
+
+#define debug(a...)  sepLog[5]->Ldebug(a)
+#define AddToLog(a...)  sepLog[5]->LAddToLog(a)
+
+#endif
+
+
+
 char *CApath,
      *CAfile,
      *s_cert_file="server.pem",

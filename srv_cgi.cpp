@@ -37,6 +37,14 @@
 #define __environ environ
 #endif
 
+#undef DBG
+#define DBG() 
+ //sprintf(einf, " %d", __LINE__ );
+#define PDBG(a,b...) 
+//printf(" %d " a "\n", __LINE__ ,b);
+ //sprintf(einf, " %d " a , __LINE__ ,b);
+#define DBGL(a...) debug(a) 
+
 int Req::SendChk(const char *b,int l)
 {
  if( (fl&F_SKIPHEAD) && !Tout)
@@ -61,6 +69,35 @@ int Req::SendChk(const char *b,int l)
    return 1;
   }
  }
+ PDBG("SendChk %d %d fl=%X",l,Tout,fl);
+
+           if(fl&F_STDERRSEL)
+           {
+             if(! (fl&F_NAMEOUTED) )
+             {    
+#ifdef SEPLOG
+//               sepLog[CGI_ERR_LOG]->LAddToLog(loc,s,FmtShortErr);
+               sepLog[CGI_ERR_LOG]->LAddToLog(0,s,">>%.256s ; %.512s\r\n",loc,req?req:"");
+#else
+               AddToLog(loc,s,FmtShortErr);
+#endif        
+               fl|=F_NAMEOUTED;
+             }
+             
+             if(!(fl&F_ERROUTED))
+             {    
+//               b[l]=0;  
+#ifdef SEPLOG
+//             sepLog[CGI_ERR_LOG]->Ldebug("%X:%.128s%s\r\n",fl,b, (l>128)?"...":"" );
+               sepLog[CGI_ERR_LOG]->Ldebug("%.128s%s\r\n",b, (l>128)?"...":"" );
+#else
+               debug("%.128s%s\r\n",b, (l>128)?"...":"" );
+#endif        
+               if(l>16 || Tout>128 )
+                 fl|=F_ERROUTED ;
+             }  
+              if( (s_flgs[2]&FL2_NOERROUT) ) return 1; 
+           }
  return Send(b,l);
 };
 
@@ -246,7 +283,6 @@ hwr,hwre
  long ll,ec,pl=0,cl=0,l,i;
  char *env,*penv,z[300];
  ulong timeout=cgi_timeout+time(0);
-
  
  z[0]=0;
  e=z;
@@ -366,9 +402,9 @@ hwr,hwre
            Sleep(100);
            PeekNamedPipe(hrd,0,0,0,(ulong *)&i,0);
            if(i){l=i ; goto lbrd;}
-         }    
-         xchg(hrde,hrd);
-         if(! (s_flgs[2]&FL2_NOERROUT) )
+         }
+         
+         if( !(s_flgs[2]&FL2_NOERROUT) )
          {    
             if(!ll){HttpReturnError("Error in script:\r\n"); ll=1;}
             else 
@@ -376,6 +412,8 @@ hwr,hwre
                 if( send(s,"\r\n\r\n<hr>",8,0) <=0) goto tp; 
             } 
          }   
+         xchg(hrde,hrd);
+         if( (s_flgs[2]&(FL2_NOERROUT|FL2_DUBSTDERR)) ) fl ^= F_STDERRSEL;
          goto lbrd;
         }
         GetExitCodeProcess(pi.hProcess,(ulong *)&ec);
@@ -414,23 +452,27 @@ hwr,hwre
           Snd= GZSnd;
          }
         }
-        if(l) if( send(s,p,l,0) <0)
-        {tp:
-         if(s_flgs[1]&FL1_NBRK)
-         {
-          do{
+        if(l)
+        {    
+            p[l]=0;
+            if( send(s,p,l,0) <0)
+            {tp:
+             if(s_flgs[1]&FL1_NBRK)
+             {
+              do{
 
-            if(PeekNamedPipe(hrd,0,0,0,(ulong *)&l,0) && l)
-            { ReadFile(hrd,p,0x4000,(ulong *)&l,0); }
-            if(timeout<time(0))goto tp2;
-            Sleep(10000);
-            GetExitCodeProcess(pi.hProcess,(ulong *)&ec);
-          }while( ec==STILL_ACTIVE );
-         }
-         else{tp2: TerminateProcess(pi.hProcess,0); }
-         debug("Connection aborted %d..",GetLastError()); goto ex2;
-        };
-        ll+=l;
+                if(PeekNamedPipe(hrd,0,0,0,(ulong *)&l,0) && l)
+                { ReadFile(hrd,p,0x4000,(ulong *)&l,0); }
+                if(timeout<time(0))goto tp2;
+                Sleep(10000);
+                GetExitCodeProcess(pi.hProcess,(ulong *)&ec);
+              }while( ec==STILL_ACTIVE );
+             }
+             else{tp2: TerminateProcess(pi.hProcess,0); }
+             debug("Connection aborted %d..",GetLastError()); goto ex2;
+            };
+            ll+=l;
+        }     
        }
   lb1:
      //  Sleep(100);
@@ -624,20 +666,13 @@ int Req::ExecCGIEx()
  char *env,*penv; //,z[300];
  ulong timeout=cgi_timeout+time(0);
  int status;
- 
+
 ///!  DEBUG
 
  char *einf;
  i=strlen(inf);
  if(i>64)i=64;
  einf=inf+i;
-
-#undef DBG
-#define DBG() 
- //sprintf(einf, " %d", __LINE__ );
-#define PDBG(a,b...) 
- //sprintf(einf, " %d " a , __LINE__ ,b);
-#define DBGL(a...) debug(a) 
  
  
 /// //////////*/
@@ -786,20 +821,22 @@ DBG();
         lberr:
       //  debug("error in script %u %u",ll,Tout);
          if(RESelect(0,0x10000,1,hrd)) goto lbrd;
-         if(!ll)
-         {
-           if(! (s_flgs[2]&FL2_NOERROUT) )
-             HttpReturnError("Error in script:\r\n"); 
-           ll=1;
-             
-         }
-         else 
-         {
-            if(! (s_flgs[2]&FL2_NOERROUT) )
-              if( send(s,"\r\n\r\n<hr>",8,0) <=0) goto tp; 
-         }    
-  
+         if(! (s_flgs[2]&FL2_NOERROUT) )        
+            if(!ll)
+            {
+              HttpReturnError("Error in script:\r\n"); 
+              ll=1;
+            }
+            else 
+            {
+                if( send(s,"\r\n\r\n<hr>",8,0) <=0) goto tp; 
+            }    
+
+            
+         if( (s_flgs[2]&(FL2_NOERROUT|FL2_DUBSTDERR)) ) fl ^= F_STDERRSEL;
+    
          xchg(hrde,hrd);
+         
 
 DBG();
          
@@ -816,6 +853,8 @@ DBG();
 DBG();
         l=0;
         p=pp;
+PDBG("read %d %d hrd=%d fl=%X",ll,ec,hrd,fl);
+        
         do{
          i=read(hrd,p+l,0x4000-l);
 	 if(i<=0)break;
@@ -873,38 +912,43 @@ DBG();
 //  printf("=|%.82s|= %u",p,l);
           }
 
-PDBG("%d %d %d",ll,l,ec);
-          if(l>0)if( send(s,p,l,0) <=0)
-          {tp:
-DBG();
-	    if(s_flgs[1]&FL1_NBRK)
-	    {
-DBG();	      
-	      do{
-	       if(timeout<time(0))goto tp2;
-	       if(RESelect(10,50000,1,hrd)>0)
-		if(read(hrd,p,0x4000)<=0) goto tp2;
-	       if( ec>=0 && ec!=child_pid)
-		ec=waitpid(child_pid,(int *)&status,WNOHANG);
-	      }while( (!ec) );
-	    }
-	    else if( ec>=0 && ec!=child_pid){tp2: kill(child_pid,9);
-DBG();	    
-		sleep(1);
-DBG();		
-		ec=waitpid(child_pid,(int *)&status,WNOHANG);
-	    }
-	    while( ec>0 && ec!=child_pid)
-	    {  
+PDBG("%d %d %d hrd=%d fl=%X",ll,l,ec,hrd,fl);
+          if(l>0)
+          {
+             p[l]=0;
+             if( send(s,p,l,0) <=0)
+             {tp:
+    DBG();
+                if(s_flgs[1]&FL1_NBRK)
+                {
+    DBG();	      
+                do{
+                if(timeout<time(0))goto tp2;
+                if(RESelect(10,50000,1,hrd)>0)
+                    if(read(hrd,p,0x4000)<=0) goto tp2;
+                if( ec>=0 && ec!=child_pid)
+                    ec=waitpid(child_pid,(int *)&status,WNOHANG);
+                }while( (!ec) );
+                }
+                else if( ec>=0 && ec!=child_pid){tp2: kill(child_pid,9);
+    DBG();	    
+                    sleep(1);
+    DBG();		
+                    ec=waitpid(child_pid,(int *)&status,WNOHANG);
+                }
+                while( ec>0 && ec!=child_pid)
+                {  
 
-	      DBG();
-	      ec=waitpid(child_pid,(int *)&status,WNOHANG);
-	    }
-DBG();
-            dbg("Connection aborted..\r\n ");
-	    goto ex;
-          };
-          ll+=l;
+                DBG();
+                ec=waitpid(child_pid,(int *)&status,WNOHANG);
+                }
+    DBG();
+                dbg("Connection aborted..\r\n ");
+                goto ex;
+             };
+            
+             ll+=l;
+          }   
          }
        lb1:;
         // ioctl(hrd,FIONREAD,(ulong *)&l);

@@ -27,7 +27,7 @@
 
 
 
-@eopt=`cd t ; ./httpd.exe --help`;
+@eopt=`cd o ; ./httpd.exe --help`;
 @ropt=`cd ru ; ./httpd.exe --?`;
 
 

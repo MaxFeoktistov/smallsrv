@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2020 Maksim Feoktistov.
+ * Copyright (C) 1999-2021 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov 
@@ -30,21 +30,6 @@
 
 #ifdef RUS
 
-#if (! defined(CD_VER) ) && (! defined(FREEVER) )
-
-mrc_obj  dlg2[]=
-{
- {"Регистрация",0, "FMFROM", WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU| WS_MINIMIZEBOX,2, 16, 180*2, 80*2,WS_EX_STATICEDGE},
- {"",          580, "EDIT", ES_LEFT | ES_AUTOHSCROLL | WS_CHILD | WS_VISIBLE | WS_BORDER | WS_TABSTOP, 30, 10, 132, 12, WS_EX_STATICEDGE },
- {"",          584, "EDIT", ES_LEFT | ES_AUTOHSCROLL | WS_CHILD | WS_VISIBLE | WS_BORDER | WS_TABSTOP, 30, 24, 132, 12, WS_EX_STATICEDGE },
- {"Имя",           148, "STATIC", SS_LEFT | WS_CHILD | WS_VISIBLE,     2, 10, 20, 8                                                                       },
- {"Код",           149, "STATIC", SS_LEFT | WS_CHILD | WS_VISIBLE,     2, 24, 20, 8                                                                       },
- {"O&k",       512, "BUTTON", BS_DEFPUSHBUTTON | WS_CHILD | WS_VISIBLE | WS_TABSTOP, 8,   40, 40, 14  },
- {"&Заказ",    353, "BUTTON", BS_PUSHBUTTON | WS_CHILD | WS_VISIBLE | WS_TABSTOP,    70,  40, 40, 14    },
- {"&Отмена",   150, "BUTTON", BS_PUSHBUTTON | WS_CHILD | WS_VISIBLE | WS_TABSTOP,    120, 40, 40, 14    },
- {0,0,0,0,0,0,0,0,0}
-};
-#endif
 mrc_mnu  mnu2[]=
 {
  {0,125,"&Открыть окно" },
@@ -110,21 +95,6 @@ mrc_mnu  mnu3[]=
 #else
     //no RUS
 
-#if (! defined(CD_VER) ) && (! defined(FREEVER) )
-
-mrc_obj  dlg2[]=
-{
- {"Registration",0, "FMFROM", WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU| WS_MINIMIZEBOX,2, 16, 180*2, 80*2,WS_EX_STATICEDGE},
- {"",          580, "EDIT", ES_LEFT | ES_AUTOHSCROLL | WS_CHILD | WS_VISIBLE | WS_BORDER | WS_TABSTOP, 30, 10, 132, 12, WS_EX_STATICEDGE },
- {"",          584, "EDIT", ES_LEFT | ES_AUTOHSCROLL | WS_CHILD | WS_VISIBLE | WS_BORDER | WS_TABSTOP, 30, 24, 132, 12, WS_EX_STATICEDGE },
- {"Name",           148, "STATIC", SS_LEFT | WS_CHILD | WS_VISIBLE,     2, 10, 20, 8                                                                       },
- {"Code",           149, "STATIC", SS_LEFT | WS_CHILD | WS_VISIBLE,     2, 24, 20, 8                                                                       },
- {"O&k",       512, "BUTTON", BS_DEFPUSHBUTTON | WS_CHILD | WS_VISIBLE | WS_TABSTOP, 8,   40, 40, 14  },
- {"&Order",    353, "BUTTON", BS_PUSHBUTTON | WS_CHILD | WS_VISIBLE | WS_TABSTOP,    70,  40, 40, 14    },
- {"&Cancel",   150, "BUTTON", BS_PUSHBUTTON | WS_CHILD | WS_VISIBLE | WS_TABSTOP,    120, 40, 40, 14    },
- {0,0,0,0,0,0,0,0,0}
-};
-#endif
 mrc_mnu  mnu2[]=
 {
  {0,125,"&Open Window" },
@@ -143,9 +113,23 @@ mrc_mnu  mnu2[]=
  {MF_GRAYED,345,"Send outgoing mail now" },
  {MF_GRAYED,347,"Reload host definition file" },
 #endif
+#ifdef SEPLOG      
+   {MF_POPUP,10,"&Log to view"},
+   {0,360,"&General/HTTP" },
+   {0,361,"&Proxy" },
+   {0,362,"&FTP" },
+   {0,363,"&SMTP" },
+   {0,364,"P&OP" },
+   {0,365,"SS&L" },
+   {0,366,"HTTP.&err" },
+   {0,367,"&DNS" },
+   {0,369,"DH&CP" },
+#endif
+ 
  {0,344,"&About" },
  {MF_SEPARATOR,1,0},
  {0,150,"E&xit" },
+ 
 #if (! defined(CD_VER) ) && (! defined(FREEVER) )
  {MF_SEPARATOR,135,0},
  {0,353,"&Order regestration (Online)"    },
@@ -153,7 +137,26 @@ mrc_mnu  mnu2[]=
 #endif
  {0,0,0}
 };
-
+/*
+mrc_mnu  mnu4[]=
+{
+   {MF_POPUP,0,"&Server"},
+#ifdef SEPLOG      
+   {MF_POPUP,10,"Log to view"},
+   {0,360,"General/HTTP" },
+   {0,361,"Proxy" },
+   {0,362,"FTP" },
+   {0,363,"SMTP" },
+   {0,364,"POP" },
+   {0,365,"SSL" },
+   {0,366,"HTTP.err" },
+   {0,367,"DNS" },
+   {0,369,"DHCP" },
+#endif
+   {0,0,0}
+    
+};
+*/
 //const 
 mrc_mnu  mnu3[]=
 {
@@ -241,11 +244,6 @@ OPENFILENAME ofn={
 BROWSEINFO binf={ 0,0,fnamebuf,"Select",0,0,0,0};
 
 
-HMENU hmnu;
+HMENU hmnu,hmmnu;
 HWND dwnd2=0;
 HWND  dwndc;
-
-#if (! defined(CD_VER) ) && (! defined(FREEVER) )
-#include "depend.cpp"
-#endif
-
