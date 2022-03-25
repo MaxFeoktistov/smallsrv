@@ -195,7 +195,7 @@ int Req::Admin()
         {
          if( ((*cp->v)?strcmp(u,*(char**)(cp->v)):u[0] ))
          { l=strlen(u);
-           if( (*cp->v) && l<=strlen(*(char**)cp->v) )
+           if( (*cp->v) && l<strlen(*(char**)cp->v) )
            {
 
             if(*u)
@@ -212,11 +212,12 @@ int Req::Admin()
                     )*cp->v=0;
             }
            }
-           else
+           else if(l) 
            {
              FREE_IF_HEAP2((*(char**)(cp->v)));
-             strcpy((*(char**)(cp->v))=new char[l+3],u);
+             strncpy((*(char**)(cp->v))=new char[l+8],u,l+1);
            }
+           else  *(char**)(cp->v) =  NullString;
          }
         }
        };

@@ -33,13 +33,31 @@
 #include "strtoul.cpp"
 #endif
 
+
+
+#ifdef SEPLOG
+
+#define redebug  GetLogR(req,3)->Ldebug
+#define tmp_redebug(b,a...) 
+//dprint(b "\n" ,a)
+//#define tmp_redebug(a...)  dprint(a)
+//GetLogR(req,3)->Ldebug(a...)
+
+#else
+
+#define redebug debug
+#define tmp_redebug(a...) 
+
+#endif
+
+
 #define DBG()
-//debug("D %d", __LINE__ )
+//redebug("D %d", __LINE__ )
 
 
 //#include <stdlib.h>
 
-
+int IsSeq(char *p){int i=1; while(p[-i]=='\\')++i; return !(i&1) ; }
 
 char *strchr_meta(char *p,int c)
 {
@@ -132,9 +150,12 @@ int RegVars::isVar(char *&a,char **xx)
  j=0; //st&RV_FLG_SUB;
  lb2:
  p=a;
- //debug("====%X %X {%X,%X,%X,%X} %X",p,xx,*xx,xx[1],xx[2],xx[3],((ulong *)&xx)[-3]);
- //debug("====%.5s====",p);
-  if(*xx)
+ //redebug("====%X %X {%X,%X,%X,%X} %X",p,xx,*xx,xx[1],xx[2],xx[3],((ulong *)&xx)[-3]);
+ // if(*p=='$') tmp_redebug("++==%.8s====",p);
+  
+  if(*xx 
+      && *xx>p // ????
+   )
   {
    if(xx[2])
    {
@@ -162,6 +183,7 @@ int RegVars::isVar(char *&a,char **xx)
    if(!(i&1))return 0;
    if(*p=='$')
    {
+  tmp_redebug("====%.15s====",p);
     b=*++p;
     xx[1]=0;
     e=p+1;
@@ -217,6 +239,9 @@ int RegVars::isVar(char *&a,char **xx)
      if(! ( DWORD_PTR(p[1]) == 0x5F505454 x4CHAR("TTP_") ) )
       t=GetVar(vl1,p+5);
 
+     
+     if( (!t) && (s_flgs[2]&FL2_DEBUG_RE) ) redebug("Used unknow variable '%.32s'\n",p);
+
      if(e)*e=b;
      {
       if(p[-1]=='{')++e;
@@ -248,16 +273,16 @@ int RegVars::IsRegular(char *s0,char *p)
  int lastst,a,bracket,i,min,max,j,k;
  char *t,*lsb=0,*lb,*e,*bst;
 
-//debug("e %.12s =~ /%.12s/ %X",s0,p,((ulong *)&s0)[-2] );
+//redebug("e %.12s =~ /%.12s/ %X",s0,p,((ulong *)&s0)[-2] );
 
  if(++req_counter>32)
  {
-debug("**Expresion: Too many condition: %.12s =~ /%.12s/ ",s0,p);
+redebug("**Expresion: Too many condition: %.12s =~ /%.12s/ ",s0,p);
   goto exLp0;//  return 0;
  }
  lastst=1;
  bracket=0;
-// debug("IRE  |%s| =~ |%s|",s,p);
+ //tmp_redebug("IRE  |%.64s...| =~ |%.64s...|",s,p);
  while(1)
  {
    if(*p!='\\')isVar(p,bb);
@@ -325,7 +350,7 @@ debug("**Expresion: Too many condition: %.12s =~ /%.12s/ ",s0,p);
 DBG();
      i=IsRegular(s,lb);
 //     *p=')';
-//  debug("() %d s='%.12s' lb='%.12s' ns='%.12s'",i,s,lb,s+i);
+//  redebug("() %d s='%.12s' lb='%.12s' ns='%.12s'",i,s,lb,s+i);
      if(!i) goto lbNE;
     if(!(st&RV_FLG_SUB))
     {rv[nrv].v=s;
@@ -354,12 +379,12 @@ DBG();
       e=p;
     }
     a=*(uchar *)e;
-//if(lsb)debug("**** |%.10s| |%.10s|",lsb-1,e-1);
+//if(lsb)redebug("**** |%.10s| |%.10s|",lsb-1,e-1);
     *e=0;
     t=e-1;
     if(*t==')')t=lb-1;
     if(*t==']')t=lsb-1;
-//debug("**** |%.10s| ****",t);
+//redebug("**** |%.10s| ****",t);
 //    if(p[1]=='?')st|=;else st&=~;
 
 
@@ -381,20 +406,20 @@ DBG();
 
     while(j<max)
     {if(!*s)break;
-//debug("j=%d %X %d |%.12s| |%.12s| |%.12s|",j,s,s-s0,t,s,p+2);
+//redebug("j=%d %X %d |%.12s| |%.12s| |%.12s|",j,s,s-s0,t,s,p+2);
      i=(p[1]=='?')+1;
      k=st;
      st|=RV_FLG_SUB;
      i=IsRegular(s,p+i+(p[i]==')') ) ;
      st=k;
      if(i){ //s+=i;
-//debug("fff %i '%.12s' '%.12s'",i,s,s-1);
+//redebug("fff %i '%.12s' '%.12s'",i,s,s-1);
      //goto exLp;
       if(p[1]=='?') break;
       bst=s;
      }
      if(! (i=IsRegular(s,t)))break;
-//debug("fff %d '%.12s' '%.12s'",i,s,s+i);
+//redebug("fff %d '%.12s' '%.12s'",i,s,s+i);
      s+=i;
      ++j;
     }
@@ -412,10 +437,11 @@ DBG();
      {
       if((t=strpbrk(p+1,"|[]{}().*+^$")) && *t == '|')p=t-1;
     lbNE:
-//debug("No equ:%u '%c' %.50s %.50s",nrv,a,s,p);
+//redebug("No equ:%u '%c' %.50s %.50s",nrv,a,s,p);
        if(p[1]=='|' || p[1]=='{' || p[1]=='*' )lastst=0;
        else if( /* p[1]!='*' && */  p[1]!='?' )goto exLp0;// return 0;
-//debug("Still:%.50s %.50s",s,p);
+//if( (s-s0) > 5)
+//       tmp_redebug("Still:%.30s %.30s s0=%.20s",s,p,s0);
 
        break;
      }
@@ -435,7 +461,7 @@ exLp0:
 char * RegVars::FindRegular(char *s,char *p)
 {
  char *t,*x[4];
-// debug("|||%X|||%.128s %.128s",st,s,p);
+ tmp_redebug("|||%X|||%.128s %.128s",st,s,p);
  if( (t=FindEnd(p)))
  {
   while(*t && strchr("gismxvc",*++t) )
@@ -507,9 +533,11 @@ int RegVars::cmp(char *a,char *b)
 //  while(*b ==' ' )++b;
   a=SkipSpace(a);
   b=SkipSpace(b);
+  isVar(a,aa);
+  isVar(b,bb);
   la=isInt(a,lai);
   lb=isInt(b,lbi);
-// debug("cmp |%s|<=>|%s| %d %d",a,b,la,lb);
+ tmp_redebug("cmp |%s|<=>|%s| %d %d",a,b,la,lb);
 //  if( (la!=0xFFFFffff) && (lb!=0xFFFFffff) )return la-lb;
   if( lai && lbi )return la-lb;
   do{
@@ -567,7 +595,7 @@ char * RegVars::isFunc(char *ls)
    if(!e1)
    {
   lbExistErr:     
-      debug("***Error in script. Unclosed function \"%.6s\"...",lss);
+      redebug("***Error in script. Unclosed function \"%.6s\"...",lss);
       return ls;
    }   
    *e1=0;
@@ -583,7 +611,7 @@ char * RegVars::isFunc(char *ls)
    
    if(!CheckBadName(bb))
    {
-       debug("***Error in script. Bad filename in \"%.6s\"...",lss);
+       redebug("***Error in script. Bad filename in \"%.6s\"...",lss);
        return ls;
    }    
    
@@ -656,7 +684,7 @@ int RegVars::LogAn(char *ls)
  rval=0;
 
  if( (req_counter)>=32)
- {debug("**Expresion: Too many condition %.20s..",ls);
+ {redebug("**Expresion: Too many condition %.20s..",ls);
   return 0;
  }
  if(!req_counter)
@@ -668,7 +696,7 @@ int RegVars::LogAn(char *ls)
  ++req_counter;
  FindEnd(ls);
  ls=SkipSpace(ls);
-// debug("%u %u<<<<#%s#>>>>",req_counter,nrv,ls);
+ if( (s_flgs[2]&FL2_DEBUG_RE) )redebug("Logical expresion:%s ; deep: %u ; subvars:%u",ls,req_counter,nrv);
 
  if(*ls=='!'){--req_counter; return ! LogAn(ls+1);}
  if(*ls=='(')
@@ -677,7 +705,7 @@ int RegVars::LogAn(char *ls)
   do{
    if(!(t2=strpbrk(t2+1,"()")))
    {--req_counter;
-    debug("***Error in script. Unclosed bracket %d",b);
+    redebug("***Error in script. Unclosed bracket %d",b);
     return 0;
    }
    if(*t2==')')--b; else ++b;
@@ -703,7 +731,7 @@ sw:
  else
  {
   ls=isFunc(ls);   
-//  debug("  %u %u<<<<#%s#>>>>",req_counter,nrv,ls);
+//  redebug("  %u %u<<<<#%s#>>>>",req_counter,nrv,ls);
   t2=ls-1;
   while( (t2=strpbrk(t2+1,"|&") ) )
   {
@@ -733,7 +761,7 @@ sw:
 //     rval=cmp(ls,t2+1+(t2[1]=='=') );
      rval=cmp(ls,isFunc(SkipSpace(t2+1+(t2[1]=='='))) );
      
-//  debug("|%s| |%s| %u",ls,t2+1+(t2[1]=='='),rval);
+//  redebug("|%s| |%s| %u",ls,t2+1+(t2[1]=='='),rval);
      if(!rval)
      {if( t2[1]=='=' || b=='='  )rval=1;}
      else if(rval<0)
@@ -752,8 +780,9 @@ sw:
     if( !b ) rval =cmp(ls,"undefined");
   }
  }
+ if( (s_flgs[2]&FL2_DEBUG_RE) )redebug("Logical expresion return 0x%X; deep %u",rval,req_counter);
  --req_counter;
- //debug("## ret %d $$",rval);
+// tmp_redebug("## ret %d $$",rval);
  return rval;
 
 };
@@ -774,9 +803,9 @@ char * RegVars::SubstVar(char *t,char *s)
 /*
   if(*s=='\\')
   {++s;
-debug("@%X %s",s,s);
+redebug("@%X %s",s,s);
    *t++=SlashSeq(s);
-debug("@!%X %s",s,s);
+redebug("@!%X %s",s,s);
   }else
 */
   *t++=*s++;
@@ -784,7 +813,7 @@ debug("@!%X %s",s,s);
  }while(t<tm);
  *t=0;
 
-//debug(")))|%s| |%s|",t,s);
+//redebug(")))|%s| |%s|",t,s);
 
  return t2?0:det_var_err[1];
 };
@@ -813,7 +842,7 @@ void RegVars::PrintEnv(Req *s)
     {s->Send("<br><b>Expresion:</b>",sizeof("<br><b>Expresion:</b>")-1);
      for(i=0;i<nrv;++i)
      {
-//      debug("^^^ %u %X %d",nrv,rv[i].v,rv[i].l);
+//      redebug("^^^ %u %X %d",nrv,rv[i].v,rv[i].l);
 //      send(s,xbbf,sprintf(xbbf,"<br>$%u=",i+1),0);
 //      send(s,rv[i].v,rv[i].l,0);
 
@@ -828,8 +857,8 @@ void RegVars::PrintEnv(Req *s)
      send(s,"<br>$`=",sizeof("<br>$`=")-1,0);
      SubstVar(xbbf,last_str);
      if(last_before>0) send(s,xbbf,last_before,0);
-//debug("%X %X %u",rv[nrv-1].v,last_str,i);
-//debug("%s",xbbf);
+//redebug("%X %X %u",rv[nrv-1].v,last_str,i);
+//redebug("%s",xbbf);
 
 
      send(s,"<br>$'=",sizeof("<br>$'=")-1,0);

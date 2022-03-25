@@ -317,7 +317,7 @@ inline ulong ADDR4(sockaddr_in6 *sa_ct)
 inline void SETADDR4(sockaddr_in6 *sa_c,ulong addr,ulong po)
 {
 #define sa_cc (*(sockaddr_in *)sa_c)
- if( s_flgs[2]&(1<<6))
+ if( s_flgs[2]&(1<<SDNS_IND))
  {memset(sa_c,0,sizeof(*sa_c));
   sa_c->sin6_addr.s6_addr32[2]=0xFFFF0000;
   sa_c->sin6_addr.s6_addr32[3]=addr;
@@ -2455,7 +2455,7 @@ lb_tcpudp:
 //  dbg3("d 1");
   i=
 #ifdef USE_IPV6
-  (s_flgs[2]&(1<<6))?sizeof(sockaddr_in6):
+  (s_flgs[2]&(1<<SDNS_IND))?sizeof(sockaddr_in6):
 #endif
   sizeof(sockaddr_in);
 //#ifndef   MSG_TRUNC
@@ -2723,7 +2723,7 @@ lbRedirect:
 
 
        if(sudp2>0) s=sudp2 ;
-       else if( bind_a[6] ) //|| sdns!=s )
+       else if( bind_a[SDNS_IND] ) //|| sdns!=s )
        {
         if((sudp2=socket(AF_INET,SOCK_DGRAM,IPPROTO_UDP)) == -1 )
         {
@@ -3004,7 +3004,7 @@ lbRedirect:
 
    if( (s_flgs[2]&FL2_DOH) && FD_ISSET(doh_r, (fd_set *) &set)   )
    {
-      s =soc_srv[6];
+      s =soc_srv[SDNS_IND];
 #ifdef   SYSUNIX    
       FD_CLR(doh_r,(fd_set *) &set); 
 #else      
@@ -3028,7 +3028,7 @@ lbRedirect:
 
  if(!is_no_exit)return 0;
 //lb_cnt_loop:
- if(cdreq>0 && (  (!bind_a[6]) || sudp2>0 )
+ if(cdreq>0 && (  (!bind_a[SDNS_IND]) || sudp2>0 )
  )
  {
 
@@ -3820,7 +3820,7 @@ int InitDnsSrv()
 {
  if(!LoadDomain(dns_file))return 0;
 
- if( s_flgs[2]&(1<<6) && ! (bind_a[6]) )
+ if( s_flgs[2]&(1<<SDNS_IND) && ! (bind_a[SDNS_IND]) )
  {
   MyLock(nsmut);
 //  debug("Try to bind IPv6...");
@@ -3841,7 +3841,7 @@ int InitDnsSrv2(int is_ip6)
 {
 
 #else
-#define is_ip6 (s_flgs[2]&(1<<6))
+#define is_ip6 (s_flgs[2]&(1<<SDNS_IND))
 int InitDnsSrv()
 {
  if(!LoadDomain(dns_file))return 0;
@@ -3859,7 +3859,7 @@ union{
  struct sockaddr_in sa_server;
 #endif
  int i,sdn,sdnt=0,k=0,kk;
- char  *pbnd=bind_a[6];
+ char  *pbnd=bind_a[SDNS_IND];
 
 
  if( //s_flg&FL_DNSREDIR &&
@@ -3935,8 +3935,11 @@ union{
 
 
 #ifdef USE_IPV6
-  if( bind_a[6]? sa_server6.sin6_family==AF_INET6 :is_ip6 )// s_flgs[2]&(1<<6))
-  {if((sdn=socket(AF_INET6,SOCK_DGRAM,IPPROTO_UDP))<0)
+  if( bind_a[SDNS_IND]? sa_server6.sin6_family==AF_INET6 :is_ip6 )// s_flgs[2]&(1<<6))
+  {
+   debug("Try to bind IPv6...  " );
+      
+   if((sdn=socket(AF_INET6,SOCK_DGRAM,IPPROTO_UDP))<0)
    {
     debug("IPv6 socket error %d " SER ,WSAGetLastError() Xstrerror(errno));
 //#ifndef SYSUNIX
@@ -3946,16 +3949,18 @@ union{
 //#endif
 
    }
+   debug("+IPv6" );
    sa_server6.sin6_family=AF_INET6;
   }
   else
 #endif
   {
   lip4:
+   debug("Try to bind IPv4...  " ); 
    if( (sdn = socket(AF_INET,SOCK_DGRAM,IPPROTO_UDP)) == -1 )
    {   dbg4("could not get socket"); return 0;}
   }
-    setsockopt(sdn,SOL_SOCKET,SO_REUSEADDR,(char *)&one,sizeof(one));
+  setsockopt(sdn,SOL_SOCKET,SO_REUSEADDR,(char *)&one,sizeof(one));
 
 //   i=512;
 //   setsockopt(sdn,SOL_SOCKET,SO_RCVBUF,(char *)&i,4 );
@@ -3992,12 +3997,14 @@ try_bind_again:
      //shutdown( sdnt, 2 );
      //closesocket( (int) sdnt);
      soc_srv[6+k*9]=0;
-     if(sdnt)
-      CloseSocket(sdnt);
+     if(pbnd) continue; 
+     if(k)break;
+     if(sdnt) CloseSocket(sdnt);
 
 
      count_dns=0;
      return 0;
+      
    }
 
 #ifdef IP_TTL
@@ -4023,7 +4030,7 @@ try_bind_again:
   if(s_flg&FL_DNSTCP)
   {
 #ifdef USE_IPV6
-   if(bind_a[6]? sa_server6.sin6_family==AF_INET6 : is_ip6) //s_flgs[2]&(1<<6))
+   if(bind_a[SDNS_IND]? sa_server6.sin6_family==AF_INET6 : is_ip6) //s_flgs[2]&(1<<6))
    {if((sdnt=socket(AF_INET6,SOCK_STREAM,IPPROTO_TCP //0
                    ))<0)
     {
@@ -4064,7 +4071,7 @@ try_bind_again2:
    CreateThread(&secat,0x8000,(TskSrv)SetDNSServ,(void *)(k*9+1),0,(ulong *)&i);
   }
 //  DDEBUG("3")
-
+lb_cnt_adaptor:;
  }while(pbnd && ++k < MAX_ADAPT);
 
  if(kk)
