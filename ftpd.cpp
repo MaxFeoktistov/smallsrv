@@ -684,7 +684,7 @@ union{
     if(fl&F_PRX)
     {status|=4;
      if((w=CallUp(puser))<0)goto ex3;
-#ifndef SYSUNIX
+#if ! (defined(SYSUNIX) || defined(SELECT1) )  
      while(RESelect(FTPTimeout,0,2,s,w) >0 )
      {if(RESelect(0,0,1,w))
       {

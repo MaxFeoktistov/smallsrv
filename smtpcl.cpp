@@ -98,9 +98,15 @@ int MLChk::RunForward(char *mbx)
  RegVars rv;
 
  if( (h=_lopen(pth2,0))>0 )
- {memcpy(vars,FwdVars,sizeof(FwdVars));
+ {
+  debug("Forward file %s",pth2);   
+  memcpy(vars,FwdVars,sizeof(FwdVars));
   rv.Init(vars,0,0);
-  sprintf(vsz,"%u",(x+1023)/1024);
+  
+  sprintf(vsz,"%u",(l+1023)/1024);
+  
+  dprint("vsz=%s\n",vsz);
+  
   vars[1]=vsz;
   vars[3]=verr;
   vars[5]=t1;
@@ -139,7 +145,7 @@ int MLChk::RunForward(char *mbx)
      }
      t6=t5+4;
      sprintf(verr,"%d",rez);
-     DelSpace(t6);
+     DelSpaceRe(t6);
      if(!(t6=NextIf(t4+1,"#endif","#if","#endif" )) )
      {debug("Error in %.255s" FSLUSHS "forward: #endif not found\r\n:%s",t8,t4);
       break;
@@ -147,10 +153,17 @@ int MLChk::RunForward(char *mbx)
      *t6=0;
      t7=NextIf(t4+1,"#el","#if","#endif");
      *t6='#';
+    // dprint(" LogAn '%.128s' \n",t5+4);
      if( rv.LogAn(t5+4) )
-     { if(t7)memset(t7,' ',t6-t7);
+     { 
+      //   dprint(" LogAn '%.64s' return true\n",t5+4);
+         if(t7)memset(t7,' ',t6-t7);
      }else
-     {t4=t6;
+     {
+
+     //  dprint(" LogAn '%.64s' return false\n",t5+4);
+  
+       t4=t6;
  // ! temporary
  // debug("%.80s.. false",t5+4);
       if(t7){

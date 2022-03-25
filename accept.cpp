@@ -50,12 +50,30 @@ int WESelect(long tv_sec,long tv_usec,int n,...)
 
 
 int RESelect1(long tv_sec,long tv_usec,int s)
-{fd_set t;
+{
+#ifdef MINGW
+#undef fd_set 
+#define win_fd_set fd_set
+#endif    
+ fd_set t;
+    
  t.fd_count=1;
  t.fd_array[0]=s;
  return select(0,(fd_set *)&t,0,0,(timeval*)&tv_sec);
 };
-#define RESelect(a,b,c,d) RESelect1(a,b,d)
+int RESelect2(long tv_sec,long tv_usec,int s1,int s2)
+{
+ fd_set t;
+ int r;
+    
+ t.fd_count=2;
+ t.fd_array[0]=s1;
+ t.fd_array[0]=s2;
+ if( ! (r=select(0,(fd_set *)&t,0,0,(timeval*)&tv_sec)) )return 0;
+ if(r>1)return s1;
+ return FD_ISSET(s1,&t)? s1:s2; 
+};
+//#define RESelect(a,b,c,d) RESelect1(a,b,d)
 #endif
 #endif
 
@@ -325,7 +343,7 @@ int Req::HttpReturnError(char *err,int errcode)
  int l;
 #ifdef SEPLOG
   l=flsrv[1];
-  if(l>=10)l=0;
+  if(l>=N_LOG)l=0;
   sepLog[l]->LAddToLog(err,s,FmtShortErr);
 #else 
  AddToLog(err,s,FmtShortErr);

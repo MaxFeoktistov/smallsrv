@@ -326,7 +326,8 @@ void Req::p2p(int ss,char *in_buf)
 
  i=s;
  h=ss;
-#ifndef SYSUNIX
+ 
+#if ! (defined(SYSUNIX) || defined(SELECT1) )  
  while(RESelect(timout,0,2,i,h) >0 )
  {if(RESelect(0,0,1,h))xchg(i,h);
 #else

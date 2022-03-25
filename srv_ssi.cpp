@@ -262,10 +262,34 @@ int Req::SendSSI()
 };
 //---
 
+/*
 // Delete space from string to logical analyses
 void DelSpace(char *s)
 {register char  *t;
  for(t=s;(*t=*s);s++)if(!strchr(" \t\r\n",*t))t++;
+};
+*/
+// Delete space from string to logical analyses
+void DelSpaceRe(char *s)
+{register char  *t;
+ char b,c;   
+ for(t=s;(*t=*s);s++)
+ {
+     if(*t=='\'' || *t=='\"' || (*t=='/' && t[-1]=='~' ))
+     {
+      dprint("Quote skip space %.64s\n",s); 
+       b=*t++;
+       do{
+         c=*t++=*++s;           
+         if(!c)return;
+       }while( (c!=b || IsSeq(t-1) ));
+       //s--;
+       dprint("End Quote skip space %.64s %X %X\n",s,c,b); 
+       
+     }    
+     else 
+         if(!strchr(" \t\r\n",*t))t++;
+ }   
 };
 
 #if 0

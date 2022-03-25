@@ -119,6 +119,7 @@ CfgParam ConfigParams[]={
 {"seplog",2,FL2_SEPARATELOG,(uint *)0, CS( t2T_2946294 )},
 #endif
 
+{"dbgle",2,FL2_DEBUG_RE,(uint *)0, CS( t2T_2189963  )},
 #endif
 
 {"nofrom_same_host",0,0,(uint *)0, CS(sDISABLE_T )},

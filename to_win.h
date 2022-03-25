@@ -117,13 +117,24 @@ int PASCAL __WSAFDIsSet(int, fd_set *);
 //#define FD_CLR(fd, set) 
 
 extern "C" {
-int RESelect(long tv_sec,long tv_usec,int n,...);
+
 int RESelect1(long tv_sec,long tv_usec,int s);
+#ifdef SELECT1
+#define RESelect(a,b,c,d) RESelect1(a,b,d)
+//#define RESelect(a,b,c,d,e) RESelect2(a,b,d,e)
+int RESelect2(long tv_sec,long tv_usec,int s1,int s2);
+
+#else
+int RESelect(long tv_sec,long tv_usec,int n,...);
+
 inline int RESelect2(long tv_sec,long tv_usec,int s1,int s2)
 { int r=RESelect(tv_sec,tv_usec,2,s1,s2);
   if(r<=0)return r;
   return (RESelect(0,0,1,s1)>0)?s1:s2;
 }
+
+#endif
+
 
 #ifdef SERVICE
 extern SERVICE_STATUS_HANDLE sesh;

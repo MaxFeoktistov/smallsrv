@@ -344,6 +344,7 @@ int FndLimit(int lst,LimitCntr **ip, LimitCntr **net, ulong );
 #define FL2_NOERROUT 0x8000000
 #define FL2_SEPARATELOG 0x10000000
 #define FL2_DUBSTDERR   0x20000000
+#define FL2_DEBUG_RE   0x40000000
 
 //#define FL2_WMAILSENT   0x8000
 
@@ -545,6 +546,9 @@ ulong GetMsgName(SYSTEMTIME &stime);
 void AddSendMessage(int i);
 int LogAn(char *ls,int c);
 void DelSpace(char *s);
+void DelSpaceRe(char *s);
+int IsSeq(char *p);
+
 
 
 int call_socket(char *hostname, int portnum);
@@ -859,6 +863,7 @@ extern "C" void tlsdebug(const char *a,...);
 
 
 TLog *GetLogS(int s);
+TLog *GetLogR(Req *r,int def=0);
 //TLog *GetLogN(int n){ return (s_flgs2[2]&FL2_SEPARATELOG)?gLog:gLog[n]  };
 //inline TLog *GetLogN(int n){ return sepLog[n];  };
 

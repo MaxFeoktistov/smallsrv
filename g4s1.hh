@@ -124,6 +124,17 @@
 #define x_t2T_2946294 S1t2T_2946294
 
 #ifdef MAINSTR
+ char S1t2T_2189963[] = "Add to log debug info from logical expresion"
+ " in SSI and Antivirus/Forward files";
+ char *lS1t2T_2189963 = S1t2T_2189963;
+#else
+ extern char *lS1t2T_2189963;
+ extern char S1t2T_2189963[];
+#endif
+#define t2T_2189963 lS1t2T_2189963
+#define x_t2T_2189963 S1t2T_2189963
+
+#ifdef MAINSTR
  char S1t2T_4199171[] = "Don't restrict speed of outgoing transfer";
  char *lS1t2T_4199171 = S1t2T_4199171;
 #else

@@ -537,6 +537,17 @@ union{
   return &gLog;
 }
 
+TLog *GetLogR(Req *r,int def)
+{
+  int l=def;   
+    if(r)
+    {
+      l=r->flsrv[1];
+      if(l>=N_LOG)l=def;
+    }    
+    return sepLog[l];       
+};
+
 
 #undef pprot  
 #undef f_prot 

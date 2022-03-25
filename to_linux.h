@@ -358,8 +358,8 @@ extern pthread_t dnstthr;
 
 #define dprint(a...) 
 //printf(a)
-#define DBGLINE  
-// dprint("%s:%u\r\n",__FILE__,__LINE__);
+#define DBGLINE   
+//dprint("%s:%u\r\n",__FILE__,__LINE__);
 
 #define MIN_PTR 0x80000
 

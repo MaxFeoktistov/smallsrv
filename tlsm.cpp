@@ -125,6 +125,7 @@ int InitSecDLL()
        lmid=LM_ID_NEWLM;
          
      };
+     
      hSecDLL=dlmopen(//LM_ID_BASE
        // LM_ID_NEWLM
         lmid
@@ -159,8 +160,22 @@ int InitSecDLL()
     
 #if 1
 //ndef SYSUNIX
-  if(
-     (!(hSecDLL=LoadLibrary(TLSLibrary))) ||
+
+#ifdef SYSUNIX
+  dlerror();
+#endif
+
+  hSecDLL=LoadLibrary(TLSLibrary);
+  
+  if(!hSecDLL)
+  {
+#ifdef SYSUNIX
+   printf("Error loading TLS/SSL library: %s %s\n",dlerror(),TLSLibrary);
+#endif
+   return 0;
+        
+  }    
+  else if(
      (!(PSecAccept=(TSecAccept) GetProcAddress(hSecDLL,"SecAccept"))) ||
      (!(PSecRecv  =(TSecRecv )  GetProcAddress(hSecDLL,"SecRecv"))) ||
      (!(PSecSend  =(TSecSend )  GetProcAddress(hSecDLL,"SecSend"))) ||
@@ -169,7 +184,8 @@ int InitSecDLL()
   )
   {
 #ifdef SYSUNIX
-   printf("Error loading TLS/SSL library: %s %s\n",dlerror(),TLSLibrary);
+   printf("Error in TLS/SSL library interface: %s %s\n",dlerror(),TLSLibrary);
+   dlclose(hSecDLL);
 #endif
    return 0;
   }

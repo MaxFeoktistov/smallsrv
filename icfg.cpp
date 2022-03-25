@@ -116,6 +116,7 @@ CfgParam ConfigParams[]={
 {"seplog",2,FL2_SEPARATELOG,(uint *)0, CS("Separate log for each server")},
 #endif
 
+{"dbgle",2,FL2_DEBUG_RE,(uint *)0, CS("Add to log debug info from logical expresion in SSI and Antivirus/Forward files" )},
 #endif
 
 {"nofrom_same_host",0,0,(uint *)0, CS(sDISABLE_T )},
