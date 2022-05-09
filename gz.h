@@ -99,5 +99,5 @@ struct GZObj
 int GZSndSkip(Req *th,uchar *b,int l);
 
 int InitZLib();
-EXTERN const char gz_head[10+sizeof("Content-Encoding: gzip\r\n\r\n")-1 ];
+EXTERN const uchar gz_head[10+sizeof("Content-Encoding: gzip\r\n\r\n")-1 ];
 #endif

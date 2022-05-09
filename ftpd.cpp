@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2021 Maksim Feoktistov.
+ * Copyright (C) 1999-2022 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov 
@@ -484,7 +484,8 @@ int Req::FTPReq()
    long long HResumePos;
  };
  LPath pth;
- LimitCntr *lip,*lnet,*lipo,*lneto;
+ //LimitCntr
+ LimitBase *lip,*lnet,*lipo,*lneto;
 // Req rseq;
 // FTPSecCon  fsc;
   int sec_state=0;
@@ -493,8 +494,9 @@ int Req::FTPReq()
   tfRcv oRcv;
 
  
- if(  ( FndLimit(3,&lip,&lnet,sa_c.sin_addr. S_ADDR)+
-        FndLimit(4,&lipo,&lneto,sa_c.sin_addr. S_ADDR) ) == 2
+ if(  ( FndLimit(3,&lip,&lnet,&sa_c)+
+        FndLimit(4,&lipo,&lneto,&sa_c ) 
+      ) == 2
  )
  {
 ex2a:

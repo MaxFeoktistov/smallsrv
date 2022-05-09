@@ -310,7 +310,7 @@ int Req::OutActualConn(char *bfr)
    "</td><td align=left><font size=2 class=f2>in/out (bytes)</font>"
    "</td><td align=left><font size=2 class=f2>info</font>"
    "</td><td align=left><font size=2 class=f2> &nbsp;</font>"
-   "</td></tr>"HTML_LN );
+   "</td></tr>" HTML_LN );
  Req *r;
  ++no_close_req;
  k=0;
@@ -355,7 +355,7 @@ int Req::OutActualConn(char *bfr)
       "<input type=hidden name=t value=%u>"
       "<input type=%s value=Break>"
     "</form></font>"
-   "</td></tr>"HTML_LN
+   "</td></tr>" HTML_LN
    ,++k,
 #ifdef USE_IPV6
    xs,

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2020 Maksim Feoktistov.
+ * Copyright (C) 1999-2022 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov 
@@ -338,12 +338,15 @@ int Req::IP2country()
   {
     t=ipaddr;  
     IP2S(ipaddr,&sa_c);
-    ip=(sa_c6.sin6_family==AF_INET6)? 
+    ip= IPv4addr(&sa_c);
+    /*
+    (sa_c6.sin6_family==AF_INET6)? 
         (
           sa_c6.sin6_addr.s6_addr32[2]==0xFFFF0000?
           sa_c6.sin6_addr.s6_addr32[3]:0
         ):
         sa_c.sin_addr.s_addr;
+        */
 
   }    
   p=loc+8192+260;

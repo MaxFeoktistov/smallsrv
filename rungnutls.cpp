@@ -115,7 +115,7 @@ typedef unsigned int u_int;
 
 
 
-#pragma GCC diagnostic ignored "-Wstrict-prototypes"
+//#pragma GCC diagnostic ignored "-Wstrict-prototypes"
 #pragma GCC diagnostic ignored "-Wformat"
 #pragma GCC diagnostic ignored "-Wcomment"
 #pragma GCC diagnostic ignored "-Wwrite-strings"
@@ -1375,7 +1375,7 @@ int SecClose(struct OpenSSLConnection *s)
      }
  }    
 #endif 
- 
+ return 0;
 }
 
 

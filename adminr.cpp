@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2021 Maksim Feoktistov.
+ * Copyright (C) 1999-2022 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov 
@@ -366,13 +366,35 @@ int Req::Admin()
      break;
 
    case 0x61656C63 x4CHAR("clea") :
-    {if( (u=GetVar(req_var,"n")) && (p=GetVar(req_var,"s")) )
-     {LimitCntr *pv;
-      MListCntr *pm;
-      i=atoui(u); j=atoui(p);
-      if(j<9 && ipcnts[j].n)
-       if(!i){ipcnts[j].d[0].cnt=0; }
-       else if((pv=ipcnts[j].Find(i)))ipcnts[j].Del(pv);
+    {
+     p=GetVar(req_var,"s");   
+     if(p)
+     {
+#ifdef USE_IPV6         
+        if( (u=GetVar(req_var,"n6")) )
+        {
+            LimitCntrIPv6 *pv;
+            in6_addr xaddr;
+           // MListCntr *pm;
+            //i=atoui(u);
+            IPv6Addr(xaddr.s6_addr16,u);
+            j=atoui(p);
+            if(j<9 && ipcnts[j].n)
+              if(!i){ipv6cnts[j].d[0].cnt=0; }
+              else if((pv=ipv6cnts[j].Find(xaddr)))ipv6cnts[j].Del(pv);
+        }
+        else
+#endif        
+        if( (u=GetVar(req_var,"n")) )
+        {
+            LimitCntr *pv;
+         //   MListCntr *pm;
+            i=atoui(u); j=atoui(p);
+            if(j<9 && ipcnts[j].n)
+              if(!i){ipcnts[j].d[0].cnt=0; }
+              else if((pv=ipcnts[j].Find(i)))ipcnts[j].Del(pv);
+            
+        }    
      }
     }
 if(0){

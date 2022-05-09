@@ -269,7 +269,7 @@ int Req::OutActualConn(char *bfr)
  char contry[8];
 
  j=sprintf(bfr,          
-    t2T_0 HTML_LN );
+    t2T_0  HTML_LN );
  Req *r;
  ++no_close_req;
  k=0;
@@ -314,7 +314,7 @@ int Req::OutActualConn(char *bfr)
       "<input type=hidden name=t value=%u>"
       "<input type=%s value=Break>"
     "</form></font>"
-   "</td></tr>"HTML_LN
+   "</td></tr>" HTML_LN
    ,++k,
 #ifdef USE_IPV6
    xs,

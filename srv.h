@@ -245,7 +245,15 @@ union{sockaddr_in6 sa_c6; sockaddr_in sa_c;};
  void OutErr(char *t);
 };
 
-int FndLimit(int lst,LimitCntr **ip, LimitCntr **net, ulong );
+
+#ifdef USE_IPV6 
+int IsIPv6(sockaddr_in *sa);
+uint IPv4addr(sockaddr_in *sa);
+#else
+#define IPv4addr(sa)  ((sa)->sin_addr. S_ADDR)
+#endif
+//int FndLimit(int lst,LimitCntr **ip, LimitCntr **net, sockaddr_in *sa );
+int FndLimit(int lst,LimitBase **ip, LimitBase **net, sockaddr_in *sa );
 
 #define FL_NOWINTYPES      0x2
 #define FL_NOICON          0x10
@@ -660,6 +668,8 @@ extern in6_addr *Range6[MAX_SERV*2];
 
 char* IPv6Addr(ushort *t,char *s);
 void IP2S(char *addr6,sockaddr_in* xsa);
+int IPv6S(char *addr6,in6_addr &sin6_addr);
+
 
 #define http_range  0
 #define proxy_range 2

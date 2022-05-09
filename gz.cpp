@@ -84,7 +84,7 @@ int zlibstate;
 
 #endif
 
-const char gz_head[]=
+const uchar gz_head[]=
 {'C','o','n','t','e','n','t','-','E','n','c','o','d','i','n','g',':',' ','g','z','i','p',
 '\r','\n','\r','\n',
  0x1f, 0x8b,

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2021 Maksim Feoktistov.
+ * Copyright (C) 1999-2022 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov 
@@ -49,6 +49,8 @@ int Req::POPReq()
  PopName *pn=0;
  int cmd=0,status=0;
  OpenSSLConnection otls;
+
+ subdir[0]=0;
 
 #undef SendCMD
 #undef SendConstCMD
@@ -141,7 +143,6 @@ int Req::POPReq()
     SendConstCMD( "+OK\r\n");
     break;
    case 0x73736170 x4CHAR("pass")://17: //Pasword
-    subdir[0]=0;
     if( (sf=strpbrk(pth,"@#/") ) )
     {
       if(*sf=='/')
@@ -198,7 +199,7 @@ int Req::POPReq()
      }
      if(mboxCount<0x2000)bb=(char *) (pn+mboxCount+2);
      else bb=new char[0x8100];
-     sprintf(bb,"POP: login in %.20s;\r\n",puser->name);
+     sprintf(bb,"POP: login in %.20s;%.64s\r\n",puser->name,pth);
      AddToLog(bb,s);
    case 0x74617473 x4CHAR("stat")://19:
      rcodeLen=sprintf(rcode=bb,"+OK %u %u\r\n",mboxCount,mboxLen);

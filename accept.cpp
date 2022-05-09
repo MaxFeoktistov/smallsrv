@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2020 Maksim Feoktistov.
+ * Copyright (C) 1999-2022 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov 
@@ -182,15 +182,23 @@ int WINAPI SetServ(uint fnc)
 
   j=0;
 #ifndef CD_VER
+#ifdef USE_IPV6
+  union{
+    LimitCntr *lip;
+    LimitCntrIPv6 *lip6;
+  };
+#else  
   LimitCntr *lip;
-  if((lip=hack.Find(sa_client.sin_addr. S_ADDR )
-     ) && (lip->cnt&0x0F)>=12)
+#endif  
+  
+  if( (lip) && (lip->cnt&0x0F)>=12)
   {req.HttpReturnError("DETECTED HACKER");
    i=-1;
    goto cnt;
   }
 #else
-  if(sa_client.sin_addr. S_ADDR == 0x7F000001)
+  if( IPv4addr(&sa_client) //sa_client.sin_addr. S_ADDR 
+      == 0x7F000001)
   {
    req.HttpReturnError("Access deny");
    i=-1;
@@ -214,8 +222,18 @@ int WINAPI SetServ(uint fnc)
   if(max_cln_host)
   {
    ++no_close_req;
+  {   
+   k =   IPv4addr(&sa_client);
    for(i=0;i<max_tsk;i++)
-   if( ((u_long)(rreq[i])>1) && (rreq[i]->sa_c.sin_addr. S_ADDR==sa_client.sin_addr. S_ADDR ) )
+   if( ((u_long)(rreq[i])>1) &&
+//       (rreq[i]->sa_c.sin_addr. S_ADDR == sa_client.sin_addr. S_ADDR ) 
+     ( 
+       #ifdef USE_IPV6
+       (k == 1)? ( IsIPv6(& rreq[i]->sa_c) && !memcmp( &rreq[i]->sa_c6.sin6_addr, & req.sa_c6.sin6_addr, 16 ) ) :
+       #endif
+       ( IPv4addr(& rreq[i]->sa_c) == k ) 
+     ) 
+   )
    {if((++j)>=max_cln_host)
     {req.HttpReturnError( sTOO_MANY_ );
 //     setsockopt(req.s,SOL_SOCKET,SO_LINGER,(char *)&lngr,sizeof(lngr));
@@ -224,6 +242,7 @@ int WINAPI SetServ(uint fnc)
      goto cnt;
     }
    }
+  }
    if(--no_close_req<0)no_close_req=0;
   }
 #elif 0
@@ -464,10 +483,10 @@ int Req::IsProxyRange(int a)
   if( ((u_long)(r=rreq[i]))>1 && (r->fl&0xF0000)==F_PROXY &&
      r->trn &&
 #ifdef x86_64
-     ((ulong)(u_long)(r->req_var))==sa_c.sin_addr. S_ADDR &&
+     ((ulong)(u_long)(r->req_var))== IPv4addr(&sa_c) && //sa_c.sin_addr. S_ADDR &&
      ((ulong)(u_long)(r->pst))==sa_c.sin_port
 #else
-     ((ulong)(r->req_var))==sa_c.sin_addr. S_ADDR &&
+     ((ulong)(r->req_var))== IPv4addr(&sa_c) && //sa_c.sin_addr. S_ADDR &&
      ((ulong)(r->pst))==sa_c.sin_port
 #endif
   )
@@ -480,31 +499,108 @@ int Req::IsProxyRange(int a)
  return 0;
 };
 
-int FndLimit(int lst,LimitCntr **ip, LimitCntr **net, ulong i)
+#ifdef USE_IPV6 
+int IsIPv6(sockaddr_in *sa)
+{
+   if(sa->sin_family!=AF_INET6) return 0;
+   if(
+      ((sockaddr_in6 *)sa)->sin6_addr.s6_addr32[0]==0 &&
+      ((sockaddr_in6 *)sa)->sin6_addr.s6_addr32[1]==0 &&
+     (
+       ((sockaddr_in6 *)sa)->sin6_addr.s6_addr32[2]==0xFFFF0000
+       //|| ((sockaddr_in6 *)xsa)->sin6_addr.s6_addr16[2]==0
+     )
+   ) return 0;
+   return 1;
+}
+
+uint IPv4addr(sockaddr_in *sa)
+{
+   if(sa->sin_family==AF_INET) return sa->sin_addr. S_ADDR;
+   if(sa->sin_family==AF_INET6 &&
+      ((sockaddr_in6 *)sa)->sin6_addr.s6_addr32[0]==0 &&
+      ((sockaddr_in6 *)sa)->sin6_addr.s6_addr32[1]==0 &&
+     (
+       ((sockaddr_in6 *)sa)->sin6_addr.s6_addr32[2]==0xFFFF0000
+       //|| ((sockaddr_in6 *)xsa)->sin6_addr.s6_addr16[2]==0
+     )
+   ) return        ((sockaddr_in6 *)sa)->sin6_addr.s6_addr32[3];
+   return 1;
+}
+#endif
+
+int FndLimit(int lst,LimitBase **ip, LimitBase **net, sockaddr_in *sa)
 {ulong x;
 #ifndef CD_VER
  *ip=0;
  *net=0;
  if(!(ltime[lst]))return 0;
  LimitCntr *lip,*lnet;
+ x=time(0)-ltime[lst];
  if(!ipcnts[lst].n)ipcnts[lst].Push();
  if(ipcnts[lst].d[0].CheckLimit(limit[lst],ltime[lst]))
  {
+   debug("Limit for %u all %u>%u",lst,ipcnts[lst].d[0].cnt,limit[lst]);
+  
  lErrLim:
+
+
    Sleep(0x4000);
  //  Send("421 limit overflow\r\n",sizeof("421 limit overflow\r\n")-1);
    return 1;
  }
- x=time(0)-ltime[lst];
+#ifdef USE_IPV6 
+ if(IsIPv6(sa)) //sa->sin_family==AF_INET6)
+ {
+   LimitCntrIPv6 *lip6,*lnet6;
+    if(!(lip6= ipv6cnts[lst].Find(((sockaddr_in6 *) sa)->sin6_addr))) 
+    { 
+        ipv6cnts[lst].FreeOld(x); lip6=ipv6cnts[lst].Push(); lip6->Set( ((sockaddr_in6 *) sa)->sin6_addr );
+        //lip6= AddToList(lst,sa);
+    }
+    struct IPv6c n6;
+    n6.Set(((sockaddr_in6 *) sa)->sin6_addr );
+    n6.ip.s6_addr32[3]&=0xFF;   //0xFF000000;
+    if(!(lnet6=ipv6cnts[lst].Find(n6.ip)))
+    { lnet6=ipv6cnts[lst].Push(); lnet6->Set(n6.ip);}
+    *ip =lip6 ;
+    *net=lnet6;
+    if(lnet6->CheckLimit(net_limit[lst],ltime[lst])){ 
+         debug("Limit for %u IPv6 net %u>%u %u",lst,lnet6->cnt,net_limit[lst],lnet6-ipv6cnts[lst].d);
+        
+        goto lErrLim;}
+    if(lip6->CheckLimit(ip_limit[lst],ltime[lst])){
+
+        debug("Limit for %u IPv6 addr %u>%u %u",lst,lnet6->cnt,ip_limit[lst],lip6-ipv6cnts[lst].d);
+
+        goto lErrLim;
+    }
+    return 0;   
+ }    
+#endif 
+ int i=IPv4addr(sa); //sa->sin_addr. S_ADDR;
  if(!(lip= ipcnts[lst].Find(i))) 
- { ipcnts[lst].FreeOld(x); lip=ipcnts[lst].Push(); lip->ip=i;}
- i&=0xFFFFFF; 
+ {
+     ipcnts[lst].FreeOld(x); lip=ipcnts[lst].Push(); lip->ip=i;
+//     lip6= AddToList(lst,sa);
+ }
+ i&=0xFFFF; 
  if(!(lnet=ipcnts[lst].Find(i)))
  { lnet=ipcnts[lst].Push(); lnet->ip=i;}
  *ip =lip ;
  *net=lnet;
- if(lnet->CheckLimit(net_limit[lst],ltime[lst])) goto lErrLim;
- if(lip->CheckLimit(ip_limit[lst],ltime[lst])) goto lErrLim;
+ if(lnet->CheckLimit(net_limit[lst],ltime[lst]))
+ {
+             
+     debug("Limit for %u IPv4 net %u>%u",lst,lnet->cnt,net_limit[lst]);
+     goto lErrLim;
+ }    
+ if(lip->CheckLimit(ip_limit[lst],ltime[lst]))
+ {
+       debug("Limit for %u IPv4 addr %u>%u",lst,lip->cnt,ip_limit[lst]);
+     
+     goto lErrLim;
+ }    
 #endif
  return 0;
 }

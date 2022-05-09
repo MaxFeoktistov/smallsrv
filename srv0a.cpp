@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2021 Maksim Feoktistov.
+ * Copyright (C) 1999-2022 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov 
@@ -203,11 +203,38 @@ char *DLST[]={"\nAuthorization:","\nProxy-Authorization:",">PASS ","/$_admin_$us
 char *oldprot=b_prot;
 
 #ifdef USE_IPV6
+int IPv6S(char *addr6,in6_addr &sin6_addr)
+{
+  if(
+      sin6_addr.s6_addr32[0]==0 &&
+      sin6_addr.s6_addr32[1]==0 &&
+     (
+       sin6_addr.s6_addr32[2]==0xFFFF0000
+       //|| ((sockaddr_in6 *)xsa)->sin6_addr.s6_addr16[2]==0
+     )
+  )
+  return sprintf(addr6,"%u.%u.%u.%u",
+    sin6_addr.s6_addr[12],
+    sin6_addr.s6_addr[13],
+    sin6_addr.s6_addr[14],
+    sin6_addr.s6_addr[15]);
+ // else
+ // {
+#define XAR  sin6_addr.s6_addr16
+  return sprintf(addr6,"%X:%X:%X:%X:%X:%X:%X:%X",
+    htons(XAR[0]),htons(XAR[1]),htons(XAR[2]),htons(XAR[3]),htons(XAR[4]),
+    htons(XAR[5]),htons(XAR[6]),htons(XAR[7]));
+#undef XAR   
+//  }
+    
+}
 void IP2S(char *addr6,sockaddr_in* xsa)
 {
 #define XAR  (((sockaddr_in6 *)xsa)->sin6_addr.s6_addr16)
  if(((sockaddr_in6 *)xsa)->sin6_family==AF_INET6)
  {
+    IPv6S(addr6,((sockaddr_in6 *)xsa)->sin6_addr); 
+ /*    
   if(
      ((sockaddr_in6 *)xsa)->sin6_addr.s6_addr32[0]==0 &&
      ((sockaddr_in6 *)xsa)->sin6_addr.s6_addr32[1]==0 &&
@@ -227,6 +254,7 @@ void IP2S(char *addr6,sockaddr_in* xsa)
     htons(XAR[0]),htons(XAR[1]),htons(XAR[2]),htons(XAR[3]),htons(XAR[4]),
     htons(XAR[5]),htons(XAR[6]),htons(XAR[7]));
   }
+*/  
  }
  else
    sprintf(addr6,"%u.%u.%u.%u",

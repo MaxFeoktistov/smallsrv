@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2021 Maksim Feoktistov.
+ * Copyright (C) 1999-2022 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov 
@@ -45,7 +45,18 @@ struct MListCntr ipcnts[10];
 #define netcnt ipcnts[0]
 #define totalcnt ipcnts[0].d[0]
 
-int LimitCntr::CheckLimit(ulong t1,ulong lst_tim)
+#ifdef USE_IPV6
+
+MListCntrIPv6 ipv6cnts[10];
+
+#define ip6cnt ipv6cnts[0]
+#define net6cnt ipv6cnts[0]
+#define total6cnt ipv6cnts[0].d[0]
+
+#endif
+
+int //LimitCntr
+   LimitBase::CheckLimit(ulong t1,ulong lst_tim)
 {ulong t,dt;
  t=time(0);
  if((!cnt) || !(first))
@@ -64,13 +75,46 @@ int LimitCntr::CheckLimit(ulong t1,ulong lst_tim)
  return 1;
 }
 
+#ifdef WITHOUTTEMPL
+
 #define X LimitCntr
 X *MListCntr::Find(ulong x){X *r,*e;  for(e=(r=d)+n;r<e;++r)if(r->ip==x)return r;  return 0;};
 void MListCntr::FreeOld(ulong told){X *r,*e;  for(e=(r=d)+n;r<e;)if(r->first<told){Del(r); --e;} else ++r;};
+
+#else
+
+LimitCntr *MListCntr::Find(ulong x){return FindT<ulong>(x);};
+void MListCntr::FreeOld(ulong told){return FreeOldT(told);};
+
+LimitCntrIPv6 *MListCntrIPv6::Find(in6_addr &x){return FindT<in6_addr &>(x);};
+void MListCntrIPv6::FreeOld(ulong told){return FreeOldT(told);};
+
+#define X LimitCntr
+#define X6 LimitCntrIPv6
+
+#endif
+
 int Req::OutSMTPLimit(char *bfr,int ll)
-{X *r,*e;
+{
  int j,k;
- MListCntr *l;
+#ifdef USE_IPV6
+ union{   
+    X *r;
+    X6 *r6;
+ };   
+ union{   
+    X *e;
+    X6 *e6;
+ };
+ union{   
+   MListCntr *l;
+   MListCntrIPv6 *l6;
+ };
+#else
+    X *r;
+    X *e;
+    MListCntr *l;
+#endif 
  CntrCode  *cc;
  char contry[8];
 
@@ -106,7 +150,7 @@ int Req::OutSMTPLimit(char *bfr,int ll)
       "<input type=hidden name=s value=%u>"
       "<input type=%s value=Clear>"
     "</form></font>"
-   "</td></tr>"HTML_LN,
+   "</td></tr>" HTML_LN,
     k++,r->ip&0xFF,(r->ip>>8)&0xFF,(r->ip>>16)&0xFF,(r->ip>>24),contry,
     r->cnt&msk ,r->ip,ll ,(s_flg&FL_RADMIN)?"submit":"hidden");
    if(j>0x3000)
@@ -114,10 +158,47 @@ int Req::OutSMTPLimit(char *bfr,int ll)
     j=0;
    }
  }
+#ifdef USE_IPV6
+ char ipv6a[64]; 
+ l6=ipv6cnts+ll;
+
+ for(e6=(r6=l6->d)+l6->n;r6<e6;++r6)
+ {
+  /*  contry[0]=0;
+    if(cntr_dat)
+    {
+      if( (cc=FindCntr(htonl(r->ip) ) ) )
+      {
+         sprintf(contry," (%2.2s)",cc->nm);   
+      }
+    } */  
+  IPv6S(ipv6a,r6->ip.ip);
+  j+=sprintf(bfr+j,
+   "<tr valign=center><td><font size=2 class=f2>%u) <b>%.64s"
+   "</td><td align=center><font size=2 class=f2><b>%u</b></font>"
+   "</td><td align=left bgcolor=#ff8040><font size=2 class=f2>"
+    "<form method=GET action=/$_admin_$clear>"
+      "<input type=hidden name=n6 value='%s'>"
+      "<input type=hidden name=s value=%u>"
+      "<input type=%s value=Clear>"
+    "</form></font>"
+   "</td></tr>" HTML_LN,
+    k++,ipv6a,
+    r6->cnt&msk ,ipv6a,ll 
+    ,(s_flg&FL_RADMIN)?"submit":"hidden");
+   if(j>0x3000)
+   {if(Send(bfr,j)<=0) return -1;
+    j=0;
+   }
+ }
+#endif
+
  j+=sprintf(bfr+j,"</table><hr><a name=l%X></a>",ll);
  return Send(bfr,j);
 };
 #undef X
+
+
 
 
 
@@ -260,13 +341,35 @@ ulong SpamMSGID[17],iSpamMSGID;
 ulong POP3usr[17],iPOP3usr,POP3usrTime;
 char *MailVars[12]={"msg",0,"sender",0,"hello",0,"control",0,"checkhello",0,0};
 
-void AddToList(int i,ulong ip,int c=0)
-{LimitCntr *spm;
- if(ltime[i])ipcnts[i].FreeOld(time(0)-ltime[i]);
+//void AddToList(int i,ulong ip,int c=0)
+LimitBase * AddToList(int i,sockaddr_in *sa,int c)
+{
+ time_t tmt=time(0);
+    
+#ifdef USE_IPV6
+ union{
+  LimitCntr *spm;
+  LimitCntrIPv6 *spm6;
+ };   
+ if(IsIPv6(sa)) //sa->sin_family==AF_INET6)
+ {
+    if(ltime[i])ipv6cnts[i].FreeOld(tmt-ltime[i]);
+    spm6=ipv6cnts[i].Push();
+    spm6->Set( ((sockaddr_in6 *)sa)->sin6_addr );
+    spm6->first=tmt;
+    spm6->cnt=c;
+    return spm6;
+ }    
+#else
+ LimitCntr *spm;
+#endif     
+   
+ if(ltime[i])ipcnts[i].FreeOld(tmt-ltime[i]);
  spm=ipcnts[i].Push();
- spm->ip=ip;
- spm->first=time(0);
+ spm->ip= IPv4addr(sa); //sa->sin_addr. S_ADDR;
+ spm->first=tmt;
  spm->cnt=c;
+ return spm;
 }
 
 
@@ -294,7 +397,10 @@ int FileLine::ReadLine()
 }
 
 struct CheckUserList{
- struct sockaddr_in sa;
+ union{   
+  struct sockaddr_in *psa;
+  struct sockaddr_in6 *psa6;
+ };
  Req  *th;
  RegVars rv;
  char *bb,*rr,*p,*t;
@@ -350,7 +456,7 @@ int CheckUserList::Do(char *list,char *nm)
          char **pl;
           for(pl=hp->h_addr_list; pl && *pl ; pl++)
           {
-           if( DWORD_PTR(*pl[0]) == sa.sin_addr.s_addr  )
+           if( DWORD_PTR(*pl[0]) == psa->sin_addr.s_addr  )
            {
             checkhello[0]=0x31;
             break;
@@ -363,7 +469,7 @@ int CheckUserList::Do(char *list,char *nm)
 
      if(
          ( (t[1]=='?')?
-             th->CheckDNSBL( SkipSpace(t+2), &sa) :
+             th->CheckDNSBL( SkipSpace(t+2), psa) :
              Reg(t+1)
          )
        )
@@ -393,7 +499,25 @@ int Req::CheckDNSBL(char *t,struct sockaddr_in *sa)
   while(t && *t)
   {
    if((p=strpbrk(t," ,)\t\r\n") ) )*p=0;
-   sprintf(bfr,"%u.%u.%u.%u.%.64s",
+#ifdef USE_IPV6
+   if( IsIPv6(sa) ) //sa->sin_family == AF_INET6  )
+   {
+     sprintf(bfr+IPv6S(bfr,((sockaddr_in6 *)sa)->sin6_addr),".%64s",t);  
+   }    
+   else 
+   {
+     uint tt=IPv4addr(sa);  
+     sprintf(bfr,"%u.%u.%u.%u.%.64s",
+     BYTE_PTR(tt,3),
+     BYTE_PTR(tt,2),
+     BYTE_PTR(tt,1),
+     tt&0xFF,
+     t //dnsbl
+    );
+   }
+#else
+
+     sprintf(bfr,"%u.%u.%u.%u.%.64s",
 #ifndef SYSUNIX
      sa->sin_addr.S_un.S_un_b.s_b4,
      sa->sin_addr.S_un.S_un_b.s_b3,
@@ -407,6 +531,7 @@ int Req::CheckDNSBL(char *t,struct sockaddr_in *sa)
 #endif
     t //dnsbl
     );
+#endif       
     if(gethostbyname(bfr))
     {
      Send(bfr,sprintf(bfr,"%u %.64s spamers list content your IP\r\n",pass_port,t));
@@ -443,7 +568,7 @@ int Req::SMTPReq()
  uchar *p2;
 
  CheckUserList ul;
-#define  sa        ul.sa
+//#define  sa        ul.sa
 #define  rv        ul.rv
 #define  puser_s   ul.puser_s
 #define  puser_r   ul.puser_r
@@ -457,7 +582,13 @@ int Req::SMTPReq()
  puser_r=0;
 
  timout=POPTimeout;
- LimitCntr *lip,*lnet,*spm=0;
+// LimitCntr *lip,*lnet,*spm=0;
+ LimitBase *lip,*lnet;
+ union {
+   LimitCntr  *spm;
+   LimitCntrIPv6  *spm6;
+ };
+ spm=0;
 #undef SendCMD
 #undef SendConstCMD
 #undef printSendCMD
@@ -468,30 +599,51 @@ int Req::SMTPReq()
 
 
 
- getpeername(s,(sockaddr *)&sa,&l);
- us_ip=IsInIPRange(smtp_range);//,htonl(sa_c.sin_addr. S_ADDR));
+ //getpeername(s,(sockaddr *)&sa,&l);
+ //memcpy((&sa6,&sa_c6,sizeof(sa6));
+ ul.psa = &sa_c;
+ us_ip = IsInIPRange(smtp_range);//,htonl(sa_c.sin_addr. S_ADDR));
  if(us_ip<0)goto erSnd;
 
  if(!us_ip)
  {
-   if( (s_flgs[1]&FL1_SMTP_AVT) &&
+   if( (s_flgs[1]&FL1_SMTP_AVT) && 
+       sa_c.sin_family == AF_INET &&
+       sa_c.sin_addr. S_ADDR &&
        memchr4(POP3usr,sa_c.sin_addr. S_ADDR,16) &&
        (GetTickCount()-POP3usrTime)<0x200000
      ) ++us_ip;
  }
 
  ul.th=this;
-
- if((spm=ipcnts[1].Find(sa_c.sin_addr. S_ADDR)))
+#ifdef USE_IPV6
+ if(IsIPv6(&sa_c)) //sa_c.sin_family==AF_INET6)
+ {
+  
+    if((spm6=ipv6cnts[1].Find(sa_c6.sin6_addr)))
+    {
+        if( (! ltime[1] ) || (time(0) - spm6->first)<ltime[1] ){spm6->cnt++; goto erSnd; }
+        ipv6cnts[1].Del(spm6);
+        spm=0;
+    }  
+        
+ }    
+ else  
+#endif     
+     if((spm=ipcnts[1].Find( IPv4addr(&sa_c) )) ) //sa_c.sin_addr. S_ADDR)))
  {if( (! ltime[1] ) || (time(0) - spm->first)<ltime[1] ){spm->cnt++; goto erSnd; }
   ipcnts[1].Del(spm);
   spm=0;
  }
 
+ 
+ 
+ 
+ 
 
  if(smtp_ltime && ((!us_ip) || !(s_flgs[1]&FL1_NOLUS))  )
  {++chkl;
-  if(FndLimit(0,&lip,&lnet,sa_c.sin_addr. S_ADDR) )
+  if(FndLimit(0,&lip,&lnet, &sa_c ) )
   {
  erSnd:
     Send("421 limit overflow\r\n",sizeof("421 limit overflow\r\n")-1);
@@ -564,7 +716,8 @@ lbb1:
      SendConstCMD("550 Unknown user\r\n");
      if(++bdecntr>=2)
      {debug("Spamer detected.");
-      AddToList(1,sa_c.sin_addr. S_ADDR);
+      AddToList(1,&sa_c);
+//      AddToList(1,sa_c.sin_addr. S_ADDR);
       cmd=0x74697571;
      }
      break;
@@ -596,7 +749,9 @@ lbb1:
     if( fake && fake[0] && (!spm) &&
         ((t1=stristr(fake,recepter)) && (t1==fake || t1[-1]<=',' ) )
       ) //!stricmp(recepter,fake) )
-    {AddToList(1,sa_c.sin_addr. S_ADDR);
+    {
+//     AddToList(1,sa_c.sin_addr. S_ADDR);
+     AddToList(1,&sa_c);
      cmd=0x74697571;
      break;
     }
@@ -630,7 +785,7 @@ lbb1:
     if( (!(status&2)) && dnsbl)
     {
       sprintf(bfr,"%.510s",dnsbl);
-      if(CheckDNSBL(bfr,&sa)) goto ex1;
+      if(CheckDNSBL(bfr,&sa_c)) goto ex1;
     }
 
     if(recepter && (recepter!=bb) )
@@ -641,11 +796,11 @@ lbb1:
      l=sprintf(rr=bb+0x4005,"From %s (%s [%u.%u.%u.%u]) %3.3s, %u %3.3s %4.4u %2.2u:%2.2u:%2.2u GMT For %s\r\n",
       sender,hello_msg,
 #ifndef SYSUNIX
-     sa.sin_addr.S_un.S_un_b.s_b1, sa.sin_addr.S_un.S_un_b.s_b2,
-     sa.sin_addr.S_un.S_un_b.s_b3, sa.sin_addr.S_un.S_un_b.s_b4,
+     sa_c.sin_addr.S_un.S_un_b.s_b1, sa_c.sin_addr.S_un.S_un_b.s_b2,
+     sa_c.sin_addr.S_un.S_un_b.s_b3, sa_c.sin_addr.S_un.S_un_b.s_b4,
 #else
-     sa.sin_addr.s_addr&0xFF, BYTE_PTR(sa.sin_addr.s_addr,1),
-     BYTE_PTR(sa.sin_addr.s_addr,2), BYTE_PTR(sa.sin_addr.s_addr,3),
+     sa_c.sin_addr.s_addr&0xFF, BYTE_PTR(sa_c.sin_addr.s_addr,1),
+     BYTE_PTR(sa_c.sin_addr.s_addr,2), BYTE_PTR(sa_c.sin_addr.s_addr,3),
 #endif
      wkday[stime.wDayOfWeek],stime.wDay,month[stime.wMonth-1],stime.wYear,
      stime.wHour,stime.wMinute,stime.wSecond,bb);
@@ -712,7 +867,8 @@ lbb1:
        else
        {
         ltime[6]=172800;
-        AddToList(6,sa_c.sin_addr. S_ADDR,sID );
+//        AddToList(6,sa_c.sin_addr. S_ADDR,sID );
+        AddToList(6,&sa_c,sID);
        }
        pass_port=452;
 
@@ -766,7 +922,9 @@ lbSn1:
     if((t || l>0x4000) && spamfltr && !chkspm)
     {++chkspm;
      strncpy(bb+0x7000,spamfltr,0xFF0);
-     if( ul.Reg(bb+0x7000) )AddToList(1,sa_c.sin_addr. S_ADDR);
+     if( ul.Reg(bb+0x7000) )
+         AddToList(1,&sa_c);
+//         AddToList(1,sa_c.sin_addr. S_ADDR);
     }
 
     if(t)l=t+2-bb;

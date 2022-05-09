@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2021 Maksim Feoktistov.
+ * Copyright (C) 1999-2022 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov 
@@ -308,9 +308,12 @@ ulong MkName3(char *t)
 
 #ifdef USE_IPV6
 inline ulong ADDR4(sockaddr_in6 *sa_ct)
-{return  (sa_ct->sin6_family==AF_INET)?
-  ((sockaddr_in *)sa_ct)->sin_addr. S_ADDR :
-   sa_ct->sin6_addr.s6_addr32[3];
+{return  IPv4addr((sockaddr_in *)sa_ct);
+//     (sa_ct->sin6_family==AF_INET)?
+//   ((sockaddr_in *)sa_ct)->sin_addr. S_ADDR :
+//    sa_ct->sin6_addr.s6_addr32[3];
+// 
+    
 }
 
 
@@ -333,7 +336,7 @@ inline void SETADDR4(sockaddr_in6 *sa_c,ulong addr,ulong po)
 
 #else
 
-inline ulong ADDR4(sockaddr_in6 *sa_ct){return sa_ct->sin_addr. S_ADDR ; }
+inline ulong ADDR4(sockaddr_in *sa_ct){return sa_ct->sin_addr. S_ADDR ; }
 
 inline void SETADDR4(sockaddr_in *sa_c,ulong addr,ulong po)
 {sa_c->sin_addr.s_addr=addr;
@@ -765,7 +768,7 @@ void  DelDup(NSRecordArray  * thi,NSRecord  *rr)
 char *hsfile;
 int nsmut;
 
-char DefaultSOA[]={
+uchar DefaultSOA[]={
 0,0,0,1, // SERIAL
 0,0,0xA8,0xC0,//REFRESH=43200
 0,0,0x70,0x80,//RETRY=28800
@@ -2185,13 +2188,31 @@ int CheckBadDNSName(char *b)
 
 int CheckDNSDoS(sockaddr_in * sa_c)
 {
-  LimitCntr *lip;
-   if(!(lip=dnsDoS.Find(sa_c->sin_addr. S_ADDR)))
+  union{   
+    LimitCntr *lip;
+    LimitCntrIPv6 *lip6;
+  };
+  uint ip;
+#ifdef USE_IPV6  
+   if(IsIPv6(sa_c)) //sa_c->sin_family == AF_INET6  )
    {
-     lip=dnsDoS.Push(); lip->ip= sa_c->sin_addr. S_ADDR; 
+       if(!(lip6=dns6DoS.Find( ( (sockaddr_in6 *)  sa_c)->sin6_addr) ) )
+       {
+          lip6=dns6DoS.Push(); lip6->Set( ( (sockaddr_in6 *)  sa_c)->sin6_addr); 
+          lip6->first=last_time+180;
+    //   debug("DNS ANY");
+       }   
+       
+   }
+   else
+#endif       
+   if(!(lip=dnsDoS.Find( ip=IPv4addr(sa_c) )) ) //sa_c->sin_addr. S_ADDR)))
+   {
+     lip=dnsDoS.Push(); lip->ip=ip ; //IPv4addr(sa_c); // sa_c->sin_addr. S_ADDR; 
      lip->first=last_time+180;
   //   debug("DNS ANY");
    }
+   
    if(lip->cnt++ > dns_dos_limit)return 1;
        
    if(lip->first<last_time)

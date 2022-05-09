@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2020 Maksim Feoktistov.
+ * Copyright (C) 1999-2022 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov 
@@ -460,9 +460,44 @@ int IsSame(char *tt,char *pp)
 
 void Req::AddHack(ulong t,int v)
 {
- LimitCntr *lip;
-   if(!(lip=hack.Find(sa_c.sin_addr. S_ADDR)))
-   {lip=hack.Push(); lip->ip= sa_c.sin_addr. S_ADDR; }
+     
+#ifdef USE_IPV6 
+  union{
+     LimitCntr *lip;
+     LimitCntrIPv6 *lip6;
+      
+      
+   }; 
+   if(IsIPv6(&sa_c)) //sa_c.sin_family==AF_INET6)    
+   {
+     if(!(lip6=hack6.Find(sa_c6.sin6_addr)))
+     {
+      lip6=hack6.Push(); 
+      lip6->Set(sa_c6.sin6_addr);
+      /*
+      lip6->ip.ip.s6_addr32[0] =  sa_c6.sin6_addr.s6_addr32[0];
+      lip6->ip.ip.s6_addr32[1] =  sa_c6.sin6_addr.s6_addr32[1];
+      lip6->ip.ip.s6_addr32[2] =  sa_c6.sin6_addr.s6_addr32[2];
+      lip6->ip.ip.s6_addr32[3] =  sa_c6.sin6_addr.s6_addr32[3];
+      */
+     }
+       
+       
+   }
+   else
+   {    
+#else
+     LimitCntr *lip;
+#endif 
+     ulong ip4;
+     ip4=IPv4addr(&sa_c);
+     if(!(lip=hack.Find(ip4))) // sa_c.sin_addr. S_ADDR)))
+     {
+         lip=hack.Push(); lip->ip=ip4; // sa_c.sin_addr. S_ADDR;
+     }
+#ifdef USE_IPV6
+   } 
+#endif   
    lip->first=t;
    lip->cnt+=v;
 }
@@ -472,7 +507,10 @@ User   *FindUser(char *bfr,int typ,char *pwd /*=0*/,Req *r) //=0)
 {User *tuser;
  char *t,*t1,*t2;
  ulong ip; //,*pip=0;
+ union{
  LimitCntr *lip;
+ LimitCntrIPv6 *lip6;
+ };
  int  cc;
 #ifdef WITHMD5
  int md5pwd=typ&FindUserMD5digest;
@@ -572,8 +610,15 @@ User   *FindUser(char *bfr,int typ,char *pwd /*=0*/,Req *r) //=0)
 //    if( (pip=memchr4(lastbadip, r->sa_c.sin_addr. S_ADDR ,8)))//saddr[r->ntsk],8)) )
 //    {if(!(pip[8]&=~((0x501*cc)<<5)))*pip=0;
 //    }
-
-    if( (lip=hack.Find(r->sa_c.sin_addr. S_ADDR)))
+#ifdef USE_IPV6
+  if( IsIPv6( & r->sa_c ) ) //sa_client.sin_family==AF_INET6)
+  {
+     if( (lip6=hack6.Find(r->sa_c6.sin6_addr ) ) )
+     { if(!(lip6->cnt&=~ ((0x501*cc)<<5))) hack6.Del(lip6); }
+  }   
+  else
+#endif  
+    if( (lip=hack.Find( IPv4addr(& r->sa_c ) ) ) ) //r->sa_c.sin_addr. S_ADDR)))
     { if(!(lip->cnt&=~((0x501*cc)<<5)))hack.Del(lip); }
 
    }
@@ -623,9 +668,23 @@ User   *FindUser(char *bfr,int typ,char *pwd /*=0*/,Req *r) //=0)
   { sprintf(bfr+24,"Try to login failed %.20s;%.127s\r\n",bfr,pwd);
     AddToLog(bfr+24,r->s);
 #if defined(SPECIAL) || !defined(CD_VER)
-    if((lip=hack.Find(r->sa_c.sin_addr. S_ADDR)))
-    { if(pwd &&  lip->first !=(ip=MkName(pwd)) ){lip->cnt++; lip->first=ip;}
-    }else {lip=hack.Push(); lip->ip= r->sa_c.sin_addr. S_ADDR; }
+#ifdef USE_IPV6
+    if(IsIPv6(&r->sa_c) )//sa_client.sin_family==AF_INET6)
+    {
+        if( (lip6=hack6.Find( r->sa_c6.sin6_addr ) ) ) goto lbHF;
+        lip6=hack6.Push(); lip6->Set( r->sa_c6.sin6_addr );  // r->sa_c.sin_addr. S_ADDR; 
+    }   
+    else
+#endif  
+    if( (lip=hack.Find(IPv4addr(& r->sa_c ) ) ) ) //r->sa_c.sin_addr. S_ADDR)))
+    { 
+     lbHF:   
+        if(pwd &&  lip->first !=(ip=MkName(pwd)) ){lip->cnt++; lip->first=ip;}
+    }else 
+    {
+        lip=hack.Push(); lip->ip=IPv4addr(& r->sa_c );  // r->sa_c.sin_addr. S_ADDR; 
+        
+    }
     if(tuser)
     {lip->cnt|=(0x501*cc)<<5;  }
 

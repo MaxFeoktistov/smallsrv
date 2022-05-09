@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2021 Maksim Feoktistov.
+ * Copyright (C) 1999-2022 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov 
@@ -341,7 +341,9 @@ uint fFindURL(StatLog *psl,char *bfr)
  if(DWORD_PTR(bfr[3]) == 0x2F2F3A70 x4CHAR("p://") )
  {if(!(p=strchr(bfr+8,'/')))DWORD_PTR(*bfr)='/';
   else strcpy(bfr,p);
- }
+ 
+}
+return  
 #ifdef x86_64 
       bfr - statbasepoint;
 #else

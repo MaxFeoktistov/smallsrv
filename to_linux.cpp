@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2020 Maksim Feoktistov.
+ * Copyright (C) 1999-2022 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov 
@@ -395,4 +395,29 @@ int GetCDLabel(char *fn,char *tg)
   return 1;
 }
 
+
+
 #endif
+
+/*
+void * operator new[](unsigned int s)
+{
+  char *p=malloc(s);
+  if(p)memset(p,0,s);  
+  return p;
+}
+void operator delete[](void *a)
+{
+  free(a);
+}
+
+void operator delete(void *a)
+{
+  free(a);
+}
+
+void operator delete(void *a,unsigned int x)
+{
+  free(a);
+}
+*/

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2021 Maksim Feoktistov.
+ * Copyright (C) 1999-2022 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov 
@@ -31,7 +31,9 @@
 #define _FILE_OFFSET_BITS  64
 #define S_ADDR s_addr
 
+#if defined __GNUC__  && __GNUC__ < 5
 #include <features.h>
+#endif
 
 #undef __USE_FORTIFY_LEVEL
 #define __USE_FORTIFY_LEVEL 0
@@ -41,7 +43,7 @@
 
 
 
-#if (!defined(ANDROID)) && !defined(LPC_ARM) && !defined(AT_ARM)
+#if (!defined(ANDROID)) && !defined(LPC_ARM) && !defined(AT_ARM) && defined __GNUC__  && __GNUC__ < 5
 #include <_G_config.h>
 #endif
 
@@ -92,7 +94,7 @@
 #define __USE_FORTIFY_LEVEL 0
 #endif
 
-#pragma GCC diagnostic ignored "-Wstrict-prototypes"
+//   pragma GCC diagnostic ignored "-Wstrict-prototypes"
 #pragma GCC diagnostic ignored "-Wformat"
 #pragma GCC diagnostic ignored "-Wcomment"
 #pragma GCC diagnostic ignored "-Wwrite-strings"
@@ -103,6 +105,7 @@
 #pragma GCC diagnostic ignored "-Wliteral-suffix"
 #endif
 //#pragma GCC diagnostic ignored "-fpermissive"
+#pragma GCC diagnostic ignored "-Waddress-of-packed-member"
 
 #define CloseHandle  close
 #define closesocket  close
@@ -308,6 +311,8 @@ ulong SMTPcl(void *);
 inline void * operator new(size_t c){return Malloc(c);}
 inline void * operator new[](size_t c){return Malloc(c);}
 inline void   operator delete(void *t){free(t);}
+inline void   operator delete(void *t,uint x){free(t);}
+inline void   operator delete(void *t,unsigned long x){free(t);}
 inline void   operator delete[](void *t){free(t);}
 
 
@@ -375,9 +380,16 @@ extern pthread_t dnstthr;
 // #pragma message "SYS_futex = " STRING(SYS_futex)
 // #pragma message "FUTEX_WAIT = " STRING(FUTEX_WAIT)   
 
+#ifndef SYS_futex
 #define SYS_futex 240
+#endif
+
+#ifndef FUTEX_WAIT
 #define FUTEX_WAIT  0
 #define FUTEX_WAKE  1
+#endif
+
+#pragma GCC diagnostic ignored "-Wnarrowing"
 
 #else
 

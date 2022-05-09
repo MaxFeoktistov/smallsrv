@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2020 Maksim Feoktistov.
+ * Copyright (C) 1999-2022 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov 
@@ -232,9 +232,9 @@ union{
  };
 
 
- LimitCntr *lipo,*lneto;
+ LimitBase *lipo,*lneto;
  proxy_flg=((fl>>16)%9)==1; /*F_PROXY*/
- if(  FndLimit(ncntn=(proxy_flg?2:7) ,&lipo,&lneto,sa_c.sin_addr. S_ADDR) )
+ if(  FndLimit(ncntn=(proxy_flg?2:7) ,&lipo,&lneto,&sa_c ) )
  {
    HttpReturnError("Limit overflow");
    return 1;

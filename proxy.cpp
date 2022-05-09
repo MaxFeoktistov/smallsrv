@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2021 Maksim Feoktistov.
+ * Copyright (C) 1999-2022 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov 
@@ -520,7 +520,7 @@ int AvSend(int s,char *b,ulong l)
  ulong ll;
  ll=htonl(l);
  send(s,(char *)&ll,4,0);
- send(s,b,l,0);
+ return send(s,b,l,0);
 }
 
 //const char AvCmdEnd[]=//"\x00\x00\x00\x00\n"
@@ -626,7 +626,7 @@ int Req::OutVirusList(char *bfr)
     {
       j+=sprintf(bfr+j,
    "<tr valign=center><td><font size=2 class=f2>%u) %.128s"
-   "</td></tr>"HTML_LN,
+   "</td></tr>" HTML_LN,
     k++, v->url );
      if(j>0x3000)
      {if(Send(bfr,j)<=0) return -1;

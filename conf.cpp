@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2020 Maksim Feoktistov.
+ * Copyright (C) 1999-2022 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov 
@@ -239,7 +239,7 @@ inline int IsInIPR(int r,ulong ip)
 { 
     return 
     // IsInIPRangeIP(Range[r],ip)?   1-2*IsInIPRangeIP(Range[r+1],ip) :0;
-      IsInIPRangeIP(Range[r],ip)  && ! IsInIPRangeIP(Range[r+1],ip) ;
+    ip && IsInIPRangeIP(Range[r],ip)  && ! IsInIPRangeIP(Range[r+1],ip) ;
     
     
 }
@@ -250,10 +250,13 @@ int IsInIPRR(int r,sockaddr_in *psa_c)
  return IsInIPR(r,htonl(psa_c->sin_addr. S_ADDR)) ;
 #else
  #define psa_c6 ((sockaddr_in6*)psa_c)
+ if( !IsIPv6(psa_c)  )return IsInIPR(r,htonl(IPv4addr(psa_c)));
+ /*
  if(psa_c->sin_family!=AF_INET6) return IsInIPR(r,htonl(psa_c->sin_addr. S_ADDR)) ;
  if(psa_c6->sin6_addr.s6_addr32[0]==0 && psa_c6->sin6_addr.s6_addr32[1]==0 &&
     psa_c6->sin6_addr.s6_addr32[2]==0xFFFF0000
  )return IsInIPR(r,htonl(psa_c6->sin6_addr.s6_addr32[3]));
+ */
  return IsInIP6RangeIP(Range6[r],& (psa_c6->sin6_addr))? 1- 2*IsInIP6RangeIP(Range6[r+1],& (psa_c6->sin6_addr)):0;
 #endif
 }
