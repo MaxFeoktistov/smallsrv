@@ -453,7 +453,7 @@ long CALLBACK DefProc(HWND hwnd, UINT msg,UINT wparam, LONG lparam)
              oldchecked=i;
              shown_log=sepLog[i];
              shown_log->ShowProt();
-        }    
+        }
 
        // dprint("i=%d\n",i);
         return 1;   

@@ -76,6 +76,6 @@ struct dhcpPacket{
  uchar chaddr[16];   
  char sname[64]; 
  uchar file[128];   
- uchar vend[64];
+ uchar vend[1222];
 } __attribute__ ((packed));
 

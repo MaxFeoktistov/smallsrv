@@ -206,8 +206,8 @@ char *oldprot=b_prot;
 int IPv6S(char *addr6,in6_addr &sin6_addr)
 {
   if(
-      sin6_addr.s6_addr32[0]==0 &&
-      sin6_addr.s6_addr32[1]==0 &&
+     sin6_addr.s6_addr32[0]==0 &&
+     sin6_addr.s6_addr32[1]==0 &&
      (
        sin6_addr.s6_addr32[2]==0xFFFF0000
        //|| ((sockaddr_in6 *)xsa)->sin6_addr.s6_addr16[2]==0
@@ -367,11 +367,12 @@ void CloseServer()
  */
 // SaveDNS();
 #endif
+ CloseFCGI_tasks();
+
  CloseService();
  StopSocket();
 
  Sleep(500);
-
  WSACleanup();
 #if V_FULL
  if(total_dhcp_ip)SaveDHCP();

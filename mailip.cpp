@@ -196,6 +196,9 @@ char* GetMailHost(char *adr, d_msg  *dmm,int jchk)
    (dns_s= socket(AF_INET,SOCK_DGRAM,IPPROTO_UDP)) < 0){
          return 0;
   }
+#ifdef SYSUNIX
+  fcntl(dns_s, F_SETFD, fcntl(dns_s, F_GETFD) | FD_CLOEXEC);
+#endif
   addr_dns=ConvertIP(t=dns_server_for_mail);
  }
 

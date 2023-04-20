@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2022 Maksim Feoktistov.
+ * Copyright (C) 1999-2023 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov 
@@ -163,7 +163,7 @@ int Req::POPReq()
    lbAuthOk:     
      status|=1;
      if(IsInIPRange(smtp_range)<=0) //,htonl(sa_c.sin_addr. S_ADDR)))) //saddr[ntsk]))))
-     {POP3usr[iPOP3usr]=sa_c.sin_addr. S_ADDR; //saddr[ntsk];
+     {POP3usr[iPOP3usr]=AddrHash(&sa_c); //sa_c.sin_addr. S_ADDR; //saddr[ntsk];
       iPOP3usr=(++iPOP3usr)&0xF;
       POP3usrTime=GetTickCount();
      }

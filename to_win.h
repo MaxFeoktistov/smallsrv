@@ -42,18 +42,24 @@
 #pragma GCC diagnostic ignored "-Wwrite-strings"
 #pragma GCC diagnostic ignored "-Wnarrowing"
 #pragma GCC diagnostic ignored "-Wliteral-suffix"
+#pragma GCC diagnostic ignored "-Waddress-of-packed-member"
 
 
 #ifdef  DJGPP 
 typedef void* HKEY;
-#endif 
+#include "dgpp_quote.h"
+#else
+#define DJGPP_QUOTE
+#endif
 #include <sys/types.h>
 #include <ctype.h>
 #include "mstring1.h"
 #ifdef MINGW64
 #include <winsock2.h>
 #endif
+//#define _WINSOCK2API_
 #include <windows.h>
+//#undef _WINSOCK2API_
 
 
 #define fd_set win_fd_set
@@ -64,7 +70,7 @@ typedef struct fd_set {
 
 #ifdef MINGW64
 
-//#include <winsock2.h>
+#include <winsock2.h>
 #include <winsock_IPv6.h>
 
 #undef DJGPP
@@ -227,7 +233,7 @@ inline ulong FileTime2time(FILETIME  &a)
  ulong r,t;
  
 #ifdef  DJGPP 
- asm volatile(" subl  $0xFDE04000 ,%%eax
+ asm volatile(DJGPP_QUOTE subl  $0xFDE04000 ,%%eax
        sbbl  $0x14F373B ,%%edx
        cmpl  __PerSecond1E7,%%edx
        jae   1f
@@ -235,7 +241,7 @@ inline ulong FileTime2time(FILETIME  &a)
        imul $51,%%edx
        shrl $9,%%edx
       1:
-     ":"=&a"(r),"=&d"(t)
+     DJGPP_QUOTE :"=&a"(r),"=&d"(t)
       :"0"(a.dwLowDateTime),"1"(a.dwHighDateTime)
     );
 #else
@@ -265,8 +271,9 @@ void gettimeofday(struct timeval *x,...)
  SystemTimeToFileTime(&stime, (FILETIME *)x);
 
 //debug("TIME %X %X",x->tv_sec,x->tv_usec);
-#ifdef  DJGPP 
- asm volatile(" subl  $0xFDE04000 ,%%eax
+
+#ifdef  DJGPP
+ asm volatile(DJGPP_QUOTE subl  $0xFDE04000 ,%%eax
        sbbl  $0x14F373B ,%%edx
        cmpl  __PerSecond1E7,%%edx
        jae   1f
@@ -274,11 +281,12 @@ void gettimeofday(struct timeval *x,...)
        imul $51,%%edx
        shrl $9,%%edx
       1:
-     ":"=&a"(x->tv_sec),"=&d"(x->tv_usec)
+     DJGPP_QUOTE :"=&a"(x->tv_sec),"=&d"(x->tv_usec)
       :"0"(x->tv_sec),"1"(x->tv_usec)
     );
+    
 #else
- 
+
  asm volatile(" subl  $0xFDE04000 ,%%eax \n"
     " sbbl  $0x14F373B ,%%edx\n"
     "        cmpl  __PerSecond1E7,%%edx\n"

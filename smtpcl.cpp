@@ -266,6 +266,7 @@ int MLChk::RunForward(char *mbx)
       if(cbFwd.hStdOutput!=cbFwd.hStdError)CloseHandle(cbFwd.hStdError);
 #else
       debug("Run: '%s'",pth2+1);
+      pid_to_wait = 0;
       if( (s=
 #ifdef LPC_ARM
 	vfork()
@@ -274,8 +275,12 @@ int MLChk::RunForward(char *mbx)
 #endif	
       )>0 )
       {x=ttl_avr;
-       do{do{sleep(1); if( waitpid(s,(int *)&rez,WNOHANG))goto exFork;}while(--x>0);
-        kill(s,SIGKILL);
+       do{do{
+          //sleep(1); 
+          SrvEventWait(&pid_to_wait,1000);
+          if( waitpid(s,(int *)&rez,WNOHANG))goto exFork;}while(--x>0);
+          pid_to_wait = 0;
+          kill(s,SIGKILL);
        }while(x>-3);
        debug("Mail script: executable '%s' still active more then %u seconds and will be hard terminated by server.",pth2,ttl_avr);
 exFork:;

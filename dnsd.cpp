@@ -2751,6 +2751,10 @@ lbRedirect:
           debug("Could not get socket for resend ");
           return 0;
         }
+        #ifdef SYSUNIX
+        fcntl(sudp2, F_SETFD, fcntl(sudp2, F_GETFD) | FD_CLOEXEC);
+        #endif
+        
       //  i=512;
       //  setsockopt(sudp2,SOL_SOCKET,SO_RCVBUF,(char *)&i,4 );
          (*(sockaddr_in *) (th.sa_cl+1)).sin_addr.s_addr=0;
@@ -3789,6 +3793,10 @@ int ReinitDNSSocket(int k,int tcp)
      debug("IP socket error %d " SER ,WSAGetLastError() Xstrerror(errno));
      return -1;
     }
+    #ifdef SYSUNIX
+    fcntl(s, F_SETFD, fcntl(s, F_GETFD) | FD_CLOEXEC);
+    #endif
+    
     setsockopt(s,SOL_SOCKET,SO_REUSEADDR,(char *)&one,sizeof(one));
 try_bind_again:   
     if(
@@ -3970,6 +3978,10 @@ union{
 //#endif
 
    }
+   #ifdef SYSUNIX
+   fcntl(sdn, F_SETFD, fcntl(sdn, F_GETFD) | FD_CLOEXEC);
+   #endif
+
    debug("+IPv6" );
    sa_server6.sin6_family=AF_INET6;
   }
@@ -4130,6 +4142,9 @@ int Secondary::CheckSecondary()
    {
      sock_secondary=socket(AF_INET,SOCK_DGRAM,IPPROTO_UDP)  ;
      if(sock_secondary<=0)return 0;
+     #ifdef SYSUNIX
+     fcntl(sock_secondary, F_SETFD, fcntl(sock_secondary, F_GETFD) | FD_CLOEXEC);
+     #endif
      SOAreq.flags=1;
      SOAreq.qdcount=1;
 
@@ -4224,6 +4239,10 @@ void Secondary::LoadSecondary()
          debug("DNS: Cant get socket %d %s",errno,strerror(errno));
          return ;
    };
+   #ifdef SYSUNIX
+   fcntl(s, F_SETFD, fcntl(s, F_GETFD) | FD_CLOEXEC);
+   #endif
+   
    if(connect(s,(struct sockaddr *)&sa,sizeof(sa)) < 0) {
          debug("DNS: Cant connect %d %s",errno,strerror(errno));
         // shutdown(s, 2);

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2020 Maksim Feoktistov.
+ * Copyright (C) 1999-2023 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov 
@@ -48,6 +48,16 @@
 #define u_short unsigned short
 #define u_char  unsigned char
 #define u_long  unsigned long
+
+typedef unsigned int       u32;
+typedef unsigned short     u16;
+typedef unsigned char      u8 ;
+typedef unsigned long long u64;
+
+typedef int       i32;
+typedef short     i16;
+typedef char      i8 ;
+typedef long long i64;
 
 #undef LOWORD
 #undef HIWORD
@@ -150,8 +160,8 @@ struct OffsetBugD
 
 };
 
-#define WORD_PTR(a)   ((OffsetBugW)( & (a) ))
-#define DWORD_PTR(a)  ((OffsetBugD)( &  (a) ))
+#define WORD_PTR(a)   ((OffsetBugW)( (void *) & (a) ))
+#define DWORD_PTR(a)  ((OffsetBugD)( (void *) & (a) ))
 
 #else  // ! __cplusplus
 inline ulong fDWORD_PTR(uchar *t)

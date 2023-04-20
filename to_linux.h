@@ -79,6 +79,10 @@
 #include <dirent.h>
 #include <netinet/in.h>
 
+#include <sys/socket.h>
+#include <sys/un.h>
+
+
 
 #ifdef USE_POOL
 #include <poll.h>
@@ -110,6 +114,9 @@
 #define CloseHandle  close
 #define closesocket  close
 #define ioctlsocket  ioctl
+#ifndef O_CLOEXEC
+#define O_CLOEXEC 0
+#endif
 
 extern "C"{
 
@@ -141,13 +148,13 @@ pthread_t MyCreateThread(int StackSize, void * ( *ThreadFunction)(void *), void 
 
 #define _hwrite  write
 #define _hread   read
-#define _lopen   open
+#define _lopen(a,b)   open(a,(b)|O_CLOEXEC)
 #define _llseek  lseek
 #define _llseek64 lseek
-#define _lcreat(a,b)  creat(a,0600)
-#define _lcreat2(a,b)  creat(a,0600)
+#define _lcreat(a,b)  open(a, O_CREAT|O_WRONLY|O_TRUNC|O_CLOEXEC, 0600)
+#define _lcreat2(a,b)  open(a, O_CREAT|O_WRONLY|O_TRUNC|O_CLOEXEC, 0600)
 #define _lclose  close
-#define OF_WRITE  (O_WRONLY|O_APPEND)
+#define OF_WRITE  (O_WRONLY|O_APPEND|O_CLOEXEC)
 #ifdef x86_64
 typedef void * HANDLE;
 #else

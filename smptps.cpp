@@ -286,6 +286,9 @@ ulong GetMsgName(SYSTEMTIME  &stime)
 int IsUsHost(char *t)
 {if( !stricmp(++t,smtp_name) )return 1;
  if(FL_VHALIAS&s_flg)for(host_dir *a=hsdr.next;a;a=a->next)if(!stricmp(a->h,t))return 1;
+#ifdef  SEPLOG
+// sepLog[SRV_SMTP]->Ldebug("Bad host %s\n",t);
+#endif 
  return 0;
 }
 //---
@@ -336,9 +339,9 @@ int Req::RGetCMD(char *b)
 
 #endif
 
-ulong BadMSGID[17],iBadMSGID;
-ulong SpamMSGID[17],iSpamMSGID;
-ulong POP3usr[17],iPOP3usr,POP3usrTime;
+u32 BadMSGID[17],iBadMSGID;
+u32 SpamMSGID[17],iSpamMSGID;
+u32 POP3usr[17],iPOP3usr,POP3usrTime;
 char *MailVars[12]={"msg",0,"sender",0,"hello",0,"control",0,"checkhello",0,0};
 
 //void AddToList(int i,ulong ip,int c=0)
@@ -546,6 +549,23 @@ int Req::CheckDNSBL(char *t,struct sockaddr_in *sa)
 
 }
 
+ulong AddrHash(sockaddr_in *sa)
+{
+  if(sa->sin_family == AF_INET) return sa->sin_addr. S_ADDR;
+  if(sa->sin_family == AF_INET6){
+    if(
+      (( sockaddr_in6 *)sa)->sin6_addr.s6_addr32[0]==0 &&
+      (( sockaddr_in6 *)sa)->sin6_addr.s6_addr32[1]==0 &&
+      (
+        (( sockaddr_in6 *)sa)->sin6_addr.s6_addr32[2]==0xFFFF0000
+        //|| ((sockaddr_in6 *)xsa)->(( sockaddr_in6 *)sa)->sin6_addr.s6_addr16[2]==0
+      )
+    )  return (( sockaddr_in6 *)sa)->sin6_addr.s6_addr32[3];
+    return (( sockaddr_in6 *)sa)->sin6_addr.s6_addr32[0]^(( sockaddr_in6 *)sa)->sin6_addr.s6_addr32[1]^(( sockaddr_in6 *)sa)->sin6_addr.s6_addr32[2]^(( sockaddr_in6 *)sa)->sin6_addr.s6_addr32[3];
+  }
+  return 0;
+};
+
 const char  endmsg[]="\r\n.\r\n";
 int Req::SMTPReq()
 {
@@ -562,7 +582,7 @@ int Req::SMTPReq()
  uint rcodeLen;
  char *recepter=0;
  int status=0,cmd=0,bdecntr=0;
- ulong mID=0,sID,gl;
+ u32 mID=0,sID,gl;
  OpenSSLConnection otls;
  char *p,*t,*t1;
  uchar *p2;
@@ -607,12 +627,25 @@ int Req::SMTPReq()
 
  if(!us_ip)
  {
+
+   gl = AddrHash(&sa_c);
+
    if( (s_flgs[1]&FL1_SMTP_AVT) && 
-       sa_c.sin_family == AF_INET &&
-       sa_c.sin_addr. S_ADDR &&
-       memchr4(POP3usr,sa_c.sin_addr. S_ADDR,16) &&
+       //sa_c.sin_family == AF_INET &&
+       //sa_c.sin_addr. S_ADDR &&
+       //memchr4(POP3usr,sa_c.sin_addr. S_ADDR,16) &&
+       gl &&
+       memchr4(POP3usr,gl,16) &&
        (GetTickCount()-POP3usrTime)<0x200000
      ) ++us_ip;
+/*   
+   else {
+     debug("dt:%X %u %X %X POP3usr{%X %X} {%X %X}\n",GetTickCount()-POP3usrTime,iPOP3usr, sa_c.sin_addr.S_ADDR, gl,
+           POP3usr[0],POP3usr[1], 
+           POP3usr[(iPOP3usr-1)&0xF], 
+           POP3usr[(iPOP3usr-2)&0xF]  );
+   }
+*/   
  }
 
  ul.th=this;
@@ -729,7 +762,11 @@ lbb1:
      puser_s=FindUser(sender,UserSMTP,0,0);
      *t=0;
      if( ( ! ( (s_flgs[2]& FL2_MLNOIP) || us_ip)) ||
-           ! ( puser_s || ( puser_s=FindUser(sender,UserSMTP,0,0) ) ) )goto ler450;
+           ! ( puser_s || ( puser_s=FindUser(sender,UserSMTP,0,0) ) ) )
+     {
+       // debug("us_ip(%u) puser_s:%lX\n", us_ip, (long) puser_s );
+       goto ler450;
+     }
      *t='@';
      if(us_ip)status|=2;
     }
@@ -898,7 +935,7 @@ lbSn1:
      dirlen=0x29041975;
      if((h=
 #ifdef SYSUNIX
-      open(bb+0x5000,O_CREAT|O_EXCL|O_WRONLY,secat)
+      open(bb+0x5000,O_CREAT|O_EXCL|O_WRONLY|O_CLOEXEC,secat)
 #else
      (int)CreateFile(bb+0x5000,GENERIC_WRITE,0,&secat,CREATE_NEW,FILE_ATTRIBUTE_NORMAL,0)
 #endif

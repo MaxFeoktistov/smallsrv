@@ -157,6 +157,7 @@ int WINAPI SetServ(uint fnc)
   SrvErr[serv]=0;
 #ifdef SYSUNIX
   if(!req.s)req.s=dup(req.s);
+  fcntl(req.s, F_SETFD, fcntl(req.s, F_GETFD) | FD_CLOEXEC);
 #endif
   req.tmout=GetTickCount();
   req.bSpd=0;
@@ -282,8 +283,7 @@ int WINAPI SetServ(uint fnc)
   #define  EXCEPT_TRY(th,x...) 
   #define  END_TRY(th)  
 #endif
- 
-  
+
 #if V_FULL
   i=(req.*FWrk[serv])();
 #else
@@ -339,10 +339,10 @@ cnt:
   if(waited[serv2]>0)
   {
     //debug("cl %u %u %u",serv,serv2,waited[serv2] ) ;
-
+    
     FreeThreads();
-   runed[serv]--;
-   break;
+    runed[serv]--;
+    break;
   }
  }
 #else

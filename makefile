@@ -166,9 +166,9 @@ LIB64u=  -ldl -lpthread  -lc -lc_nonshared
 COBJS= o/to_linux.o o/bvprintfv.o
 COBJS64= o64/to_linux.o
 
-AOBJS=mstring1.o srv0a.o srv_ssi.o srv_cgi.o req.o accept.o adminr.o restart.o proxy.o musers.o conf.o t2icfg.o stat.o icfgjs.o ftpd.o smptps.o smtpcl.o mailip.o dnsd.o tlsm.o gz.o dhcpd.o wmbx.o md5.o msprintfchk.o
+AOBJS=mstring1.o srv0a.o srv_ssi.o srv_cgi.o req.o accept.o adminr.o restart.o proxy.o musers.o conf.o t2icfg.o stat.o icfgjs.o ftpd.o smptps.o smtpcl.o mailip.o dnsd.o tlsm.o gz.o dhcpd.o wmbx.o md5.o msprintfchk.o fcgi.o
 
-AOBJS64=srv0a.o srv_ssi.o srv_cgi.o req.o accept.o adminr.o restart.o proxy.o musers.o conf.o t2icfg.o stat.o icfgjs.o ftpd.o smptps.o smtpcl.o mailip.o dnsd.o tlsm.o gz.o dhcpd.o wmbx.o bvprintfv.o md5.o msprintfchk.o
+AOBJS64=srv0a.o srv_ssi.o srv_cgi.o req.o accept.o adminr.o restart.o proxy.o musers.o conf.o t2icfg.o stat.o icfgjs.o ftpd.o smptps.o smtpcl.o mailip.o dnsd.o tlsm.o gz.o dhcpd.o wmbx.o bvprintfv.o md5.o msprintfchk.o fcgi.o
 
 POBJS=$(AOBJS)
 # telnet.o
@@ -414,16 +414,16 @@ wo/stpdtari.o: wo/stpdtari.s wo/uninst.bin wo/http.bin wo/ind1r.bin wo/eshs_lang
 	 cd wo ;  $(WINEAS)  stpdtari.s -o stpdtari.o  
 
 wo/stpdta.s: stpdta.s
-	cp   $< $@
+	cp -f $< $@
 
 wo/stpdtar.s: stpdtar.s
-	cp   $< $@
+	cp -f $< $@
 
 wo/stpdtai.s: stpdtai.s
-	cp   $< $@
+	cp -f $< $@
 
 wo/stpdtari.s: stpdtari.s
-	cp   $< $@
+	cp -f $< $@
 
 wo/%.bin:  wo/%.exe 
 	$(WINEBIN2S)  $< $@
@@ -514,46 +514,46 @@ o/httpd.exr: $(ROBJS)
 
 
 #o/dist/%.so: o/%.so
-#	cp $^ $@ 
+#	cp -f $^ $@ 
 
 o/dist/%.so: o/of/%.so
-	cp $^ $@ 
+	cp -f $^ $@ 
 
 #o/dist/libsecgnutls.so: o/libsecgnutls.so
-#	cp $^ $@ 
+#	cp -f $^ $@ 
 
 # o64/dist/libsec.so: o64/libsec.so
-# 	cp $^ $@ 
+# 	cp -f $^ $@ 
 
 o64/dist/%.so: o64/of/%.so
-	cp $^ $@ 
+	cp -f $^ $@ 
 
 o64/dist/libsecgnutls.so: o64/libsecgnutls.so
-	cp $^ $@ 
+	cp -f $^ $@ 
 
 o64/distu/libsec.so: o64/libsec.so
-	cp $^ $@ 
+	cp -f $^ $@ 
 
 o64/distu/%.so: o64/%.so
-	cp $^ $@ 
+	cp -f $^ $@ 
 
 o/distu/%.so: o/%.so
-	cp $^ $@ 
+	cp -f $^ $@ 
 
 o64/distu/libsecgnutls.so: o64/libsecgnutls.so
-	cp $^ $@ 
+	cp -f $^ $@ 
 
 o/dist/descu.htm o/adist/descu.htm o64/dist/descu.htm o64/distu/descu.htm: descu.htm
-	cp $^ $@ 
+	cp -f $^ $@ 
 
 o/dist/license06.txt o/adist/license06.txt o64/dist/license06.txt o64/distu/license06.txt: license06.txt
-	cp $^ $@ 
+	cp -f $^ $@ 
 
 o/dist/notes.ssl o/adist/notes.ssl o64/dist/notes.ssl o64/distu/notes.ssl: notes.ssl
-	cp $^ $@ 
+	cp -f $^ $@ 
 
 o/adist/%.so: at/%.so
-	cp $^ $@ 
+	cp -f $^ $@ 
 
 
 en/shs_lang.cfg : lS1_lf.cfg
@@ -566,30 +566,30 @@ ru/shs_lang.cfg : lS1_lf.cfg
 
 dist:   o/dist/license06.txt o/adist/license06.txt o/dist/langpacks/ru/shs_lang.cfg o/dist/langpacks/en/shs_lang.cfg o/dist/descu.htm o/adist/descu.htm o/dist/notes.ssl o/adist/notes.ssl o64/dist/notes.ssl o64/distu/notes.ssl  o/dist/libsec111.so o/distu/libsec111.so  o/distu/libsecgnutls.so  o/adist/libsec111.so  o/adist/libsecgnutls.so dist64
 	cp o/of/httpd.exe o/dist/
-	cd o/dist/ ; strip httpd.exe ; chown -R root:root  * ; chmod -R 0444 *  ; chmod -R a+X * ; chmod  0755 httpd.exe *.so ; chmod  0755 sndmsg ; chmod  0600 httpd.cfg ;  rm -f shttplnx.tgz ; tar -czf shttplnx.tgz * ; chmod a+rw shttplnx.tgz
+	cd o/dist/ ; strip httpd.exe ; chmod -R go-w,u+rw,a+X * ; chmod  0755 httpd.exe *.so  sndmsg ; chmod  0600 httpd.cfg ;  rm -f shttplnx.tgz ; tar --owner=root --group=root -czf shttplnx.tgz * ; chmod 0644 shttplnx.tgz
 	cp at/httpd.exe o/adist/
-	cd o/adist/ ; arm-linux-gnueabi-strip httpd.exe ;  chown -R root:root  * ; chmod -R 0444 *  ; chmod -R a+X * ; chmod  0755 httpd.exe *.so ; chmod  0755 sndmsg ; chmod  0600 httpd.cfg ;  rm -f shttparmlnx.tgz ; tar -czf shttparmlnx.tgz * ; chmod a+rw shttparmlnx.tgz
+	cd o/adist/ ; arm-linux-gnueabi-strip httpd.exe ; chmod -R go-w *  ; chmod -R a+X * ; chmod  0755 httpd.exe *.so  sndmsg ; chmod  0600 httpd.cfg ;  rm -f shttparmlnx.tgz ; tar --owner=root --group=root -czf shttparmlnx.tgz * ; chmod 0644 shttparmlnx.tgz
 	cp o/httpd.exe o/distu/
-	cd o/distu/ ; strip httpd.exe ; chown -R root:root  * ; chmod -R 0444 *  ; chmod -R a+X * ; chmod  0755 httpd.exe *.so ; chmod  0755 sndmsg ; chmod  0600 httpd.cfg ;  rm -f shttplnx.tgz ; tar -czf shttplnx.tgz * ; chmod a+rw shttplnxu.tgz
+	cd o/distu/ ; strip httpd.exe ; chmod -R go-w,u+rw,a+X * ; chmod  0755 httpd.exe *.so sndmsg ; chmod  0600 httpd.cfg ;  rm -f shttplnxu.tgz ; tar --owner=root --group=root -czf shttplnxu.tgz * ; chmod 0644 shttplnxu.tgz
 
 #dist64: o64/dist/libsec.so o64/dist/libsec111.so o64/dist/libsecgnutls.so o64/distu/libsec.so o64/distu/libsecgnutls.so o64/dist/langpacks/ru/shs_lang.cfg o64/dist/langpacks/en/shs_lang.cfg
 
 
-dist64: o64/dist/langpacks/ru/shs_lang.cfg o64/dist/langpacks/en/shs_lang.cfg o64/dist/libsec111.so o64/dist/libsecgnutls.so 
+dist64: o64/dist/langpacks/ru/shs_lang.cfg o64/dist/langpacks/en/shs_lang.cfg o64/dist/libsec111.so o64/dist/libsecgnutls.so o64/distu/langpacks/ru/shs_lang.cfg o64/distu/langpacks/en/shs_lang.cfg o64/distu/libsec111.so o64/distu/libsecgnutls.so 
 	cp o64/of/httpd.exe o64/dist/
-	cd o64/dist/ ; strip httpd.exe ; chown -R root:root  * ; chmod -R 0444 *  ; chmod -R a+X * ; chmod  0755 httpd.exe *.so ; chmod  0755 sndmsg ; chmod  0600 httpd.cfg ;  rm -f shttplnx64.tgz ; tar -czf shttplnx64.tgz * ; chmod a+rw shttplnx64.tgz
+	cd o64/dist/ ; strip httpd.exe ; chmod -R go-w,u+rw,a+X * ; chmod  0755 httpd.exe *.so  sndmsg ; chmod  0600 httpd.cfg ;  rm -f shttplnx64.tgz ; tar --owner=root --group=root -czf shttplnx64.tgz * ; chmod a+rw shttplnx64.tgz
 	cp o64/httpd.exe o64/distu/httpd.exe
-	cd o64/distu/ ; strip httpd.exe ;  chown -R root:root  * ; chmod -R 0444 *  ; chmod -R a+X * ; chmod  0755 httpd.exe *.so ; chmod  0755 sndmsg ; chmod  0600 httpd.cfg ;  rm -f shttplnx64u.tgz ; tar -czf shttplnx64u.tgz * ; chmod a+rw shttplnx64u.tgz
+	cd o64/distu/ ; strip httpd.exe ; chmod -R go-w,u+rw,a+X * ; chmod  0755 httpd.exe *.so  sndmsg ; chmod  0600 httpd.cfg ;  rm -f shttplnx64u.tgz ; tar --owner=root --group=root -czf shttplnx64u.tgz * ; chmod 0644 shttplnx64u.tgz
 
 
 #  o64/dist/descu.htm o64/distu/descu.htm  o64/dist/license06.txt o64/distu/license06.txt o64/distu/langpacks/ru/shs_lang.cfg o64/distu/langpacks/en/shs_lang.cfg 	
 # 	cp o64/httpdu.exe o64/distu/httpd.exe
-# 	cd o64/distu/ ; strip httpd.exe ;  chown -R root:root  * ; chmod -R 0444 *  ; chmod -R a+X * ; chmod  0755 httpd.exe *.so ; chmod  0755 sndmsg ; chmod  0600 httpd.cfg ;  rm -f shttplnx64u.tgz ; tar -czf shttplnx64u.tgz * ; chmod a+rw shttplnx64u.tgz
+# 	cd o64/distu/ ; strip httpd.exe ;    chmod -R 0444 *  ; chmod -R a+X * ; chmod  0755 httpd.exe *.so  sndmsg ; chmod  0600 httpd.cfg ;  rm -f shttplnx64u.tgz ; tar --owner=root --group=root -czf shttplnx64u.tgz * ; chmod a+rw shttplnx64u.tgz
 
 
-sinst:  o/dist/httpd.exe o/dist/shttplnx.tgz o/adist/shttparmlnx.tgz o64/dist/shttplnx64.tgz  o64/distu/shttplnx64u.tgz
+sinst:  o/dist/httpd.exe o/dist/shttplnx.tgz o/distu/shttplnxu.tgz o/adist/shttparmlnx.tgz o64/dist/shttplnx64.tgz  o64/distu/shttplnx64u.tgz
 	chmod 0666 wo/shttps*.exe
-	for i in wo/shttps_mg.exe wo/shttpsr_mg.exe o/dist/shttplnx.tgz o/adist/shttparmlnx.tgz o64/dist/shttplnx64.tgz o64/distu/shttplnx64u.tgz ; do cp $$i /mnt/d/var/www/pre/ ; done
+	for i in wo/shttps_mg.exe wo/shttpsr_mg.exe o/dist/shttplnx.tgz o/distu/shttplnxu.tgz o/adist/shttparmlnx.tgz o64/dist/shttplnx64.tgz o64/distu/shttplnx64u.tgz ; do cp $$i /mnt/d/var/www/pre/ ; done
 	mv /mnt/d/shttps/httpd.exe /mnt/d/shttps/oldhttpd.exe
 	cp o/dist/httpd.exe /mnt/d/shttps/
 
@@ -604,6 +604,10 @@ sinsta: sinst wo/shttps_mgi.exe wo/shttpsr_mgi.exe
 	chmod 0666 wo/shttps_mgi.exe wo/shttpsr_mgi.exe
 	for i in wo/shttps_mgi.exe wo/shttpsr_mgi.exe ; do cp $$i /mnt/d/var/www/pre/ ; done
 
+sinstw: wo/shttps_mg.exe wo/shttpsr_mg.exe
+	chmod 0666 wo/shttps_mg.exe wo/shttpsr_mg.exe
+	for i in wo/shttps_mg.exe wo/shttpsr_mg.exe ; do cp $$i /mnt/d1/var/www/pre/ ; done
+
 
 sinstf:  o/dist/httpd.exe o/dist/shttplnx.tgz o/adist/shttparmlnx.tgz o64/dist/shttplnx64.tgz  o64/distu/shttplnx64u.tgz
 	chmod 0666 wo/shttps*.exe
@@ -614,22 +618,22 @@ sinstf:  o/dist/httpd.exe o/dist/shttplnx.tgz o/adist/shttparmlnx.tgz o64/dist/s
 	
 
 o/dist/langpacks/en/shs_lang.cfg: en/shs_lang.cfg
-	cp $< $@
+	cp -f $< $@
 
 o/dist/langpacks/ru/shs_lang.cfg: ru/shs_lang.cfg
-	cp $< $@
+	cp -f $< $@
 
 o64/dist/langpacks/en/shs_lang.cfg: en/shs_lang.cfg
-	cp $< $@
+	cp -f $< $@
 
 o64/dist/langpacks/ru/shs_lang.cfg: ru/shs_lang.cfg
-	cp $< $@
+	cp -f $< $@
 
 o64/distu/langpacks/en/shs_lang.cfg: en/shs_lang.cfg
-	cp $< $@
+	cp -f $< $@
 
 o64/distu/langpacks/ru/shs_lang.cfg: ru/shs_lang.cfg
-	cp $< $@
+	cp -f $< $@
 
 o/libsec.so: runssl.cpp
 	 $(GCC) -s -o $@  -fPIC  $(OPT) -shared -O2  $< $(LIBDIR32) -lssl 
@@ -822,7 +826,7 @@ ATFLAGS= -mlittle-endian -marm  -mcpu=arm926ej-s -mthumb-interwork  -msoft-float
 #   -fno-implicit-templates -fno-implicit-inline-templates  -fno-for-scope-fnothrow-opt  -fno-pretty-templates
 
 
-ATOBJS0=to_linux.o srv0a.o srv_ssi.o srv_cgi.o req.o accept.o adminr.o restart.o proxy.o musers.o conf.o t2icfg.o stat.o icfgjs.o ftpd.o smptps.o smtpcl.o mailip.o dnsd.o tlsm.o gz.o dhcpd.o wmbx.o bvprintfv.o telnet.o md5.o msprintfchk.o
+ATOBJS0=to_linux.o srv0a.o srv_ssi.o srv_cgi.o req.o accept.o adminr.o restart.o proxy.o musers.o conf.o t2icfg.o stat.o icfgjs.o ftpd.o smptps.o smtpcl.o mailip.o dnsd.o tlsm.o gz.o dhcpd.o wmbx.o bvprintfv.o telnet.o md5.o msprintfchk.o fcgi.o
 
 ATOBJS=$(addprefix at/,$(ATOBJS0))
 

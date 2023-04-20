@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2022 Maksim Feoktistov.
+ * Copyright (C) 1999-2023 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov 
@@ -138,6 +138,7 @@ int IsCGI(char *bb,int j)
 #if defined(SYSUNIX) && !defined(CD_VER)
  struct stat st;
  if(stat(bb,&st)<0) return 0;
+ if(fcgi_group && fcgi_group == st.st_gid && (st.st_mode&j) ) return (st.st_mode&j)|FCGI_MODE_BIT;
  return (st.st_mode&j); // !User X
 #else
  int i,k;
@@ -624,14 +625,13 @@ lcnt_trn:
     goto ex2a;
    }
 
-#if !defined(SYSUNIX) || defined(CD_VER)
+//#if !defined(SYSUNIX) || defined(CD_VER)
    if( h==0x4D54502E x4CHAR(".PTM") || h==0x5448502E x4CHAR(".PHT") || h==0x5048502E x4CHAR(".PHP")  )
    {
        fl|=F_PHP; 
        goto lcgi;
-       
    }
-#endif
+//#endif
   }
 //  else ii=9;
 
@@ -648,7 +648,22 @@ lcgi:
 #ifdef SYSUNIX
    KeepAlive=(char *)&(fd.st);
 #endif
-   ExecCGI();
+  // debug("CGI: %X %X h=%X\n", (fl&F_PHP), (s_flgs[3] & FL3_FCGI_PHP), h);
+   if((fl&F_PHP) && (s_flgs[3] & FL3_FCGI_PHP)) 
+   {
+      CallFCGI(phtml_dir);
+   }
+   else if( 
+#if defined(SYSUNIX) 
+    ( fcgi_group && (fd.st.st_gid == fcgi_group) ) || 
+#endif
+        (fcgi_detect && fcgi_detect[0] &&
+     stristr(in_buf, fcgi_detect) != 0  ) )
+   {
+      CallFCGI(in_buf);
+   }
+   else
+     ExecCGI();
    goto ex2a;
   };
   FileTimeToSystemTime(& (fd.ftLastWriteTime),&tm);

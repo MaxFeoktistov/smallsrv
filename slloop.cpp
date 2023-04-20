@@ -65,7 +65,8 @@ void signalChild(int , siginfo_t* info, ucontext_t* ptr)
   if( /*info->si_code==CLD_EXITED && */ info->si_pid>0 )
   {
     waitpid(info->si_pid,(int *)&status,WNOHANG);
-    pid_to_wait=info->si_pid;
+    //pid_to_wait=info->si_pid;
+    SendEvent(pid_to_wait, info->si_pid);
   }
 
   

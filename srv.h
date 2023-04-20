@@ -1,8 +1,8 @@
 /*
- * Copyright (C) 1999-2021 Maksim Feoktistov.
+ * Copyright (C) 1999-2023 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
- * Author: Maksim Feoktistov 
+ * Author: Maksim Feoktistov
  *
  *
  * Small HTTP server is free software: you can redistribute it and/or modify it
@@ -15,11 +15,11 @@
  * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see https://www.gnu.org/licenses/ 
+ * along with this program.  If not, see https://www.gnu.org/licenses/
  *
  * Contact addresses for Email:  support@smallsrv.com
  *
- * 
+ *
  */
 
 
@@ -53,9 +53,10 @@ extern "C"{
 #include "mlist.h"
 #include "dhhosts.h"
 #include "bvprintf.h"
+#include "fcgi.h"
 #ifdef WITHMD5
 #include "md5.h"
-#endif    
+#endif
 
 struct LogInfo ;
 struct MemList;
@@ -79,10 +80,23 @@ struct host_dir;
 struct WMail;
 
 struct FTPSecCon;
+struct FCGI_task;
+
+#ifdef x86_64
+typedef unsigned long long arh_ulong; 
+#define ARH_MASK  0x3F
+#define ARH_SHIFT 6
+#define ARH_ONE   1ll
+#else
+typedef unsigned int arh_ulong; 
+#define ARH_MASK  0x1F
+#define ARH_SHIFT 5
+#define ARH_ONE   1
+#endif
 
 struct Req
 {int s;
- char *loc,*rq;
+ char *loc, *rq;
  union{
   uint fl;
   ushort flsrv[2];
@@ -101,7 +115,8 @@ struct Req
 #define F_STDERRSEL 0x1000
 #define F_NAMEOUTED 0x2000
 #define F_ERROUTED 0x4000
- 
+#define F_FCGI     0x8000
+
  ulong freqcnt;
 
  //char *req,*pst,*trn,**http_var,**req_var,*dir;
@@ -114,16 +129,16 @@ struct Req
   int  psti;
  };
  union{
-  char *trn;   
-  int  trn_sock;   
- };     
+  char *trn;
+  int  trn_sock;
+ };
  char **http_var;
  union{
-  char **req_var;   
-  int  req_vari;   
- };     
+  char **req_var;
+  int  req_vari;
+ };
  char *dir;
- int dirlen,ntsk,postsize,timout;
+ int dirlen, ntsk, postsize, timout;
  char *KeepAlive;
  int Tin,Tout;
  tfSnd Snd;
@@ -138,20 +153,20 @@ union{sockaddr_in6 sa_c6; sockaddr_in sa_c;};
  union { void *gz; int  pass_port; };
  host_dir *vhdir;
  char inf[96];
- 
+
 #ifdef FIX_EXCEPT
 
  int thread_id;
  jmp_buf  jmp_env;
- 
- #define  EXCEPT_TRY(th,x...)  setjmp( (th)->jmp_env ); if(!(th)->thread_id) {(th)->thread_id=GetCurrentThreadId();  }else{ CloseSocket((th)->s); x ; pthread_exit(0);  }  
+
+ #define  EXCEPT_TRY(th,x...)  setjmp( (th)->jmp_env ); if(!(th)->thread_id) {(th)->thread_id=GetCurrentThreadId();  }else{ CloseSocket((th)->s); x ; pthread_exit(0);  }
  #define  END_TRY(th)  (th)->thread_id=0;
- 
+
 #else
-  #define  EXCEPT_TRY(th,x...) 
-  #define  END_TRY(th)  
+  #define  EXCEPT_TRY(th,x...)
+  #define  END_TRY(th)
 #endif
- 
+
 
  int Send(const void *b,int l){return (Snd)(this,b,l);}
  int Recv(void *b,int l){return (Rcv)(this,b,l);}
@@ -238,15 +253,20 @@ union{sockaddr_in6 sa_c6; sockaddr_in sa_c;};
  User * ChUser(int typ);
  void SendMsg(char *fromm, WMail *wm);
  int CheckDNSBL(char *t,struct sockaddr_in *sa);
- int SendDigestAuthReq(char *bfr); 
+ int SendDigestAuthReq(char *bfr);
  int CheckNonce(char *nonce,char *opaque);
  int IP2country();
  int ChkFTPSec(FTPSecCon *);
  void OutErr(char *t);
+
+ int  CallFCGI(char *name);
+ int  DoFCGI(FCGI_task *fcgi);
+
+
 };
 
 
-#ifdef USE_IPV6 
+#ifdef USE_IPV6
 int IsIPv6(sockaddr_in *sa);
 uint IPv4addr(sockaddr_in *sa);
 #else
@@ -349,10 +369,13 @@ int FndLimit(int lst,LimitBase **ip, LimitBase **net, sockaddr_in *sa );
 #define FL2_DOH 0x2000000
 #define FL2_FTPTLS 0x4000000
 
-#define FL2_NOERROUT 0x8000000
+#define FL2_NOERROUT    0x08000000
 #define FL2_SEPARATELOG 0x10000000
 #define FL2_DUBSTDERR   0x20000000
 #define FL2_DEBUG_RE   0x40000000
+
+#define FL3_FCGI_SI   0x00000001
+#define FL3_FCGI_PHP  0x00000002
 
 //#define FL2_WMAILSENT   0x8000
 
@@ -360,14 +383,14 @@ int FndLimit(int lst,LimitBase **ip, LimitBase **net, sockaddr_in *sa );
 struct host_dir{
  host_dir *next;
  char *d;
-#ifdef x86_64 
+#ifdef x86_64
  char *h;
  int  flg;
 #else
  char flg;
  char h[1];
-#endif 
- 
+#endif
+
 } __attribute__ ((packed));
 
 struct ntrd
@@ -406,7 +429,7 @@ struct User
 #define UserNOCGI 0x40
 #define UserPARSED 0x80
 #define FindUserMD5digest 0x10000
-#ifdef x86_64    
+#ifdef x86_64
  char *name;
  char *pwd,*ddr;
  int  state;
@@ -421,7 +444,7 @@ struct User
  char *dir(char *ps);
  char *dir(){ return dir(pasw());};
 #endif
- 
+
  int Parse();
  int Parse(char *x);
  void MkDir();
@@ -512,6 +535,7 @@ extern host_dir hsdr;
 extern char *smtp_name,*dns_server_for_mail,*out_path,*err_path
  ,*def_name,*error_file,*perl,*cgi_detect,*blacklist,*bad_hosts,*flog,*doc_dir,*phtml_dir,*nohosts,*fake,
   end,*last_cfg,*eenv,*dnsblname;
+extern char *fcgi_detect;
 extern char *srv_str[];
 extern ulong max_msg_size,last_file,max_pfile,tmSpd;
 #define sent_path (smtp_chk.dir)
@@ -536,7 +560,7 @@ extern char *ext[22],*mime,*dns_file,**dns_nm,*primary_dns,*secondary_dns,
  *dnscachefile,*ns_name,*up_user,*ftp_upload,*up_proxy,*dynDNSserv,*dns_user,
  *antiv,*antispam,*smtproxy,*spamfltr,*dnsbl,*proxy_antivirus;
 
-extern ulong  s_flgs[3],count_dns,cgi_timeout,ip_cach[];
+extern ulong  s_flgs[4],count_dns,cgi_timeout,ip_cach[];
 extern User *userList;
 int IsPwd(ulong a,ulong b, char *pas);
 ulong Rnd();
@@ -612,7 +636,7 @@ extern char  *bind_a[MAX_SERV];
 #define ssl_port   (soc_port[5])
 #define tel_port   (soc_port[6])
 
-#define  SRV_HTTP      0  
+#define  SRV_HTTP      0
 #define  SRV_PROXY     1
 #define  SRV_FTP       2
 #define  SRV_SMTP      3
@@ -623,16 +647,16 @@ extern char  *bind_a[MAX_SERV];
 #define  SRV_SDNST     8
 #define  SRV_DHCPD     9
 
-#define   SRV_HTTP_MSK      (1<<SRV_HTTP )  
-#define   SRV_PROXY_MSK      (1<<SRV_PROXY)  
-#define   SRV_FTP_MSK      (1<<SRV_FTP  )  
-#define   SRV_SMTP_MSK      (1<<SRV_SMTP )  
-#define   SRV_POP_MSK      (1<<SRV_POP  )  
-#define   SRV_SSL_MSK      (1<<SRV_SSL  )  
-#define   SRV_TEL_MSK      (1<<SRV_TEL  )  
-#define   SRV_SDNS_MSK      (1<<SRV_SDNS )  
-#define   SRV_SDNST_MSK      (1<<SRV_SDNST)  
-#define   SRV_DHCPD_MSK      (1<<SRV_DHCPD)  
+#define   SRV_HTTP_MSK      (1<<SRV_HTTP )
+#define   SRV_PROXY_MSK      (1<<SRV_PROXY)
+#define   SRV_FTP_MSK      (1<<SRV_FTP  )
+#define   SRV_SMTP_MSK      (1<<SRV_SMTP )
+#define   SRV_POP_MSK      (1<<SRV_POP  )
+#define   SRV_SSL_MSK      (1<<SRV_SSL  )
+#define   SRV_TEL_MSK      (1<<SRV_TEL  )
+#define   SRV_SDNS_MSK      (1<<SRV_SDNS )
+#define   SRV_SDNST_MSK      (1<<SRV_SDNST)
+#define   SRV_DHCPD_MSK      (1<<SRV_DHCPD)
 
 
 extern char *user_name,NullString[],about[],*wkday[],*month[],
@@ -812,26 +836,28 @@ extern const uchar isCountAr[];
 extern char NSTypes[];
 extern char *NSTypesTXT[];
 extern char *DNS_DoS_hosts;
+extern int   pid_to_wait;
 
- 
+
 #ifdef USEVALIST
 #define mva_list va_list
-#else                
+#else
 #undef  mva_list
-#define mva_list void ** 
-#endif                
+#define mva_list void **
+#endif
 
+#define  HTTP_HEAD_BEGIN "HTTP/1.1 200 Ok\r\nConnection: close\r\n"
 
 #ifdef SEPLOG
 
 struct TLog
 {
-  const char *suffix;  
-  char *lpprot,*lf_prot,*loldprot; 
+  const char *suffix;
+  char *lpprot,*lf_prot,*loldprot;
   int  lpcnt;
   int  msk,llastday;
   char lb_prot[LOG_SIZE];
-  char aabfr[0x1000]; 
+  char aabfr[0x1000];
 
   void RelProt(SYSTEMTIME *stime);
   void RelProt();
@@ -845,7 +871,7 @@ void ShowProt();
 void Ldebug(const char *a,...);
 void Lvdebug(const char *a,  mva_list v);
 
-    
+
 };
 
 extern TLog gLog;
@@ -903,7 +929,108 @@ inline void GetProt(){MyLock(pcnt);
 
 #endif
 
-    
+struct FCGI_req
+{
+  int s;
+  Req *req;
+  int state;
+#define fcgistCONNECTED   1
+#define fcgistCONT_RECV   2
+#define fcgistWAIT_RECV   4
+#define fcgistRECV_READY  8
+#define fcgistPART_HEAD   0x10
+#define fcgistPART_BODY   0x20
+#define fcgistSKIP_PADD   0x40
+  
+  int  recv_len_left;
+  int  padd;
+  /*
+  union {
+    FCGI_Header last_header;
+    char bfr[1];
+  };
+  */
+  int FCGIDoInput(char *bfr);
+  int AppWrite(int type, int l, const void *data);
+//  int AppRead(int max_l, void *data);
+  int Param(const char *name, const char *val);
+
+};
+
+struct FCGI_task
+{
+  FCGI_task *next;
+  char app_name[256];
+  int  listen_fd;
+  //int  fdw, fdr;
+  //int phrd[2],phrdp[2],phrde[2]
+  int child_pid;
+#ifndef SYSUNIX
+  PROCESS_INFORMATION pi;
+#endif
+//  uint state;
+  
+
+  int  lock;
+  int  r_lock;
+  int  n_wait;
+//  int  last_id;
+  int  sockaddr_len;
+#ifdef SYSUNIX
+  union {
+#endif
+    struct sockaddr_in sa;
+#ifdef SYSUNIX
+    struct sockaddr_un sau;
+  };
+#endif
+#ifdef FCGI_THREAD
+
+ // arh_ulong reqs[1];
+  FCGI_req reqs[1];
+#endif  
+
+  //Req  *rwait[1];
+  //fd_set connected_socket;
+
+  int  Open(char *name);
+  void Close();
+//  int  AppWrite(int idx, int type, int l, const void *data);
+//  int  AppRead(int idx, int max_l, void *data);
+  
+//  void AddRequest(Req *req);
+//  void Run(Req *req);
+  
+  int  CheckLive();
+  int  Connect(FCGI_req *f_req);
+//  void EndAllReq();
+
+};
+int FCGI_thread(void *);
+void CloseFCGI_tasks();
+
+
+extern FCGI_task * fcgi_list;
+//extern int FCGI_thread_runed;
+extern char *fcgi_upath;
+extern uint fcgi_group;
+#define FCGI_MODE_BIT  (1<<15)
+
+
+ulong AddrHash(sockaddr_in *sa);
+
+int SrvEventWait(int *event, uint timeout);
+inline void SendEvent(int &event, int val)
+{
+  event = val;
+#ifdef USE_FUTEX
+  futex((int *)&event,FUTEX_WAKE,1,0,0,0);
+#endif
+};
+
+#define STRUCT_OFFSET(s, field) ((unsigned long) (void *) & (((s *)0)->field))
+void* RemoveFromList(void **list, void *object, int next_offset);
+
 };  // extern "C"
 
 #ifndef SEPLOG
@@ -917,4 +1044,7 @@ void RelProt();
 char* CopyBB(char *y,char *t);
 
 extern uint  dns_dos_limit;
+
+
+
 #endif

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2020 Maksim Feoktistov.
+ * Copyright (C) 1999-2023 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov 
@@ -517,7 +517,19 @@ vdirfnd:
      {
       r1.fl=(fl)|F_SKIPHEAD;
       r1.freqcnt=freqcnt;
-      if( !(r1.ExecCGIEx()) )goto er1;
+      if((s_flgs[3] & FL3_FCGI_PHP) &&
+         (stristr(fname,".php") || stristr(fname,".pht") )
+      )
+      {
+        r1.fl |= F_PHP;
+        if( !r1.CallFCGI(phtml_dir) ) goto er1;
+      }
+      else if( (i & FCGI_MODE_BIT) ||  (fcgi_detect && fcgi_detect[0] && stristr(fname, fcgi_detect) != 0  ) )
+      {
+        if( !r1.CallFCGI(fname) ) goto er1;
+      }
+      else
+        if( !(r1.ExecCGIEx()) )goto er1;
      }
      else
      {

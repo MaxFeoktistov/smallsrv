@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2022 Maksim Feoktistov.
+ * Copyright (C) 1999-2023 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov 
@@ -25,13 +25,13 @@
 
 #define STRING_CONST_H
 
-#define ABOUT_STR sSMALL_HTT FORLINUX "\r\nby Max Feoktistov\r\nE-mail: support@smallsrv.com\r\n (C) 1999-2022\r\nMD5 cashe function derived from the RSA Data Security, Inc. MD5 Message-Digest Algorithm\r\n" /* DONT_AUTO_CHANGE */
+#define ABOUT_STR sSMALL_HTT FORLINUX "\r\nby Max Feoktistov\r\nE-mail: support@smallsrv.com\r\n (C) 1999-2023\r\nMD5 cashe function derived from the RSA Data Security, Inc. MD5 Message-Digest Algorithm\r\n" /* DONT_AUTO_CHANGE */
 
 #ifdef CD_VER
 //"Small HTTP Server CD version based on ver. 3.05.01"
 
 #else
-#define STRVER  "3.06.23"   /* DONT_AUTO_CHANGE */
+#define STRVER  "3.06.24test9"   /* DONT_AUTO_CHANGE */
 #define sSMALL_HTT "Small HTTP Server ver. " STRVER /* DONT_AUTO_CHANGE */
 #endif
 

@@ -642,7 +642,7 @@ int Req::MakeEnv(char *env, char *tend,char ***new_env)
    //for(tt=*new_env;*tt;++tt)debug("%s",*tt);
    *tt=0;
    return l;
-#undef sprintf   
+#undef msprintf   
 };
 
 //----------------------
@@ -743,7 +743,7 @@ DBG();
      if((i=((struct stat *)KeepAlive)->st_uid))setreuid(i,i);
 
 
-      if(phtml_dir && ( strstr(loc,".php") || strstr(loc,".phtm") ) )
+      if(phtml_dir && (fl&F_PHP) ) //( strstr(loc,".php") || strstr(loc,".phtm") ) )
       {
        argv[0]=t=phtml_dir;
        for(i=1; i<10 ; ++i )
@@ -921,26 +921,30 @@ PDBG("%d %d %d hrd=%d fl=%X",ll,l,ec,hrd,fl);
     DBG();
                 if(s_flgs[1]&FL1_NBRK)
                 {
-    DBG();	      
-                do{
-                if(timeout<time(0))goto tp2;
-                if(RESelect(10,50000,1,hrd)>0)
-                    if(read(hrd,p,0x4000)<=0) goto tp2;
-                if( ec>=0 && ec!=child_pid)
-                    ec=waitpid(child_pid,(int *)&status,WNOHANG);
-                }while( (!ec) );
+                  DBG();	      
+                  do{
+                    if(timeout<time(0))goto tp2;
+                    if(RESelect(10,50000,1,hrd)>0)
+                      if(read(hrd,p,0x4000)<=0) goto tp2;
+                      if( ec>=0 && ec!=child_pid)
+                        ec=waitpid(child_pid,(int *)&status,WNOHANG);
+                  }while( (!ec) );
                 }
-                else if( ec>=0 && ec!=child_pid){tp2: kill(child_pid,9);
-    DBG();	    
-                    sleep(1);
-    DBG();		
-                    ec=waitpid(child_pid,(int *)&status,WNOHANG);
+                else if( ec>=0 && ec!=child_pid)
+                {
+                  tp2: 
+                  pid_to_wait = 0;
+                  kill(child_pid,9);
+                  DBG();
+                  //sleep(1);
+                  SrvEventWait(&pid_to_wait,1000);
+                  DBG();		
+                  ec=waitpid(child_pid,(int *)&status,WNOHANG);
                 }
                 while( ec>0 && ec!=child_pid)
                 {  
-
-                DBG();
-                ec=waitpid(child_pid,(int *)&status,WNOHANG);
+                  DBG();
+                  ec=waitpid(child_pid,(int *)&status,WNOHANG);
                 }
     DBG();
                 dbg("Connection aborted..\r\n ");
@@ -963,11 +967,11 @@ DBG();
 DBG();
          if( ec>=0 && ec!=child_pid)  ec=waitpid(child_pid,(int *)&status,WNOHANG);
          while( ec>0 && ec!=child_pid)
-	 {
-	   DBG();
+         {
+           DBG();
            ec=waitpid(child_pid,(int *)&status,WNOHANG);
-	 }
-DBG();
+         }
+         DBG();
          if(ec>=0 && ec!=child_pid && WIFSTOPPED(status))
          { goto tp2;  }
         }

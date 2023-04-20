@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2021 Maksim Feoktistov.
+ * Copyright (C) 1999-2023 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov 
@@ -100,6 +100,7 @@ ulong NextDHCPIP()
   return next_dhcp_ip;
 lbExlp:;
  }while(++j<total_dhcp_ip);
+ return 0; 
 }
 
 void SaveDHCP()
@@ -261,6 +262,10 @@ int UDPSrvSock(int port,char *adapter)
 
  if( (s = socket(AF_INET,SOCK_DGRAM,IPPROTO_UDP)) == -1 )
  {   debug("could not get socket"); return 0;}
+ #ifdef SYSUNIX
+ fcntl(s, F_SETFD, fcntl(s, F_GETFD) | FD_CLOEXEC);
+ #endif
+ 
   setsockopt(s,SOL_SOCKET,SO_REUSEADDR,(char *)&one,sizeof(one));
   setsockopt(s,SOL_SOCKET,SO_BROADCAST,(char *)&one,sizeof(one));
   sa_server.sin_addr.s_addr=ConvertIP(adapter);  //htonl(INADDR_ANY);
@@ -338,7 +343,7 @@ ulong WINAPI DHCPServ(void * fwrk)
  DHCPbase *pb,*pbrl, **ppb;
  uchar *t;
  char *hhh;
-  while(is_no_exit)if( (s=RESelect2(3,3,dhcpd_so,dhcpd_s))>0 && (l=recvfrom(s,(char *)&pkt,sizeof(pkt),0,(sockaddr *)&sa_client,&(i=sizeof(sa_client))))>0 )
+  while(is_no_exit)if( (s=RESelect2(1,2,dhcpd_so,dhcpd_s))>0 && (l=recvfrom(s,(char *)&pkt,sizeof(pkt),0,(sockaddr *)&sa_client,&(i=sizeof(sa_client))))>0 )
   {
    if( pkt.op==1 && pkt.hlen<=16
    )
@@ -534,10 +539,14 @@ lbFound:
        SaveDHCP(); 
        next_dhcp_save=tim + DHCP_SAVE_INTERVAL; 
     }    
-    
-        
-
    }
   }
+  
+  if(next_dhcp_save)
+  {
+    SaveDHCP(); 
+    next_dhcp_save = 0;
+  }    
+  
   return 0;
 }

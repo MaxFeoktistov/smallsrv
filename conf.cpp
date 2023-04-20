@@ -84,7 +84,7 @@ uint atouisc(const char *&a)
  return r;
 };
 #endif
-uint  atouix2(const char *a){ulong r=WORD_PTR(*a); return atouix((char *)&r);};
+uint  atouix2(const char *a){ulong r=WORD_PTR(*a); return atouix((const char *)&r);};
 
 
 inline int E64X(int i)
@@ -388,11 +388,11 @@ void InitParam(char *cln)
   for(cp=ConfigParams;cp->desc||cp->name;++cp)
     if(cp->v )
     {
-      i=sprintf(bfr," %s=",cp->name);
-      if( (t=strstr(cln,bfr) ) )
+      i=sprintf(bfr," %s=", cp->name);
+      if( (t=strstr(cln,bfr) ) && (t==cln || (t[-1] < 'a') ) )
       {
-      if(cp->max){if( ((j=atoui(t+i))>=cp->min) && (j<=cp->max) ) *(cp->v)=j;}
-      else{  *(char **)(cp->v)=(t+i); *mask|=shift;  }
+        if(cp->max){if( ((j=atoui(t+i))>=cp->min) && (j<=cp->max) ) *(cp->v)=j;}
+        else{  *(char **)(cp->v)=(t+i); *mask|=shift;  }
       }
       if(!cp->max)if(!(shift<<=1)){shift=1; *++mask=0;};
     }

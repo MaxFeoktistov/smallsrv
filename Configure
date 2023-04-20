@@ -319,6 +319,8 @@ FLIBS=libc.so libdl.so libpthread.so %s
 FAKELIBS=$(addprefix fakelibs/,$(FLIBS))
 FLIBS64=libc.so libdl.so libpthread.so %s
 FAKELIBS64=$(addprefix fakelibs64/,$(FLIBS64))
+LIBDIR32=-Lfakelibs/
+LIBDIR64=-Lfakelibs64/
     
     ',$sec,$sec64);
   

@@ -134,6 +134,7 @@ char *def_name="index.*";
 char *error_file;
 char *perl;
 char *cgi_detect="\\cgi-bin\\";
+char *fcgi_detect=".fcgi";
 char *blacklist="";
 char *bad_hosts="";
 char *nohosts="";
@@ -144,7 +145,7 @@ int def_dirlen=3;
 int one=1;
 int max_cln_host;
 int max_tsk;
-ulong s_flgs[3];
+ulong s_flgs[4];
 int s_aflg;
 char *eenv;
 int leenv;
@@ -354,3 +355,9 @@ char *pprot=b_prot,*f_prot=b_prot;
 
 
 #endif
+
+FCGI_task * fcgi_list;
+//int FCGI_thread_runed;
+char *fcgi_upath = "/dev/shm";
+uint fcgi_group;
+

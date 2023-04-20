@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2021 Maksim Feoktistov.
+ * Copyright (C) 1999-2023 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov 
@@ -45,13 +45,26 @@ inline void InitMemCache()
 
 
 #ifndef CD_VER
+
 void Restart()
 {
- char *t;
- t=cmdline; //GetCommandLine();
- if(*t=='\"')++t;
- RestartServer(t,0);
+  char *t,*p;
+  t=cmdline; //GetCommandLine();
+  if(*t=='\"')
+  {
+    ++t;
+    p=strchr(t,'\"');
+    if(*p)*p=0;
+  }
+#ifndef SYSUNIX
+  p=stristr(cmdline,".exe");
+  if(p) {
+    p[4]=0;  
+  }
+#endif
+  RestartServer(t,0);
 }
+
 void RestartServer(char *u,int cnt)
 {int l,i;
   is_no_exit=0;
@@ -176,7 +189,8 @@ void OkCfgWindow()
        else
        {
 //         is_no_exit=0;
-         memcpy(t=new char[i=strlen(u)+3 ],u,i);
+         t=new char[i=strlen(u)+3];
+         memcpy(t,u,i);
          FREE_IF_HEAP2((*(char**)(ConfigParams[k].v)));
          (*(char**)(ConfigParams[k].v))=t;
        }
@@ -206,7 +220,9 @@ void OkCfgWindow()
     debug( s_R_N____R );
     Sleep(500);
     is_no_exit=0;
-    RestartServer(x,0);
+    
+    //RestartServer(x,0);
+    Restart();
   }
   else
   {
@@ -261,7 +277,7 @@ int CrThread(uint fnc)
  if((i=FreeThreads())>=0)
  { hndls[i]=
      (THREADHANDLE) 
-     CreateThread(&secat,0x5000,(TskSrv)SetServ,(void *)(fnc|i),0,&trd_id);
+     CreateThread(&secat,0x5000,(TskSrv)SetServ,(void *)(long)(fnc|i),0,&trd_id);
  }
  MyUnlock(hcLock);
 // debug("Crth %d) %X; %X %X %X %X %X %X ",i,hndls[i],hndls[0],rreq[0],hndls[1],rreq[1]);
@@ -374,9 +390,9 @@ union{
      die( sCOULD_NOT );
    sa_server.sin_family=AF_INET;
   }
-// #ifdef SYSUNIX
-//   if(!s)s=dup(s);
-// #endif
+#ifdef SYSUNIX
+  fcntl(s, F_SETFD, fcntl(s, F_GETFD) | FD_CLOEXEC);
+#endif
 
 
   setsockopt(s,SOL_SOCKET,SO_REUSEADDR,(char *)&one,sizeof(one));
