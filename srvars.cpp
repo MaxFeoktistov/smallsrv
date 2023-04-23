@@ -63,7 +63,7 @@ int FTPTimeout=60;
 int POPTimeout=60;
 int PRXTimeout=120;
 char *up_proxy;
-ulong ip_cach[33];
+u32  ip_cach[33];
 int  iip_cach;
 int  ip_cach_mtx;
 ulong *Range[MAX_SERV*2];

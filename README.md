@@ -29,15 +29,15 @@
   make o/libsec111.so
   make o/libsecgnutls.so
   ```
- libsec111.so -- for OpenSSL 1.1.1
- libsecgnutls.so -- for GnuTLS
- required one of them.
+ libsec111.so -- for OpenSSL 1.1.1  
+ libsecgnutls.so -- for GnuTLS  
+ required one of them.  
 
  If you just run
  ```
   ./Configure
 ```
- without any keys, it try to create Makefile for all avilable targets.
+without any keys, it tries to create a Makefile for all available targets.  
 
  If you planing copy the binary executable to another PC with another  Linux don't use --withoutfakelibs key.
 
@@ -67,15 +67,15 @@
   make wo/libsecgnutls.so
   ```
 
- Direct your pathes to Windows libraries instead /usr/src/...
- libsec.so -- for OpenSSL
- libsecgnutls.so -- for GnuTLS
- required one of them.
+ Direct your pathes to Windows libraries instead /usr/src/...  
+ libsec.so -- for OpenSSL  
+ libsecgnutls.so -- for GnuTLS  
+ required one of them.  
 
  Build Windows version under Windows or withhelp Wine:
  ------------------------------------------------------
 
- Required Mingw and Perl for Windows
+ Required MinGW and Perl for Windows
 
   ```
   ./Configure    --wingcc="c:\\MINGW\\bin\\gcc.exe" \
@@ -92,7 +92,7 @@
  Build Windows version with DJGPP GCC/G++
  ----------------------------------------
 
- It is tested and optimised for DJGPP 2.95 only. Also required Windows libraries that can be generated withhelp [Utilites](http://smallsrv.com/mkpe/)
+ It is tested and optimised for DJGPP 2.95 only. Also required Windows libraries that can be generated withhelp [Utilites](http://smallsrv.com/mkpe/)  
  If your DJGGP ready to build Windows PE you may just use makefile.dj.  Fix the pathes in this file and then run:
  ```
  make -f makefile.dj
@@ -101,4 +101,4 @@
  ```
  c1.bat
  ```
- This DGPP build will be using precompiled binary make_pe.exe, bin2c.exe, copyres.exe. Sources of them present here, oyu may rebuild it yourself.
+ This DGPP build will be using precompiled binary make_pe.exe, bin2c.exe, copyres.exe. Sources of them present here, you may rebuild it yourself.

@@ -21,15 +21,18 @@
  *
  * 
  */
-
-
+#ifdef  DJGPP 
+#include "dgpp_quote.h"
+#else
+#define DJGPP_QUOTE
+#endif
 //#include "mstring.h"
 
 inline void XCHG_s(char *a, char *b,int l )
 {
-#ifdef DJGPP    
+#ifdef DJGPP
   asm volatile(
-  "jecxz 2f;
+  DJGPP_QUOTE jecxz 2f;
    subl %%edi,%%edx
    cld
    1:
@@ -37,7 +40,7 @@ inline void XCHG_s(char *a, char *b,int l )
    xchgb %%al,(%%edi,%%edx,1)
    stosb
    loop 1b
-   2:"
+   2: DJGPP_QUOTE
    :"=&D" (a),"=&c" (l),"=&d" (b)
    :"0" (a), "1"(l),"2" (b)
   );
@@ -56,7 +59,7 @@ inline void XCHG_s(char *a, char *b,int l )
    :"0" (a), "1"(l),"2" (b)
   );
 #endif
-  
+
 }
 
 #ifndef DJGPP

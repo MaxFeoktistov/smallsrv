@@ -133,7 +133,7 @@ int call_socket(char *lhstname, int portnum)
 
  struct hostent *hp;
  char *hhh;
- ulong *p,n,a;
+ u32 *p,n,a;
  int s;
  memset((char *)&sa,0,
 #ifdef  USE_IPV6

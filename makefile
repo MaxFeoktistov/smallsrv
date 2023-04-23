@@ -590,8 +590,8 @@ dist64: o64/dist/langpacks/ru/shs_lang.cfg o64/dist/langpacks/en/shs_lang.cfg o6
 sinst:  o/dist/httpd.exe o/dist/shttplnx.tgz o/distu/shttplnxu.tgz o/adist/shttparmlnx.tgz o64/dist/shttplnx64.tgz  o64/distu/shttplnx64u.tgz
 	chmod 0666 wo/shttps*.exe
 	for i in wo/shttps_mg.exe wo/shttpsr_mg.exe o/dist/shttplnx.tgz o/distu/shttplnxu.tgz o/adist/shttparmlnx.tgz o64/dist/shttplnx64.tgz o64/distu/shttplnx64u.tgz ; do cp $$i /mnt/d/var/www/pre/ ; done
-	mv /mnt/d/shttps/httpd.exe /mnt/d/shttps/oldhttpd.exe
-	cp o/dist/httpd.exe /mnt/d/shttps/
+	mv /mnt/d/shttps/httpd.exe /mnt/d/shttps/oldhttpd_$(shell date "+%F_%R").exe
+	cp o/distu/httpd.exe /mnt/d/shttps/
 
 sinste:  o/dist/httpd.exe o/dist/shttplnx.tgz o64/dist/shttplnx64.tgz 
 	chmod 0666 wo/shttps*.exe
@@ -613,7 +613,7 @@ sinstf:  o/dist/httpd.exe o/dist/shttplnx.tgz o/adist/shttparmlnx.tgz o64/dist/s
 	chmod 0666 wo/shttps*.exe
 	for i in wo/shttps_mg.exe wo/shttpsr_mg.exe wo/shttps_mgi.exe wo/shttpsr_mgi.exe o/dist/shttplnx.tgz o/adist/shttparmlnx.tgz o64/dist/shttplnx64.tgz o64/distu/shttplnx64u.tgz o/distu/shttplnx64u.tgz shttp_src.tgz ; do cp $$i /mnt/d/var/www/pre/ ; done
 	mv /mnt/d/shttps/httpd.exe /mnt/d/shttps/oldhttpd.exe
-	cp o/dist/httpd.exe /mnt/d/shttps/
+	cp o/distu/httpd.exe /mnt/d/shttps/
 	for i in indexr.htm index.htm shttp3e.xml shttp3.xml ; do cp $$i /mnt/d/var/www/ ; done
 	
 

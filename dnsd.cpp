@@ -4101,7 +4101,7 @@ try_bind_again2:
 #ifdef _BSD_VA_LIST_
   dnstthr=
 #endif
-   CreateThread(&secat,0x8000,(TskSrv)SetDNSServ,(void *)(k*9+1),0,(ulong *)&i);
+   CreateThread(&secat,0x8000,(TskSrv)SetDNSServ, (void *) (long) (k*9+1), 0, (u_long *)&i);
   }
 //  DDEBUG("3")
 lb_cnt_adaptor:;
@@ -4109,9 +4109,9 @@ lb_cnt_adaptor:;
 
  if(kk)
  {
-  CreateThread(&secat,0x8000,(TskSrv)SetDNSServ,(void *)(0),0,(ulong *)&i);
+  CreateThread(&secat,0x8000,(TskSrv)SetDNSServ,(void *)(0),0,(u_long *)&i);
   if(DRList)
-   CreateThread(&secat,0x8000,(TskSrv)CheckRemoteDown,(void *)0,0,(ulong *)&i);
+   CreateThread(&secat,0x8000,(TskSrv)CheckRemoteDown,(void *)0,0,(u_long *)&i);
  }
   return 1;
 //   s_flg|=FL_DNS;

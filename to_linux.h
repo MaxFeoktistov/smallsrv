@@ -92,6 +92,14 @@
 #include <setjmp.h>
 #endif
 
+#ifdef __REDIRECT
+#warning __REDIRECT definded
+extern int __REDIRECT (fcntl32, (int __fd, int __cmd, ...), fcntl);
+#define fcntl fcntl32
+# else
+#undef fcntl
+#endif
+
 #if __USE_FORTIFY_LEVEL != 0
 #error "Bad _chk functions will be added to the file"  
 #undef __USE_FORTIFY_LEVEL

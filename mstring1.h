@@ -95,6 +95,8 @@ inline unsigned int * memchr4(const unsigned int *_s,unsigned int _c,size_t _n)
 #else
 #include <sys/types.h>
 
+#define _INC_STRING 1
+
 #ifndef NULL
 #define NULL 0
 #endif
@@ -501,7 +503,7 @@ inline int arstrlen(const char *_s)
  );
  return (int)_s;
 };
-inline unsigned long * memchr4(const void *_s,int _c,size_t _n)
+inline unsigned int * memchr4(const void *_s,int _c,size_t _n)
 {asm volatile("jecxz 2f;\n"
 "  cld; repne;scasl;\n"
 "  je 1f;\n"
@@ -509,7 +511,7 @@ inline unsigned long * memchr4(const void *_s,int _c,size_t _n)
 "  1: subl $4,%%edi":"=&D" (_s),"=&c" (_n),"=&a" (_c)
    :"0" (_s),"1" (_n),"2" (_c)
  );
- return (unsigned long *)_s;
+ return (unsigned int *)_s;
 };
 
 

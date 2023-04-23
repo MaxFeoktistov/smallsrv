@@ -560,7 +560,8 @@ extern char *ext[22],*mime,*dns_file,**dns_nm,*primary_dns,*secondary_dns,
  *dnscachefile,*ns_name,*up_user,*ftp_upload,*up_proxy,*dynDNSserv,*dns_user,
  *antiv,*antispam,*smtproxy,*spamfltr,*dnsbl,*proxy_antivirus;
 
-extern ulong  s_flgs[4],count_dns,cgi_timeout,ip_cach[];
+extern ulong  s_flgs[4],count_dns,cgi_timeout;
+extern u32 ip_cach[];
 extern User *userList;
 int IsPwd(ulong a,ulong b, char *pas);
 ulong Rnd();

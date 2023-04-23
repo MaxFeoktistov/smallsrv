@@ -31,7 +31,7 @@
 //"Small HTTP Server CD version based on ver. 3.05.01"
 
 #else
-#define STRVER  "3.06.24test9"   /* DONT_AUTO_CHANGE */
+#define STRVER  "3.06.24test10"   /* DONT_AUTO_CHANGE */
 #define sSMALL_HTT "Small HTTP Server ver. " STRVER /* DONT_AUTO_CHANGE */
 #endif
 
