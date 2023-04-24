@@ -2,8 +2,8 @@
   Small HTTP server
   =================
 
-  Copyright (C) 1999-2023 Maksim Feoktistov.
-  
+  Copyright (C) 1999-2023 Maksim Feoktistov.  
+
   It is not only a web server, it is also Mail servers, DNS, FTP, Proxy, DHCP ... All in one!  
   Detail description: [descu.htm](http://smallsrv/descu.htm)  
   Detail description of version for Windows: [desc.htm](http://smallsrv/desc.htm)  
@@ -45,10 +45,10 @@
  If you just run
  ```
   ./Configure
-```
+ ```
 without any keys, it tries to create a Makefile for all available targets.  
 
- If you planing copy the binary executable to another PC with another  Linux don't use --withoutfakelibs key.
+If you plan to copy the binary executable to another PC with a different Linux, do not use the --withoutfakelibs key.
 
 
   Build Linux version for ARM CPU:
@@ -73,7 +73,7 @@ without any keys, it tries to create a Makefile for all available targets.
   ```
   For TLS/SSL also required headers for openssl 1.1.1 or for GnuTLS libararies.  
   For GnuTLS you may try to download binaies .dll and headers
-  from [https://www.gnupg.org/ftp/gcrypt/gnutls/w32/](https://www.gnupg.org/ftp/gcrypt/gnutls/w32/).  
+  from [www.gnupg.org](https://www.gnupg.org/ftp/gcrypt/gnutls/w32/).  
   For openssl -- required to build its from sources, to get .a libraries. 
   The sources available at [openssl.org](https://www.openssl.org/)  
 

@@ -93,7 +93,7 @@
 #endif
 
 #ifdef __REDIRECT
-#warning __REDIRECT definded
+//#warning __REDIRECT definded
 extern int __REDIRECT (fcntl32, (int __fd, int __cmd, ...), fcntl);
 #define fcntl fcntl32
 # else
@@ -117,7 +117,8 @@ extern int __REDIRECT (fcntl32, (int __fd, int __cmd, ...), fcntl);
 #pragma GCC diagnostic ignored "-Wliteral-suffix"
 #endif
 //#pragma GCC diagnostic ignored "-fpermissive"
-#pragma GCC diagnostic ignored "-Waddress-of-packed-member"
+
+//#pragma GCC diagnostic ignored "-Waddress-of-packed-member"
 
 #define CloseHandle  close
 #define closesocket  close

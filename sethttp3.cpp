@@ -23,7 +23,12 @@
  */
 
 
+#ifndef MINGW64
 #define _WINDOWS_
+#else
+#define __CRT__NO_INLINE 1
+#endif
+
 #ifdef  DJGPP 
 typedef void* HKEY;
 #else

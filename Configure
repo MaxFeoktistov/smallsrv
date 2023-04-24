@@ -32,6 +32,8 @@
  $sec=' libgnutls.so libssl.so';
  $sec64=' libgnutls.so libssl.so';
  
+ $adv='';
+ 
  if($#ARGV >=0 )
  {
  L1:
@@ -336,6 +338,14 @@
  
  }
  
+ if($all =~ /i64|i32/)
+ {
+   $warn=`gcc --help=warnings`;
+   if($warn =~ /address-of-packed-member/) {
+     $adv .= ' -Wno-address-of-packed-member'
+   } 
+ } 
+ 
   open(FILE, "<makefile.in") || die("Can\'t open makefile.in\n");
   if( stat('makefile') ) 
   {
@@ -364,6 +374,11 @@ LIBDIR64=-Lfakelibs64/
     {
       $all = '$(FAKELIBS64) ' . $all;
     }
+  }
+  
+  if($adv ne '' )
+  {
+    $mf .= "\nADVOPT=$adv\n";
   }
 
   print OFILE $mf;

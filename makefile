@@ -37,8 +37,8 @@ G=  -g  -Os
  
 OPT= -pipe  \
   -fno-stack-protector -fno-stack-check -fno-verbose-asm -fno-nonansi-builtins -fno-access-control  -fno-optional-diags -momit-leaf-frame-pointer\
- -DUSE_IPV6 -DUSE_FUTEX -DUSE_POOL -fno-exceptions  -Wno-deprecated  -fno-bounds-check -fno-tree-bit-ccp -fno-builtin -mno-red-zone -DFREEVER  -DWITHMD5 -DFIX_EXCEPT \
-  -DUSEVALIST -DSEPLOG
+ -DUSE_IPV6 -DUSE_FUTEX -DUSE_POOL -fno-exceptions  -Wno-deprecated -Wno-address-of-packed-member -fno-bounds-check -fno-tree-bit-ccp -fno-builtin -mno-red-zone -DFREEVER  -DWITHMD5 -DFIX_EXCEPT \
+  -DUSEVALIST -DSEPLOG $(ADVOPT)
 
 #-fdelete-null-pointer-checks  -fdelayed-branch  -fdelete-dead-exceptions
 # -fnobounds-check
@@ -330,10 +330,10 @@ md5:   md5.c
 	gcc -s -pipe -m32 -Os md5.c -DTEST  -DSYSUNIX -DV_FULL=1  -o md5
 
 o/1.x: /dev/shm/shttps/o/1.x
-	ln -s /dev/shm/shttps/o .
-	ln -s /dev/shm/shttps/o64 .
-	ln -s /dev/shm/shttps/wo .
-	ln -s /dev/shm/shttps/arm .
+	ln -sf /dev/shm/shttps/o .
+	ln -sf /dev/shm/shttps/o64 .
+	ln -sf /dev/shm/shttps/wo .
+	ln -sf /dev/shm/shttps/arm .
 
 /dev/shm/shttps/o/1.x :
 	mkdir -p /dev/shm/shttps/o ; mkdir -p /dev/shm/shttps/o64 ; mkdir -p /dev/shm/shttps/wo ; mkdir -p /dev/shm/shttps/arm ; echo 1 >$@
@@ -478,7 +478,7 @@ g4s1.hh: o/s1.hh
 	./def4str.pl S1 < $< > $@
 
 
-g4strc.h S2_lf.hh: strc.h  
+g4strc.h S2_lf.hh: strc.h
 	./def4str.pl S2 < $< > g4strc.h
 	echo "#define G4STRING_CONST_H\n\n" >> g4strc.h
 
@@ -840,7 +840,7 @@ at/%.o : %.c
 	  
 at/atobjdir:
 	mkdir -p /dev/shm/shttps/o/at
-	[ -d at ] || ln -s /dev/shm/shttps/o/at .
+	[ -d at ] || ln -sf /dev/shm/shttps/o/at .
 	echo   >$@
 
 
