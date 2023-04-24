@@ -176,6 +176,7 @@ OOBJS64=$(COBJS64) $(addprefix o64/,$(AOBJS64))
 
 WINOOBJS= wo/fwnd.o $(addprefix wo/,$(AOBJS)) wo/bvprintf.o wo/srvdat.o wo/isapi.o wo/qsort.o wo/updr.res
 
+GENERATED=S2_lf.hh lS2_lf.cfg g4strc.h S3_lf.hh lS3_lf.cfg g4strcwm.h t2icfg.cpp S1_lf.hh lS1_lf.cfg g4s1.hh o/s1.hh
 
 #FLIBS=libc.so libdl.so libpthread.so libgnutls.so libssl.so
 FLIBS=libc.so libpthread.so libdl.so libgnutls.so libssl.so
@@ -678,7 +679,14 @@ wo/libsecgnutls.dll: wo/libsecgnutls.o
 
 
 clean:
-	rm -f $(OOBJS) $(OOBJS64) $(ROBJS) $(MIPSOBJ) $(WINOOBJS) httpd.exe r/httpd.exe mips/httpd.exe $(ATOBJS) $(ARMOBJ)
+	rm -f $(OOBJS) $(OOBJS64) $(ROBJS) $(MIPSOBJ) $(WINOOBJS) httpd.exe r/httpd.exe mips/httpd.exe $(ATOBJS) $(ARMOBJ) wo/libsecgnutls.o wo/libsec111.o
+
+cleangen:
+	rm -f $(GENERATED)
+
+cleanall: clean cleangen
+	rm -f o/httpd.exe o64/httpd.exe wo/http.exe http.exe wo/httpg.exe wo/shttps_mg.exe  wo/shttps_mgi.exe  wo/shttpsr_mg.exe  wo/shttpsr_mgi.exe wo/uninst.exe wo/libsecgnutls.dll o/libsec111.so o/libsecgnutls.so o64/httpd.exe o64/libsecgnutls.so o64/libsec111.so at/httpd.exe at/libsec111.so at/libsecgnutls.so
+
 
 
 

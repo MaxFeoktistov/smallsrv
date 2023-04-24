@@ -182,7 +182,10 @@ OOBJS64=$(COBJS64) $(addprefix o64/,$(AOBJS64))
 
 WINOOBJS= wo/fwnd.o $(addprefix wo/,$(AOBJS)) wo/bvprintf.o wo/srvdat.o wo/isapi.o wo/qsort.o wo/updr.res
 
-    
+GENERATED=S2_lf.hh lS2_lf.cfg g4strc.h S3_lf.hh lS3_lf.cfg g4strcwm.h t2icfg.cpp S1_lf.hh lS1_lf.cfg g4s1.hh o/s1.hh
+
+
+
 #FLIBS=libc.so libdl.so libpthread.so libgnutls.so libssl.so
 FLIBS=libc.so libpthread.so libdl.so libgnutls.so libssl.so
 FAKELIBS=$(addprefix fakelibs/,$(FLIBS))
@@ -590,8 +593,9 @@ dist64: o64/dist/langpacks/ru/shs_lang.cfg o64/dist/langpacks/en/shs_lang.cfg o6
 sinst:  o/dist/httpd.exe o/dist/shttplnx.tgz o/distu/shttplnxu.tgz o/adist/shttparmlnx.tgz o64/dist/shttplnx64.tgz  o64/distu/shttplnx64u.tgz
 	chmod 0666 wo/shttps*.exe
 	for i in wo/shttps_mg.exe wo/shttpsr_mg.exe o/dist/shttplnx.tgz o/distu/shttplnxu.tgz o/adist/shttparmlnx.tgz o64/dist/shttplnx64.tgz o64/distu/shttplnx64u.tgz ; do cp $$i /mnt/d/var/www/pre/ ; done
-	mv /mnt/d/shttps/httpd.exe /mnt/d/shttps/oldhttpd_$(shell date "+%F_%R").exe
-	cp o/distu/httpd.exe /mnt/d/shttps/
+
+# 	mv /mnt/d/shttps/httpd.exe /mnt/d/shttps/oldhttpd_$(shell date "+%F_%R").exe
+# 	cp o/distu/httpd.exe /mnt/d/shttps/
 
 sinste:  o/dist/httpd.exe o/dist/shttplnx.tgz o64/dist/shttplnx64.tgz 
 	chmod 0666 wo/shttps*.exe
@@ -718,9 +722,13 @@ wo/libsecgnutls.dll: wo/libsecgnutls.o
 
 
 clean:
-	rm -f $(OOBJS) $(OOBJS64) $(ROBJS) $(MIPSOBJ) $(WINOOBJS) httpd.exe r/httpd.exe mips/httpd.exe $(ATOBJS) $(ARMOBJ) 
+	rm -f $(OOBJS) $(OOBJS64) $(ROBJS) $(MIPSOBJ) $(WINOOBJS)  $(ATOBJS) $(ARMOBJ) wo/libsecgnutls.o wo/libsec111.o
 
+cleangen:
+	rm -f $(GENERATED)
 
+cleanall: clean cleangen
+	rm -f o/httpd.exe o64/httpd.exe wo/http.exe http.exe wo/httpg.exe wo/shttps_mg.exe  wo/shttps_mgi.exe  wo/shttpsr_mg.exe  wo/shttpsr_mgi.exe wo/uninst.exe wo/libsecgnutls.dll o/libsec111.so o/libsecgnutls.so o64/httpd.exe o64/libsecgnutls.so o64/libsec111.so at/httpd.exe at/libsec111.so at/libsecgnutls.so 
 
 o/srv0a.o o64/srv0a.o wo/srv0a.o r/srv0a.o lpc/srv0a.o at/srv0a.o : g4strc.h srv0a.cpp slloop.cpp srvars.cpp seplog.cpp onelog.cpp
 o/adminr.o o64/adminr.o r/adminr.o wo/adminr.o at/adminr.o : g4strc.h adminr.cpp t2icfghtm.cpp g4strhtm.hh

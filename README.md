@@ -15,7 +15,7 @@
 
   Build Linux version:
   --------------------
-  For Debian style distribution you may prepare the system with the command:
+  For Debian-style distribution, you may prepare the system with the command:
   ```
   apt install  gcc g++ make libc6-dev libc6-dev-i386 gcc-multilib g++-multilib gnutls-dev libssl-dev
   ```
@@ -30,14 +30,17 @@
   make o/libsec111.so
   make o/libsecgnutls.so
   ```
+  Result will be o/httpd.exe o/libsec111.so o/libsecgnutls.so  
 
   64-bit:
   ```
   ./Configure --target=i64  --withoutfakelibs
   make
-  make o/libsec111.so
-  make o/libsecgnutls.so
+  make o64/libsec111.so
+  make o64/libsecgnutls.so
   ```
+  Result will be o64/httpd.exe o64/libsec111.so o64/libsecgnutls.so  
+
  libsec111.so -- for OpenSSL 1.1.1  
  libsecgnutls.so -- for GnuTLS  
  required one of them.  
@@ -46,9 +49,9 @@
  ```
   ./Configure
  ```
-without any keys, it tries to create a Makefile for all available targets.  
+ without any keys, it tries to create a Makefile for all available targets.  
 
-If you plan to copy the binary executable to another PC with a different Linux, do not use the --withoutfakelibs key.
+ If you plan to copy the binary executable to another PC with a different Linux, do not use the --withoutfakelibs key.
 
 
   Build Linux version for ARM CPU:
@@ -69,7 +72,7 @@ If you plan to copy the binary executable to another PC with a different Linux, 
   Required i686-w64-mingw32 or x86_64-w64-mingw32
   For Debian style distribution you may prepare the system with the command:
   ```
-  apt install  i686-w64-mingw32
+  apt install i686-w64-mingw32
   ```
   For TLS/SSL also required headers for openssl 1.1.1 or for GnuTLS libararies.  
   For GnuTLS you may try to download binaies .dll and headers

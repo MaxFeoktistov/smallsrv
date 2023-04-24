@@ -251,6 +251,60 @@
 #define x_t2T_1406971 S1t2T_1406971
 
 #ifdef MAINSTR
+ char S1t2T_3708837[] = "FastCGI ident. The part of a URL that indicates"
+ " a FastCGI script. Default is \".fcgi\"";
+ char *lS1t2T_3708837 = S1t2T_3708837;
+#else
+ extern char *lS1t2T_3708837;
+ extern char S1t2T_3708837[];
+#endif
+#define t2T_3708837 lS1t2T_3708837
+#define x_t2T_3708837 S1t2T_3708837
+
+#ifdef MAINSTR
+ char S1t2T_3647783[] = "Use this group id, to detect FastCGI. Direct"
+ " 0 to disable using group id.";
+ char *lS1t2T_3647783 = S1t2T_3647783;
+#else
+ extern char *lS1t2T_3647783;
+ extern char S1t2T_3647783[];
+#endif
+#define t2T_3647783 lS1t2T_3647783
+#define x_t2T_3647783 S1t2T_3647783
+
+#ifdef MAINSTR
+ char S1t2T_3024149[] = "Use UNIX socket for FastCGI. Otherwise used"
+ " localhost TCP socket";
+ char *lS1t2T_3024149 = S1t2T_3024149;
+#else
+ extern char *lS1t2T_3024149;
+ extern char S1t2T_3024149[];
+#endif
+#define t2T_3024149 lS1t2T_3024149
+#define x_t2T_3024149 S1t2T_3024149
+
+#ifdef MAINSTR
+ char S1t2T_3572758[] = "Directory to create FastCGI UNIX sockets."
+ " May be /tmp, /var/tmp, /dev/shm, ...";
+ char *lS1t2T_3572758 = S1t2T_3572758;
+#else
+ extern char *lS1t2T_3572758;
+ extern char S1t2T_3572758[];
+#endif
+#define t2T_3572758 lS1t2T_3572758
+#define x_t2T_3572758 S1t2T_3572758
+
+#ifdef MAINSTR
+ char S1t2T_2893951[] = "Run PHP as FastCGI.";
+ char *lS1t2T_2893951 = S1t2T_2893951;
+#else
+ extern char *lS1t2T_2893951;
+ extern char S1t2T_2893951[];
+#endif
+#define t2T_2893951 lS1t2T_2893951
+#define x_t2T_2893951 S1t2T_2893951
+
+#ifdef MAINSTR
  char S1t2T_2132379[] = "Don't break CGI, when connection closed";
  char *lS1t2T_2132379 = S1t2T_2132379;
 #else

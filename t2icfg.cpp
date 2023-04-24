@@ -2,7 +2,7 @@
 //  GENERATED FILE, DON'T  EDIT THIS!  !!!  Edit t2icfg.cpp instead...
 
 /*
- * Copyright (C) 1999-2021 Maksim Feoktistov.
+ * Copyright (C) 1999-2023 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov 
@@ -169,7 +169,16 @@ SPD(0,http)
 {"cgi_ident",254, 0,(uint *)&cgi_detect, CS(sCGI_IDENT )},
 {"perl",256,0,(uint *)&perl, CS(sPERL__IF_ )},
 #endif
+{"fcgi_ident",254, 0,(uint *)&fcgi_detect, CS( t2T_3708837 )},
+#ifdef SYSUNIX
+{"fcgi_gid",0,0x100000,(uint *)&fcgi_group, CS( t2T_3647783 )},
+{"fcgi_unix",3 , FL3_FCGI_SI,(uint *)0, CS( t2T_3024149  )},
+{"fcgi_upath",255,0,(uint *)&fcgi_upath, CS( t2T_3572758 )},
+#endif
+
 {"php",256,0,(uint *)&phtml_dir, CS(sPHP__IF_Y )},
+{"fcgi_php",3, FL3_FCGI_PHP,(uint *)0, CS( t2T_2893951  )},
+
 #ifdef CD_VER
 {"phpini",256,0,(uint *)&phtml_ini, CS(sPHP_INI_D )},
 #endif

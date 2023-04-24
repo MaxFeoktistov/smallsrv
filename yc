@@ -15,7 +15,7 @@
 -fsjlj-exceptions                               
 -Zpe                                            
 -ID:\DJGPP\INCLUDE\WIN32                        
--fconserve-space -DONEFILE -DSERVICE -DFREE_VER -DFREEVER -DV_FULL=1 -DUSE_IPV6
+-fconserve-space -DONEFILE -DSERVICE -DFREE_VER -DFREEVER -DV_FULL=1 -DUSE_IPV6 -DSEPLOG -DSELECT1
 -mrtd                                           
 srv0a.cpp                                       
                                                 

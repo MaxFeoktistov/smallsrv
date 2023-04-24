@@ -343,7 +343,10 @@
    $warn=`gcc --help=warnings`;
    if($warn =~ /address-of-packed-member/) {
      $adv .= ' -Wno-address-of-packed-member'
-   } 
+   }
+   if($warn =~ /-Wattributes/) {
+     $adv .= ' -Wno-attributes'
+   }
  } 
  
   open(FILE, "<makefile.in") || die("Can\'t open makefile.in\n");
