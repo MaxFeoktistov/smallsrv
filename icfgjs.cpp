@@ -36,10 +36,10 @@ const char ConfigTop[]=
 "<script language=javascript><!--\n"
 "function EUp(n,m){var i=eval(\"document.cfrm.\"+n);" HTML_LN
 "if( isNaN(i.value) )i.value=m;" HTML_LN
-"if(i.value<m)++i.value; else i.value=m;}"HTML_LN
+"if(i.value<m)++i.value; else i.value=m;}" HTML_LN
 "function EDn(n,m){var i=eval(\"document.cfrm.\"+n);" HTML_LN
-"if(isNaN(i.value))i.value=m; if(i.value>m)--i.value; else i.value=m;}"HTML_LN
-"function ChkN(n)"HTML_LN
+"if(isNaN(i.value))i.value=m; if(i.value>m)--i.value; else i.value=m;}" HTML_LN
+"function ChkN(n)" HTML_LN
 "{var i=eval(\"document.cfrm.\"+n),j=eval(\"document.cfrm.no\"+n);" HTML_LN
 " if(j.checked){if(i.value!=0)j.value=i.value; i.value=0;}" HTML_LN
 " else{if(j.value!='0' && (i.value<j.value) )i.value=j.value; else i.value=12;}" HTML_LN
@@ -52,9 +52,9 @@ const char ConfigTop[]=
 ";}" HTML_LN
 "}"
 "// -->\n"
-"</script>"HTML_LN
+"</script>" HTML_LN
 "<form name=cfrm method=POST action=/$_admin_$conf>"
-"<table bgcolor=#f8f8ff border=1>"HTML_LN
+"<table bgcolor=#f8f8ff border=1>" HTML_LN
 ;
 
 const char  UserTblBottom[]=
@@ -91,14 +91,18 @@ int Req::HTTPOutCfg(BFILE *bf)//char *bfr)
  char *d,*t,tmpx[300],tmpy[300],*cpdesc;
  CfgParam *cp;
  d=def_dir;
-
+  
+  
  //j=sprintf(bfr,
  bf->bprintf(          "<a name=t></a><table border=0 bgcolor=#eff0ff width=100%%><tr align=center>");
  for(cp=ConfigParams;cp->desc;++cp)if(!(cp->v || cp->name))
   //j+=sprintf(bfr+j,
      bf->bprintf(  "<td bgcolor=#c0ffff><a href=#%u>%s</a></td>",nn++,cp->desc);
 
+     
+
  //j+=sprintf(bfr+j,
+ 
             bf->bprintf("</tr></table><hr><table border=0 bgcolor=#fff0ff width=100%%><tr align=center>"
  "<td width=25%%><a href=/$_admin_$rest><font color=#FF0000>Restart</font></a></td><td width=25%%><a href=$_admin_$file?s=158>Edit config file</a></td> %s %s </tr></table>"
   " %s %s %s %s <hr>",
@@ -108,14 +112,13 @@ int Req::HTTPOutCfg(BFILE *bf)//char *bfr)
   (glst?"[<a href=/$_admin_$file?s=154 >Goodlist</a>] &nbsp; ":""),
   (graylst?"[<a href=/$_admin_$file?s=155 >Graylist</a>] &nbsp; ":""),
   (antiv?"[<a href=/$_admin_$file?s=156 >Antivirus</a>]":""  )
-
-
-
            );
+
  nn=0;
  //strcpy(bfr+j,(char *)ConfigTop); j+=sizeof(ConfigTop);
  bf->bprintf("%s",ConfigTop);
-
+ dprint("DBG:Test4\n");
+ 
  for(cp=ConfigParams;cp->desc;++cp)
  {
   cpdesc=cp->desc;   
@@ -125,6 +128,8 @@ int Req::HTTPOutCfg(BFILE *bf)//char *bfr)
   }
      
   if(!(d=strchr(cpdesc,'.')))d=NullString; else *d++=0;
+  
+//  dprint("DBG:%u %X %X\n",nn,cp->name,cpdesc);
 #define  END_TD
   if(!(cp->v))
   { //j+=sprintf(bfr+j,
@@ -144,7 +149,7 @@ int Req::HTTPOutCfg(BFILE *bf)//char *bfr)
   else
   { //j+=sprintf(bfr+j,
               bf->bprintf("<tr valign=center><td align=right>"
-   "<font size=2 class=f2><b>%s.</b> %s %s</font> </td><td align=right>"HTML_LN
+   "<font size=2 class=f2><b>%s.</b> %s %s</font> </td><td align=right>" HTML_LN
    "<font size=2 class=f2>",cpdesc,d,cp->IsR()? RSTNEED :"");
    //j+=
        if(cp->max)
@@ -201,7 +206,7 @@ int Req::HTTPOutHosts(BFILE *bf ) //char *bfr)
 //  "<td>Directory</td><td>Users</td>"
 #endif
  "<td>&nbsp;</td>"
-"</tr>"HTML_LN
+"</tr>" HTML_LN
 ,sVIRTUAL_HOSTS
 );
  i=0;
@@ -222,7 +227,7 @@ int Req::HTTPOutHosts(BFILE *bf ) //char *bfr)
 "<input type=submit name=s value=Change > "
 "<input type=submit name=s value=Remove onClick=\"form.s1.value='Remove';\"> "
 "<input type=reset value=Reset>"
-"</form></font></td></tr>"HTML_LN
+"</form></font></td></tr>" HTML_LN
   ,a->h,a->h,a->d,(a->flg)?"checked":NullString,(a->flg)?a->d+a->flg:"");
    ++i;
    //if(j>0x4000){if(send(s,bfr,j,0)<=0)return -1; j=0;}
@@ -366,7 +371,7 @@ int Req::HTTPMimeTypesOut(BFILE *bf) // char *bfr)
  "<input type=hidden name=s1 value=Add >"
  "<input type=submit name=s value=Add> &nbsp;"
  "</form></font></td></tr></table>" HTML_LN
- "<hr>"HTML_LN,i);
+ "<hr>" HTML_LN,i);
  //if(send(s,bfr,j,0)<=0)return -1;
  return 0;
 };
@@ -415,7 +420,7 @@ int Req::HTTPCGIAppOut(BFILE *bf) //char *bfr)
  "<input type=text name=t maxlength=127 size=48>"
  "</font></td><td><font size=2 class=f2>"
   "<input type=submit name=s value=Add> &nbsp;"
-   "</form></font></td></tr></table><hr>"HTML_LN
+   "</form></font></td></tr></table><hr>" HTML_LN
  :"</table><hr>" HTML_LN
  ,i);
 

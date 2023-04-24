@@ -566,7 +566,7 @@ void WMail::SubTempl(char *t,char *s)
 int wbmMutex,wmlg_cntr;
 ulong lloutIP;
 
-extern const char *anFnd[];
+//extern const char *anFnd[];
 int Req::Wmail(User *usr)
 {
   char *u;

@@ -99,7 +99,24 @@ char * ulltoa(char *t,unsigned long long a,unsigned long long d=1000000000000000
 
 #endif
 
+#ifndef BPRINTF_INLINE
 
+int BFILE::bprintf(const char *fmt,...)  
+{ 
+#ifdef USEVALIST
+   va_list a;
+   int r;
+   
+   va_start(a, fmt);
+   r=bvprintf(fmt,a);
+   va_end(a);
+   return r;
+#else     
+   return bvprintf(fmt,(void **) ((&fmt)+1 )) ;
+#endif        
+};
+
+#endif
 
 int BFILE::bvprintf(const char *fmt,va_list vl)
 {
@@ -119,8 +136,8 @@ int BFILE::bvprintf(const char *fmt,va_list vl)
  int w,l;
  i=0;
  ii=0;
-
- while(*fmt)
+ 
+ if(fmt) while(*fmt)
  {
   if(*fmt=='%')
   {

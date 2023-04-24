@@ -161,6 +161,7 @@ C:\HTTP\WWW т.е. http://127.0.0.1/test.htm==C:\HTTP\WWW\test.htm. А CGI в этом
 <tr><td><b>Отдельный лог для каждого сервера</b></td><td><b>seplog</b></td></tr>
 <tr><td><b>Не выводить пользователю поток ошибок (STDERR) поступающий от CGI скриптов </b></td><td><b>noerrout</b></td></tr>
 <tr><td><b>Дублировать поток ошибок (STDERR) от CGI в http.err лог</b></td><td><b>dupstderr</b></td></tr>
+<tr><td><b>Добавлять в лог отладочную информацию от логических выражений в SSI и Antivirus/Forward файлах</b></td><td><b>dbgle</b></td></tr>
 
 <tr><td><b>Разрешить удаленное администрирование.</b> Иначе, для администраторов будут доступны только страницы статистики.</td><td><b>radmin</b></td></tr>
 <tr><td><b></b>Максимальное количество одновременных подключений с одного и того же хоста.</b>
@@ -202,6 +203,13 @@ C:\HTTP\WWW т.е. http://127.0.0.1/test.htm==C:\HTTP\WWW\test.htm. А CGI в этом
  <tr><td><b>Предел суммарной скорости передачи данных для всех соединений с одного IP (KБайт/минуту)</b></td><td><b>http_speed=value</b></td></tr>
  <tr><td><b>Количество других активных соединений, для включения ограничения скорости</b></td><td><b>http_spdusr=value</b></td></tr>
  <tr><td><b>PHP.</b> Если вы используйте PHP вы можете указать где находится php-cgi.exe или phpisapi.dll...</td><td><b>php=path</b></td></tr>
+ <tr><td><b>Запускать PHP как FastCGI.</b></td><td><b>fcgi_php</b></td></tr>
+ 
+ <tr><td><b>FastCGI идентификатор.</b> Часть URL для выявления FastCGI скриптов. По умолчанию используется ".fcgi"</td><td><b>fcgi_ident=value</b></td></tr>
+ <tr><td><b>Использовать этот идентификатор группы, для обнаружения FastCGI.</b> Укажите 0 чтобы не использовать такой метод.</td><td><b>fcgi_gid=value</b></td></tr>
+ <tr><td><b>Использовать UNIX сокет для FastCGI.</b> Иначе использется localhost TCP сокет</td><td><b>fcgi_unix</b></td></tr>
+ <tr><td><b>Каталог для создания FastCGI UNIX сокетов.</b> May be /tmp, /var/tmp, /dev/shm, ...</td><td><b>fcgi_upath=path</b></td></tr>
+ 
  <tr><td><b>Отключить общий каталог.</b></td><td><b>noshare</b></td></tr>
  <tr><td><b>Не показывать каталоги.</b> (Только в регистрированой версии)</td><td><b>nooutdir</b></td></tr>
  <tr><td><b>Не прерывать исполнение CGI, в случае закрытия соединения</b></td><td><b>nbrkcgi</b></td></tr>

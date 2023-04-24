@@ -37,7 +37,7 @@ inline uint atouis(char *&a){return atouisc( (const char *&) a); };
 
 unsigned long  strtoul(const char *s, char **e, int base);
 
-#if (!defined(_STDLIB_H)) &&  (!defined(_STDLIB_H_))
+#if (!defined(_STDLIB_H)) &&  (!defined(_STDLIB_H_)) && (!defined(MINGW)) 
 char * malloc(int l);
 char * realloc(void *,int l);
 void free(void *);

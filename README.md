@@ -3,16 +3,25 @@
   =================
 
   Copyright (C) 1999-2023 Maksim Feoktistov.
+  
+  It is not only a web server, it is also Mail servers, DNS, FTP, Proxy, DHCP ... All in one!  
+  Detail description: [descu.htm](http://smallsrv/descu.htm)  
+  Detail description of version for Windows: [desc.htm](http://smallsrv/desc.htm)  
 
   Build requirments:
   ------------------
-  To build this project required Perl, gcc, g++, binutils, make
+  To build this project required Perl, gcc, g++, binutils, make, standart C/C++ headers and libraries.  
   For SSL/TLS support also required OpenSSL 1.0/1.1.1 or GnuTLS libraries.
-
-
 
   Build Linux version:
   --------------------
+  For Debian style distribution you may prepare the system with the command:
+  ```
+  apt install  gcc g++ make libc6-dev libc6-dev-i386 gcc-multilib g++-multilib gnutls-dev libssl-dev
+  ```
+  For another cases install the same package with way recomendet for your distribution.  
+  libc6-dev-i386 required to build 32-bit version under 64-bit system  
+  For OpenSSL 1.1.1 required openssl-1.1.1-dev  
 
   32-bit:
   ```
@@ -58,7 +67,17 @@ without any keys, it tries to create a Makefile for all available targets.
   ----------------------------------
 
   Required i686-w64-mingw32 or x86_64-w64-mingw32
+  For Debian style distribution you may prepare the system with the command:
+  ```
+  apt install  i686-w64-mingw32
+  ```
+  For TLS/SSL also required headers for openssl 1.1.1 or for GnuTLS libararies.  
+  For GnuTLS you may try to download binaies .dll and headers
+  from [https://www.gnupg.org/ftp/gcrypt/gnutls/w32/](https://www.gnupg.org/ftp/gcrypt/gnutls/w32/).  
+  For openssl -- required to build its from sources, to get .a libraries. 
+  The sources available at [openssl.org](https://www.openssl.org/)  
 
+  Run the commands:
   ```
   ./Configure --target=win --winsslinclude="/usr/src/openssl/include"  --winssllib="/usr/src/openssl/lib" \
               --wingnutlsinclude="/usr/src/gnutls/include"    --wingnutlslib="/usr/src/gnutls/lib"
@@ -80,13 +99,13 @@ without any keys, it tries to create a Makefile for all available targets.
   ```
   ./Configure    --wingcc="c:\\MINGW\\bin\\gcc.exe" \
                  --windir="c:\\MINGW" \
-                 --target=win --winsslinclude="c:\\openssl\\include"  --winssllib="c:\\openssl\\lib" \
+                 --target=win \
+                 --winsslinclude="c:\\openssl\\include"  --winssllib="c:\\openssl\\lib" \
                  --wingnutlsinclude="c:\\gnutls\\include"    --wingnutlslib="c:\\gnutls\\lib"
   make
   make wo/libsec111.so
   make wo/libsecgnutls.so
   ```
-
  Direct your pathes instead c:\\...
 
  Build Windows version with DJGPP GCC/G++

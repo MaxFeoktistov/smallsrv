@@ -269,22 +269,28 @@ $(FAKELIBS64) : fakelibs64/1.x
 
 $(FAKELIBSARM) : fakelibsarm/1.x
 
-fakelibs/libc.so: /usr/lib/i386-linux-gnu/libc.so.6
+fakelibs/%.so: /lib/i386-linux-gnu/%.so.*
 	./mkfakelib.pl $< fakelibs/
 
-fakelibs/libdl.so: /lib/i386-linux-gnu/libdl.so
+fakelibs/%.so: /usr/lib/i386-linux-gnu/%.so.*
 	./mkfakelib.pl $< fakelibs/
 
 fakelibs/%.so: /usr/lib/i386-linux-gnu/%.so
 	./mkfakelib.pl $< fakelibs/
 
-fakelibs64/libc.so: /usr/lib/x86_64-linux-gnu/libc.so.6
+fakelibs/%.so: /lib/i386-linux-gnu/%.so
+	./mkfakelib.pl $< fakelibs/
+
+fakelibs64/%.so: /lib/x86_64-linux-gnu/%.so.*
 	./mkfakelib64.pl $< fakelibs64/ -c
 
-fakelibs64/libdl.so: /lib/x86_64-linux-gnu/libdl.so
+fakelibs64/%.so: /usr/lib/x86_64-linux-gnu/%.so.*
 	./mkfakelib64.pl $< fakelibs64/ -c
 
 fakelibs64/%.so: /usr/lib/x86_64-linux-gnu/%.so
+	./mkfakelib64.pl $< fakelibs64/ -c
+
+fakelibs64/%.so: /lib/x86_64-linux-gnu/%.so
 	./mkfakelib64.pl $< fakelibs64/ -c
 
 fakelibsarm/%.so: /usr/lib/i386-linux-gnu/%.so
@@ -310,10 +316,10 @@ md5:   md5.c
 	gcc -s -pipe -m32 -Os md5.c -DTEST  -DSYSUNIX -DV_FULL=1  -o md5
 
 o/1.x: /dev/shm/shttps/o/1.x
-	ln -s /dev/shm/shttps/o .
-	ln -s /dev/shm/shttps/o64 .
-	ln -s /dev/shm/shttps/wo .
-	ln -s /dev/shm/shttps/arm .
+	ln -sf /dev/shm/shttps/o .
+	ln -sf /dev/shm/shttps/o64 .
+	ln -sf /dev/shm/shttps/wo .
+	ln -sf /dev/shm/shttps/arm .
 
 /dev/shm/shttps/o/1.x :
 	mkdir -p /dev/shm/shttps/o ; mkdir -p /dev/shm/shttps/o64 ; mkdir -p /dev/shm/shttps/wo ; mkdir -p /dev/shm/shttps/arm ; echo 1 >$@
@@ -797,7 +803,7 @@ at/%.o : %.c
 
 at/atobjdir:
 	mkdir -p /dev/shm/shttps/o/at
-	[ -d at ] || ln -s /dev/shm/shttps/o/at .
+	[ -d at ] || ln -sf /dev/shm/shttps/o/at .
 	echo   >$@
 
 

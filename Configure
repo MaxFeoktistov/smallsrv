@@ -273,35 +273,63 @@
  
  }
  
- 
+ $i32gnutls30 = 0;
+ $i64gnutls30 = 0;
  if($all =~ /i32/   )
  {
    if( (!stat('/usr/lib/i386-linux-gnu/libssl.so') ) || !stat('/usr/include/openssl') )
    {
-      print STDERR 'i32: Not found OpenSSL library or OpenSSL header files.  Build without seclib.so';
+      print STDERR "i32: Not found OpenSSL library or OpenSSL header files.  Build without seclib.so\n";
       $woseclib32=1;
       $sec =~ s/libssl.so//;
    }
-   if( ((!stat('/usr/lib/i386-linux-gnu/libgnutls.a') ) && !stat('/usr/lib/i386-linux-gnu/libgnutls.so') ) || !stat('/usr/include/gnutls') )
+   
+   if(stat('/usr/lib/i386-linux-gnu/libgnutls.so') ) 
    {
-      print STDERR 'i32: Not found GnuTLS library or GnuTLS header files.  Build without libgnutls.so';
+     $i32gnutls30 = 3;
+   } 
+   elsif(stat('/usr/lib/i386-linux-gnu/libgnutls.so.30') )
+   {
+     $i32gnutls30 = 1;     
+   }
+   elsif(stat('/usr/lib/i386-linux-gnu/libgnutls.a') )
+   {
+     $i32gnutls30 = 2;
+   }
+   if( (! $i32gnutls30 ) || !stat('/usr/include/gnutls') )
+   {
+      print STDERR "i32: Not found GnuTLS library or GnuTLS header files.  Build without libgnutls.so\n";
       $wolibgnutls32=1;
       $sec =~ s/libgnutls.so//;
    }
- 
  }
  
  if($all =~ /i64/   )
  {
    if( (!stat('/usr/lib/x86_64-linux-gnu/libssl.so') ) || !stat('/usr/include/openssl') )
    {
-      print STDERR 'i64: Not found OpenSSL library or OpenSSL header files.  Build without seclib.so';
+      print STDERR "i64: Not found OpenSSL library or OpenSSL header files.  Build without seclib.so\n";
       $woseclib64=1;
       $sec64 =~ s/libssl.so//;
    }
-   if( ((!stat('/usr/lib/x86_64-linux-gnu/libgnutls.a') ) && !stat('/usr/lib/i386-linux-gnu/libgnutls.so') ) || !stat('/usr/include/gnutls') )
+
+  
+   if(stat('/usr/lib/x86_64-linux-gnu/libgnutls.so') ) 
    {
-      print STDERR 'i64: Not found GnuTLS library or GnuTLS header files.  Build without libgnutls.so';
+     $i64gnutls30 = 3;
+   } 
+   elsif(stat('/usr/lib/x86_64-linux-gnu/libgnutls.so.30') )
+   {
+     $i64gnutls30 = 1;     
+   }
+   elsif(stat('/usr/lib/x86_64-linux-gnu/libgnutls.a') )
+   {
+     $i64gnutls30 = 2;
+   }
+
+   if( (!$i64gnutls30) || !stat('/usr/include/gnutls') )
+   {
+      print STDERR "i64: Not found GnuTLS library or GnuTLS header files.  Build without libgnutls.so\n";
       $wolibgnutls64=1;
       $sec64 =~ s/libgnutls.so//;
    }
@@ -309,6 +337,10 @@
  }
  
   open(FILE, "<makefile.in") || die("Can\'t open makefile.in\n");
+  if( stat('makefile') ) 
+  {
+    rename('makefile', 'makefile.orig');
+  }
   open(OFILE, ">Makefile") || die("Can\'t open Makefile\n");
   
   if(!$withoutfakelibs)
@@ -373,22 +405,48 @@ LIBDIR64=-Lfakelibs64/
     {
       s/-Lfakelibs[0-9]*//g;
     }
+    else 
+    {
+      if( stat('/lib/x86_64-linux-gnu/libc.so.6') )
+      {
+        s/\/usr\/lib\/x86_64-linux-gnu\/libc.so.6/\/lib\/x86_64-linux-gnu\/libc.so.6/ ;
+      }
+    }
+    
     if($woseclib32)
     {
-      s/^i32:(.*)o\/libsec.so(.*)/i32: $1 $2/g;
+      s/^i32\:(.*)o\/libsec111.so(.*)/i32: $1 $2/g;
+      s/^i32\:(.*)o\/libsec.so(.*)/i32: $1 $2/g;
     }
     if($wolibgnutls32)
     {
-      s/^i32:(.*)o\/libsecgnutls.so(.*)/i32: $1 $2/g;
+      s/^i32\:(.*)o\/libsecgnutls.so(.*)/i32: $1 $2/g;
     }
     
     if($woseclib64)
     {
       s/^i64:(.*)o64\/libsec.so(.*)/i64: $1 $2/g;
+      s/^i64:(.*)o64\/libsec111.so(.*)/i64: $1 $2/g;
     }
     if($wolibgnutls64)
     {
       s/^i64:(.*)o64\/libsecgnutls.so(.*)/i64: $1 $2/g;
+    }
+    if($i32gnutls30 == 1)
+    {
+      s/LIBDIR32\) \-l\:libgnutls\.so /LIBDIR32\) -l:libgnutls.so.30 /
+    }
+    elsif($i32gnutls30 == 2)
+    {
+      s/LIBDIR32\) \-l\:libgnutls\.so /LIBDIR32\) -lgnutls /
+    }
+    if($i64gnutls30 == 1)
+    {
+      s/LIBDIR64\) \-l\:libgnutls\.so /LIBDIR64\) -l:libgnutls.so.30 /
+    }
+    elsif($i64gnutls30 == 2)
+    {
+      s/LIBDIR64\) \-l\:libgnutls\.so /LIBDIR64\) -lgnutls /
     }
     
     print OFILE $_;

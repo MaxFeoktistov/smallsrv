@@ -208,6 +208,7 @@ settings manually but if you really want to, you can do with next keys.
 <tr><td><b>Separate log for each server</b></td><td><b>seplog</b></td></tr>
 <tr><td><b>Don't out error stream (STDERR) from CGI scripts to remote users</b></td><td><b>noerrout</b></td></tr>
 <tr><td><b>Dublicate CGI stderr to http.err log</b></td><td><b>dupstderr</b></td></tr>
+<tr><td><b>Add to log debug info from logical expresion in SSI and Antivirus/Forward files</b></td><td><b>dbgle</b></td></tr>
 
 <tr><td><b>Enable remote administration.</b> Otherwise, only statistics will be available for administrators.</td><td><b>radmin</b></td></tr>
 <tr><td><b>Number of simultaneous requests from each host.
@@ -261,7 +262,14 @@ This restriction includes all TCP connections (HTTP,FTP,POP,SMTP,Proxy)</td><td>
 <tr><td><b>Don't restrict speed of outgoing transfer</b></td><td><b>nohttp_speed</b></td></tr>
 <tr><td><b>Limit for summary speed of outgoing transfer for all connections from the same IP (KBytes/minute)</b></td><td><b>http_speed=value</b></td></tr>
 <tr><td><b>How many another connections must have activity, to check on speed limitation</b></td><td><b>http_spdusr=value</b></td></tr>
-<tr><td><b>PHP.</b> Specify location of "php-cgi.exe" or "phpisapi.dll"</td><td><b>php=path</b></td></tr>
+<tr><td><b>PHP.</b> Specify location of "php-cgi" </td><td><b>php=path</b></td></tr>
+<tr><td><b>Run PHP as FastCGI.</b></td><td><b>fcgi_php</b></td></tr>
+
+<tr><td><b>FastCGI ident.</b> The part of a URL that indicates a FastCGI script. Default is ".fcgi"</td><td><b>fcgi_ident=value</b></td></tr>
+<tr><td><b>Use this group id, to detect FastCGI.</b> Direct 0 to disable using group id.</td><td><b>fcgi_gid=value</b></td></tr>
+<tr><td><b>Use UNIX socket for FastCGI.</b> Otherwise used localhost TCP socket</td><td><b>fcgi_unix</b></td></tr>
+<tr><td><b>Directory to create FastCGI UNIX sockets.</b> May be /tmp, /var/tmp, /dev/shm, ...</td><td><b>fcgi_upath=path</b></td></tr>
+
 <tr><td><b>Disable share dir.</b></td><td><b>noshare</b></td></tr>
 <tr><td><b>Do not show directory listing</b></td><td><b>nooutdir</b></td></tr>
 <tr><td><b>Don't break CGI, when connection closed</b></td><td><b>nbrkcgi</b></td></tr>
