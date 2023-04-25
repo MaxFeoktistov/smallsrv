@@ -167,7 +167,7 @@ void signalSegv(int , siginfo_t* info, ucontext_t* ptr)
  unsave_limit=0x3F00;
  for(i=0;i<max_tsk;++i)if( ((u_long)(r=rreq[i]))>1  && r->thread_id == ll )
  {
-   debug("Found error thread %u",i);
+   debug("Found error thread %u %.96s",i , r->inf );
 #if  (!defined(ARM)) 
 //   && !defined(x86_64)
 // ulong *esp,*espm;
