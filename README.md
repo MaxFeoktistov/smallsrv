@@ -5,8 +5,8 @@
   Copyright (C) 1999-2023 Maksim Feoktistov.  
 
   It is not only a web server, it is also Mail servers, DNS, FTP, Proxy, DHCP ... All in one!  
-  Detail description: [descu.htm](http://smallsrv/descu.htm)  
-  Detail description of version for Windows: [desc.htm](http://smallsrv/desc.htm)  
+  Detail description: [descu.htm](descu.htm)  
+  Detail description of version for Windows: [desc.htm](desc.htm)  
 
   Build requirments:
   ------------------
@@ -82,8 +82,9 @@
 
   Run the commands:
   ```
-  ./Configure --target=win --winsslinclude="/usr/src/openssl/include"  --winssllib="/usr/src/openssl/lib" \
-              --wingnutlsinclude="/usr/src/gnutls/include"    --wingnutlslib="/usr/src/gnutls/lib"
+  ./Configure --target=win \
+              --winsslinclude="/usr/src/openssl/include" --winssllib="/usr/src/openssl/lib" \
+              --wingnutlsinclude="/usr/src/gnutls/include" --wingnutlslib="/usr/src/gnutls/lib"
   make
   make wo/libsec111.so
   make wo/libsecgnutls.so
@@ -104,7 +105,7 @@
                  --windir="c:\\MINGW" \
                  --target=win \
                  --winsslinclude="c:\\openssl\\include"  --winssllib="c:\\openssl\\lib" \
-                 --wingnutlsinclude="c:\\gnutls\\include"    --wingnutlslib="c:\\gnutls\\lib"
+                 --wingnutlsinclude="c:\\gnutls\\include" --wingnutlslib="c:\\gnutls\\lib"
   make
   make wo/libsec111.so
   make wo/libsecgnutls.so
@@ -114,7 +115,7 @@
  Build Windows version with DJGPP GCC/G++
  ----------------------------------------
 
- It is tested and optimised for DJGPP 2.95 only. Also required Windows libraries that can be generated withhelp [Utilites](http://smallsrv.com/mkpe/)  
+ It is tested and optimised for DJGPP 2.95 only. Also required Windows libraries that can be generated withhelp [Utilites](https://smallsrv.com/mkpe/)  
  If your DJGGP ready to build Windows PE you may just use makefile.dj.  Fix the pathes in this file and then run:
  ```
  make -f makefile.dj
