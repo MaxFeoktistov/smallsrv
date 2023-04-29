@@ -170,6 +170,9 @@ typedef void * HANDLE;
 typedef int HANDLE;
 #endif
 
+//#define GLIBC_COMPAT_SYMVER2(a) asm(".symver " #a ", "  #a "@GLIBC_2.0\n" );
+//GLIBC_COMPAT_SYMVER2(dlopen)
+
 int IsAssess(char *fname,int uid,int gid,int type,char *uname=0);
 
 
