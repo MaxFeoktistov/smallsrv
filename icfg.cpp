@@ -321,6 +321,8 @@ SPD(2,ftp)
 
 {"ftp_oone",2,FL2_NOMFTP, (uint *)0, CS("Disable multi stream for one IP" )},
 
+{"ftp_always_pass",4,FL4_FTP_ALWPASS, (uint *)0, CS("Always ask for a password, even for users without a password" )},
+
 
 {"ftp_wospace",0,FL_FTWOSPACE, (uint *)0, CS(sCONVERT_N )},
 {"noftp_upload",3,0,(uint *)0, CS(sDON_T_USE0 )},

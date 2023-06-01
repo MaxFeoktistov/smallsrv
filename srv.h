@@ -376,6 +376,7 @@ int FndLimit(int lst,LimitBase **ip, LimitBase **net, sockaddr_in *sa );
 
 #define FL3_FCGI_SI   0x00000001
 #define FL3_FCGI_PHP  0x00000002
+#define FL4_FTP_ALWPASS  0x00000004
 
 //#define FL2_WMAILSENT   0x8000
 
