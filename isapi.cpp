@@ -272,8 +272,8 @@ int Req::ExecDllEx(char *fnm)
 #ifndef SYSUNIX
   if(! (hf=GetModuleHandle(fnm) ) )
 #else
-  setgid(((struct stat *)KeepAlive)->st_gid);
-  setuid(((struct stat *)KeepAlive)->st_uid);
+  setgid(fileStat->st_gid);
+  setuid(fileStat->st_uid);
 #endif
   {
    GetCurrentDirectory(512,bf);

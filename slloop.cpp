@@ -438,66 +438,129 @@ lbSkipCfg:
   lastday= (localtime((time_t *) & (stt.st_ctime))->tm_mday);
  }
  if( InitApplication() <= 0 )return 0;
-
+  /*
+  d_set  KeepAliveSet;
+  int keep_alive_max_fd;
+  int maxKeepAlive;
+  int KeepAliveCount;
+  Req **KeepAliveList;
+  int KeepAliveMutex;
+  */
+ 
+  for(i=0;i<TOTAL_SERVICES;++i)//if( runed[i]<max_srv[i] )
+    for(k=0; k < MAX_ADAPT; ++k)    if( (j=soc_srv[i+k*MAX_SERV])>0)
+    {
+      if( j>keep_alive_max_fd )keep_alive_max_fd=j;
+      FD_SET(j,&KeepAliveSet);
+      //debug("FD Set %d\n",)
+         printf("\rSET: %d %d %d\n",i,k,j);
+    }
+    
  //do{sleep(1); }while(is_no_exit || (s_aflg&AFL_RESTART) );
 // debug("point 1 ...");
  while(is_no_exit)
  {
   s=0;
-  FD_ZERO(&set);
-
-  for(i=0;i<TOTAL_SERVICES;++i)if( runed[i]<max_srv[i] )
-    for(k=0; k < MAX_ADAPT; ++k)    if( (j=soc_srv[i+k*MAX_SERV])>0)
-  {if( j>s )s=j;
-   FD_SET(j,&set);
-//   printf("\rSET: %d %d %d",i,k,j);
-  }
+//  FD_ZERO(&set);
+  memcpy(&set, &KeepAliveSet, sizeof(set) );
+  for(i=0;i<TOTAL_SERVICES;++i) 
+    if( runed[i] >= max_srv[i] ) 
+    {
+      for(k=0; k < MAX_ADAPT; ++k)
+        if( (j=soc_srv[i+k*MAX_SERV])>0){
+          FD_CLR(j,&set);
+          printf("\rCLR: %d %d %d\n",i,k,j);
+        }
+      if(KeepAliveList && ( (SRV_HTTP_MSK|SRV_PROXY_MSK|SRV_SSL_MSK) & (1<<i) ) && max_srv[i] )
+      {
+        MyLock(KeepAliveMutex);
+        for(kk=0; kk<KeepAliveCount; kk++)
+        {
+          if(KeepAliveList[kk]->flsrv[1] == k) FD_CLR(KeepAliveList[kk]->s,&set);
+        }
+        MyUnlock(KeepAliveMutex);
+      }
+    }
   TVal.tv_sec=1;
   TVal.tv_usec=500000;
   memcpy(&er_set,&set,sizeof(er_set));
-  if( (j=select(s+1,&set,0,&er_set,&TVal))>0 )
+  if( (j=select(keep_alive_max_fd+1,&set,0,&er_set,&TVal))>0 )
   {
-  //  debug("select");
-   for(i=0;i<TOTAL_SERVICES;++i)
-    if(runed[i]<max_srv[i] )
-       for(k=0; k < MAX_ADAPT; ++k)    if(FD_ISSET(soc_srv[i+k*MAX_SERV],&set))
+    DBGLA("select return %u", j)
+    for(i=0; i<TOTAL_SERVICES; ++i)
     {
-//     for(kk=k=0;k<i;++k)kk+=max_srv[i];
-//     kk+=runed[i];
-     if(last[i]>=0 && !rreq[last[i]])
-     {
-      usleep(20000);
-      last[i]=-1;
-      continue;
-     }
-    // debug("Select Req..");
-     last[i]=CrThread( ((i+k*MAX_SERV)<<16)); // + k);
-    // debug("Select Req2..");
-    }
-    else if(FD_ISSET(soc_srv[i+k*MAX_SERV],&er_set))
+      if(runed[i]<max_srv[i] )
+        for(k=0; k < MAX_ADAPT; ++k)    
+          if(FD_ISSET(soc_srv[i+k*MAX_SERV],&set))
+          {
+            //     for(kk=k=0;k<i;++k)kk+=max_srv[i];
+            //     kk+=runed[i];
+            if(last[i]>=0 && !rreq[last[i]])
+            {
+              usleep(20000);
+              last[i]=-1;
+              continue;
+            }
+            DBGL("Select Req..")
+            last[i]=CrThread( ((i+k*MAX_SERV)<<16)); // + k);
+            DBGLA("Select Req2.. KeepAliveCount=%d keep_alive_max_fd=%d\n", KeepAliveCount,keep_alive_max_fd)
+            
+            if((--j) <= 0) goto ex_loop3;
+          }
+          else if(FD_ISSET(soc_srv[i+k*MAX_SERV],&er_set))
+          {
+            debug("Socket error: %u(%u)",soc_port[i],i);
+            if(!MutexEr)
+            {
+              MyLock(MutexEr);
+              for(kk=0; kk < MAX_ADAPT; ++kk)
+                if(soc_srv[i+kk*MAX_SERV]>0)
+                {  closesocket(soc_srv[i+kk*MAX_SERV]);
+                  soc_srv[i+kk*MAX_SERV]=0;
+                }
+                
+                CreateSrv(i);
+              MyUnlock(MutexEr);
+            }
+          }
+    }     
+    if(KeepAliveList)
     {
-     debug("Socket error: %u(%u)",soc_port[i],i);
-     if(!MutexEr)
-     {
-      MyLock(MutexEr);
-      for(kk=0; kk < MAX_ADAPT; ++kk)
-        if(soc_srv[i+kk*MAX_SERV]>0)
-        {  closesocket(soc_srv[i+kk*MAX_SERV]);
-           soc_srv[i+kk*MAX_SERV]=0;
+      DBGLA(" j=%d", j)
+      MyLock(KeepAliveMutex);
+      for(k=0; k<KeepAliveCount; )
+      {
+        Req *preq;
+        
+        preq = KeepAliveList[k];
+        DBGLA("ka %d %d",k, preq->s);
+        
+        if(FD_ISSET(preq->s,&er_set))
+        {
+          DBGLA("ka err %d %d",k, preq->s);
+          RemoveAndDelKeepAlive(k);
         }
-
-      CreateSrv(i);
-      MyUnlock(MutexEr);
-     }
+        else if(FD_ISSET(preq->s,&set))
+        {
+          DBGLA("ka select %d %d",k, preq->s);
+          RemoveKeepAlive(k);
+          CrThreadFunc((TskSrv)KeepAliveWike, preq);
+          if((--j) <= 0) break;
+        }
+        else k++;
+      }
+      MyUnlock(KeepAliveMutex);
     }
 
-   FreeThreads();
-   if(pid_to_wait)
-   {
+  ex_loop3:;
+
+    FreeThreads();
+    if(pid_to_wait)
+    {
       waitpid(pid_to_wait,(int *)&i,WNOHANG);
       waitpid(0,(int *)&i,WNOHANG);
       pid_to_wait=0;
-   }
+    }
   }
  }
 

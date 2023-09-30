@@ -361,6 +361,7 @@ void CheckValidCGIIdent()
 #ifdef SEPLOG
  InitSepLog();
 #endif 
+ if(maxKeepAlive) KeepAliveList = (Req **) malloc( sizeof(Req *) * (maxKeepAlive + 2) );
 
 }
 //----

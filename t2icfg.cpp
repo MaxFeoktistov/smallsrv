@@ -44,6 +44,11 @@
 #include "srv.h"
 #endif
 
+#ifdef TLSVPN
+#include "vpn.h"
+#endif
+
+
 #ifdef  G4STRING_CONST_H
 
 #define CS(a)  x_##a
@@ -165,6 +170,10 @@ SPD(0,http)
 {"dir",255,0,(uint *)&def_dir, CS(sDEFAULT_W )},
 {"def",128,0,(uint *)&def_name, CS(sDEFAULT_F )},
 {"error",256,0,(uint *)&error_file, CS(sERROR_FIL )},
+
+{"keep_alive_max",0,0x2000,(uint *)&maxKeepAlive, CS( t2T_5660775 )},
+{"keep_alive_timeout",10,3600*8,(uint *)&TimeoutKeepAlive, CS( t2T_8226615 )},
+
 #if defined(CD_VER) || !defined(SYSUNIX)
 {"cgi_ident",254, 0,(uint *)&cgi_detect, CS(sCGI_IDENT )},
 {"perl",256,0,(uint *)&perl, CS(sPERL__IF_ )},
@@ -307,6 +316,7 @@ RANGES(proxy,sIP_RANGES,sIP_RANGESD)
 
 
  XLIMIT(proxy, "Proxy",2),
+ 
 
 {0,0,0,0, CS(sFTP_SERVE )},
 {"noftp_max",0,0,(uint *)0, CS(sDISABLE_F )},
@@ -322,6 +332,8 @@ SPD(2,ftp)
 {"ftp_pasvp",1,0xFFFF,(uint *)&first_pass_port, CS( t2T_5234218 )},
 
 {"ftp_oone",2,FL2_NOMFTP, (uint *)0, CS( t2T_2686706  )},
+
+{"ftp_always_pass",3,FL3_FTP_ALWPASS, (uint *)0, CS( t2T_5561885  )},
 
 
 {"ftp_wospace",0,FL_FTWOSPACE, (uint *)0, CS(sCONVERT_N )},
@@ -463,7 +475,58 @@ SPD(5,tls)
 {"tls_wmail",2,FL2_WMTLS,(uint *)0, CS( t2T_2809214  )},
 
 
-#endif
+#ifdef TLSVPN
+
+{0,0,0,0, CS( t2T_1039341 )},
+{"notlsvpn",0,0,(uint *)0, CS( t2T_1568467  )},
+{"tlsvpn_max",0,1024,(uint *)&vpn_max, CS( t2T_3299313 )},
+
+{"vpn_url" ,128,0,(uint *)&vpn_name, CS( t2T_2629668 )},
+
+{"vpntun",3, FL3_VPN_TUN, (uint *)0, CS( t2T_2535159  )},
+{"vpntap",3, FL3_VPN_TAP, (uint *)0, CS( t2T_2471473  )},
+{"vpn_tun_number",0,1024,(uint *)&tuntap_number[0], CS( t2T_6497414 )},
+{"vpn_tap_number",0,1024,(uint *)&tuntap_number[1], CS( t2T_6425577 )},
+
+{"vpnpub",3, FL3_VPN_PUBLIC, (uint *)0, CS( t2T_2917144  )},
+
+{"tundev" ,128,0,(uint *)&tundev, CS( t2T_2095850 )},
+
+{"tun_ip" ,20,0,(uint *)&tuntap_ipv4[0], CS( t2T_3296505 )},
+{"tun_nmask" ,20,0,(uint *)&tuntap_ipv4nmask[0], CS( t2T_5261510 )},
+
+{"tap_ip" ,20,0,(uint *)&tuntap_ipv4[1], CS( t2T_3238348 )},
+{"tap_nmask" ,20,0,(uint *)&tuntap_ipv4nmask[1], CS( t2T_5189673 )},
+
+{"tun_script_up" ,255,0,(uint *)&vpn_scripts_up[0], CS( t2T_6317118 )},
+{"tap_script_up" ,255,0,(uint *)&vpn_scripts_up[1], CS( t2T_6240151 )},
+
+{"tun_remote_ip1", 20, 0,(uint *)&vpn_first_remote_ipc[0], CS( t2T_7936585 )},
+{"tun_remote_max", 0, 1024,(uint *)&vpn_total_remote_ip[0], CS( t2T_8186840 )},
+
+{"tap_remote_ip2" ,20, 0,(uint *)&vpn_first_remote_ipc[1], CS( t2T_7853064 )},
+{"tap_remote_max", 0, 1024,(uint *)&vpn_total_remote_ip[1], CS( t2T_8097903 )},
+
+
+{0,0,0,0, CS( t2T_1039342 )},
+
+{"vpnclient",3,FL3_VPN_CLIENT,(uint *)0, CS( t2T_3647717  )},
+{"vpn_remote_host",512, 0,(uint *)&vpn_remote_host, CS( t2T_6407430 )},
+{"vpn_remote_user",32, 0,(uint *)&vpn_user, CS( t2T_4550693 )},
+{"vpn_remote_passw",32, 0,(uint *)&vpn_passw, CS( t2T_5067174 )},
+
+{"vpncln_tap",3, FL3_TAP_CLIENT, (uint *)0, CS( t2T_3867597  )},
+
+{"vpn_tuntap_number",0,1024,(uint *)&tuntap_number[2], CS( t2T_7581972 )},
+{"tuntap_ip" ,32,0,(uint *)&tuntap_ipv4[2], CS( t2T_4130456 )},
+{"tuntap_nmask" ,32,0,(uint *)&tuntap_ipv4nmask[2], CS( t2T_6268646 )},
+{"vpncln_script_up" ,255,0,(uint *)&vpn_scripts_up[2], CS( t2T_7330605 )},
+{"vpncln_script_down" ,255,0,(uint *)&vpn_scripts_down[2], CS( t2T_8671725 )},
+
+
+#endif // TLSVPN
+
+#endif //V_FULL
 #ifndef FREEVER
 
 {"registr_user",128,0,(uint *)&user_name,0},

@@ -38,7 +38,7 @@ G=  -g  -Os
 OPT= -pipe  \
   -fno-stack-protector -fno-stack-check -fno-verbose-asm -fno-nonansi-builtins -fno-access-control  -fno-optional-diags -momit-leaf-frame-pointer\
  -DUSE_IPV6 -DUSE_FUTEX -DUSE_POOL -fno-exceptions  -Wno-deprecated -Wno-address-of-packed-member -fno-bounds-check -fno-tree-bit-ccp -fno-builtin -mno-red-zone -DFREEVER  -DWITHMD5 -DFIX_EXCEPT \
-  -DUSEVALIST -DSEPLOG $(ADVOPT)
+  -DUSEVALIST -DSEPLOG $(ADVOPT) -DVPN_LINUX -DTLSVPN
 
 #-fdelete-null-pointer-checks  -fdelayed-branch  -fdelete-dead-exceptions
 # -fnobounds-check
@@ -163,8 +163,8 @@ LIB64u=  -ldl -lpthread  -lc -lc_nonshared
 #LIB64= -lpthread -ldl -lc -lc_nonshared
 
 
-COBJS= o/to_linux.o o/bvprintfv.o
-COBJS64= o64/to_linux.o
+COBJS= o/to_linux.o o/bvprintfv.o o/vpn.o
+COBJS64= o64/to_linux.o o64/vpn.o
 
 AOBJS=mstring1.o srv0a.o srv_ssi.o srv_cgi.o req.o accept.o adminr.o restart.o proxy.o musers.o conf.o t2icfg.o stat.o icfgjs.o ftpd.o smptps.o smtpcl.o mailip.o dnsd.o tlsm.o gz.o dhcpd.o wmbx.o md5.o msprintfchk.o fcgi.o
 
@@ -340,7 +340,7 @@ o/1.x: /dev/shm/shttps/o/1.x
 
 /dev/shm/shttps/o/1.x :
 	mkdir -p /dev/shm/shttps/o ; mkdir -p /dev/shm/shttps/o64 ; mkdir -p /dev/shm/shttps/wo ; mkdir -p /dev/shm/shttps/arm ; echo 1 >$@
-	mkdir -p  o/dist o/adist/ o64/dist o64/distu 
+	mkdir -p  o/dist o/adist/ o64/dist o64/distu o/of o64/of
 	mkdir -p  o/dist/langpacks/en o/adist/langpacks/en o64/dist/langpacks/en o64/distu/langpacks/en 
 	mkdir -p  o/dist/langpacks/ru o/adist/langpacks/ru o64/dist/langpacks/ru o64/distu/langpacks/ru 
 

@@ -86,30 +86,31 @@ void MD5UpdateL(MD5_CTX *c, char *u)
 };
 
 
-void ConvPwdMD5L4(ulong *t4,char *u,char *pas)
+
+
+void ConvPwdMD5L4(uint *t4,char *u,char *pas, char *realmm)
 {
   MD5_CTX context;
 
   MD5Init (&context);
   MD5UpdateL (&context, u);
   MD5Update(&context,(uchar *) ":", 1);
-  MD5UpdateL (&context, realm);
+  MD5UpdateL (&context, realmm);
   MD5Update(&context,(uchar *) ":", 1);
   MD5UpdateL (&context, pas);
   MD5Final ((uchar *)t4, &context);     
-    
 }
 
 char* ConvPwdMD5(char *t,char *u,char *pas)
 {
-  ulong dgt[6]      ;
+  uint dgt[6]      ;
   ConvPwdMD5L4(dgt,u,pas);
   return t+=sprintf(t,"~%8.8X.%8.8X.%8.8X.%8.8X",dgt[0],dgt[1],dgt[2],dgt[3]);  
 }
 
 int IsPwdMD5C(char *p, char *pas,char *u)
 {  
-  ulong dgt[6]      ;
+  uint dgt[6]      ;
   int i;
   ConvPwdMD5L4(dgt,u,pas);
   p++;
@@ -139,21 +140,7 @@ const char *digetvars[]=
   "cnonce",
   "response",
   "opaque",
-  0  
-#define digtVar_username  0
-#define digtVar_nonce     1 
-#define digtVar_uri       2
-#define digtVar_qop     3
-#define digtVar_nc      4
-#define digtVar_cnonce  5
-#define digtVar_response 6
-#define digtVar_opaque   7
-  
-#define  DIGT_MIN_REQUIRED (\
-          (1<<digtVar_username)  | \
-          (1<<digtVar_nonce   )  | \
-          (1<<digtVar_uri     )  | \
-          (1<<digtVar_response)  )
+  0
 };
 
 void CvtHex(uint  *cd, char * Hex    )
@@ -172,25 +159,30 @@ void CvtHex(uint  *cd, char * Hex    )
    );
 }
 
-int IsPwdAPOP(char *pas,char *dgst,char *s,int ssize)
+void GenAPOP_dgst(char *pas,char *dgst,char *s,int ssize)
 {
   MD5_CTX context;
   uint dgt[6];
-  char dgHex[40];
 
   MD5Init (&context);
   MD5Update (&context, (uchar *)s, ssize);
   MD5UpdateL (&context, pas);
   MD5Final ((uchar *)dgt, &context);
-  CvtHex(dgt,dgHex);
+}
+
+int IsPwdAPOP(char *pas,char *dgst,char *s,int ssize)
+{
+  char dgHex[40];
+  GenAPOP_dgst(pas,dgHex,s,ssize);
   return ! strcmp(dgHex,dgst);
 }
 
-int IsPwdMD5D(char **dgv, uint *HA1,char *method)
-{  
+
+void CalkPwdMD5D(char **dgv, uint *HA1,char *method, char *HA2Hex)
+{
   uint HA2[6]      ;
 //  ulong rt2[6]      ;
-  char HA2Hex[40]      ;
+ // char HA2Hex[40]      ;
   char HA1Hex[40]      ;
 //  char rez[40]      ;
 #define rt2 HA2
@@ -225,15 +217,22 @@ int IsPwdMD5D(char **dgv, uint *HA1,char *method)
   MD5Update(&context,(uchar *) HA2Hex, 32);
   MD5Final ((uchar *)rt2, &context);     
   CvtHex(rt2, rez);
+  
+}
+
+int IsPwdMD5D(char **dgv, uint *HA1,char *method)
+{
+  char HA2Hex[40];
+  CalkPwdMD5D(dgv, HA1, method, HA2Hex);
+  
 //  debug("MD5 cmp:%s<>%s|  %s",rez,dgv[digtVar_response],HA1Hex);
-  return !strcmp(rez,dgv[digtVar_response]) ;
+  return !strcmp(HA2Hex,dgv[digtVar_response]) ;
 #undef rez  
 #undef rt2  
 }
-
-int IsPwdMD5DD(char **dgv, char *u,char *pwd,char *method)
+/*
+void CalkHA1(char *u,char *pwd, uchar *HA1)
 {
-  uint HA1[6]      ;
   MD5_CTX context;
 // calk HA1
   MD5Init (&context);
@@ -242,9 +241,16 @@ int IsPwdMD5DD(char **dgv, char *u,char *pwd,char *method)
   MD5UpdateL(&context, realm);
   MD5Update(&context,(uchar *) ":", 1);
   MD5UpdateL(&context, pwd);
-  MD5Final ((uchar *)HA1, &context);     
-  return IsPwdMD5D(dgv, HA1,method);
+  MD5Final ((uchar *)HA1, &context);
+}
+*/
+int IsPwdMD5DD(char **dgv, char *u,char *pwd,char *method)
+{
+  uint HA1[6];
+  ConvPwdMD5L4(HA1, u, pwd);
 
+  //CalkHA1(u, pwd, (uchar *)HA1);
+  return IsPwdMD5D(dgv, HA1,method);
 }
 
 #endif

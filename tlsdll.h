@@ -51,28 +51,35 @@ int SecAccept(OpenSSLConnection *s);
 int SecRecv  (OpenSSLConnection *s,char *b,int l);
 int SecSend  (OpenSSLConnection *s,char *b,int l);
 int SecClose (OpenSSLConnection *s);
+int SecConnect(OpenSSLConnection *s, int anon, char *verfyhost);
 #else
 
 extern int (*PInitLib)( TFprintf prnt,TFtransfer fsend,TFtransfer frecv,
          char *CApath,char *CAfile, char * s_cert_file,char * s_key_file);
 extern int (*PSecAccept)(OpenSSLConnection *s);
+extern int (*PSecConnect)(OpenSSLConnection *s, int anon, char *verfyhost);
 extern int (*PSecRecv  )(OpenSSLConnection *s,char *b,int l);
 extern int (*PSecSend  )(OpenSSLConnection *s,char *b,int l);
 extern int (*PSecClose )(OpenSSLConnection *s);
+extern int (*PSecUpdateCB )(OpenSSLConnection *s);
 
 typedef int (*TSecAccept)(OpenSSLConnection *s);
+typedef int (*TSecConnect)(OpenSSLConnection *s, int anon, char *verfyhost);
 typedef int (*TSecRecv  )(OpenSSLConnection *s,char *b,int l);
 typedef int (*TSecSend  )(OpenSSLConnection *s,char *b,int l);
 typedef int (*TSecClose )(OpenSSLConnection *s);
+typedef int (*TSecUpdateCB)(OpenSSLConnection *s);
 typedef int (*TSetPriority )(char *s);
 typedef int (*TInitLib  )( TFprintf prnt,TFtransfer fsend,TFtransfer frecv,
   char *CApath,char *CAfile, char * s_cert_file,char * s_key_file);
 
 
 #define  SecAccept (PSecAccept)
+#define  SecConnect (PSecConnect)
 #define  SecRecv   (PSecRecv  )
 #define  SecSend   (PSecSend  )
 #define  SecClose  (PSecClose )
+#define  SecUpdateCB  (PSecUpdateCB )
 #define  InitLib   (PInitLib  )
 
 #endif

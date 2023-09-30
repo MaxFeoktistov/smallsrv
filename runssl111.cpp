@@ -39,10 +39,8 @@ int DllMainCRTStartup(
 
 }
 #include <sys/types.h>
-//#include <ctype.h>
 #define inline  _cdecl
 #define MINGWDLL
-//#include "mstring1.h"
 #include "mstring1.cpp"
 #undef inline
 void *  memmove(void *_s1, const void *_s2, size_t _n)
@@ -73,12 +71,6 @@ void *  memmove(void *_s1, const void *_s2, size_t _n)
 
 
 #include <openssl/e_os2.h>
-/*
-typedef unsigned int u_int;
-#include <openssl/lhash.h>
-#include <openssl/bn.h>
-#include <openssl/err.h>
-*/
 #include <openssl/pem.h>
 #include <openssl/x509.h>
 #include <openssl/ssl.h>
@@ -90,6 +82,13 @@ typedef unsigned int u_int;
 
 
 
+ 
+#define  tbtAccept  0x2
+#define  tbtAnon    0x1
+#define  tbtVerfyRequired 0x4
+#define  tbtDontVerfyTyme 0x8
+#define  tbtDontVerfySigner 0x10
+
 
 
 //#pragma GCC diagnostic ignored "-Wstrict-prototypes"
@@ -100,7 +99,7 @@ typedef unsigned int u_int;
 #pragma GCC diagnostic ignored "-Wformat-extra-args"
 #pragma GCC diagnostic ignored "-Wunused-result"
 #pragma GCC diagnostic ignored "-Wwrite-strings"
-
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
 #ifdef __cplusplus
 extern "C"{
@@ -150,8 +149,9 @@ void  MDebugFnc1(const char*t,const char *f,int l,ulong p,int n)
 
 void _cdecl DebugPrintFnc(char *a,...) ;
 
-#define  DBG_STEP() 
+//#define  DBG_STEP() 
 //DebugFnc("runssl",__LINE__);
+
 
 // int CRYPTO_set_mem_ex_functions(void *(*m) (size_t, const char *, int),
 //                                 void *(*r) (void *, size_t, const char *,
@@ -301,6 +301,9 @@ void _cdecl DebugPrintFnc(char *a,...)
 #else
 
 #define  DBG_STEP()
+#define  DBG_STEPA(a,b...)
+//#define  DBG_STEP() printf("SSLDBG:%s:%u\r\n", __func__, __LINE__ ); 
+//#define  DBG_STEPA(a,b...) printf("SSLDBG:%s:%u " a " \r\n", __func__, __LINE__, b ); 
 
 #endif
 
@@ -324,6 +327,7 @@ struct OpenSSLConnection
 static int XNullFunc(char * x,...){return 0;};
 static TFprintf Fprintf=XNullFunc;
 static SSL_CTX *ctx;
+static SSL_CTX *clctx;
 
 char FMT[]="%s";
 #define  BIO_printf(a,b...) (Fprintf)(b)
@@ -511,25 +515,6 @@ static int generate_session_id(const SSL *ssl, unsigned char *id,
                         unsigned int *id_len)
 {
  mRAND_bytes(id,*id_len);
-#if 0
- unsigned int i,tk,o;
- ulong *a;
-
- a=(ulong *)&ssl;
- o=tk=GetTickCount();
- for(i=*id_len;i>4;++i)
- {--i;
-  id[i]=(tk>>(i&7))+(a[1]*a[2]);
-  if(o&1) id[i]^=a[0];
-  if(o&2) id[i]^=~tk>>12;
-  if(o&4) id[i]+=~tk>>20;
-  o=id[i]^i;
- }
-
- DWORD_PTR(*id)=++session_id_cntr^(tk<<8);
-// memcpy(id, session_id_prefix,  (strlen(session_id_prefix) < *id_len) ? strlen(session_id_prefix) : *id_len);
-#endif
-
  return 1;
 }
 
@@ -728,6 +713,7 @@ int OsslErrCb(const char *str, size_t len, void *u)
 {
     
     (Fprintf)("OpenSSL:%.128s",(str)?str:"null");
+    DBG_STEPA( "%s", (str)?str:"null" )
 //    if(len && str)_hwrite(hstdout,str,len);
     return len;
     
@@ -777,6 +763,10 @@ int InitLib( TFprintf prnt,TFtransfer fsend,TFtransfer frecv,char *lCApath,char 
      (prnt)("Cant set mem functions\r\n");   
   }
   */
+  SSL_load_error_strings();
+  ERR_load_crypto_strings();
+  ERR_print_errors_cb(OsslErrCb, 0);
+        
   srv_meth = BIO_meth_new(BIO_TYPE_CIPHER, "Server");
   if(!srv_meth)
   {
@@ -807,7 +797,6 @@ int InitLib( TFprintf prnt,TFtransfer fsend,TFtransfer frecv,char *lCApath,char 
 #endif
 
 #endif 
-  ERR_print_errors_cb(OsslErrCb, 0);
  
 ///! 
  OpenSSL_add_ssl_algorithms();
@@ -828,54 +817,6 @@ int InitLib( TFprintf prnt,TFtransfer fsend,TFtransfer frecv,char *lCApath,char 
  s_cert_file  =ls_cert_file;
  s_key_file   =ls_key_file ;
  REinitCTX();
-#if 0 
- SSL_CTX_set_quiet_shutdown(ctx,1);
- DBG_STEP()
-// SSL_CTX_set_options(ctx,0);
- SSL_CTX_set_options(ctx,SSL_OP_ALL|SSL_OP_CIPHER_SERVER_PREFERENCE); //SSL_OP_NO_TLSv1
- SSL_CTX_set_cipher_list(ctx,"ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-RSA-AES256-SHA384:ALL:!DES:!3DES:!RC2");
- DBG_STEP()
-// SSL_CTX_sess_set_cache_size(ctx,512);
-// SSL_CTX_sess_set_cache_size(ctx,0);
- SSL_CTX_set_session_cache_mode(ctx,SSL_SESS_CACHE_OFF);
- 
- DBG_STEP()
-
-//*
- if ( CApath && CApath[0] && (!SSL_CTX_load_verify_locations(ctx,CAfile,CApath)) 
-  //   ||  (!SSL_CTX_set_default_verify_paths(ctx))
-  )
-    {
-      DBG_STEP()  
-//     BIO_printf(bio_err,"X509_load_verify_locations\n");
-     (prnt)("X509 load verify locations");
-     DBG_STEP()
-    }
-//*/
- X509_store = SSL_CTX_get_cert_store(ctx);
- DBG_STEP()
-// X509_STORE_set_flags(X509_store,0);// vflags);
- if (!set_cert_stuff(ctx,s_cert_file,s_key_file))
- {
-  Fprintf("OpenSSL error: Can't set certificates stuff");
-  return 0;
- }
-DBG_STEP()
-// SSL_CTX_set_generate_session_id(ctx, generate_session_id);
-/// set_cert_stuff(ctx,s_cert_file,s_key_file);
-
-DBG_STEP()
-// SSL_CTX_set_tmp_rsa_callback(ctx,tmp_rsa_cb);
-// SSL_CTX_set_verify(ctx,s_server_verify,verify_callback);
-// SSL_CTX_set_verify(ctx,1,verify_callback);
- SSL_CTX_set_session_id_context(ctx,(const unsigned char *)&s_server_session_id_context,
-            sizeof s_server_session_id_context);
-DBG_STEP()
- if (CAfile != NULL)
-   SSL_CTX_set_client_CA_list(ctx,SSL_load_client_CA_file(CAfile));
-DBG_STEP()
-end:;
-#endif
 
 
  return 1;
@@ -1040,7 +981,8 @@ struct tm *localtime_r(const time_t *timep, struct tm *result)
 
  typedef void (*sighandler_t)(int);                    
  sighandler_t signal(int signum, sighandler_t handler)
- { return 0; };                     
+ { return 0; };
+
  
  char* getenv(const char *name){return 0;};   
  DLLIMPORT int _cdecl isspace(int a){return (int) strchr(" \t\v\f\r\n",a); }
@@ -1099,13 +1041,6 @@ time_t __cdecl time(time_t* y)
 
 
 #endif
-// void   OPENSSL_cpuid_setup(){};
- 
- 
-//#undef ERR_print_errors
-// void ERR_print_errors(BIO *bp)
-// { (Fprintf)("OpenSSL error");}
-//#define ERR_print_errors(a) (Fprintf)("OpenSSL error")
 //*
 void ERR_put_error1(int lib, int func,int reason,const char *file,int line)
 { 
@@ -1123,6 +1058,33 @@ int shs_print_cb(const char *str, size_t len, void *bp)
 }                     
 #endif
 
+static int CommonPrepareCon(struct OpenSSLConnection *s, SSL_CTX *ct)
+{
+
+//  SSL_CTX_flush_sessions(ctx,time(0));
+  
+  if ((s->con=SSL_new(ct)) == NULL)
+  {
+   DBG_STEP()
+   return 0;
+  }
+  act_con_cnt++;
+  SSL_clear(s->con);
+  s->ssl_bio=BIO_new(BIO_f_ssl());
+#ifdef  OSSL111
+  s->sbio=BIO_new(srv_meth);
+  BIO_set_data(s->sbio,s->CallbackParam);
+  BIO_set_init(s->sbio, 1);
+#else  
+  s->sbio=BIO_new(&srv_meth);
+  s->sbio->ptr=s->CallbackParam;
+  s->sbio->init=1;
+  s->sbio->flags=0;
+#endif  
+  SSL_set_bio(s->con,s->sbio,s->sbio);
+  return 1;
+}
+
 int SecAccept(struct OpenSSLConnection *s)
 {
  // SSL_CIPHER *c;
@@ -1134,38 +1096,8 @@ int SecAccept(struct OpenSSLConnection *s)
     con_time[act_con_cnt]=time(0);
   }
 */
-  act_con_cnt++;
+  if(! CommonPrepareCon(s,ctx)) return 0;
 
-//  SSL_CTX_flush_sessions(ctx,time(0));
-  
-  if ((s->con=SSL_new(ctx)) == NULL)
-  {
-   DBG_STEP()  
-   return 0;
-  }
-  
-//  (Fprintf)("SSL Accept %X",s->con);
-  SSL_clear(s->con);
-   
-//  if(!(buf=malloc(BFRSIZE)))return(0);
-
-//  s->io=BIO_new(BIO_f_buffer());
-//  BIO_set_write_buffer_size(s->io,BFRSIZE);
-
-  s->ssl_bio=BIO_new(BIO_f_ssl());
-  
-#ifdef  OSSL111
-  s->sbio=BIO_new(srv_meth);
-  BIO_set_data(s->sbio,s->CallbackParam);
-  BIO_set_init(s->sbio, 1);
-#else  
-  s->sbio=BIO_new(&srv_meth);
-
-  s->sbio->ptr=s->CallbackParam;
-  s->sbio->init=1;
-  s->sbio->flags=0;
-#endif  
-  SSL_set_bio(s->con,s->sbio,s->sbio);
   SSL_set_accept_state(s->con);
   BIO_set_ssl(s->ssl_bio,s->con,BIO_CLOSE);
 #if 0  
@@ -1204,6 +1136,46 @@ int SecAccept(struct OpenSSLConnection *s)
   return 1;
 };
 
+
+int SecUpdateCB(OpenSSLConnection *s)
+{
+#ifdef  OSSL111
+  BIO_set_data(s->sbio,s->CallbackParam);
+#else  
+  s->sbio->ptr=s->CallbackParam;
+#endif  
+  return 1;
+};
+
+
+int SecConnect(struct OpenSSLConnection *s, int anon, char *verfyhost)
+{
+  int r;
+  if(!clctx) 
+  {
+    clctx = SSL_CTX_new(TLS_client_method());
+    if(!clctx) 
+    {
+      DBG_STEP()
+      return 0;
+    }
+    //if(cert_file)SSL_CTX_use_certificate_file(ctx, cert_file, SSL_FILETYPE_PEM);
+    set_cert_stuff(clctx,s_cert_file,s_key_file);
+  }
+  if(! CommonPrepareCon(s, clctx) ) return 0;
+  SSL_set_verify(s->con, (verfyhost) ? SSL_VERIFY_PEER: SSL_VERIFY_NONE, NULL);
+  if(verfyhost) SSL_set1_host(s->con, verfyhost);
+  BIO_set_ssl(s->ssl_bio,s->con,BIO_CLOSE);
+  if( (r = SSL_connect(s->con)) != 1 )
+  {
+    int e;
+    e = ERR_get_error();
+    Fprintf("OpenSSL error:%d %d %s %s\r\n", r, e, ERR_error_string(e, NULL), ERR_reason_error_string(e));
+    return 0;
+  }
+  return 1;
+}
+
 int SecRecv(struct OpenSSLConnection *s,char *b,int l)
 {
  DBG_STEP()
@@ -1219,9 +1191,9 @@ int SecClose(struct OpenSSLConnection *s)
 {
 // BIO_flush(s->io);
  
- DBG_STEP()   
  BIO_flush(s->ssl_bio);
- DBG_STEP()   
+ DBG_STEP()
+ 
  if(!SSL_get_current_cipher(s->con))
  {
    Fprintf("TLS no chipper. Reinit CTX need");  
@@ -1260,7 +1232,7 @@ int SecClose(struct OpenSSLConnection *s)
        }    
      }
  }    
- 
+ return 1;
 }
 
 

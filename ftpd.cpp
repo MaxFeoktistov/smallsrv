@@ -648,7 +648,7 @@ union{
    case 0x72657375 x4CHAR("user")://
     status&=~1;
     strncpy(cpath,bfr+5,32);
-    if( (! ( s_flgs[4] & FL4_FTP_ALWPASS ) ) && (puser=FindUser(cpath,UserFTP,0,this)))
+    if( (! ( s_flgs[3] & FL3_FTP_ALWPASS ) ) && (puser=FindUser(cpath,UserFTP,0,this)))
     {
       if( (t=puser->pasw()) && !*t)
       {

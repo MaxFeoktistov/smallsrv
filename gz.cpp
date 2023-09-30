@@ -597,6 +597,7 @@ void Req::GZEnd()
 {
  if(gz)
  {
+  DBGL("") 
   ((GZObj *)gz)->End();
   free(gz);
   gz=0;

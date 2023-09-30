@@ -408,10 +408,12 @@ int Req::SendSSIEx()
    i+=sizeof(gz_head)-2;
   }
   else fl&=~(F_GZ);
-  if( (s_flgs[2]&FL2_CHUNKED) && Snd!=&TLSSend && ! (fl&F_HTTP10) )
+  if( (s_flgs[2]&FL2_CHUNKED) && //Snd!=&TLSSend && 
+      ! (fl&F_HTTP10) )
   {
      bbf[7]='1';
-     i+=sprintf(bbf+i-2,"%sTransfer-Encoding: chunked\r\n\r\n",(KeepAlive)?"Connection: Keep-Alive\r\n":"" )-2;
+     i -= 2;
+     i+=sprintf(bbf+i, "%sTransfer-Encoding: chunked\r\n\r\n",(KeepAlive)?"Connection: Keep-Alive\r\n":"" );
 
     //debug("HTTP 1.1 %X %X",fl,(fl&F_HTTP10));
   }
@@ -425,7 +427,8 @@ int Req::SendSSIEx()
       
       err_ret("Connection reset by peer...");
   };
-  if( (s_flgs[2]&FL2_CHUNKED) && Snd!=&TLSSend && ! (fl&F_HTTP10) ) fl|=F_CHUNKED;
+  if( (s_flgs[2]&FL2_CHUNKED) && //Snd!=&TLSSend &&
+       ! (fl&F_HTTP10) ) fl|=F_CHUNKED;
  }
  if(gz)
  {Snd= GZSnd;

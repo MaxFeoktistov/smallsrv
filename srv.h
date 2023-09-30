@@ -34,6 +34,11 @@ void dbgf(char *er,int s);
 void xdie(char *);
 #define die(e) {xdie(e); return -1;}
 
+#define DBGLS(a)  debug("%s:%u:%s %s\r\n",__FILE__ , __LINE__, __func__, a);
+#define DBGL(a)  debug("%s:%u:%s " a "\r\n",__FILE__ , __LINE__, __func__ );
+#define DBGLA(a,b...)  debug("%s:%u:%s " a "\r\n",__FILE__ , __LINE__, __func__, b );
+
+
 #ifndef SYSUNIX
 
 #include "to_win.h"
@@ -57,6 +62,10 @@ extern "C"{
 #ifdef WITHMD5
 #include "md5.h"
 #endif
+#ifdef MINGW
+#undef fd_set 
+#define win_fd_set fd_set
+#endif    
 
 struct LogInfo ;
 struct MemList;
@@ -96,12 +105,23 @@ typedef unsigned int arh_ulong;
 
 struct Req
 {int s;
- char *loc, *rq;
+ tfSnd Snd;
+ tfRcv Rcv;
+ void *Adv;
+ #ifdef USE_IPV6
+ union{sockaddr_in6 sa_c6; sockaddr_in sa_c;};
+ #else
+ struct sockaddr_in sa_c;
+ #endif
+ ulong tmout;
+ time_t  KeepAliveExpired;
+ 
  union{
   uint fl;
   ushort flsrv[2];
  };
 #define F_POST 1
+#define F_KEEP_ALIVE  2
 #define F_PHP 4
 #define F_PERL 0x40
 #define F_EXE 0x20
@@ -117,6 +137,18 @@ struct Req
 #define F_ERROUTED 0x4000
 #define F_FCGI     0x8000
 
+
+#define F_VPNTUN     0x1000000
+#define F_VPNTAP     0x2000000
+#define F_VPNANY     0x3000000
+
+#define F_VPN_MACSET 0x20
+#define F_VPN_IPSET  0x40
+#define F_VPN_IP6SET  0x10
+#define F_VPN_IP6SET2  0x80
+
+ int  timout;
+ char *loc, *rq;
  ulong freqcnt;
 
  //char *req,*pst,*trn,**http_var,**req_var,*dir;
@@ -137,19 +169,14 @@ struct Req
   char **req_var;
   int  req_vari;
  };
+#ifdef SYSUNIX
+  struct stat *fileStat;
+#endif  
  char *dir;
- int dirlen, ntsk, postsize, timout;
+ int dirlen, ntsk, postsize;
  char *KeepAlive;
  int Tin,Tout;
- tfSnd Snd;
- tfRcv Rcv;
- void *Adv;
-#ifdef USE_IPV6
-union{sockaddr_in6 sa_c6; sockaddr_in sa_c;};
-#else
- struct sockaddr_in sa_c;
-#endif
- ulong tmout,bSpd;
+ ulong bSpd;
  union { void *gz; int  pass_port; };
  host_dir *vhdir;
  char inf[96];
@@ -178,7 +205,16 @@ union{sockaddr_in6 sa_c6; sockaddr_in sa_c;};
  int HttpReq();
  int TLSReq();
  int TReq();
- int TLSBegin(OpenSSLConnection *x);
+
+#define  tbtAccept  0x2
+#define  tbtAnon    0x1
+#define  tbtVerfyRequired 0x4
+#define  tbtDontVerfyTyme 0x8
+#define  tbtDontVerfySigner 0x10
+ 
+ int TLSBegin(OpenSSLConnection *x, int type=tbtAccept, char *verfyhost = 0);
+ //int TLSBeginClient(OpenSSLConnection *x, int anon);
+
  int IsInIPRange(int r){return IsInIPRR(r,&sa_c);};
  int RGetCMD(char *b);
  int HttpReturnError(char *err,int errcode=400);
@@ -259,11 +295,19 @@ union{sockaddr_in6 sa_c6; sockaddr_in sa_c;};
  int ChkFTPSec(FTPSecCon *);
  void OutErr(char *t);
 
- int  CallFCGI(char *name);
- int  DoFCGI(FCGI_task *fcgi);
-
-
+ int CallFCGI(char *name);
+ int DoFCGI(FCGI_task *fcgi);
+ int CheckEndChunked();
+ int InsertVPNclient();
 };
+
+extern fd_set KeepAliveSet;
+extern int keep_alive_max_fd;
+extern int maxKeepAlive;
+extern Req **KeepAliveList;
+extern int KeepAliveMutex;
+extern int KeepAliveCount;
+extern int TimeoutKeepAlive;
 
 
 #ifdef USE_IPV6
@@ -376,7 +420,19 @@ int FndLimit(int lst,LimitBase **ip, LimitBase **net, sockaddr_in *sa );
 
 #define FL3_FCGI_SI   0x00000001
 #define FL3_FCGI_PHP  0x00000002
-#define FL4_FTP_ALWPASS  0x00000004
+#define FL3_FTP_ALWPASS  0x00000004
+
+#define FL3_VPN_TUN     0x00000008
+#define FL3_VPN_TAP     0x00000010
+#define FL3_VPN_CLIENT  0x00000020
+#define FL3_TAP_CLIENT  0x00000040
+#define FL3_VPN_PUBLIC  0x00000080
+
+#define USE_TUN       (s_flgs[3] & FL3_VPN_TUN)
+#define USE_TAP       (s_flgs[3] & FL3_VPN_TAP)
+#define TAP_CLIENT    (s_flgs[3] & FL3_TAP_CLIENT)
+//#define TAP_SEPARATE  (s_flgs[3] & FL3_VPN_CL_SEP)
+
 
 //#define FL2_WMAILSENT   0x8000
 
@@ -455,6 +511,22 @@ struct User
 
 #endif
 
+extern const char *digetvars[];
+#define digtVar_username  0
+#define digtVar_nonce     1 
+#define digtVar_uri       2
+#define digtVar_qop     3
+#define digtVar_nc      4
+#define digtVar_cnonce  5
+#define digtVar_response 6
+#define digtVar_opaque   7
+  
+#define  DIGT_MIN_REQUIRED (\
+          (1<<digtVar_username)  | \
+          (1<<digtVar_nonce   )  | \
+          (1<<digtVar_uri     )  | \
+          (1<<digtVar_response)  )
+
 struct CfgParam
 {char *name;
  uint min,max,*v;
@@ -465,7 +537,7 @@ struct CfgParam
  int IsR();
 };
 
-void MyLock(volatile int &x);
+int MyLock(volatile int &x);
 #ifdef USE_FUTEX
 void MyUnlock(int &x);
 #else
@@ -498,8 +570,20 @@ void CloseServer();
 void CloseService();
 void StopSocket();
 
+int CrThreadFunc(TskSrv Fnc, Req *par);
 int CrThread(uint fnc);
 int FreeThreads();
+void AddKeepAlive(Req* preq);
+int TryToAddKeepAlive(Req *req);
+void RemoveKeepAlive(int i);
+int WINAPI KeepAliveWike(Req *preq);
+void FixMaxKeepAliveFD();
+void DeleteKeepAlive(Req* preq);
+// Function return -1, if removed anything, othervise index of oldest
+int RemoveExpired();
+void RemoveAndDelKeepAlive(int i);
+
+
 
 int CheckCode(uchar *bfr,uint i,uint j);
 int CheckDate(char *cmdline);
@@ -561,10 +645,20 @@ extern char *ext[22],*mime,*dns_file,**dns_nm,*primary_dns,*secondary_dns,
  *dnscachefile,*ns_name,*up_user,*ftp_upload,*up_proxy,*dynDNSserv,*dns_user,
  *antiv,*antispam,*smtproxy,*spamfltr,*dnsbl,*proxy_antivirus;
 
-extern ulong  s_flgs[4],count_dns,cgi_timeout;
+extern char *realm;
+extern char *charset;
+extern char *vpn_name;
+ 
+extern ulong  s_flgs[5],count_dns,cgi_timeout;
 extern u32 ip_cach[];
 extern User *userList;
 int IsPwd(ulong a,ulong b, char *pas);
+void GenAPOP_dgst(char *pas,char *dgst,char *s,int ssize);
+int IsPwdAPOP(char *pas,char *dgst,char *s,int ssize);
+void CalkPwdMD5D(char **dgv, uint *HA1,char *method, char *HA2Hex);
+//void CalkHA1(char *u,char *pwd, uchar *HA1);
+void ConvPwdMD5L4(uint *t4,char *u,char *pas, char *realmm=realm);
+
 ulong Rnd();
 
 void ShowProt();
@@ -582,8 +676,7 @@ int LogAn(char *ls,int c);
 void DelSpace(char *s);
 void DelSpaceRe(char *s);
 int IsSeq(char *p);
-
-
+int SecConnectAbcent(OpenSSLConnection *s, int anon, char *);
 
 int call_socket(char *hostname, int portnum);
 int call_socket2(char *hostname, int portnum);
@@ -660,6 +753,8 @@ extern char  *bind_a[MAX_SERV];
 #define   SRV_SDNST_MSK      (1<<SRV_SDNST)
 #define   SRV_DHCPD_MSK      (1<<SRV_DHCPD)
 
+#define  CONID_KEEPALIVE_MASK 0x100000
+#define  CONID_VPN_MASK 0x200000
 
 extern char *user_name,NullString[],about[],*wkday[],*month[],
  *CApath,*CAfile,*s_cert_file,*s_key_file,*TLSLibrary,*loc_sent,*loc_draft,*loc_trash,*tls_priority;
@@ -681,6 +776,7 @@ char* CheckBadName(char *in_buf);
 int IsCGI(char *bb,int j=5);
 char *GetVar(char **varlist,char *var);
 char *GetVarS(char **varlist,char *var);
+char *PrFinVar(char *s,const char *v);
 #define HTMLOutBottom OutBaner
 int IsInIPRange(int lst,ulong ip);
 StatLog *ParseFile(char *log,char *b=0);
@@ -810,8 +906,7 @@ extern char *tel_cmd;
 int LoadLangCfg(char *fname);
 
 
-extern char *realm;
-extern char *charset;
+
 #define CRLF  "\r\n"
 
 struct CntrCode{
@@ -878,15 +973,23 @@ void Lvdebug(const char *a,  mva_list v);
 
 extern TLog gLog;
 
-#ifdef TELNET
-
-#define N_LOG  11
-#define CGI_ERR_LOG 10
-
+#ifdef TLSVPN
+#define VPN_N_LOG 1
 #else
-#define N_LOG  10
+#define VPN_N_LOG 0
+#endif
+
+#ifdef TELNET
+#define TELNET_N_LOG  1
+#define CGI_ERR_LOG 10
+#else
+#define TELNET_N_LOG  0
 #define CGI_ERR_LOG 6
 #endif
+
+#define N_LOG  (10 + TELNET_N_LOG + VPN_N_LOG)
+#define VPN_LOG (10 + TELNET_N_LOG)
+
 extern TLog *sepLog[N_LOG];
 extern TLog  *shown_log;
 
@@ -1046,7 +1149,6 @@ void RelProt();
 char* CopyBB(char *y,char *t);
 
 extern uint  dns_dos_limit;
-
 
 
 #endif

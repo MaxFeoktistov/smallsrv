@@ -27,6 +27,10 @@
 #include "srv.h"
 #endif
 
+#ifdef TLSVPN 
+#include "vpn.h"
+#endif
+
 
 #ifndef CD_VER
 
@@ -284,23 +288,108 @@ void HTMLOutTop(int s)
 //#define LF "\n"
 
 
+struct sOutLine
+{
+  Req *th;
+  char *bfr;
+  int i,j,k;
+  int OutConnLine(Req *r, char *alt_text);
+};
+
+int sOutLine::OutConnLine(Req *r, char *alt_text)
+{
+  #ifdef USE_IPV6
+  union{ struct sockaddr_in  san;  struct sockaddr_in6 san6;};
+  char   xs[64];
+  #else
+  struct sockaddr_in  san;
+  #endif
+  int ll,l; //=sizeof(sockaddr_in);
+  char *t1;
+  CntrCode  *cc;
+  char contry[8];
+  
+  
+  #ifdef USE_IPV6
+    l=sizeof(sockaddr_in6);
+    IP2S(xs, &(r->sa_c));
+  #else
+    l=sizeof(sockaddr);
+  #endif
+  if(getsockname(r->s,(sockaddr *)&san,&l)) return j;
+  san.sin_port=htons((ushort)san.sin_port);
+  /*
+   * if( (soc_port[0]==san.sin_port || soc_port[1]==san.sin_port) &&
+   *   DWORD_PTR(r->inf[0])!=0x544345 x4CHAR("ECT") &&
+   *   (t1=strchr(r->inf+1,' '))
+   * )*t1=0; */
+  contry[0]=0;
+  if(cntr_dat)
+  {
+    if( (cc=FindCntr(htonl(r->sa_c.sin_addr.s_addr) ) ) )
+    {
+      sprintf(contry," (%2.2s)",cc->nm);   
+    }
+  }
+  // Dont_fix_var
+  j+=sprintf(bfr+j,"<tr valign=center><td><font size=2 class=f2>%u) <b>"
+  #ifdef USE_IPV6
+  "%s"
+  #else
+  "%u.%u.%u.%u"
+  #endif
+  // Dont_fix_var
+  "%s</td><td align=center><font size=2 class=f2><b>%u</b></font>"
+  "</td><td align=left><font size=2 class=f2>%d</font>"
+  "</td><td align=left><font size=2 class=f2>%u / %u</font>"
+  "</td><td align=left><font size=2 class=f2>%s..</font>"
+  "</td><td align=left bgcolor=#ff8040><font size=2 class=f2>"
+  "<form method=GET action=/$_admin_$break>"
+  "<input type=hidden name=n value=%u>"
+  "<input type=hidden name=t value=%u>"
+  "<input type=%s value=Break>"
+  "</form></font>"
+  "</td></tr>" HTML_LN
+  , k++,
+#ifdef USE_IPV6
+  xs,
+#else
+#ifndef SYSUNIX
+  r->sa_c.sin_addr.S_un.S_un_b.s_b1,  r->sa_c.sin_addr.S_un.S_un_b.s_b2,
+  r->sa_c.sin_addr.S_un.S_un_b.s_b3,  r->sa_c.sin_addr.S_un.S_un_b.s_b4,
+#else
+  r->sa_c.sin_addr.s_addr&0xFF ,  BYTE_PTR(r->sa_c.sin_addr.s_addr,1),
+             BYTE_PTR(r->sa_c.sin_addr.s_addr,2),BYTE_PTR(r->sa_c.sin_addr.s_addr,3),
+#endif
+#endif
+             contry,           
+             (ushort)san.sin_port,
+             GetTickCount()-r->tmout, //[i],
+             r->Tin,r->Tout, (alt_text)? alt_text : r->inf,i,r->tmout //[i]
+             ,(s_flg&FL_RADMIN)?"submit":"hidden"
+  );
+  if(j>0x4000)
+  {if(th->Send(bfr,j)<=0)
+    {no_close_req=0;
+      return -1;
+    }
+    j=0;
+  }
+  
+ return j;
+ 
+}
+
 int Req::OutActualConn(char *bfr)
 {
 #ifndef CD_VER
- int i,j,sx,k;
+ //int i,oline.j,sx,k;
 // struct sockaddr_in sa;
-#ifdef USE_IPV6
- union{ struct sockaddr_in  san;  struct sockaddr_in6 san6;};
- char   xs[64];
-#else
- struct sockaddr_in  san;
-#endif
- int ll,l; //=sizeof(sockaddr_in);
- char *t1;
- CntrCode  *cc;
- char contry[8];
-
- j=sprintf(bfr,          
+ sOutLine oline;
+ oline.th = this;
+ oline.bfr = bfr;
+ 
+ oline.j=sprintf(bfr,          
    "<h2>Now connected:</h2>"
    "<table bgcolor=#cffce0 border=1>"
    "<tr bgcolor=#a0eef8><td align=center><font size=3 class=f3><b>"
@@ -310,81 +399,44 @@ int Req::OutActualConn(char *bfr)
    "</td><td align=left><font size=2 class=f2>in/out (bytes)</font>"
    "</td><td align=left><font size=2 class=f2>info</font>"
    "</td><td align=left><font size=2 class=f2> &nbsp;</font>"
-   "</td></tr>" HTML_LN );
+   "</td></tr>"  HTML_LN );
  Req *r;
  ++no_close_req;
- k=0;
- for(i=0;i<max_tsk;++i)if( ((u_long)(r=rreq[i]))>1 )//tmout[i])
- { l=sizeof(
-#ifdef USE_IPV6
-   sockaddr_in6);
-   IP2S(xs,&(r->sa_c));
-#else
-   sockaddr);
-#endif
-   if(getsockname(r->s,(sockaddr *)&san,&l)) continue;
-   san.sin_port=htons((ushort)san.sin_port);
-   /*
-   if( (soc_port[0]==san.sin_port || soc_port[1]==san.sin_port) &&
-     DWORD_PTR(r->inf[0])!=0x544345 x4CHAR("ECT") &&
-     (t1=strchr(r->inf+1,' '))
-   )*t1=0; */
-    contry[0]=0;
-    if(cntr_dat)
-    {
-      if( (cc=FindCntr(htonl(r->sa_c.sin_addr.s_addr) ) ) )
-      {
-         sprintf(contry," (%2.2s)",cc->nm);   
-      }
-    }
-// Dont_fix_var
-   j+=sprintf(bfr+j,"<tr valign=center><td><font size=2 class=f2>%u) <b>"
-#ifdef USE_IPV6
-   "%s"
-#else
-   "%u.%u.%u.%u"
-#endif
-// Dont_fix_var
-   "%s</td><td align=center><font size=2 class=f2><b>%u</b></font>"
-   "</td><td align=left><font size=2 class=f2>%d</font>"
-   "</td><td align=left><font size=2 class=f2>%u / %u</font>"
-   "</td><td align=left><font size=2 class=f2>%s..</font>"
-   "</td><td align=left bgcolor=#ff8040><font size=2 class=f2>"
-    "<form method=GET action=/$_admin_$break>"
-      "<input type=hidden name=n value=%u>"
-      "<input type=hidden name=t value=%u>"
-      "<input type=%s value=Break>"
-    "</form></font>"
-   "</td></tr>" HTML_LN
-   ,++k,
-#ifdef USE_IPV6
-   xs,
-#else
-#ifndef SYSUNIX
-   r->sa_c.sin_addr.S_un.S_un_b.s_b1,  r->sa_c.sin_addr.S_un.S_un_b.s_b2,
-   r->sa_c.sin_addr.S_un.S_un_b.s_b3,  r->sa_c.sin_addr.S_un.S_un_b.s_b4,
-#else
-   r->sa_c.sin_addr.s_addr&0xFF ,  BYTE_PTR(r->sa_c.sin_addr.s_addr,1),
-   BYTE_PTR(r->sa_c.sin_addr.s_addr,2),BYTE_PTR(r->sa_c.sin_addr.s_addr,3),
-#endif
-#endif
-   contry,           
-   (ushort)san.sin_port,
-     GetTickCount()-r->tmout, //[i],
-     r->Tin,r->Tout,r->inf,i,r->tmout //[i]
-     ,(s_flg&FL_RADMIN)?"submit":"hidden"
-   );
-   if(j>0x4000)
-   {if(send(s,bfr,j,0)<=0)
-    {no_close_req=0;
-     return -1;
-    }
-    j=0;
+ oline.k=0;
+ for(oline.i=0; oline.i<max_tsk; ++oline.i)
+   if( ((u_long)(r=rreq[oline.i]))>1 )
+     if(oline.OutConnLine(r, 0)<0) return -1;
+ 
+ if(KeepAliveList)
+ {
+   MyLock(KeepAliveMutex);
+   for(int i=0; i<KeepAliveCount; i++)
+   {
+     oline.i = i | CONID_KEEPALIVE_MASK;
+     if(oline.OutConnLine( KeepAliveList[i],  "Keep-Alive Sleep" )<0)
+     {
+       MyUnlock(KeepAliveMutex);
+       return -1;
+     }
+   }
+   MyUnlock(KeepAliveMutex);
+ }
+#ifdef TLSVPN 
+ if(vpn_count)
+ {
+   for(int i=0; i<vpn_count; i++)
+   {
+     oline.i = i | CONID_VPN_MASK;
+     if(oline.OutConnLine( vpn_list[i],  "TLS VPN" )<0)
+     {
+       return -1;
+     }
    }
  }
+#endif 
  --no_close_req;
- j+=sprintf(bfr+j, "</table><hr>");
- if(send(s,bfr,j,0)<=0)return -1;
+ oline.j+=sprintf(bfr+oline.j, "</table><hr>");
+ if(send(s,bfr,oline.j,0)<=0)return -1;
 #endif
  return 0;
 #undef san

@@ -75,7 +75,8 @@ void WINAPI NThandler(DWORD fdwControl)
 #ifdef USE_FUTEX
 const  struct timespec timeout_50ms={0,50000000};
 #endif
-void MyLock(volatile int &x){int a=(int) GetCurrentThreadId();
+int MyLock(volatile int &x){int a=(int) GetCurrentThreadId();
+   if(a == x) return 0;
    int dead_lock_chk=128;
 #if 1
 #ifdef SYSUNIX
@@ -114,6 +115,7 @@ void MyLock(volatile int &x){int a=(int) GetCurrentThreadId();
  }
  ex2:;
 #endif
+  return 1;
 }
 
 void MyUnlockOwn(volatile int &x){
@@ -123,7 +125,7 @@ void MyUnlockOwn(volatile int &x){
 #ifdef USE_FUTEX
       futex((int *)&x,FUTEX_WAKE,1,0,0,0);  
 #endif    
-  }    
+  }
 }
 
 #ifndef SYSUNIX
@@ -368,6 +370,16 @@ void CloseServer()
 // SaveDNS();
 #endif
  CloseFCGI_tasks();
+ if(KeepAliveList) 
+ {
+   MyLock(KeepAliveMutex);
+   for(i=0; i<KeepAliveCount; i++ )
+   {
+     DeleteKeepAlive(KeepAliveList[i]);
+   }
+   KeepAliveCount=0;
+   MyUnlock(KeepAliveMutex);
+ }
 
  CloseService();
  StopSocket();
@@ -644,7 +656,10 @@ extern "C" int RMain(void *)
 
 
  while(GetMessage( &msg, NULL, 0, 0 ))
- {if( ( (!dwnd2) || !IsDialogMessage(dwnd2,&msg) ) )
+ {
+#if ! defined(FREEVER)
+  if( ( (!dwnd2) || !IsDialogMessage(dwnd2,&msg) ) )
+#endif    
   {if( dwndc && IsDialogMessage(dwndc,&msg) )
    {
     if(msg.message!=WM_KEYDOWN)continue;

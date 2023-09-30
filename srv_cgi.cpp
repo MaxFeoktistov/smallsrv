@@ -31,7 +31,8 @@
 #define send(a,b,c,d)  SendChk(b,c)
 #define recv(a,b,c,d)  Recv(b,c)
 
-#define DBG()
+#define DBG() 
+//DBGL("")
 // debug("D %d", __LINE__ )
 #if defined(ANDROID) || defined(AT_ARM)
 #define __environ environ
@@ -43,7 +44,11 @@
 #define PDBG(a,b...) 
 //printf(" %d " a "\n", __LINE__ ,b);
  //sprintf(einf, " %d " a , __LINE__ ,b);
-#define DBGL(a...) debug(a) 
+//#define DBGL(a...) debug(a) 
+
+const char ChunkedHead[] = "HTTP/1.1 200 \r\n"
+                           "Connection: Keep-Alive\r\n"
+                           "Transfer-Encoding: chunked\r\n";
 
 int Req::SendChk(const char *b,int l)
 {
@@ -425,56 +430,81 @@ hwr,hwre
         ReadFile(hrd,p,l,(ulong *)&l,0);
 //        debug("Read done: list %d %d",l,GetLastError());
         if( !ll )
-        {ll=sizeof("HTTP/1.0 200 \r\n")-1;
-         tt=0;
-         if(strinnc(p,(char *)"Status: ")){p+=8; l-=8; ll=9; t="HTTP/1.0 ";}
-//         else t=( (stristr(p-1,(char *)"\nLocation:"))?(char *)"HTTP/1.0 301\r\n"
-         else if(StrVar(p,"Location"))  t=(char *)"HTTP/1.0 301 \r\n";
-         else
-         {t=(char *)"HTTP/1.0 200 \r\n";
-          if(loc==error_file)t=(char *)"HTTP/1.0 404 \r\n";
-          if((fl&F_GZ) && (!(fl&F_SKIPHEAD))
-             &&
-             (
-              (t1=strstr(p,"\r\n\r\n"))
-              || (t1=strstr(p,"\n\n"))
-             )  && Snd != GZSnd
-             && (!stristr(p,"Content-Length"))
-             && (stristr(p,"Content-type: text"))) IGZP();
-         }
-         if( send(s,t,ll,0)<0 )goto tp;
-         if(gz && t1 && !(fl&F_SKIPHEAD))
-         {send(s,p,i=t1-p+1+(*t1=='\r'),0);
-          send(s,(char *)gz_head,sizeof(gz_head),0);
-          i+=1+(*t1=='\r');
-          if(i<l)memcpy(p,p+i,l-=i);
-          else l=0;
-          Snd= GZSnd;
-         }
+        {
+          ll=sizeof("HTTP/1.0 200 \r\n")-1;
+          tt=0;
+          if(strinnc(p,(char *)"Status: ")){p+=8; l-=8; ll=9; t="HTTP/1.0 ";}
+          //         else t=( (stristr(p-1,(char *)"\nLocation:"))?(char *)"HTTP/1.0 301\r\n"
+          else if(StrVar(p,"Location"))  t=(char *)"HTTP/1.0 301 \r\n";
+          else
+          {
+            t=(char *)"HTTP/1.0 200 \r\n";
+            t1=strstr(p,"\r\n\r\n");
+            if(!t1) t1=strstr(p,"\n\n");
+            
+            if(loc==error_file) t=(char *)"HTTP/1.0 404 \r\n";
+            else if( (!(fl&F_SKIPHEAD)) && 
+              (!stristr(p,"Content-Length")) && 
+              (stristr(p,"Content-type: text")) && t1
+            )
+            {
+              if( (fl&F_GZ) 
+                && Snd != GZSnd 
+              )
+              {
+                DBG();
+                IGZP();
+                DBG();
+              }
+              else if( (s_flgs[2]&FL2_CHUNKED) && //Snd!=&TLSSend && 
+                KeepAlive && ! (fl&F_HTTP10) )  
+              {
+                t = (char *) ChunkedHead;
+                ll = sizeof(ChunkedHead) - 1;
+              }
+            }
+          }
+          if( send(s,t,ll,0)<0 )goto tp;
+          if(gz && t1 && !(fl&F_SKIPHEAD))
+          {send(s,p,i=t1-p+1+(*t1=='\r'),0);
+            send(s,(char *)gz_head,sizeof(gz_head),0);
+            i+=1+(*t1=='\r');
+            if(i<l)memcpy(p,p+i,l-=i);
+            else l=0;
+            Snd= GZSnd;
+          }
+          else if( t == ChunkedHead ) 
+          {
+            send(s,p,i=t1-p+((t1[0]=='\n')?2:4), 0);
+            if(i<l)memcpy(p, p+i, l-=i);
+            else l=0;
+            fl |= F_CHUNKED;
+          }
         }
-        if(l)
-        {    
+        
+          if(l)
+          {    
             p[l]=0;
             if( send(s,p,l,0) <0)
             {tp:
-             if(s_flgs[1]&FL1_NBRK)
-             {
-              do{
-
-                if(PeekNamedPipe(hrd,0,0,0,(ulong *)&l,0) && l)
-                { ReadFile(hrd,p,0x4000,(ulong *)&l,0); }
-                if(timeout<time(0))goto tp2;
-                Sleep(10000);
-                GetExitCodeProcess(pi.hProcess,(ulong *)&ec);
-              }while( ec==STILL_ACTIVE );
-             }
-             else{tp2: TerminateProcess(pi.hProcess,0); }
-             debug("Connection aborted %d..",GetLastError()); goto ex2;
+              if(s_flgs[1]&FL1_NBRK)
+              {
+                do{
+                  
+                  if(PeekNamedPipe(hrd,0,0,0,(ulong *)&l,0) && l)
+                  { ReadFile(hrd,p,0x4000,(ulong *)&l,0); }
+                  if(timeout<time(0))goto tp2;
+                  Sleep(10000);
+                  GetExitCodeProcess(pi.hProcess,(ulong *)&ec);
+                }while( ec==STILL_ACTIVE );
+              }
+              else{tp2: TerminateProcess(pi.hProcess,0); }
+              debug("Connection aborted %d..",GetLastError()); goto ex2;
             };
             ll+=l;
-        }     
-       }
-  lb1:
+          }     
+        }
+        lb1:
      //  Sleep(100);
 #ifndef QW1
    if(cl>0) do{
@@ -722,8 +752,9 @@ DBG();
        
    };
 
+   DBGLA("run %s", loc)
 
-// debug("|%s %s %.32s cl=%u %u %.250s %d %d |",loc,req,pst,cl,postsize,env,((struct stat *)KeepAlive)->st_gid,((struct stat *)KeepAlive)->st_uid);
+// debug("|%s %s %.32s cl=%u %u %.250s %d %d |",loc,req,pst,cl,postsize,env,fileStat->st_gid,fileStat->st_uid);
     if( !(child_pid=fork()) )
     {
       // Child
@@ -739,8 +770,8 @@ DBG();
       *t='/';
      }
 
-     if((i=((struct stat *)KeepAlive)->st_gid))setregid(i,i);
-     if((i=((struct stat *)KeepAlive)->st_uid))setreuid(i,i);
+     if((i=(fileStat->st_gid)))setregid(i,i);
+     if((i=(fileStat->st_uid)))setreuid(i,i);
 
 
       if(phtml_dir && (fl&F_PHP) ) //( strstr(loc,".php") || strstr(loc,".phtm") ) )
@@ -862,56 +893,77 @@ PDBG("read %d %d hrd=%d fl=%X",ll,ec,hrd,fl);
 	}while(l<0x3E00
 	       && (!(i&0x1FF)) // i==PIPE_BUF
 	       && RESelect(0,8192,1,hrd)>0);
-DBG();
+    DBG();
 	 
-         if(l>0)
-         {
-DBG();
-
-	  if( !ll )
-          {
-DBG();
-	    
-	   ll=sizeof("HTTP/1.0 200 \r\n")-1;
-           if(strinnc(p,(char *)"Status:")){p=SkipSpace(p+7); l-=ll=p-pp; t="HTTP/1.0 ";  DBGL("Status %.20s\r\n",p); }
-//           else t=( (stristr(p-1,(char *)"\nLocation:"))?(char *)"HTTP/1.0 301\r\n"
-           else if(StrVar(p,"Location"))
-           {  
-               t=(char *)"HTTP/1.0 301 \r\n"; //ll=sizeof("HTTP/1.0 301 \r\n")-1; 
-           }
-           else
-           {t=(char *)"HTTP/1.0 200 \r\n";
-            if((fl&F_GZ) && (!(fl&F_SKIPHEAD))
-             && ( t1=strstr(p,"\r\n\r\n")  )
-             && Snd != GZSnd 
-             && (!stristr(p,"Content-Length"))
-             && (stristr(p,"Content-type: text")))
-	    {
-DBG();   
+    if(l>0)
+    {
+      DBG();
+      
+      if( !ll )
+      {
+        DBG();
+        
+        ll=sizeof("HTTP/1.0 200 \r\n")-1;
+        if(strinnc(p,(char *)"Status:")){p=SkipSpace(p+7); l-=ll=p-pp; t="HTTP/1.0 ";  
+          //DBGL("Status %.20s\r\n",p); 
+        }
+        //           else t=( (stristr(p-1,(char *)"\nLocation:"))?(char *)"HTTP/1.0 301\r\n"
+        else if(StrVar(p,"Location"))
+        {  
+          t=(char *)"HTTP/1.0 301 \r\n"; //ll=sizeof("HTTP/1.0 301 \r\n")-1; 
+        }
+        else
+        {
+          t=(char *)"HTTP/1.0 200 \r\n";
+          t1=strstr(p,"\r\n\r\n"); 
+          
+          if( (!(fl&F_SKIPHEAD)) && 
+            (!stristr(p,"Content-Length")) && 
+            (stristr(p,"Content-type: text")) && t1
+          )
+          {  
+            if( (fl&F_GZ) 
+                && Snd != GZSnd )
+            {
+              DBG();
               IGZP();
-DBG();
-	    }
-           }
-// printf("|%.12s| %X",t,gz);
-           if( send(s,t,ll,0)<=0 )
-	   {
-DBG();
-	     goto tp;
-	   }
-           if(gz && t1 && (!(fl&F_SKIPHEAD)) && Snd != GZSnd )
-           {
-DBG();
-	    send(s,p,i=t1-p+2,0);
-            send(s,(char *)gz_head,sizeof(gz_head),0);
-DBG();
-            i+=2;
-            if(i<l)memcpy(p,p+i,l-=i);
-            else l=0;
-            Snd= GZSnd;
-           }
-//  printf("=|%.82s|= %u",p,l);
+              DBG();
+            }
+            else if( 
+                     (s_flgs[2]&FL2_CHUNKED) && //Snd!=&TLSSend && 
+                     KeepAlive && ! (fl&F_HTTP10) ) 
+            {
+              t = (char *) ChunkedHead;
+              ll = sizeof(ChunkedHead) - 1;
+            }
           }
-
+        }
+        // printf("|%.12s| %X",t,gz);
+        if( send(s,t,ll,0)<=0 )
+        {
+          DBG();
+          goto tp;
+        }
+        if(gz && t1 && (!(fl&F_SKIPHEAD)) && Snd != GZSnd )
+        {
+          DBG();
+          send(s,p,i=t1-p+2,0);
+          send(s,(char *)gz_head,sizeof(gz_head),0);
+          DBG();
+          i+=2;
+          if(i<l)memcpy(p,p+i,l-=i);
+          else l=0;
+          Snd= GZSnd;
+        }
+        else if( t == ChunkedHead ) {
+          send(s,p,i=t1-p+4,0);
+          if(i<l)memcpy(p,p+i,l-=i);
+          else l=0;
+          fl |= F_CHUNKED;
+        }
+        //  printf("=|%.82s|= %u",p,l);
+      }
+      
 PDBG("%d %d %d hrd=%d fl=%X",ll,l,ec,hrd,fl);
           if(l>0)
           {

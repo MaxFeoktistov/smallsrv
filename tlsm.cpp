@@ -29,8 +29,6 @@
 #endif
 //#include "tlsdll.h"
 
-#define DBG_PRINT(a...)
-//debug
 
 #ifdef SEPLOG
 
@@ -42,6 +40,10 @@
 
 #endif
 
+#define DBG_PRINT(a...)
+// debug(a)
+//DBGLA(a)
+//debug
 
 
 char *CApath,
@@ -62,6 +64,9 @@ int (*PSecAccept)(OpenSSLConnection *s);
 int (*PSecRecv  )(OpenSSLConnection *s,char *b,int l);
 int (*PSecSend  )(OpenSSLConnection *s,char *b,int l);
 int (*PSecClose )(OpenSSLConnection *s);
+int (*PSecConnect)(OpenSSLConnection *s, int anon, char *verfyhost);
+int (*PSecUpdateCB )(OpenSSLConnection *s);
+
 #ifndef SYSUNIX
 HINSTANCE hSecDLL;
 
@@ -89,6 +94,16 @@ HINSTANCE hSecDLL;
 #define GetProcAddress(a,b)   dlsym(a,b)
 
 #endif
+int SecConnectAbcent(OpenSSLConnection *s, int anon, char *vh)
+{
+  debug("Current version of TLS library doesn't content 'SecConnect' function. Please update it...");
+  return 0;
+}
+int SecUpdateCBAbcent(OpenSSLConnection *s)
+{
+  debug("Current version of TLS library doesn't content 'SecUpdateCB' function. Please update it...");
+  return 0;
+}
 
 int InitSecDLL()
 {
@@ -153,14 +168,11 @@ int InitSecDLL()
    printf("Error getfunction TLS/SSL library: %s %s\n",dlerror(),TLSLibrary);
    return 0;
   }
-   
-   
+  PSecConnect = (TSecConnect) GetProcAddress(hSecDLL,"SecConnect");
+  PSecUpdateCB = (TSecUpdateCB) GetProcAddress(hSecDLL,"SecUpdateCB");
 
-#else
+#else // not  x86_64
     
-#if 1
-//ndef SYSUNIX
-
 #ifdef SYSUNIX
   dlerror();
 #endif
@@ -189,14 +201,14 @@ int InitSecDLL()
 #endif
    return 0;
   }
-#else
-  
-//  hSecDLL==dlopen(TLSLibrary);
+  PSecConnect = (TSecConnect) GetProcAddress(hSecDLL,"SecConnect"); 
+  PSecUpdateCB = (TSecUpdateCB) GetProcAddress(hSecDLL,"SecUpdateCB");
 
 
 #endif
 
-#endif
+ if(!PSecConnect) PSecConnect = SecConnectAbcent;
+ if(!PSecUpdateCB) PSecUpdateCB = SecUpdateCBAbcent;
 
 
  if(tls_priority && tls_priority[0])
@@ -217,17 +229,45 @@ int InitSecDLL()
 
 #endif
 
+char *chunke_bfr;
+int chunke_mutex;
+#define MAX_FRAG_SIZE 0x10000
+
 int TLSSend(Req *th, const void *b,int l)
 {
  int r;
+ int lock=0;
+ int ll=l; ///!!! debug
  DBG_WRITE((char *)b,l,2);
+ 
+ if( (th->fl & F_CHUNKED) && l>0)
+ {
+   int l2;
+   while( l > MAX_FRAG_SIZE) 
+   {
+     if((r=TLSSend(th,b,MAX_FRAG_SIZE)) <= 0) return r;
+     l -= MAX_FRAG_SIZE;
+     DWORD_PTR(b) += MAX_FRAG_SIZE;
+   }  
+   lock = MyLock(chunke_mutex);
+   if(!chunke_bfr) chunke_bfr = (char *) malloc(MAX_FRAG_SIZE+32);
+   l2 = sprintf(chunke_bfr, "%X\r\n", l);
+   memcpy(chunke_bfr+l2, b, l);
+   b = chunke_bfr;
+   l+=l2;
+   WORD_PTR(chunke_bfr[l])=0xA0D;
+   l+=2;
+   //if( (r=SecSend((OpenSSLConnection *)(th->Adv),chu,) ))<=0 ) return r;
+ }
  while(l>0)
  { r= SecSend((OpenSSLConnection *)(th->Adv),(char *)b,l);
    if(r<=0)break;
    l-=r;
    DWORD_PTR(b)+=r;
  }
- DBG_PRINT("TLS send r=%d l=%d",r,l);
+ if(lock) MyUnlock(chunke_mutex);
+ DBG_PRINT("TLS send s=%d r=%d l=%d",th->s,r,ll);
+ 
  return r;
 };
 
@@ -235,13 +275,13 @@ int TLSRecv(Req *th,void *b,int l)
 {
  int r;
  r=SecRecv((OpenSSLConnection *) (th->Adv),(char *)b,l);
- DBG_PRINT("TLS recv r=%d l=%d",r,l);
+ DBG_PRINT("TLS recv r=%d l=%d", r, l);
  DBG_WRITE((char *)b,r,3);
  return r;
 };
 
 int TLSmutex;
-int Req::TLSBegin(OpenSSLConnection *x)
+int Req::TLSBegin(OpenSSLConnection *x, int type, char *verfyhost)
 {
   Snd=(tfSnd) &TLSSend;
   Rcv=(tfRcv) &TLSRecv;
@@ -249,7 +289,7 @@ int Req::TLSBegin(OpenSSLConnection *x)
   x->CallbackParam=this;
   DBG_PRINT("TLS request");
   MyLock(TLSmutex);
-  if(SecAccept(x))
+  if( (type & tbtAccept) ? SecAccept(x) : SecConnect(x,type,verfyhost) )
   { 
       MyUnlock(TLSmutex);
       return 1;
@@ -259,9 +299,10 @@ int Req::TLSBegin(OpenSSLConnection *x)
   Rcv=(tfRcv) &JustRcv;
   return 0;
 }
+
 int Req::TLSReq()
 {
- OpenSSLConnection x;
+  OpenSSLConnection x;
 #if 0
   Snd=(tfSnd) &TLSSend;
   Rcv=(tfRcv) &TLSRecv;
@@ -270,22 +311,26 @@ int Req::TLSReq()
   DBG_PRINT("TLS request");
   if(SecAccept(&x))
 #else
-  if(TLSBegin(&x))
+    if(TLSBegin(&x))
 #endif
-  {
-    DBG_PRINT("TLS accept Ok");
-
-   HttpReq();
-
-//   SecRecv(&x,(char *)b,10);
-   SecClose(&x);
-  }
-  else
-  {
-    AddToLog("TLS error\r\n",s);    
-  }
-  DBG_PRINT("TLS end");
-  return 1;
+    {
+      DBG_PRINT("TLS accept Ok");
+      
+      HttpReq();
+      
+      //   SecRecv(&x,(char *)b,10);
+      if(! (fl & F_KEEP_ALIVE) ) SecClose(&x);
+      else if( ! (fl & F_VPNANY) ) 
+      {
+        TryToAddKeepAlive(this);
+      }
+    }
+    else
+    {
+      AddToLog("TLS error\r\n",s);    
+    }
+    DBG_PRINT("TLS end");
+    return 1;
 };
 
 

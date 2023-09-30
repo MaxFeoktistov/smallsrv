@@ -49,6 +49,7 @@ const ulong *ext_types= (ulong *)(void *)".HTM.GIF.JPG.JPE.TXT.CSS.CLA.JS\x00.AS
 
 char bbch[]="/\\! \"#$%&\'()*+,-:;<=>?";
 
+
 #ifndef SYSUNIX
 /*
 char* ConvertUtf(char *s,ushort *w)
@@ -192,6 +193,18 @@ int IsInStrLst(char *pwd,char *t)
 const  struct timespec timeout_30s={30,50000000};
 #endif
 
+int Req::CheckEndChunked()
+{
+  if(fl&F_CHUNKED)
+  {
+    GZEnd();
+    fl &= ~F_CHUNKED;
+    return Send("0\r\n\r\n",5);
+  }
+  return 0;
+}
+
+
 int Req::HttpReq()
 {
 #undef send
@@ -282,6 +295,7 @@ do{
  }while(1);
  postsize=l-(pst-in_buf)-4;
  KeepAlive=stristr(in_buf,"Connection: Keep-Alive");
+ if(KeepAlive)DBGL("KeepAlive required");  //!*********
 
  if( (s_flgs[1]&FL1_GZ) &&
     zlibstate>0 && (t=StrVar(in_buf,"Accept-Encoding")) && stristr(t,"gzip") )
@@ -291,7 +305,6 @@ lbxx:
  if( strstr(in_buf,"HTTP/1.0") )
  {  fl|=F_HTTP10;
     xgz|=F_HTTP10;
- //   debug("HTTP 1.0");
  }
 
  AddToLog(in_buf,s,(KeepAliveCounter!=MAX_KEEPALIVE)?FmtBasicC:FmtBasic);
@@ -320,7 +333,9 @@ lbxx:
   for(a=hsdr.next;a;a=a->next)if(a->h[0]=='/')
    if((vdir=stristr(in_buf,a->h)) && vdir<strpbrk(in_buf+5,"? ") )goto vhstfound;
   *tp='\r';
- }a=0;
+ }
+
+ a=0;
  if((t=StrVar(in_buf,"HOST"))) if((tp=strchr(t,'\r')))
  {*tp=0;
   if((tp1=strchr(t,':')))*tp1=0;
@@ -428,6 +443,9 @@ bdreq:
 
  http_var=(char **) (xin_buf+0x8000);
  prepare_HTTP_var();
+
+ DBGL("")
+
 #ifndef CD_VER
  if( strin(in_buf+dirlen,"/$_admin_$") )
  {if( (s_flgs[1]&FL1_ATLS && (Snd!=&TLSSend)) ||
@@ -448,7 +466,7 @@ bdreq:
  {
   IP2country();
   goto ex2b;  
- }    
+ }
  if(  (s_flgs[2]&FL2_DOH) && doh_w>0 && ! strcmp(in_buf+dirlen,"/dns-query" )  )
  {
   if( req!=NullString && DWORD_PTR(req[0]) == 0x3D736E64 x4CHAR("dns=") )
@@ -487,7 +505,15 @@ bdreq:
       HttpReturnError("Resolving error");  
     }    
     goto ex2b;  
- }    
+ }
+#ifdef TLSVPN
+ if( ( s_flgs[3] & (FL3_VPN_TUN|FL3_VPN_TAP) ) && Snd == &TLSSend && strin(in_buf+dirlen, vpn_name )  ) {
+   InsertVPNclient();
+   goto ex2b;
+ }
+#endif
+ DBGL("")
+
 // vhdir=a;
  if(a && a->flg)
  {if(!((t=CheckAuth(pwd=xin_buf+0x9000))
@@ -518,10 +544,13 @@ bdreq:
   return 0;
  }
 #endif
+
+ DBGL("")
+
  if(! (p=CheckBadName(in_buf))) goto bdreq;
  if(p[-1]==FSLUSH)
  {
-  if(fl&1 )//POST
+  if(fl&F_POST )//POST
   {
     ll=strlen(def_name)+8; //32;
     if((ll+l)<8190)
@@ -542,6 +571,9 @@ bdreq:
   p+=sprintf(templ=p,"%.63s",def_name);}
 lcnt_trn:
 //debug("DBG1 %s",in_buf);
+
+ DBGL("")
+
  if((hf=FindFirstFile(in_buf,&fd) )!=INVALID_HANDLE_VALUE)
  {
 //  debug("DBG2 %s %u",fd.cFileName,templ);
@@ -603,7 +635,7 @@ lcnt_trn:
    {
     //fl<<=8;
 #ifdef SYSUNIX
-    KeepAlive=(char *)&(fd.st);
+    fileStat = &fd.st;
 #endif
     if(head)
     {
@@ -616,11 +648,7 @@ lcnt_trn:
     else
     {
       SendSSI();
-      if(fl&F_CHUNKED)
-      {
-        fl&=~F_CHUNKED;
-        if( send(s,"0\r\n\r\n",5,0) > 0 )  goto ex1;
-      }
+      if(CheckEndChunked() > 0) goto ex1;
     }
     goto ex2a;
    }
@@ -635,6 +663,8 @@ lcnt_trn:
   }
 //  else ii=9;
 
+DBGL("")
+
 
   if(
 #if defined(SYSUNIX) && !defined(CD_VER)
@@ -646,10 +676,10 @@ lcnt_trn:
   ){
 lcgi:
 #ifdef SYSUNIX
-   KeepAlive=(char *)&(fd.st);
+   fileStat=&(fd.st);
 #endif
   // debug("CGI: %X %X h=%X\n", (fl&F_PHP), (s_flgs[3] & FL3_FCGI_PHP), h);
-   if((fl&F_PHP) && (s_flgs[3] & FL3_FCGI_PHP)) 
+   if((fl&F_PHP) && (s_flgs[3] & FL3_FCGI_PHP) && phtml_dir) 
    {
       CallFCGI(phtml_dir);
    }
@@ -664,16 +694,31 @@ lcgi:
    }
    else
      ExecCGI();
+   if(CheckEndChunked() > 0) goto ex1;
+   
    goto ex2a;
   };
+
+  DBGL(" just file"); 
+
   FileTimeToSystemTime(& (fd.ftLastWriteTime),&tm);
   if( (tpp=GetVar(http_var,"If_modified_since")) )
   {sprintf(p=out_buf,"%2.2u:%2.2u:%2.2u GMT",tm.wHour,tm.wMinute,tm.wSecond);
    if(tpp=stristr(tpp,p))
-   {send(s,"HTTP/1.0 304 \r\n\r\n",sizeof("HTTP/1.0 304 \r\n\r\n")-1,0);
-    goto ex2a;
+   {
+#define NOT_MODIFID_REPLY     "HTTP/1.0 304 \r\nContent-Length: 0\r\nConnection: Keep-Alive\r\n\r\n"
+     send(s,NOT_MODIFID_REPLY,sizeof(NOT_MODIFID_REPLY)-1,0);
+     DBGLA("Not modified %X\r\n", (int) (long) KeepAlive ); // ******
+     goto ex1;
+//    goto ex2a;
    }
-  };
+   else
+   {
+     DBGLA("Modified! %s != %s\r\n", tpp,p ); // ******
+       
+   }
+  }
+  else { DBGL("not found If_modified_since"); } //********
   tpp=tipes[ii];
   if( (ii>=9) && mime && t && t[1] )
   {
@@ -886,10 +931,32 @@ lcgi:
 #undef l
  ex1:;
  ttm+=GetTickCount()-tick;
- if( (! KeepAlive) || --KeepAliveCounter<=0 )break;
- i=20;
- if( proxy_flg /*fl&F_PROXY */) i=3;
- do{if(--i<=0 || !(waited[(fl>>16)&1]) )goto ex3;}while(!(ii=RESelect(0,300000,1,s)));
+ if( (! KeepAlive) || --KeepAliveCounter<=0 ){
+   DBGL("KeepAlive not avilablie\n");
+   fl &= ~F_KEEP_ALIVE;
+   break;
+ }  
+ //DBGL("KeepAlive try avilablie\n");
+ if(KeepAliveList)
+ {
+   DBGL("KeepAlive enable\n");
+   
+   // Wait 0.5 .. 1.5s for next request
+   ii=RESelect(0,500000,1,s);
+   if(!ii) {
+     DBGL("KeepAlive set");
+     fl |= F_KEEP_ALIVE;
+     KeepAliveExpired = time(0) + TimeoutKeepAlive;
+     flsrv[1] = SRV_HTTP;
+   }
+ }
+ else
+ {  
+   i=20;
+   if( proxy_flg /*fl&F_PROXY */) i=3;
+   do{if(--i<=0 || !(waited[(fl>>16)&1]) )goto ex3;}while(!(ii=RESelect(0,300000,1,s)));
+ }
+ 
 }while(ii>0);
 ex3:
 ex2:
@@ -897,8 +964,7 @@ ex2:
 
  if( proxy_flg /*fl&F_PROXY */)
  { if(trn_sock)
-   { //shutdown(trn_sock,2); closesocket(trn_sock);
-
+   {
      CloseSocket(trn_sock);
   //   debug("Close trn %d",trn);
 
@@ -906,6 +972,7 @@ ex2:
  else{
 ex2a:
   GZEnd();
+ex3a:  
   if(!ttm)ttm+=GetTickCount()-tick;
   sprintf(xin_buf,"HTTP  in:%u out:%u %s Time:%u\r\n",Tin,Tout,(a && a->h) ?a->h:"",ttm);
 
@@ -935,7 +1002,10 @@ int Req::SendDigestAuthReq(char *bfr){
  int is_proxy;
  
  if(  ( (s_flgs[1]&FL1_CRYPTPWD) && !(s_flgs[2] & FL2_MD5PASS) ) || (fl&F_DIGET_UNAVILABLE)  || ! (s_flgs[2] & FL2_USEMD5D)   )
+ {
+     DBGLA("Digest unavilable (%X && %X) || %X || %X", (s_flgs[1]&FL1_CRYPTPWD),  !(s_flgs[2] & FL2_MD5PASS) ,  (fl&F_DIGET_UNAVILABLE)  , ! (s_flgs[2] & FL2_USEMD5D) )
      return Send(AuthErr, strlen(AuthErr)  ) ; //sizeof(AuthErr)-1); 
+ }
  if(!tempKey)
  {
      nonceFirst=nonceCounter =Rnd()^(count_of_tr*pval);
@@ -954,7 +1024,7 @@ int Req::SendDigestAuthReq(char *bfr){
 #ifdef USE_IPV6
  if(sa_c.sin_family==AF_INET6)
  {
-   sprintf(ipv6,"i%Xz%Xz%Xz%Xx",sa_c6.sin6_addr.s6_addr32[0],sa_c6.sin6_addr.s6_addr32[1],sa_c6.sin6_addr.s6_addr32[2],sa_c6.sin6_addr.s6_addr32[3]); 
+   sprintf(ipv6,"i%Xg%Xh%Xm%Xx",sa_c6.sin6_addr.s6_addr32[0],sa_c6.sin6_addr.s6_addr32[1],sa_c6.sin6_addr.s6_addr32[2],sa_c6.sin6_addr.s6_addr32[3]); 
    if(sa_c6.sin6_addr.s6_addr32[2]==0xFFFF0000)opaque=sa_c6.sin6_addr.s6_addr32[3];
  }
 #endif 
@@ -992,7 +1062,7 @@ int Req::CheckNonce(char *nonce,char *opaque)
  p=nonce+9;
  if(sa_c.sin_family==AF_INET6)
  {
-   l=sprintf(ipv6,"i%Xz%Xz%Xz%Xx",sa_c6.sin6_addr.s6_addr32[0],sa_c6.sin6_addr.s6_addr32[1],sa_c6.sin6_addr.s6_addr32[2],sa_c6.sin6_addr.s6_addr32[3]);  
+   l=sprintf(ipv6,"i%Xg%Xh%Xm%Xx",sa_c6.sin6_addr.s6_addr32[0],sa_c6.sin6_addr.s6_addr32[1],sa_c6.sin6_addr.s6_addr32[2],sa_c6.sin6_addr.s6_addr32[3]);  
    if(! (p=strstr(nonce,ipv6)))return 0;
    p +=l;
  }

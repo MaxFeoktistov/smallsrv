@@ -169,9 +169,16 @@ void InitSepLog()
       sepLog[SDHCP_IND]=//new TLog;
             (TLog *) malloc(sizeof(TLog));
       sepLog[SDHCP_IND]->Init(SDHCP_IND) ; //SrvNameSufix[SDHCP_IND]);
-    
     }
-    
+
+#ifdef TLSVPN
+    if(max_srv[0] && ( (FL3_VPN_TUN | FL3_VPN_TAP | FL3_VPN_CLIENT) & s_flgs[3]) )
+    {
+      sepLog[VPN_LOG]=//new TLog;
+      (TLog *) malloc(sizeof(TLog));
+      sepLog[VPN_LOG]->Init(VPN_LOG); //SrvNameSufix[6]);
+    }
+#endif
   }
   
   if(max_srv[0] && ((FL2_NOERROUT|FL2_DUBSTDERR) & s_flgs[2]) )

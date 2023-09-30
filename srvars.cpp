@@ -145,7 +145,7 @@ int def_dirlen=3;
 int one=1;
 int max_cln_host;
 int max_tsk;
-ulong s_flgs[4];
+ulong s_flgs[5];
 int s_aflg;
 char *eenv;
 int leenv;
@@ -342,6 +342,9 @@ char *SrvNameSufix[]={
 #ifdef TELNET
 ,".http.err"   //     10
 #endif
+#ifdef TLSVPN
+, ".vpn"
+#endif
 };
 TLog *sepLog[N_LOG]; // ARRAY_SIZE(SrvNameSufix) ];
 char *b_prot=gLog.lb_prot;
@@ -361,3 +364,14 @@ FCGI_task * fcgi_list;
 char *fcgi_upath = "/dev/shm";
 uint fcgi_group;
 
+fd_set  KeepAliveSet;
+int keep_alive_max_fd;
+int maxKeepAlive;
+int KeepAliveCount;
+Req **KeepAliveList;
+int KeepAliveMutex;
+int TimeoutKeepAlive;
+
+#ifdef TLSVPN
+char *vpn_name="/$_vpn_$";
+#endif

@@ -31,6 +31,10 @@
 #ifndef SRV_H
 #include "srv.h"
 #endif
+#ifdef TLSVPN
+#include "vpn.h"
+#endif
+
 
 inline void InitMemCache()
 {
@@ -271,8 +275,25 @@ int FreeThreads()
  MyUnlock(hLock);
  return j;
 };
-int CrThread(uint fnc)
+
+int CrThreadFunc(TskSrv Fnc,Req *par)
 {int i;
+ MyLock(hcLock);
+ if((i=FreeThreads())>=0)
+ { 
+   par->ntsk = i;
+   hndls[i]=
+     (THREADHANDLE) 
+     CreateThread(&secat,0x5000,Fnc,par,0,&trd_id);
+ }
+ MyUnlock(hcLock);
+// debug("Crth %d) %X; %X %X %X %X %X %X ",i,hndls[i],hndls[0],rreq[0],hndls[1],rreq[1]);
+ return i;
+}
+
+int CrThread(uint fnc)
+{
+ int i;
  MyLock(hcLock);
  if((i=FreeThreads())>=0)
  { hndls[i]=
@@ -702,6 +723,22 @@ int InitApplication()
 ,total_dhcp_ip );
   }
 #endif
+
+#ifdef TLSVPN
+  if( max_srv[SRV_SSL] )
+  {
+    if(VPN_Init()!=-1) 
+    {
+      pprot+=sprintf(pprot, "TLS VPN enabled\r\n" );
+    }
+  }
+  if(vpn_remote_host && vpn_remote_host[0]) 
+  {
+    CreateThread(&secat,0x5000,VPNClient,(void *)0,0,&trd_id);
+    pprot+=sprintf(pprot, "TLS VPN client started\r\n" );
+  }
+  #endif
+  
 #ifndef SYSUNIX
 
   mwnd=CreateWindowEx( 0 /*((s_flg&0x10)>>4)*WS_EX_TOOLWINDOW*/ ,"FMFROM",wnd_name,

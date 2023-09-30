@@ -118,7 +118,7 @@ extern int __REDIRECT (fcntl32, (int __fd, int __cmd, ...), fcntl);
 #endif
 //#pragma GCC diagnostic ignored "-fpermissive"
 
-//#pragma GCC diagnostic ignored "-Waddress-of-packed-member"
+#pragma GCC diagnostic ignored "-Waddress-of-packed-member"
 
 #define CloseHandle  close
 #define closesocket  close

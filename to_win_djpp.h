@@ -42,15 +42,11 @@
 #pragma GCC diagnostic ignored "-Wwrite-strings"
 #pragma GCC diagnostic ignored "-Wnarrowing"
 #pragma GCC diagnostic ignored "-Wliteral-suffix"
-#pragma GCC diagnostic ignored "-Waddress-of-packed-member"
 
 
 #ifdef  DJGPP 
 typedef void* HKEY;
-#include "dgpp_quote.h"
-#else
-#define DJGPP_QUOTE
-#endif
+#endif 
 #include <sys/types.h>
 #include <ctype.h>
 #include "mstring1.h"
@@ -117,11 +113,10 @@ int PASCAL __WSAFDIsSet(int, fd_set *);
 #undef FD_SET
 #undef FD_CLR
 #undef FD_ISSET
-void win_fd_clr(int s, win_fd_set *set);
 #define FD_ZERO(set) ((set)->fd_count=0)
 #define FD_SET(fd,set) ((set)->fd_array[(set)->fd_count++]=fd)
 #define FD_ISSET(fd, set) __WSAFDIsSet((fd),(set))
-#define FD_CLR(fd, set)  win_fd_clr(fd, set)
+//#define FD_CLR(fd, set) 
 
 extern "C" {
 
@@ -157,8 +152,7 @@ extern char fnamebuf[512],hstflt[];
 extern OPENFILENAME ofn;
 extern BROWSEINFO binf;
 extern HMENU hmnu,hmmnu;
-//extern HWND dwnd2,dwndc;
-extern HWND dwndc;
+extern HWND dwnd2,dwndc;
 
 extern SECURITY_ATTRIBUTES secat;
 extern NOTIFYICONDATA nid;
@@ -235,7 +229,7 @@ inline ulong FileTime2time(FILETIME  &a)
  ulong r,t;
  
 #ifdef  DJGPP 
- asm volatile(DJGPP_QUOTE subl  $0xFDE04000 ,%%eax
+ asm volatile(" subl  $0xFDE04000 ,%%eax
        sbbl  $0x14F373B ,%%edx
        cmpl  __PerSecond1E7,%%edx
        jae   1f
@@ -243,7 +237,7 @@ inline ulong FileTime2time(FILETIME  &a)
        imul $51,%%edx
        shrl $9,%%edx
       1:
-     DJGPP_QUOTE :"=&a"(r),"=&d"(t)
+     ":"=&a"(r),"=&d"(t)
       :"0"(a.dwLowDateTime),"1"(a.dwHighDateTime)
     );
 #else
@@ -273,9 +267,8 @@ void gettimeofday(struct timeval *x,...)
  SystemTimeToFileTime(&stime, (FILETIME *)x);
 
 //debug("TIME %X %X",x->tv_sec,x->tv_usec);
-
-#ifdef  DJGPP
- asm volatile(DJGPP_QUOTE subl  $0xFDE04000 ,%%eax
+#ifdef  DJGPP 
+ asm volatile(" subl  $0xFDE04000 ,%%eax
        sbbl  $0x14F373B ,%%edx
        cmpl  __PerSecond1E7,%%edx
        jae   1f
@@ -283,12 +276,11 @@ void gettimeofday(struct timeval *x,...)
        imul $51,%%edx
        shrl $9,%%edx
       1:
-     DJGPP_QUOTE :"=&a"(x->tv_sec),"=&d"(x->tv_usec)
+     ":"=&a"(x->tv_sec),"=&d"(x->tv_usec)
       :"0"(x->tv_sec),"1"(x->tv_usec)
     );
-    
 #else
-
+ 
  asm volatile(" subl  $0xFDE04000 ,%%eax \n"
     " sbbl  $0x14F373B ,%%edx\n"
     "        cmpl  __PerSecond1E7,%%edx\n"

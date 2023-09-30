@@ -41,6 +41,11 @@
 #include "srv.h"
 #endif
 
+#ifdef TLSVPN
+#include "vpn.h"
+#endif
+
+
 #ifdef  G4STRING_CONST_H
 
 #define CS(a)  x_##a
@@ -162,6 +167,10 @@ SPD(0,http)
 {"dir",255,0,(uint *)&def_dir, CS(sDEFAULT_W )},
 {"def",128,0,(uint *)&def_name, CS(sDEFAULT_F )},
 {"error",256,0,(uint *)&error_file, CS(sERROR_FIL )},
+
+{"keep_alive_max",0,0x2000,(uint *)&maxKeepAlive, CS("Limit on the number of idle keep-alive connections waiting")},
+{"keep_alive_timeout",10,3600*8,(uint *)&TimeoutKeepAlive, CS("Timeout in seconds for idle keep-alive connection")},
+
 #if defined(CD_VER) || !defined(SYSUNIX)
 {"cgi_ident",254, 0,(uint *)&cgi_detect, CS(sCGI_IDENT )},
 {"perl",256,0,(uint *)&perl, CS(sPERL__IF_ )},
@@ -304,6 +313,7 @@ RANGES(proxy,sIP_RANGES,sIP_RANGESD)
 
 
  XLIMIT(proxy, "Proxy",2),
+ 
 
 {0,0,0,0, CS(sFTP_SERVE )},
 {"noftp_max",0,0,(uint *)0, CS(sDISABLE_F )},
@@ -321,7 +331,7 @@ SPD(2,ftp)
 
 {"ftp_oone",2,FL2_NOMFTP, (uint *)0, CS("Disable multi stream for one IP" )},
 
-{"ftp_always_pass",4,FL4_FTP_ALWPASS, (uint *)0, CS("Always ask for a password, even for users without a password" )},
+{"ftp_always_pass",3,FL3_FTP_ALWPASS, (uint *)0, CS("Always ask for a password, even for users without a password" )},
 
 
 {"ftp_wospace",0,FL_FTWOSPACE, (uint *)0, CS(sCONVERT_N )},
@@ -463,7 +473,58 @@ SPD(5,tls)
 {"tls_wmail",2,FL2_WMTLS,(uint *)0, CS("Web mail through  sequre HTTPS  only" )},
 
 
-#endif
+#ifdef TLSVPN
+
+{0,0,0,0, CS("HTTP TLS VPN Server")},
+{"notlsvpn",0,0,(uint *)0, CS("Disable TLS VPN" )},
+{"tlsvpn_max",0,1024,(uint *)&vpn_max, CS("Maximum number of TLS VPN connections working simultaneous.")},
+
+{"vpn_url" ,128,0,(uint *)&vpn_name, CS("TLS VPN URL name (direct only local part of URL e.g. \"/$_vpn_$\"). HTTPS requests to this URL will be redirected to VPN ")},
+
+{"vpntun",3, FL3_VPN_TUN, (uint *)0, CS("Enable TLS VPN on Tun device" )},
+{"vpntap",3, FL3_VPN_TAP, (uint *)0, CS("Enable TLS VPN on Tap device" )},
+{"vpn_tun_number",0,1024,(uint *)&tuntap_number[0], CS("Tun device number")},
+{"vpn_tap_number",0,1024,(uint *)&tuntap_number[1], CS("Tap device number")},
+
+{"vpnpub",3, FL3_VPN_PUBLIC, (uint *)0, CS("Public access without password. (Otherwise only users with Proxy access can use this service) " )},
+
+{"tundev" ,128,0,(uint *)&tundev, CS("Tun device pathname")},
+
+{"tun_ip" ,20,0,(uint *)&tuntap_ipv4[0], CS("Set Tun interface IP address")},
+{"tun_nmask" ,20,0,(uint *)&tuntap_ipv4nmask[0], CS("Set Tun interface netmask")},
+
+{"tap_ip" ,20,0,(uint *)&tuntap_ipv4[1], CS("Set Tap interface IP address")},
+{"tap_nmask" ,20,0,(uint *)&tuntap_ipv4nmask[1], CS("Set Tap interface netmask")},
+
+{"tun_script_up" ,255,0,(uint *)&vpn_scripts_up[0], CS("Run init script for Tun device")},
+{"tap_script_up" ,255,0,(uint *)&vpn_scripts_up[1], CS("Run init script for Tap device")},
+
+{"tun_remote_ip1", 20, 0,(uint *)&vpn_first_remote_ipc[0], CS("First IP address to allocate for remote client that connected to Tun.")},
+{"tun_remote_max", 0, 1024,(uint *)&vpn_total_remote_ip[0], CS("Total IP addresses to allocate for remote client that connected to Tun.")},
+
+{"tap_remote_ip2" ,20, 0,(uint *)&vpn_first_remote_ipc[1], CS("First IP address to allocate for remote client that connected to Tap.")},
+{"tap_remote_max", 0, 1024,(uint *)&vpn_total_remote_ip[1], CS("Total IP addresses to allocate for remote client that connected to Tap.")},
+
+
+{0,0,0,0, CS("HTTP TLS VPN Client")},
+
+{"vpnclient",3,FL3_VPN_CLIENT,(uint *)0, CS("Enable to connect to TLS VPN remote host" )},
+{"vpn_remote_host",512, 0,(uint *)&vpn_remote_host, CS("Host to connect to remote TLS VPN server")},
+{"vpn_remote_user",32, 0,(uint *)&vpn_user, CS("TLS VPN User name")},
+{"vpn_remote_passw",32, 0,(uint *)&vpn_passw, CS("TLS VPN Password")},
+
+{"vpncln_tap",3, FL3_TAP_CLIENT, (uint *)0, CS("VPN client to Tap. (Otherwise Tun)" )},
+
+{"vpn_tuntap_number",0,1024,(uint *)&tuntap_number[2], CS("TLS VPN client Tun/Tap device number")},
+{"tuntap_ip" ,32,0,(uint *)&tuntap_ipv4[2], CS("Set client VPN interface IP address")},
+{"tuntap_nmask" ,32,0,(uint *)&tuntap_ipv4nmask[2], CS("Set  client VPN interface netmask")},
+{"vpncln_script_up" ,255,0,(uint *)&vpn_scripts_up[2], CS("Run init script when VPN connection estabilished")},
+{"vpncln_script_down" ,255,0,(uint *)&vpn_scripts_down[2], CS("Run deinit script when VPN connection closed")},
+
+
+#endif // TLSVPN
+
+#endif //V_FULL
 #ifndef FREEVER
 
 {"registr_user",128,0,(uint *)&user_name,0},

@@ -403,7 +403,15 @@ if(0){
      {i=atoui(u);
       j=atoui(t);
       ++no_close_req;
-      if((i<max_tsk) && 
+      if(i & CONID_KEEPALIVE_MASK)
+      {
+        i&=~CONID_KEEPALIVE_MASK;
+        if(i<KeepAliveCount && KeepAliveList && KeepAliveList[i]->tmout==j)
+        {
+          RemoveAndDelKeepAlive(i);
+        }
+      }
+      else if((i<max_tsk) && 
         ((u_long)(rreq[i]) )>1  && rreq[i]->tmout==j
       )
 #ifdef shutdown
@@ -575,11 +583,11 @@ if(0){
       {
           i2=0;  
           u=0;
-          for(i=0;i<10;i++)
+          for(i=0; i<10; i++)
           {
             hh[i]=0;  
             if(i==6 || i==8 || j==5) continue;   
-            if((i) && sepLog[i] ==&gLog )   continue;
+            if((i) && sepLog[i] == &gLog )   continue;
             if( j!=255 && j )
             {
                l= isCountAr[i]>>4;
@@ -741,7 +749,7 @@ if(0){
       if( (u=GetVar(req_var,"t")) )
       {
         j=atoui(u);
-        if((uint)j<10){
+        if((uint)j < N_LOG){
             b_prot=sepLog[j]->lb_prot;
             pprot=sepLog[j]->lpprot;
         }    
@@ -750,7 +758,7 @@ if(0){
       if(*u == '.')u++;
       
       bfl.bprintf( "<h2>%s</h2><table border=0 width=100%%><tr align=center><td><a href=\"?t=0\">General</a></td>" LF, u );
-      for(j=1;j<10;j++)
+      for(j=1; j < N_LOG; j++)
         if(sepLog[j]!=&gLog)  
         {
             u=SrvNameSufix[j];

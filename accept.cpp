@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2022 Maksim Feoktistov.
+ * Copyright (C) 1999-2023 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov 
@@ -75,6 +75,26 @@ int RESelect2(long tv_sec,long tv_usec,int s1,int s2)
 };
 //#define RESelect(a,b,c,d) RESelect1(a,b,d)
 #endif
+
+#ifdef MINGW
+#undef fd_set
+#define win_fd_set fd_set
+
+void win_fd_clr(int s, win_fd_set *set)
+{
+  for(int i=0; i<set->fd_count; i++)
+  {
+    if(set->fd_array[i] == s) 
+    {
+      set->fd_count --;
+      if(set->fd_count != i) set->fd_array[i] = set->fd_array[set->fd_count];
+    }
+  }
+}
+
+#endif
+
+
 #endif
 
 
@@ -98,6 +118,178 @@ int (Req::*FWrk[])()=
 int no_close_req=0;
 int err_cnt;
 
+
+
+
+void AddKeepAlive(Req* preq)
+{
+  MyLock(KeepAliveMutex);
+  KeepAliveList[KeepAliveCount] = preq;
+  KeepAliveCount++;
+  FD_SET(preq->s, &KeepAliveSet);
+  if(preq->s > keep_alive_max_fd) keep_alive_max_fd = preq->s;
+  MyUnlock(KeepAliveMutex);
+}
+
+void FixMaxKeepAliveFD()
+{
+/*  
+  while((int)keep_alive_max_fd>0) 
+  {
+    keep_alive_max_fd --;
+    if(FD_ISSET(keep_alive_max_fd, &KeepAliveSet) ) break;
+  }
+  */
+}
+void RemoveKeepAlive(int i)
+{
+  Req *preq;
+  int unlock = MyLock(KeepAliveMutex);
+  preq = KeepAliveList[i];
+  FD_CLR(preq->s, &KeepAliveSet);
+  if(keep_alive_max_fd == preq->s) FixMaxKeepAliveFD();
+  
+  if(KeepAliveCount) 
+  {
+    KeepAliveCount --;
+    if(i != KeepAliveCount)
+      KeepAliveList[i] = KeepAliveList[KeepAliveCount] ;
+  }
+  if(unlock) MyUnlock(KeepAliveMutex);
+}
+
+void DeleteKeepAlive(Req* preq)
+{
+  if(preq->s != -1)
+  {
+    if(preq->Snd==&TLSSend)SecClose((OpenSSLConnection*) preq->Adv);
+    CloseSocket( preq->s );
+  }
+  DBGLA("free %lX", (long)preq)
+  free(preq);
+}
+
+void RemoveAndDelKeepAlive(int i)
+{
+  Req *preq;
+  int unlock = MyLock(KeepAliveMutex);
+  preq = KeepAliveList[i];
+  RemoveKeepAlive(i);
+  if(unlock) MyUnlock(KeepAliveMutex);
+  DeleteKeepAlive(preq);
+}
+
+// Function return -1, if remove anything, index of oldest if not
+int RemoveExpired()
+{
+  int r=0,i;
+  int deleted=0;
+  int fix_max_expired=0;
+  int fix_max_fd=0;
+  int max=KeepAliveList[0]->KeepAliveExpired;
+  time_t tt = time(0);
+  DBGL("rm exp")
+  MyLock(KeepAliveMutex);
+  for(i=0; i<KeepAliveCount; i++)
+  {
+    Req *preq;
+    preq = KeepAliveList[i];
+    if(preq->KeepAliveExpired < tt) {
+      
+      if(keep_alive_max_fd == preq->s) fix_max_fd++;
+      FD_CLR(preq->s, &KeepAliveSet);
+      if(KeepAliveCount) 
+      {
+        KeepAliveCount --;
+        if(i != KeepAliveCount)  
+          KeepAliveList[i] == KeepAliveList[KeepAliveCount] ;
+      }
+      DeleteKeepAlive(preq);
+      deleted++;
+    }
+    if(fix_max_expired < preq->KeepAliveExpired )
+    {
+      fix_max_expired = preq->KeepAliveExpired;
+      r = i;
+    }
+  }
+  if(fix_max_fd) FixMaxKeepAliveFD();
+  MyUnlock(KeepAliveMutex);
+  return deleted? -1 : r;
+}
+void RemoveOldestIfNeed()
+{
+  if(KeepAliveCount >= maxKeepAlive)
+  {
+    int oldest;
+    oldest = RemoveExpired();
+    if(oldest >= 0)
+    {
+      RemoveAndDelKeepAlive(oldest);
+    }
+  }
+}
+
+
+int TryToAddKeepAlive(Req *req)
+{
+  Req *preq;
+  int l = sizeof(Req);
+  if(req->s == -1) return 1;
+  DBGL("add keep alive required");
+  if( !KeepAliveList ) goto lbCanT;
+  debug("KeepAlive connection %d\n", req->s);
+  RemoveOldestIfNeed();
+  if(req->Snd==&TLSSend)
+    l = sizeof(Req) + sizeof(OpenSSLConnection);
+  if(KeepAliveCount < maxKeepAlive && (preq = (Req *) malloc(l) ))
+  {
+    memcpy(preq, req, offset(Req, loc));
+    memset(&preq->loc, 0, sizeof(Req) - offset(Req, loc));
+    if(req->Snd == &TLSSend)
+    {
+      OpenSSLConnection *o;
+      o = (OpenSSLConnection *) (preq + 1);
+      memcpy(o, req->Adv, sizeof(OpenSSLConnection) );
+      o->CallbackParam = preq;
+      preq->Adv = o;
+      SecUpdateCB(o);
+    }  
+    AddKeepAlive(preq);
+  }
+  else 
+  {
+  lbCanT:
+    if(req->Snd==&TLSSend)SecClose((OpenSSLConnection*) req->Adv);
+    req->fl &= ~F_KEEP_ALIVE;
+    return 0;
+  }
+  req->s = -1;
+  req->Adv = 0;
+  return 1;
+}
+
+#ifdef FIX_EXCEPT
+int SetFixExept(Req *preq) 
+{
+  if(! setjmp( preq->jmp_env ) ) { preq->thread_id=GetCurrentThreadId(); return 0; }
+  preq->thread_id=0;  
+  if(err_cnt++>3)
+  {
+    is_no_exit = 0;
+    s_aflg |= AFL_EXIT;
+    StopSocket();
+    unsave_limit=1;      
+    sleep(3);   
+    if( !vfork() )
+      execl(__argv[0],__argv[0],0);
+    exit(0);      
+  }
+  debug("Try to recovery after exception (%u)\n", preq->flsrv[1]);
+  return -1;  
+}
+#endif
+
 int WINAPI SetServ(uint fnc)
 {int clen,j,min_tick,min_tick_tsk;
  ulong tck,k;
@@ -105,7 +297,7 @@ int WINAPI SetServ(uint fnc)
 #define sa_client req.sa_c
  int l,rq_cnt,serv,serv2;
  Req req;
-
+ 
  memset(&req,0,sizeof(req) );
 
  serv=(serv2=fnc>>16)%MAX_SERV;
@@ -255,28 +447,7 @@ int WINAPI SetServ(uint fnc)
 #ifdef FIX_EXCEPT
 
  
- 
- if(! setjmp( req.jmp_env ) ) { req.thread_id=GetCurrentThreadId();  }
- else 
- { 
-     
-     req.thread_id=0;  
-     if(err_cnt++>3)
-     {
-         
-      is_no_exit=0;
-      s_aflg|=AFL_EXIT;
-      StopSocket();
-      unsave_limit=1;      
-      sleep(3);   
-      if( !vfork() )
-         execl(__argv[0],__argv[0],0);
-      exit(0);      
-    
-     }
-     debug("Try to recovery after exception (%u)\n",serv);
-     goto cnt;  
- }  
+ if(SetFixExept(&req) ) goto cnt;
  #define  END_TRY(th)  (th)->thread_id=0;
  
 #else
@@ -289,7 +460,9 @@ int WINAPI SetServ(uint fnc)
 #else
   req.HttpReq();
 #endif
-
+  if( (req.fl & (F_KEEP_ALIVE|F_VPNANY) ) == F_KEEP_ALIVE && req.s != -1)
+    TryToAddKeepAlive(&req);
+    
 cnt:
   j=0;
   while(no_close_req>0)
@@ -313,13 +486,11 @@ cnt:
   
   if(rreq[req.ntsk]==&req)
   {    
-   rreq[req.ntsk]=0;
-   
-   count_of_tr--;
-   if(count_of_tr<0)count_of_tr=0;
-   
+    rreq[req.ntsk]=0;
+    count_of_tr--;
+    if(count_of_tr<0)count_of_tr=0;
   }
-
+  
 /*
   shutdown(req.s,2);
   if(i<0 && runed[serv]>8 )
@@ -329,7 +500,7 @@ cnt:
   }
   closesocket( req.s );
  */
-   CloseSocket( req.s );
+  if( req.s != -1 &&  ! (req.fl & F_KEEP_ALIVE) ) CloseSocket( req.s );
 
 #ifndef CD_VER
   if(serv==1)proxy_chk.CheckProxy();
@@ -355,6 +526,55 @@ cnt:
 #undef sa_client
 };
 
+int WINAPI KeepAliveWike(Req *preq)
+{
+  int serv=preq->flsrv[1] % MAX_SERV;
+#ifdef FIX_EXCEPT
+  if(SetFixExept(preq) ) 
+  {
+    preq->fl &= ~F_KEEP_ALIVE;
+    DBGL("");
+    goto cnt;
+  }
+#endif
+  runed[serv]++;
+  preq->flsrv[0]=0;
+  preq->tmout=GetTickCount();
+  rreq[preq->ntsk]=preq;
+  count_of_tr++;
+  DBGL("");
+  preq->HttpReq();
+
+cnt:
+  DBGL("");
+  if(rreq[preq->ntsk]==preq)
+  {
+    rreq[preq->ntsk]=0;
+    count_of_tr--;
+    if(count_of_tr<0)count_of_tr=0;
+  }
+
+  if( (preq->fl & (F_KEEP_ALIVE|F_VPNANY)) == F_KEEP_ALIVE )
+  {
+    RemoveOldestIfNeed(); 
+    if( KeepAliveCount < maxKeepAlive )
+    {
+      DBGL("");
+      AddKeepAlive(preq);
+      memset(& preq->fl, 0, sizeof(Req) - offset(Req,loc) );
+    }
+    else DeleteKeepAlive(preq);
+  }
+  else
+  {
+    DBGL("");
+    DeleteKeepAlive(preq);
+  }
+
+  runed[serv]--;
+
+  return 0;
+}
 
 
 int Req::HttpReturnError(char *err,int errcode)
@@ -446,16 +666,18 @@ int BSend(int s,char *b,int l)
 int JustSnd(Req *th,const void *b,int l)
 {int r;
  char chu[16];
+ //DBGLA("%lX %d %d",(long)th, th->s, l)
  th->SleepSpeed();
- if(th->fl & F_CHUNKED )
+ if(th->fl & F_CHUNKED && th->Rcv != &TLSRecv )
  {
+   //DBGL("chunked!")
    if( (r=BSend(th->s,chu,sprintf(chu,"%X\r\n",l) ))<=0 ) return r;
    th->Tout+=r;
  }
  if((r=BSend(th->s,(char *)b,l))>0)
  {
     th->Tout+=r;
-    if( th->fl & F_CHUNKED )
+    if( th->fl & F_CHUNKED &&  th->Rcv != &TLSRecv)
     {
         BSend(th->s,"\r\n",2);
         th->Tout+=2;
@@ -466,8 +688,12 @@ int JustSnd(Req *th,const void *b,int l)
 };
 int JustRcv(Req *th,void *b,int l)
 {int r;
- if(RESelect(th->timout,0,1,th->s)<=0)return -1;
+ if(RESelect(th->timout,0,1,th->s)<=0){
+   DBGLA("Timeout %lX s=%d timout=%d l=%d", (long)th, th->s, th->timout,l)
+   return -1;
+ }
  if((r=recv(th->s,(char *)b,l,0))>0 )th->Tin+=r;
+ //DBGLA("%lX s=%d timout=%d l=%d", (long)th, th->s, th->timout,r)
  return r;
 };
 

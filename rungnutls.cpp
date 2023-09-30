@@ -82,35 +82,19 @@ int PASCAL __WSAFDIsSet(int, fd_set *);
 #endif
 #define GTLS
 
-#ifndef GTLS
-
-#include <openssl/e_os2.h>
-/*
-typedef unsigned int u_int;
-#include <openssl/lhash.h>
-#include <openssl/bn.h>
-#include <openssl/err.h>
-*/
-#include <openssl/pem.h>
-#include <openssl/x509.h>
-#include <openssl/ssl.h>
-#include <openssl/rand.h>
-#include <openssl/ossl_typ.h>
-
-#else
 
 #include <gnutls/gnutls.h>
+#include <gnutls/x509.h>
+
 //#include <stdio.h>
 
 #ifdef USE_POOL
 #include <poll.h>
 #endif
 
-#endif
 
 
 #include "mdef.h"
-
 
 
 
@@ -123,6 +107,13 @@ typedef unsigned int u_int;
 #pragma GCC diagnostic ignored "-Wformat-extra-args"
 #pragma GCC diagnostic ignored "-Wunused-result"
 #pragma GCC diagnostic ignored "-Wwrite-strings"
+
+
+#define  tbtAccept  0x2
+#define  tbtAnon    0x1
+#define  tbtVerfyRequired 0x4
+#define  tbtDontVerfyTyme 0x8
+#define  tbtDontVerfySigner 0x10
 
 
 #ifdef __cplusplus
@@ -328,105 +319,6 @@ struct OpenSSLConnection
 
 static int XNullFunc(char * x,...){return 0;};
 static TFprintf Fprintf=XNullFunc;
-#ifndef GTLS
-static SSL_CTX *ctx;
-
-char FMT[]="%s";
-#define  BIO_printf(a,b...) (Fprintf)(b)
-#define ERR_print_errors(a) (Fprintf)("OpenSSL error")
-static X509_STORE *X509_store;
-
-static int bwrite(BIO *t, const char *b, int l)
-{ //(Fprintf)("BIO write %u",l);
- return (FSend)((void *) t->ptr,(void *)b,l); }
-static int bread(BIO *t, char *b, int l)
-{
- //(Fprintf)("BIO read %u",l);
- return (FRecv)(t->ptr,b,l);
-}
-
-static int bputs  (BIO *t, const char *b)
-{
- int i,j;
-  j=strlen(b);
-  ((char *)b)[j]='\n';
-  i=(FSend)(t->ptr,(void *)b,j+1);
-  ((char *)b)[j]=0;
-  return i;
-};
-
-
-static int bgets  (BIO *t, char *b, int l)
-{
- int i;
- for(i=0;i<l;++i)
- { if((FRecv)(t->ptr,b,1)<=0)break;
-   if(*b++=='\n'){
-       if(!i)++i; 
-       break;
-    }
- }
- *b=0;
- return i;
-};
-
-static long ctrl  (BIO *p, int a, long b, void *c)
-{
-// (Fprintf)("BIO CTRL %u %u %X",a,b,c);
- DBG_STEP()   
- switch (a)
- {
-  case BIO_CTRL_DUP:
-  case BIO_CTRL_FLUSH:
-  case BIO_CTRL_SET:
-  case BIO_CTRL_GET:
-  case BIO_CTRL_PENDING:
-
-          return 1;
-/*
-  case BIO_CTRL_RESET:
-  case BIO_C_FILE_SEEK:
-  case BIO_C_FILE_TELL:
-  case BIO_CTRL_INFO:
-  case BIO_C_SET_FD:
-  case BIO_C_GET_FD:
-  case BIO_CTRL_GET_CLOSE:
-  case BIO_CTRL_SET_CLOSE:
-  case BIO_CTRL_PENDING:
-  case BIO_CTRL_WPENDING:
-  default:
-    return 0;
-*/
-     }
- return 0;
-};
-static int create (BIO *x){
-// (Fprintf)("BIO CREATE");
- return 1;};
-static int destroy(BIO *x){
-// (Fprintf)("BIO Destroy");
- return 1;};
-static long callback_ctrl(BIO *x, int z, bio_info_cb *y)
-{
-// (Fprintf)("BIO Callback CTRL");
-return 0;};
-
-static BIO_METHOD srv_meth=
-{
- BIO_TYPE_CIPHER, // int type;
- "Server",          // const char *name;
- bwrite      ,// int (*bwrite)(BIO *, const char *, int);
- bread,       // int (*bread)(BIO *, char *, int);
- bputs,       // int (*bputs)(BIO *, const char *);
- bgets,       // int (*bgets)(BIO *, char *, int);
- ctrl,       // long (*ctrl)(BIO *, int, long, void *);
- create,      // int (*create)(BIO *);
- destroy,     // int (*destroy)(BIO *);
- callback_ctrl // long (*callback_ctrl)(BIO *, int, bio_info_cb *);
-};
-
-#endif
-
 static ulong session_id_cntr,s_server_session_id_context;
 
 
@@ -483,98 +375,6 @@ static int mRAND_bytes(unsigned char *buf, int num)
  return num;
 }
 
-#ifndef GTLS 
-
-static int generate_session_id(const SSL *ssl, unsigned char *id,
-                        unsigned int *id_len)
-{
- mRAND_bytes(id,*id_len);
-#if 0
- unsigned int i,tk,o;
- ulong *a;
-
- a=(ulong *)&ssl;
- o=tk=GetTickCount();
- for(i=*id_len;i>4;++i)
- {--i;
-  id[i]=(tk>>(i&7))+(a[1]*a[2]);
-  if(o&1) id[i]^=a[0];
-  if(o&2) id[i]^=~tk>>12;
-  if(o&4) id[i]+=~tk>>20;
-  o=id[i]^i;
- }
-
- DWORD_PTR(*id)=++session_id_cntr^(tk<<8);
-// memcpy(id, session_id_prefix,  (strlen(session_id_prefix) < *id_len) ? strlen(session_id_prefix) : *id_len);
-#endif
-
- return 1;
-}
-
-static int set_cert_stuff(SSL_CTX *ctx, char *cert_file, char *key_file)
-{
- if (cert_file != NULL)
- {
-  DBG_STEP()
-  if(SSL_CTX_use_certificate_file(ctx,cert_file, SSL_FILETYPE_PEM) <= 0)
-  {
-   BIO_printf(bio_err,"unable to get certificate from '%s'",cert_file);
-   ERR_print_errors(bio_err);
-   return(0);
-  }
-  if (key_file == NULL)
-  {lb1:
-   key_file=cert_file;
-  }
-  if (SSL_CTX_use_PrivateKey_file(ctx,key_file, SSL_FILETYPE_PEM) <= 0)
-  {
-   BIO_printf(bio_err,"unable to get private key from '%s'",key_file);
-   ERR_print_errors(bio_err);
-   if(key_file!=cert_file)goto lb1;
-   return(0);
-  }
-  DBG_STEP()
-
-
- /* If we are using DSA, we can copy the parameters from
-  * the private key */
-
-
- /* Now we know that a key and cert have been set against
-  * the SSL context */
-  if (!SSL_CTX_check_private_key(ctx))
-  {
-   BIO_printf(bio_err,"Private key does not match the certificate public key\n");
-   return(0);
-  }
-
-  DBG_STEP()
-
- }
- return(1);
-}
-
-
-char copyright[]=
-"\r\nSecurety library, based on OpenSSL Library Copyright (c) 1998-2019 The OpenSSL Project\r\n"
-"This product includes software developed by the OpenSSL Projec Copyright (c) 1995-1998 Eric A. Young, Tim J. Hudsont for use in the OpenSSL Toolkit. (http://www.openssl.org/)\r\n"
-"This product includes cryptographic software written by Eric Young (eay@cryptsoft.com).\r\n"
-"This product includes software written by Tim Hudson (tjh@cryptsoft.com).\r\n"
-"This product includes software written by Dr Stephen N Henson (shenson@bigfoot.com).\r\n"
-"\r\n"
-;
-
-static RSA *RSA_key;
-
-
-inline
-RSA *tmp_rsa_cb(SSL *s,int is_export, int keylength) //WINAPI
-{
- if(!RSA_key)RSA_key=RSA_generate_key(keylength,RSA_F4,NULL,NULL);
- return RSA_key;
-}
-
-#else
 
 static int pull_timeout_func(int *s, unsigned int ms)
 {
@@ -629,62 +429,7 @@ static int xFRecv(void *p,char *b,int l)
 char copyright[]=
 "Securety library, using GnuTLS Library Copyright (c) 1998-2020 The GnuTLS Project\r\n";
 
-#endif
 
-#if 0
-int verify_callback(int ok, X509_STORE_CTX *ctx)
-{
- char buf[256];
- X509 *err_cert;
- int err,depth;
-#if 0
- err_cert=X509_STORE_CTX_get_current_cert(ctx);
- err=    X509_STORE_CTX_get_error(ctx);
- depth=  X509_STORE_CTX_get_error_depth(ctx);
-
- X509_NAME_oneline(X509_get_subject_name(err_cert),buf,sizeof(buf));
- BIO_printf(bio_err,"depth=%d %s\n",depth,buf);
- if (!ok)
- {
-  BIO_printf(bio_err,"verify error:num=%d:%s\n",err,
-          X509_verify_cert_error_string(err));
-  if (verify_depth >= depth)
-  {
-   ok=1;
-   verify_error=X509_V_OK;
-  }
-  else
-  {
-   ok=0;
-   verify_error=X509_V_ERR_CERT_CHAIN_TOO_LONG;
-  }
- }
- switch (ctx->error)
-         {
- case X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT:
-         X509_NAME_oneline(X509_get_issuer_name(ctx->current_cert),buf,sizeof buf);
-         BIO_printf(bio_err,"issuer= %s\n",buf);
-         break;
- case X509_V_ERR_CERT_NOT_YET_VALID:
- case X509_V_ERR_ERROR_IN_CERT_NOT_BEFORE_FIELD:
-         BIO_printf(bio_err,"notBefore=");
-         ASN1_TIME_print(bio_err,X509_get_notBefore(ctx->current_cert));
-         BIO_printf(bio_err,"\n");
-         break;
- case X509_V_ERR_CERT_HAS_EXPIRED:
- case X509_V_ERR_ERROR_IN_CERT_NOT_AFTER_FIELD:
-         BIO_printf(bio_err,"notAfter=");
-         ASN1_TIME_print(bio_err,X509_get_notAfter(ctx->current_cert));
-         BIO_printf(bio_err,"\n");
-         break;
-         }
- BIO_printf(bio_err,"verify return:%d\n",ok);
- return(ok);
-#endif
- return 1;
-}
-
-#endif
 static char *CApath, *CAfile, * s_cert_file,  * s_key_file, *priority_str;
 
 #define MAX_CON 128
@@ -701,7 +446,6 @@ static int REinitCTX()
  int r;
  char *crr;
  reinit_ctx_need=0;  
-#ifdef GTLS 
 #define CHECK(a)  if( (r=a)<0 ){ Fprintf("Eroror %d (%s) in " #a ,r,gnutls_strerror(r) );  return 0;} 
 
        CHECK(gnutls_certificate_allocate_credentials(&x509_cred));
@@ -772,54 +516,6 @@ static int REinitCTX()
         
 
 #undef CHECK
-#else 
- 
- SSL_CTX_set_quiet_shutdown(ctx,1);
- DBG_STEP()
-// SSL_CTX_set_options(ctx,0);
- SSL_CTX_set_options(ctx,SSL_OP_ALL|SSL_OP_CIPHER_SERVER_PREFERENCE); //SSL_OP_NO_TLSv1
- SSL_CTX_set_cipher_list(ctx,"ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-RSA-AES256-SHA384:ALL:!DES:!3DES:!RC2");
- DBG_STEP()
-// SSL_CTX_sess_set_cache_size(ctx,512);
-// SSL_CTX_sess_set_cache_size(ctx,0);
- SSL_CTX_set_session_cache_mode(ctx,SSL_SESS_CACHE_OFF);
- 
- DBG_STEP()
-
-//*
- if ( CApath && CApath[0] && (!SSL_CTX_load_verify_locations(ctx,CAfile,CApath)) 
-  //   ||  (!SSL_CTX_set_default_verify_paths(ctx))
-  )
-    {
-      DBG_STEP()  
-//     BIO_printf(bio_err,"X509_load_verify_locations\n");
-     (Fprintf)("X509 load verify locations");
-     DBG_STEP()
-    }
-//*/
- X509_store = SSL_CTX_get_cert_store(ctx);
- DBG_STEP()
-// X509_STORE_set_flags(X509_store,0);// vflags);
- if (!set_cert_stuff(ctx,s_cert_file,s_key_file))
- {
-  Fprintf("OpenSSL error: Can't set certificates stuff");
-  return 0;
- }
-DBG_STEP()
-// SSL_CTX_set_generate_session_id(ctx, generate_session_id);
-/// set_cert_stuff(ctx,s_cert_file,s_key_file);
-
-DBG_STEP()
-// SSL_CTX_set_tmp_rsa_callback(ctx,tmp_rsa_cb);
-// SSL_CTX_set_verify(ctx,s_server_verify,verify_callback);
-// SSL_CTX_set_verify(ctx,1,verify_callback);
- SSL_CTX_set_session_id_context(ctx,(const unsigned char *)&s_server_session_id_context,
-            sizeof s_server_session_id_context);
-DBG_STEP()
- if (CAfile != NULL)
-   SSL_CTX_set_client_CA_list(ctx,SSL_load_client_CA_file(CAfile));
-DBG_STEP()
-#endif    
   return 1;  
     
 }
@@ -850,32 +546,7 @@ int InitLib( TFprintf prnt,TFtransfer fsend,TFtransfer frecv,char *lCApath,char 
  }
  DBG_STEP()
  FSend=fsend; FRecv=frecv;
-#ifdef GTLS 
  gnutls_global_init();
-#else
- 
-#ifdef  MINGW
-// SetDfnc(DebugFnc,DebugPrintFnc);
- SetDfnc(DebugFnc,(tDebugPrintFnc)prnt);
- 
- CRYPTO_set_mem_ex_functions( dbg_malloc,dbg_realloc,dbg_free);
- //CRYPTO_set_mem_functions( dbg_malloc,dbg_realloc,dbg_free);
-
-#endif
- 
-///! 
- OpenSSL_add_ssl_algorithms();
- DBG_STEP()
-// ctx=SSL_CTX_new(SSLv23_server_method());
-// DBG_STEP()
-  ctx=SSL_CTX_new(TLSv1_server_method());
-//  DBG_STEP()
- if(!ctx)
- {
-   DBG_STEP()    
-   return 0;    
- }
-#endif 
 //TLS_RSA_WITH_AES_256_CBC_SHA   
  CApath       =lCApath     ;
  CAfile       =lCAfile     ;
@@ -956,216 +627,13 @@ BIO *BIO_new(BIO_METHOD *method)
 
 int __errno;
 int * _errno(){__errno= GetLastError(); return &__errno ; };
-//void OPENSSL_cleanse(void *x,int l)
-// void OPENSSL_cleanse(void* x , size_t l)
-// {
-//   if(x && l) memset(x,0,l);
-// }
 
-/* This version of _reent is laid out with "int"s in pairs, to help
- * ports with 16-bit int's but 32-bit pointers, align nicely.  */
-#if 0
-struct _reent
-{
-  /* As an exception to the above put _errno first for binary
-     compatibility with non _REENT_SMALL targets.  */
-  int _errno;			/* local copy of errno */
-  /* FILE is a big struct and may change over time.  To try to achieve binary
-     compatibility with future versions, put stdin,stdout,stderr here.
-     These are pointers into member __sf defined below.  */
-  void *_stdin, *_stdout, *_stderr;	/* XXX */
-  int  _inc;			/* used by tmpnam */
-  char *_emergency;
-  int __sdidinit;		/* 1 means stdio has been init'd */
-  int _current_category;	/* unused */
-  char *_current_locale;	/* unused */
-  //struct _mprec
-  void *_mp;
-//  void _EXFNPTR(__cleanup, (struct _reent *));
-  void (*__cleanup)(struct _reent *r);
-  int _gamma_signgam;
-  /* used by some fp conversion routines */
-  int _cvtlen;			/* should be size_t */
-  char *_cvtbuf;
-//  struct _rand48 *_r48;
-  void *_r48;
-  void *_localtime_buf;
-//  struct __tm *_localtime_buf;
-  char *_asctime_buf;
-  /* signal info */
-  void (**(_sig_func))(int);
-# if 0 //ndef _REENT_GLOBAL_ATEXIT
-  /* atexit stuff */
-  struct _atexit *_atexit;
-  struct _atexit _atexit0;
-# endif
-//  struct _glue __sglue;			/* root of glue chain */
-//  __FILE *__sf;			        /* file descriptors */
-  void *__sf;			        /* file descriptors */
-//  struct _misc_reent *_misc;            /* strtok, multibyte states */
-  void *_misc;            /* strtok, multibyte states */
-  char *_signal_buf;                    /* strsignal */
-} _impure,
-  * _impure_ptr = &_impure;
-
-  unsigned short * * _imp___ctype_ ;
-  
-//   {
-//     0,0,0,0,0,0,0
-//   };
-  //__ctype_arr;
-#endif  
-  
-#if 0  
-  static int tbl_days[]=
-  {
-   0,                       // Jan
-   31,                      // Feb
-   31+28,                   // Mar
-   31+28+31,                // Apr
-   31+28+31+30,             // May
-   31+28+31+30+31,          // Jun
-   31+28+31+30+31+30,       // Jul
-   31+28+31+30+31+30+31,    // Aug
-   31+28+31+30+31+30+31+31,  // Sep
-   31+28+31+30+31+30+31+31+30,  // Oct
-   31+28+31+30+31+30+31+31+30+31,  // Nov
-   31+28+31+30+31+30+31+31+30+31+30  // Dec
-  };
-  
-struct tm *gmtime_r(const time_t *timep, struct tm *result)
-{
-   union{   
-   FILETIME FileTime;
-   long long  tt;
-   };
-   SYSTEMTIME   SystemTime;
-   if(result)
-   { 
-
-        tt= (10000000ll * (*timep)) + 0x14F373BFDE04000ll;
-            
-        FileTimeToSystemTime( &FileTime,&SystemTime);
-        
-        result->tm_sec  = SystemTime. wSecond ;
-        result->tm_min  = SystemTime. wMinute ;
-        result->tm_hour = SystemTime. wHour ;
-        result->tm_mday = SystemTime.wDay  ;
-        result->tm_mon  = SystemTime. wMonth-1 ;
-        result->tm_year = SystemTime. wYear - 1900;
-        result->tm_wday = SystemTime. wDayOfWeek ;
-        result->tm_yday = SystemTime.wDay +  tbl_days[result->tm_mon];
-        if(result->tm_mon>1 && ! (result->tm_year&3) )result->tm_yday++;
-    
-        // result->tm_isdst = SystemTime. wHour>7;
-   }
-    return result;
-};
-int TZ_add_sec;
-struct tm *localtime_r(const time_t *timep, struct tm *result)
-{
-  time_t mtime=*timep+TZ_add_sec;  
-  return  gmtime_r(&mtime, result) ;
-    
-};
- 
- int getuid(){return 100;};
- int geteuid(){return 100;};
- int getgid(void){return 100;};
- int getegid(void){return 100;};
- int tcgetattr(int fd, struct termios *termios_p){return 0;};
- int tcsetattr(int fd, int optional_actions,
-                     const struct termios *termios_p){return 0;};
- int sigaction(int signum, const struct sigaction *act,
-                     struct sigaction *oldact){return 0;};    
- 
-
- typedef void (*sighandler_t)(int);                    
- sighandler_t signal(int signum, sighandler_t handler)
- { return 0; };                     
- 
- char* getenv(const char *name){return 0;};   
- int isspace(int a){return (int) strchr(" \t\v\f\r\n",a); }
- int isalnum(int a){ return (a>='A' && a<='Z') || (a>='a' && a<='z') || (a>='0' && a<='9') ; }
-//  int __mingw_vsprintf(char *fmt,void **)
-/* */                    
-  int __mingw_vprintf(const char*fmt, char*l)
-  {
-    return Fprintf("GNUTLS:%s",fmt);    
-  }
-  int __mingw_vfprintf(void *f, const char *fmt, char *l)
-  {
-    return Fprintf("GNUTLS:%s",fmt);    
-  }
-  int __mingw_vsprintf(char *t,const char *fmt, char *l)
-  {
-      return wvsprintf(t,fmt,l);    
-  }
-  
-// */ 
-//static 
-int PerSecond1E7=10000000l;
-inline
-void gettimeofday(struct timeval *x,...)
-{
- SYSTEMTIME  stime;
- GetLocalTime(&stime);
- SystemTimeToFileTime(&stime, (FILETIME *)x);
-
-//debug("TIME %X %X",x->tv_sec,x->tv_usec);
- 
- asm volatile(
-    " subl  $0xFDE04000 ,%%eax \n"
-    " sbbl  $0x14F373B ,%%edx\n"
-    "        cmpl  _PerSecond1E7,%%edx\n"
-    "        jae   1f\n"
-    "        divl _PerSecond1E7\n"
-    "        imul $51,%%edx\n"
-    "        shrl $9,%%edx\n"
-    "       1:\n"
-     :"=&a"(x->tv_sec),"=&d"(x->tv_usec)
-      :"0"(x->tv_sec),"1"(x->tv_usec)
-    );
-
-}
-
-time_t time(time_t* y)
-{
- struct timeval x;
- gettimeofday(&x);
- if(y)*y=x.tv_sec;
- return x.tv_sec;
-}
-
-
-#endif
-// void   OPENSSL_cpuid_setup(){};
- 
- 
-//#undef ERR_print_errors
-// void ERR_print_errors(BIO *bp)
-// { (Fprintf)("OpenSSL error");}
-//#define ERR_print_errors(a) (Fprintf)("OpenSSL error")
-//*
-void ERR_put_error1(int lib, int func,int reason,const char *file,int line)
-{ 
-    
-    (Fprintf)("OpenSSL error: lib=%d func=%d reason=%d %s line=%d ",lib,func,reason,file?file:"*",line);
-   // DebugPrintFnc("OpenSSL error: lib=%d func=%d reason=%d %s line=%d\n",lib,func,reason,file?file:"*",line);
-    
-};
-// */
-
-int shs_print_cb(const char *str, size_t len, void *bp)
-{
-  //DebugPrintFnc("OpenSSL error:%s\n",str);  
-  return  (Fprintf)("OpenSSL error:%s",str);
-}                     
 #endif
 
 int SecAccept(struct OpenSSLConnection *s)
 {
   int r;
+  int err;
   DBG_STEP()
 /*
   if(act_con_cnt<MAX_CON)
@@ -1175,8 +643,7 @@ int SecAccept(struct OpenSSLConnection *s)
 */
   act_con_cnt++;
 
-#ifdef  GTLS  
-#define CHECK(a)  if(a<0)return 0; 
+#define CHECK(a)  if( (err = a ) < 0 ){ (Fprintf)("GNUTLS error at line:%u: %d:%s\r\n", __LINE__, err, gnutls_strerror(err)); return 0; }
 
   
                 CHECK(gnutls_init(&s->session, GNUTLS_SERVER));
@@ -1231,7 +698,7 @@ int SecAccept(struct OpenSSLConnection *s)
                      r = gnutls_handshake(s->session); 
                 } while(r == GNUTLS_E_AGAIN || r == GNUTLS_E_INTERRUPTED);
                 
-                 DBG_STEP()  
+                DBG_STEP()  
                 if(r<0)
                 {
                     Fprintf( "GNUTLS: *** Handshake has failed (%s)\n\n",
@@ -1242,139 +709,134 @@ int SecAccept(struct OpenSSLConnection *s)
                     DBG_STEP()    
                     
                     return 0;
-                }    
+                }
 
-#else  
-  SSL_CIPHER *c;
-//  SSL_CTX_flush_sessions(ctx,time(0));
-  
-  if ((s->con=SSL_new(ctx)) == NULL)
-  {
-   DBG_STEP()  
-   return 0;
-  }
-  
-//  (Fprintf)("SSL Accept %X",s->con);
-  SSL_clear(s->con);
-//  if(!(buf=malloc(BFRSIZE)))return(0);
-
-//  s->io=BIO_new(BIO_f_buffer());
-//  BIO_set_write_buffer_size(s->io,BFRSIZE);
-
-  s->ssl_bio=BIO_new(BIO_f_ssl());
-  s->sbio=BIO_new(&srv_meth);
-  s->sbio->ptr=s->CallbackParam;
-  s->sbio->init=1;
-  s->sbio->flags=0;
-  SSL_set_bio(s->con,s->sbio,s->sbio);
-  SSL_set_accept_state(s->con);
-  BIO_set_ssl(s->ssl_bio,s->con,BIO_CLOSE);
-#if 0  
-  if( (r=SSL_do_handshake( s->con ) ) <0 )
-  {
-     SecClose(s);
-     if(!act_con_cnt)
-     {
-        (Fprintf)("TLS handshake error %d %d reinit",r,SSL_get_error(s->con,r) );
-        REinitCTX();    
-       
-     }
-     else
-     {
-       (Fprintf)("TLS handshake error %d %d ; Now opened  %d TLS thread.  Reinit need %d",r,SSL_get_error(s->con,r),act_con_cnt,       reinit_ctx_need );
-       reinit_ctx_need++;    
-       if(reinit_ctx_need==1)  
-       {
-         reinit_ctx_need_time=time(0)+30;
-         
-       }
-       else
-       {
-                if(reinit_ctx_need_time < time(0) )
-                {
-                    REinitCTX();    
-                }    
-       }    
-     }    
-     return 0; 
-  }
-#endif
-#endif
   DBG_STEP()   
 //  BIO_push(s->io,s->ssl_bio);
   return 1;
 
 };
 
+int SecUpdateCB(OpenSSLConnection *s)
+{
+  gnutls_transport_set_ptr(s->session, s->CallbackParam);
+  return 1;
+};
+
+
+static gnutls_anon_client_credentials_t anoncred;
+static gnutls_certificate_credentials_t xcred;
+static int anon_inited;
+
+int SecConnect(struct OpenSSLConnection *s, int anon, char *verfyhost)
+{
+  int r;
+  int err;
+  
+  
+  DBG_STEP()
+  act_con_cnt++;
+  
+  CHECK(gnutls_init(&s->session, GNUTLS_CLIENT));
+  CHECK(gnutls_priority_set(s->session, priority_cache));
+  
+  DBG_STEP()
+  
+  if(anon)
+  {
+    if(!anon_inited) 
+    {
+      CHECK(gnutls_anon_allocate_client_credentials(&anoncred) );
+      CHECK(gnutls_certificate_allocate_credentials(&xcred));
+      anon_inited++;
+    }
+    
+    CHECK(gnutls_credentials_set(s->session, GNUTLS_CRD_ANON, anoncred));
+    CHECK(gnutls_credentials_set(s->session, GNUTLS_CRD_CERTIFICATE, xcred));
+  }
+  else
+  {
+    CHECK(gnutls_credentials_set(s->session, GNUTLS_CRD_CERTIFICATE, x509_cred));
+  }
+  DBG_STEP()
+  gnutls_dh_set_prime_bits(s->session, 512);
+  
+  DBG_STEP()    
+  //                gnutls_transport_set_int(s->session, * (int *) s->CallbackParam);
+  //*
+  gnutls_transport_set_ptr(s->session, s->CallbackParam);
+  
+  DBG_STEP()    
+  #ifndef MINGW
+  #define   xFSend    FSend          
+  #define   xFRecv    FRecv          
+  #endif
+  gnutls_transport_set_push_function(s->session,(gnutls_push_func) xFSend );
+  
+  DBG_STEP()    
+  
+  gnutls_transport_set_pull_function(s->session, (gnutls_pull_func) xFRecv);
+  
+  DBG_STEP()    
+  
+  gnutls_transport_set_pull_timeout_function(s->session,(gnutls_pull_timeout_func)
+  pull_timeout_func);
+  //*/                
+  DBG_STEP()    
+  
+  gnutls_handshake_set_timeout(s->session,
+                               GNUTLS_DEFAULT_HANDSHAKE_TIMEOUT);
+  if(verfyhost)
+  {
+    gnutls_server_name_set(s->session, GNUTLS_NAME_DNS,
+				     verfyhost, strlen(verfyhost));
+    r = GNUTLS_VERIFY_IGNORE_UNKNOWN_CRIT_EXTENSIONS;
+    if(anon & tbtDontVerfyTyme) r = GNUTLS_VERIFY_DISABLE_TIME_CHECKS ;
+    if(anon & tbtDontVerfySigner) r |= GNUTLS_VERIFY_DISABLE_CA_SIGN;
+    gnutls_session_set_verify_cert(s->session, verfyhost, r);
+  }
+  
+  do { 
+    
+    DBG_STEP()    
+    
+    r = gnutls_handshake(s->session); 
+  } while(r == GNUTLS_E_AGAIN || r == GNUTLS_E_INTERRUPTED);
+  
+  DBG_STEP()  
+  if(r<0)
+  {
+    Fprintf( "GNUTLS: *** Handshake has failed (%s)\n\n",
+             gnutls_strerror(r));
+    
+    gnutls_deinit(s->session);
+    
+    DBG_STEP()    
+    
+    return 0;
+  }    
+  
+  DBG_STEP()   
+  return 1;
+};
+
 int SecRecv(struct OpenSSLConnection *s,char *b,int l)
 {
  DBG_STEP()   
- 
-#ifdef GTLS
  return gnutls_record_recv(s->session, b, l);
-#else 
- return BIO_read(s->ssl_bio,b,l);
-#endif 
 }
 int SecSend(struct OpenSSLConnection *s,char *b,int l)
 {
  DBG_STEP()   
-#ifdef GTLS
  return gnutls_record_send(s->session, b, l);
-#else 
- return BIO_write(s->ssl_bio,b,l);
-#endif 
 }
 //return BIO_write(s->io,b,l);}
 int SecClose(struct OpenSSLConnection *s)
 {
 // BIO_flush(s->io);
  DBG_STEP()   
-#ifdef GTLS
  gnutls_bye(s->session, GNUTLS_SHUT_WR);
  gnutls_deinit(s->session);
-#else 
- BIO_flush(s->ssl_bio);
- DBG_STEP()   
- if(!SSL_get_current_cipher(s->con))
- {
-   Fprintf("TLS no chipper. Reinit CTX need");  
-   reinit_ctx_need++;    
- } 
- else reinit_ctx_need=0;
- 
-// BIO_free(s->ssl_bio);
-// BIO_free(s->io);
-// BIO_free_all(s->io);
- SSL_free (s->con);
-// BIO_free(s->sbio);
- if( (--act_con_cnt) < 0)act_con_cnt=0;
- if(reinit_ctx_need  )
- {
-     if((!act_con_cnt))
-     {    
-   
-       REinitCTX();    
-     }
-     else
-     {
-       (Fprintf)("TLS handshake error ; Now opened  %d TLS thread.  Reinit need %d",act_con_cnt,       reinit_ctx_need );
-       if(reinit_ctx_need==1)  
-       {
-         reinit_ctx_need_time=time(0)+30;
-         
-       }
-       else
-       {
-                if(reinit_ctx_need > 2 && reinit_ctx_need_time < time(0) )
-                {
-                    (Fprintf)("TLS reinit " );
-                    REinitCTX();    
-                }    
-       }    
-     }
- }    
-#endif 
  return 0;
 }
 
