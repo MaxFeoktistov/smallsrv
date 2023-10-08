@@ -2,7 +2,7 @@
  * Copyright (C) 1999-2021 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
- * Author: Maksim Feoktistov 
+ * Author: Maksim Feoktistov
  *
  *
  * Small HTTP server is free software: you can redistribute it and/or modify it
@@ -15,11 +15,11 @@
  * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see https://www.gnu.org/licenses/ 
+ * along with this program.  If not, see https://www.gnu.org/licenses/
  *
  * Contact addresses for Email:  support@smallsrv.com
  *
- * 
+ *
  */
 
 
@@ -108,7 +108,7 @@ char *header="Server: SHS";
 const char AuthErr[]=AUTH_ERR;
 #else
 #define AuthErr AUTH_ERR
-#endif 
+#endif
 
 #ifndef CD_VER
 
@@ -308,7 +308,7 @@ int doh_pipe[2];
 char *tls_priority;
 
 char *conf_name;
-uint  dns_dos_limit=40; 
+uint  dns_dos_limit=40;
 char *DNS_DoS_hosts="";
 //char DNS_DoS_hosts[300];
 
@@ -364,14 +364,25 @@ FCGI_task * fcgi_list;
 char *fcgi_upath = "/dev/shm";
 uint fcgi_group;
 
-fd_set  KeepAliveSet;
-int keep_alive_max_fd;
+maxFdSet maxKeepAliveSet;
+
 int maxKeepAlive;
 int KeepAliveCount;
 Req **KeepAliveList;
 int KeepAliveMutex;
 int TimeoutKeepAlive;
+int keepalive_idle;
 
 #ifdef TLSVPN
 char *vpn_name="/$_vpn_$";
 #endif
+
+
+#ifdef MAX_ASYNC_IO
+HANDLE  ASyncIOhevent[MAX_ASYNC_IO];
+ASyncIOHelper_t ASyncIOHelper[MAX_ASYNC_IO];
+int countASyncIO;
+int mutexASyncIO;
+ulong ASyncIOtrd_id;
+#endif
+

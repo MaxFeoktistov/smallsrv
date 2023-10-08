@@ -5,7 +5,7 @@
  * Copyright (C) 1999-2023 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
- * Author: Maksim Feoktistov 
+ * Author: Maksim Feoktistov
  *
  *
  * Small HTTP server is free software: you can redistribute it and/or modify it
@@ -18,11 +18,11 @@
  * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see https://www.gnu.org/licenses/ 
+ * along with this program.  If not, see https://www.gnu.org/licenses/
  *
  * Contact addresses for Email:  support@smallsrv.com
  *
- * 
+ *
  */
 
 
@@ -173,6 +173,8 @@ SPD(0,http)
 
 {"keep_alive_max",0,0x2000,(uint *)&maxKeepAlive, CS( t2T_5660775 )},
 {"keep_alive_timeout",10,3600*8,(uint *)&TimeoutKeepAlive, CS( t2T_8226615 )},
+{"keep_alive_idle",0,3600*2,(uint *)&keepalive_idle, CS( t2T_6286042 )},
+
 
 #if defined(CD_VER) || !defined(SYSUNIX)
 {"cgi_ident",254, 0,(uint *)&cgi_detect, CS(sCGI_IDENT )},
@@ -316,7 +318,7 @@ RANGES(proxy,sIP_RANGES,sIP_RANGESD)
 
 
  XLIMIT(proxy, "Proxy",2),
- 
+
 
 {0,0,0,0, CS(sFTP_SERVE )},
 {"noftp_max",0,0,(uint *)0, CS(sDISABLE_F )},
@@ -487,6 +489,8 @@ SPD(5,tls)
 {"vpntap",3, FL3_VPN_TAP, (uint *)0, CS( t2T_2471473  )},
 {"vpn_tun_number",0,1024,(uint *)&tuntap_number[0], CS( t2T_6497414 )},
 {"vpn_tap_number",0,1024,(uint *)&tuntap_number[1], CS( t2T_6425577 )},
+{"vpn_tun_mtu", MIN_MTU, MAX_MTU,(uint *)&vpn_mtu[0], CS( t2T_6533180 )},
+{"vpn_tap_mtu", MIN_MTU, MAX_MTU,(uint *)&vpn_mtu[1], CS( t2T_6461343 )},
 
 {"vpnpub",3, FL3_VPN_PUBLIC, (uint *)0, CS( t2T_2917144  )},
 
@@ -518,10 +522,17 @@ SPD(5,tls)
 {"vpncln_tap",3, FL3_TAP_CLIENT, (uint *)0, CS( t2T_3867597  )},
 
 {"vpn_tuntap_number",0,1024,(uint *)&tuntap_number[2], CS( t2T_7581972 )},
+{"vpn_client_mtu", MIN_MTU, MAX_MTU,(uint *)&vpn_mtu[2], CS( t2T_7490219 )},
 {"tuntap_ip" ,32,0,(uint *)&tuntap_ipv4[2], CS( t2T_4130456 )},
 {"tuntap_nmask" ,32,0,(uint *)&tuntap_ipv4nmask[2], CS( t2T_6268646 )},
 {"vpncln_script_up" ,255,0,(uint *)&vpn_scripts_up[2], CS( t2T_7330605 )},
 {"vpncln_script_down" ,255,0,(uint *)&vpn_scripts_down[2], CS( t2T_8671725 )},
+
+{"vpncln_chktls",3, FL3_VPN_CHKTLS    , (uint *)0, CS( t2T_4758472  )},
+{"vpncln_tlsigntime",3, FL3_VPN_TLSIGNTIME, (uint *)0, CS( t2T_7019198  )},
+{"vpncln_tlsssign",3, FL3_VPN_TLSSSIGN  , (uint *)0, CS( t2T_5926682  )},
+{"vpncln_tlssshstyle",3, FL3_VPN_TLSSHSTYLE  , (uint *)0, CS( t2T_7549822  )},
+
 
 
 #endif // TLSVPN

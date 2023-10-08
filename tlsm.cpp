@@ -2,7 +2,7 @@
  * Copyright (C) 1999-2020 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
- * Author: Maksim Feoktistov 
+ * Author: Maksim Feoktistov
  *
  *
  * Small HTTP server is free software: you can redistribute it and/or modify it
@@ -15,11 +15,11 @@
  * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see https://www.gnu.org/licenses/ 
+ * along with this program.  If not, see https://www.gnu.org/licenses/
  *
  * Contact addresses for Email:  support@smallsrv.com
  *
- * 
+ *
  */
 
 
@@ -41,7 +41,7 @@
 #endif
 
 #define DBG_PRINT(a...)
-// debug(a)
+//debug(a)
 //DBGLA(a)
 //debug
 
@@ -82,7 +82,7 @@ HINSTANCE hSecDLL;
 #endif
 #ifndef MINGW
 #define HINSTANCE void *
-//typedef  void *HINSTANCE; 
+//typedef  void *HINSTANCE;
 #endif
 
 HINSTANCE hSecDLL;
@@ -107,9 +107,9 @@ int SecUpdateCBAbcent(OpenSSLConnection *s)
 
 int InitSecDLL()
 {
-    
+
 #ifdef x86_64
-   dlerror(); 
+   dlerror();
    hSecDLL=dlopen(TLSLibrary
       // "/dev/shm/o/o64/libsec.so"
        , //RTLD_LAZY|RTLD_GLOBAL
@@ -119,28 +119,28 @@ int InitSecDLL()
    {
     void *main_h;
     Lmid_t  lmid;
-    
-    
+
+
      printf("Error loading TLS/SSL library: %s %s %u %d\n",dlerror(),TLSLibrary, RTLD_NOW|RTLD_LOCAL, errno);
-     
-     
+
+
      main_h=dlopen(0,//RTLD_NOLOAD|
                      RTLD_LOCAL|RTLD_LAZY);
-     
+
      if(!main_h)
      {
        printf("Error get handle for main: %s %s %u %d\n",dlerror(),TLSLibrary, RTLD_NOW|RTLD_LOCAL, errno);
        lmid=LM_ID_BASE; //LM_ID_NEWLM;
-     }    
+     }
      else if(dlinfo(main_h,RTLD_DI_LMID,&lmid)<0)
      {
-           
+
        printf("Error get dlinfo for main: %s %s %d\n",dlerror(),TLSLibrary, errno);
        //return 0;
        lmid=LM_ID_NEWLM;
-         
+
      };
-     
+
      hSecDLL=dlmopen(//LM_ID_BASE
        // LM_ID_NEWLM
         lmid
@@ -151,10 +151,10 @@ int InitSecDLL()
      if(!hSecDLL)
      {
          printf("Error loading TLS/SSL library: %s |%s| %d %s\n",dlerror(),TLSLibrary,  errno,strerror(errno));
-         
+
         return 0;
      }
-       
+
    }
    dlerror();
    if(
@@ -172,21 +172,21 @@ int InitSecDLL()
   PSecUpdateCB = (TSecUpdateCB) GetProcAddress(hSecDLL,"SecUpdateCB");
 
 #else // not  x86_64
-    
+
 #ifdef SYSUNIX
   dlerror();
 #endif
 
   hSecDLL=LoadLibrary(TLSLibrary);
-  
+
   if(!hSecDLL)
   {
 #ifdef SYSUNIX
    printf("Error loading TLS/SSL library: %s %s\n",dlerror(),TLSLibrary);
 #endif
    return 0;
-        
-  }    
+
+  }
   else if(
      (!(PSecAccept=(TSecAccept) GetProcAddress(hSecDLL,"SecAccept"))) ||
      (!(PSecRecv  =(TSecRecv )  GetProcAddress(hSecDLL,"SecRecv"))) ||
@@ -201,7 +201,7 @@ int InitSecDLL()
 #endif
    return 0;
   }
-  PSecConnect = (TSecConnect) GetProcAddress(hSecDLL,"SecConnect"); 
+  PSecConnect = (TSecConnect) GetProcAddress(hSecDLL,"SecConnect");
   PSecUpdateCB = (TSecUpdateCB) GetProcAddress(hSecDLL,"SecUpdateCB");
 
 
@@ -216,14 +216,14 @@ int InitSecDLL()
   TSetPriority SetPriority;
 
   if( (SetPriority=(TSetPriority) GetProcAddress(hSecDLL,"SetPriority") ) )
-  {   
-    SetPriority(tls_priority);    
+  {
+    SetPriority(tls_priority);
   }
   else
   {
-    debug("SetPriority is abcent in the library\n");   
+    debug("SetPriority is abcent in the library\n");
   }
- }    
+ }
  return 1;
 }
 
@@ -239,16 +239,16 @@ int TLSSend(Req *th, const void *b,int l)
  int lock=0;
  int ll=l; ///!!! debug
  DBG_WRITE((char *)b,l,2);
- 
+
  if( (th->fl & F_CHUNKED) && l>0)
  {
    int l2;
-   while( l > MAX_FRAG_SIZE) 
+   while( l > MAX_FRAG_SIZE)
    {
      if((r=TLSSend(th,b,MAX_FRAG_SIZE)) <= 0) return r;
      l -= MAX_FRAG_SIZE;
      DWORD_PTR(b) += MAX_FRAG_SIZE;
-   }  
+   }
    lock = MyLock(chunke_mutex);
    if(!chunke_bfr) chunke_bfr = (char *) malloc(MAX_FRAG_SIZE+32);
    l2 = sprintf(chunke_bfr, "%X\r\n", l);
@@ -267,7 +267,7 @@ int TLSSend(Req *th, const void *b,int l)
  }
  if(lock) MyUnlock(chunke_mutex);
  DBG_PRINT("TLS send s=%d r=%d l=%d",th->s,r,ll);
- 
+
  return r;
 };
 
@@ -290,7 +290,7 @@ int Req::TLSBegin(OpenSSLConnection *x, int type, char *verfyhost)
   DBG_PRINT("TLS request");
   MyLock(TLSmutex);
   if( (type & tbtAccept) ? SecAccept(x) : SecConnect(x,type,verfyhost) )
-  { 
+  {
       MyUnlock(TLSmutex);
       return 1;
   }
@@ -315,19 +315,19 @@ int Req::TLSReq()
 #endif
     {
       DBG_PRINT("TLS accept Ok");
-      
+
       HttpReq();
-      
+
       //   SecRecv(&x,(char *)b,10);
       if(! (fl & F_KEEP_ALIVE) ) SecClose(&x);
-      else if( ! (fl & F_VPNANY) ) 
+      else if( ! (fl & F_VPNANY) )
       {
         TryToAddKeepAlive(this);
       }
     }
     else
     {
-      AddToLog("TLS error\r\n",s);    
+      AddToLog("TLS error\r\n",s);
     }
     DBG_PRINT("TLS end");
     return 1;

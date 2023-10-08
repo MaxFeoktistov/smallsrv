@@ -2,7 +2,7 @@
  * Copyright (C) 1999-2020 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
- * Author: Maksim Feoktistov 
+ * Author: Maksim Feoktistov
  *
  *
  * Small HTTP server is free software: you can redistribute it and/or modify it
@@ -15,11 +15,11 @@
  * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see https://www.gnu.org/licenses/ 
+ * along with this program.  If not, see https://www.gnu.org/licenses/
  *
  * Contact addresses for Email:  support@smallsrv.com
  *
- * 
+ *
  */
 
 
@@ -27,7 +27,7 @@
 #include "srv.h"
 #endif
 
-#ifdef TLSVPN 
+#ifdef TLSVPN
 #include "vpn.h"
 #endif
 
@@ -308,8 +308,8 @@ int sOutLine::OutConnLine(Req *r, char *alt_text)
   char *t1;
   CntrCode  *cc;
   char contry[8];
-  
-  
+
+
   #ifdef USE_IPV6
     l=sizeof(sockaddr_in6);
     IP2S(xs, &(r->sa_c));
@@ -328,7 +328,7 @@ int sOutLine::OutConnLine(Req *r, char *alt_text)
   {
     if( (cc=FindCntr(htonl(r->sa_c.sin_addr.s_addr) ) ) )
     {
-      sprintf(contry," (%2.2s)",cc->nm);   
+      sprintf(contry," (%2.2s)",cc->nm);
     }
   }
   // Dont_fix_var
@@ -362,7 +362,7 @@ int sOutLine::OutConnLine(Req *r, char *alt_text)
              BYTE_PTR(r->sa_c.sin_addr.s_addr,2),BYTE_PTR(r->sa_c.sin_addr.s_addr,3),
 #endif
 #endif
-             contry,           
+             contry,
              (ushort)san.sin_port,
              GetTickCount()-r->tmout, //[i],
              r->Tin,r->Tout, (alt_text)? alt_text : r->inf,i,r->tmout //[i]
@@ -375,9 +375,9 @@ int sOutLine::OutConnLine(Req *r, char *alt_text)
     }
     j=0;
   }
-  
+
  return j;
- 
+
 }
 
 int Req::OutActualConn(char *bfr)
@@ -388,8 +388,8 @@ int Req::OutActualConn(char *bfr)
  sOutLine oline;
  oline.th = this;
  oline.bfr = bfr;
- 
- oline.j=sprintf(bfr,          
+
+ oline.j=sprintf(bfr,
    "<h2>Now connected:</h2>"
    "<table bgcolor=#cffce0 border=1>"
    "<tr bgcolor=#a0eef8><td align=center><font size=3 class=f3><b>"
@@ -406,7 +406,7 @@ int Req::OutActualConn(char *bfr)
  for(oline.i=0; oline.i<max_tsk; ++oline.i)
    if( ((u_long)(r=rreq[oline.i]))>1 )
      if(oline.OutConnLine(r, 0)<0) return -1;
- 
+
  if(KeepAliveList)
  {
    MyLock(KeepAliveMutex);
@@ -421,19 +421,35 @@ int Req::OutActualConn(char *bfr)
    }
    MyUnlock(KeepAliveMutex);
  }
-#ifdef TLSVPN 
+#ifdef TLSVPN
+ char txt[64];
+ uint ip;
  if(vpn_count)
  {
+   VPNclient *v;
    for(int i=0; i<vpn_count; i++)
    {
      oline.i = i | CONID_VPN_MASK;
-     if(oline.OutConnLine( vpn_list[i],  "TLS VPN" )<0)
+     v = vpn_list[i];
+     ip = v->ipv4;
+     sprintf(txt,"TLS VPN:%s: %u.%u.%u.%u", TUNTAPNames[v->tun_index], ip&0xFF,(ip>>8)&0xFF ,(ip>>16)&0xFF, ip>>24); // TODO: Big endian fix
+
+     if(oline.OutConnLine(v,  txt )<0)
      {
        return -1;
      }
    }
  }
-#endif 
+ if(vpn_cln_connected)
+ {
+   oline.i = CONID_VPNCL_VALUE;
+   ip = vpn_cln_connected->ipv4;
+   sprintf(txt,"VPN Client: %u.%u.%u.%u",  ip&0xFF,(ip>>8)&0xFF ,(ip>>16)&0xFF, ip>>24);  // TODO: Big endian fix
+
+   if(oline.OutConnLine(vpn_cln_connected,  txt )<0)
+     return -1;
+ }
+#endif
  --no_close_req;
  oline.j+=sprintf(bfr+oline.j, "</table><hr>");
  if(send(s,bfr,oline.j,0)<=0)return -1;
@@ -483,7 +499,7 @@ char HTMLDirHead[]= XHTMLDirHead
 #else
  "6"
 #endif
-// Dont_fix_var 
+// Dont_fix_var
  " ;" LF
 "var h=document.links;" LF
 "function L(x)" LF

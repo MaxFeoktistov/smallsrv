@@ -2,7 +2,7 @@
  * Copyright (C) 1999-2023 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
- * Author: Maksim Feoktistov 
+ * Author: Maksim Feoktistov
  *
  *
  * Small HTTP server is free software: you can redistribute it and/or modify it
@@ -15,11 +15,11 @@
  * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see https://www.gnu.org/licenses/ 
+ * along with this program.  If not, see https://www.gnu.org/licenses/
  *
  * Contact addresses for Email:  support@smallsrv.com
  *
- * 
+ *
  */
 
 #include "vpn.h"
@@ -46,7 +46,7 @@ int tuntap_fds[3] = {-1,-1,-1};
 
 //const char * TUNTAPNames[3] = {"TUN","TAP","TAP"};
 const char * TUNTAPNames[3] = {"tun","tap","tap"};
- 
+
 #define MCAST_DETECT  0xE0
 #define MCAST_MASK    0xF0
 
@@ -55,11 +55,11 @@ const char * TUNTAPNames[3] = {"tun","tap","tap"};
 
 VPNclient **vpn_list;
 
-fd_set VPNset;
-int vpn_max_fd;
+maxFdSet maxVPNset;
+
 int vpn_max;
 int vpn_count;
-//volatile 
+//volatile
 int vpn_mutex;
 char *tundev="/dev/net/tun";
 int  tuntap_number[3];
@@ -71,9 +71,9 @@ uint tuntap_ipv6plen[3];
 uint vpn_rescan_us=500000;
 char* vpn_first_remote_ipc[2]={"192.168.111.20","192.168.112.20"};
 uint vpn_first_remote_ip[2];
-uint vpn_total_remote_ip[2] = {128,128} ; 
-uint vpn_next_remote_ip[2]; 
-//unsigned long long vpn_amask_remote_ip[2]; 
+uint vpn_total_remote_ip[2] = {128,128} ;
+uint vpn_next_remote_ip[2];
+//unsigned long long vpn_amask_remote_ip[2];
 uint vpn_allocated_remote_ip;
 char* vpn_gwc[2] = {"192.168.111.1","192.168.112.1"};
 uint vpn_gw[2];
@@ -81,6 +81,8 @@ uint vpn_nmask[2];
 char *vpn_dns[2] = {"192.168.111.1, 8.8.8.8, 4.4.4.4","192.168.112.1, 8.8.8.8, 4.4.4.4"};
 char *vpn_scripts_up[3]; //={"","",""};
 char *vpn_scripts_down[3];
+VPNclient * vpn_cln_connected;
+int  vpn_mtu[3]={4096,4096, 4096};
 
 long long vpn_mac[3];
 
@@ -99,9 +101,9 @@ int  RunScript(char *cmd)
   int r = system(cmd);
   if(r == -1) debug("vpn: Can't run script '%s'\r\n", cmd);
   return r;
-#else
-  // TODO:
-#endif  
+#elif defined(VPN_WIN)
+  return ShellExecute(0,"open",p,0,0,SW_SHOWNORMAL /*SW_HIDE !!!*/);
+#endif
 }
 
 int RunDownScript(int index, int ip)
@@ -131,7 +133,7 @@ int tun_alloc(int index)
     int r;
     char *t;
 
-    if( (fd = open(tundev, O_RDWR)) < 0 )
+    if( (fd = open(tundev, O_RDWR | O_CLOEXEC)) < 0 )
        return -1;
     tuntap_fds[index] = fd;
 
@@ -144,10 +146,10 @@ int tun_alloc(int index)
      */
     ifr.ifr_flags =  tuntap_flags[index]; //IFF_TUN;
     sprintf(ifr.ifr_name, "%s%u", TUNTAPNames[index], tuntap_number[index]);
-    
+
     DBGLS(ifr.ifr_name);
 
-    if( (err = ioctl(fd, TUNSETIFF, (void *) &ifr)) < 0 ) 
+    if( (err = ioctl(fd, TUNSETIFF, (void *) &ifr)) < 0 )
     {
       debug("Can't open tun device %s. %d %d %s", ifr.ifr_name, err, errno, strerror(errno));
       close(fd);
@@ -156,79 +158,253 @@ int tun_alloc(int index)
 
     if(rt_fd<=0) rt_fd = socket( PF_INET, SOCK_DGRAM,  IPPROTO_IP);
 
-    
-    if(tuntap_ipv4[index] && tuntap_ipv4nmask[index] && (ip=ConvertIP(t=tuntap_ipv4[index]) ) && (m=ConvertIP(t=tuntap_ipv4nmask[index]) ) )
+    if(index <2)
     {
 
-      DBGLS(ifr.ifr_name);
+      if(tuntap_ipv4[index] && tuntap_ipv4nmask[index] && (ip=ConvertIP(t=tuntap_ipv4[index]) ) && (m=ConvertIP(t=tuntap_ipv4nmask[index]) ) )
+      {
 
-      ((struct sockaddr_in *) &ifr.ifr_addr)->sin_family = AF_INET;
-      ((struct sockaddr_in *) &ifr.ifr_addr)->sin_addr.s_addr = ip;
-      if( ioctl(rt_fd, SIOCSIFADDR, &ifr)  )
-         debug("VPN: can't set IP %X for interface %s: %d %s\r\n", htonl(ip), ifr.ifr_name, errno, strerror(errno) );
-   
-      
-      ((struct sockaddr_in *) &ifr.ifr_addr)->sin_family = AF_INET;
-      ((struct sockaddr_in *) &ifr.ifr_addr)->sin_addr.s_addr = m;
-      if( ioctl(rt_fd, SIOCSIFNETMASK, &ifr) )
-         debug("VPN: can't set netmask %X for interface %s: %d %s\r\n",m , ifr.ifr_name, errno, strerror(errno) );
-   
-      
-      ((struct sockaddr_in *) &ifr.ifr_addr)->sin_family = AF_INET;
-      ((struct sockaddr_in *) &ifr.ifr_addr)->sin_addr.s_addr = ip | ~m;
-      if( ioctl(rt_fd, SIOCSIFBRDADDR, &ifr) )
-         debug("VPN: can't set broadcast address for interface %s: %d %s\r\n", ifr.ifr_name, errno, strerror(errno) );
-   
-      aflag |= IFF_BROADCAST;
+        DBGLS(ifr.ifr_name);
+
+        ((struct sockaddr_in *) &ifr.ifr_addr)->sin_family = AF_INET;
+        ((struct sockaddr_in *) &ifr.ifr_addr)->sin_addr.s_addr = ip;
+        if( ioctl(rt_fd, SIOCSIFADDR, &ifr)  )
+          debug("VPN: can't set IP %X for interface %s: %d %s\r\n", htonl(ip), ifr.ifr_name, errno, strerror(errno) );
+
+
+        ((struct sockaddr_in *) &ifr.ifr_addr)->sin_family = AF_INET;
+        ((struct sockaddr_in *) &ifr.ifr_addr)->sin_addr.s_addr = m;
+        if( ioctl(rt_fd, SIOCSIFNETMASK, &ifr) )
+          debug("VPN: can't set netmask %X for interface %s: %d %s\r\n",m , ifr.ifr_name, errno, strerror(errno) );
+
+
+        ((struct sockaddr_in *) &ifr.ifr_addr)->sin_family = AF_INET;
+        ((struct sockaddr_in *) &ifr.ifr_addr)->sin_addr.s_addr = ip | ~m;
+        if( ioctl(rt_fd, SIOCSIFBRDADDR, &ifr) )
+          debug("VPN: can't set broadcast address for interface %s: %d %s\r\n", ifr.ifr_name, errno, strerror(errno) );
+
+        //  aflag |= IFF_BROADCAST;
+      }
+
+      ifr.ifr_mtu = vpn_mtu[index];
+      if( (r = ioctl(rt_fd, SIOCSIFMTU, &ifr) ) < 0 )
+        debug("VPN: can't set MTU interface %s: %d %d %s\r\n", ifr.ifr_name, r, errno, strerror(errno) );
+
+
+
+      //ifr.ifr_flags = IFF_UP | IFF_ALLMULTI | IFF_RUNNING | aflag;
+      if( (r = ioctl(rt_fd, SIOCGIFFLAGS, &ifr) ) < 0 )
+        debug("VPN: can't get flags interface %s: %d %d %s\r\n", ifr.ifr_name, r, errno, strerror(errno) );
+      else aflag |= ifr.ifr_flags;
+
+      //    ifr.ifr_flags = IFF_UP | IFF_ALLMULTI | IFF_ECHO | aflag;
+      ifr.ifr_flags = IFF_UP | IFF_ALLMULTI | IFF_DYNAMIC | IFF_BROADCAST | IFF_MULTICAST
+      | IFF_AUTOMEDIA | aflag;
+      //   if( tuntap_flags[index] & IFF_TUN ) ifr.ifr_flags |= IFF_ECHO;
+
+      if( (r=ioctl(rt_fd, SIOCSIFFLAGS, &ifr) ) )
+        debug("VPN: can't UP %X interface %s: %d %d %s\r\n", ifr.ifr_flags, ifr.ifr_name, r, errno, strerror(errno) );
+
     }
-    //ifr.ifr_flags = IFF_UP | IFF_ALLMULTI | IFF_RUNNING | aflag;
-    if( (r = ioctl(rt_fd, SIOCGIFFLAGS, &ifr) ) < 0 ) 
-      debug("VPN: can't get flags interface %s: %d %d %s\r\n", ifr.ifr_name, r, errno, strerror(errno) );
-    else aflag |= ifr.ifr_flags;
-    
-//    ifr.ifr_flags = IFF_UP | IFF_ALLMULTI | IFF_ECHO | aflag;
-    ifr.ifr_flags = IFF_UP | IFF_ALLMULTI | IFF_DYNAMIC | IFF_AUTOMEDIA | aflag;
-      
-    if( (r=ioctl(rt_fd, SIOCSIFFLAGS, &ifr) ) )
-      debug("VPN: can't UP %X interface %s: %d %d %s\r\n", ifr.ifr_flags, ifr.ifr_name, r, errno, strerror(errno) );
-    
+
     if( tuntap_flags[index] & IFF_TAP )
     {
       if( (r=ioctl(rt_fd,  SIOCGIFHWADDR, &ifr) ) )
          debug("VPN: can't get hw address interface %s: %d %d %s\r\n", ifr.ifr_flags, ifr.ifr_name, r, errno, strerror(errno) );
-      else vpn_mac[index] = DDWORD_PTR(ifr.ifr_hwaddr.sa_data[0]) & 0xFFFFffffFFLL;
+      else
+      {
+        vpn_mac[index] = DDWORD_PTR(ifr.ifr_hwaddr.sa_data[0]) & 0xFFFFffffFFLL;
+        DBGLA("Tap MAC: %llX", vpn_mac[index])
+      }
     }
-    
+
     // TODO: get IPv6
-    
-    if(vpn_scripts_up[index] && vpn_scripts_up[index][0] && index<2 ) 
+
+    if(vpn_scripts_up[index] && vpn_scripts_up[index][0] && index<2 )
     {
       char  cmd[512];
       sprintf(cmd, "%s %s%u %u.%u.%u.%u %u.%u.%u.%u ", vpn_scripts_up[index],
          TUNTAPNames[index], tuntap_number[index],
-         ip>>24, (ip>>16)&0xFF, (ip>>8)&0xFF, ip&0xFF,
-         m>>24, (m>>16)&0xFF, (m>>8)&0xFF, m&0xFF
+         ip&0xFF, (ip>>8)&0xFF, (ip>>16)&0xFF,  ip>>24,
+         m&0xFF,  (m>>8)&0xFF,  (m>>16)&0xFF,   m>>24
       );
 
       DBGLS(cmd);
 
       RunScript(cmd);
     }
-    
+    if(index < 2) maxVPNset.Set(fd);
 #else
-    return -1;  
+
+    return -1;
 #endif
-    FD_SET(fd, &VPNset);
-    if(vpn_max_fd<fd)vpn_max_fd=fd;
     return fd;
 }
 
+#if defined(VPN_WIN)
+int get_guid(const char *src_name, char *ret_bfr)
+{
+  LONG status;
+  HKEY network_connections_key;
+  DWORD len;
+  DWORD elen;
+  char enum_name[300];
+  HKEY connection_key;
+  WCHAR name_data[256];
+  char  name[256];
+  DWORD name_type;
+  int ret = 0;
+  int i = 0;
+  int n;
+
+  n=sprintf(enum_name,"%s\\", NETWORK_CONNECTIONS_KEY);
+
+  status = RegOpenKeyEx( HKEY_LOCAL_MACHINE, NETWORK_CONNECTIONS_KEY, 0, KEY_READ, &network_connections_key);
+  while(1)
+  {
+    len = sizeof(enum_name) - n - 16;
+    status = RegEnumKeyEx( network_connections_key, i, enum_name + n, &elen, NULL, NULL, NULL, NULL);
+    if (status == ERROR_NO_MORE_ITEMS) break;
+    if (status == ERROR_SUCCESS)
+    {
+      if( !strcasecmp(enum_name + n,src_name) )
+      {
+        // directed guid instead name
+        strncpy(ret_bfr, enum_name + n, 256);
+        ret = 2;
+        break;
+      }
+
+      strcpy(enum_name + n + elen, "\\Connection");
+
+
+      status = RegOpenKeyEx( HKEY_LOCAL_MACHINE, enum_name, 0, KEY_READ, &connection_key);
+
+      if (status == ERROR_SUCCESS)
+      {
+        len = sizeof(name_data);
+        status = RegQueryValueExW( connection_key, L"Name", NULL, &name_type, (LPBYTE) name_data, &len);
+        RegCloseKey(connection_key);
+
+        if (status != ERROR_SUCCESS || name_type != REG_SZ)
+        {
+          DBGLA("Error opening registry key: %s",  enum_name);
+        }
+        else
+        {
+          WideCharToMultiByte(CP_UTF8, 0, name_data, -1, name, sizeof(name), NULL, NULL);
+          if( !strcasecmp(name, src_name) )
+          {
+            enum_name[n + elen] = 0;
+            strncpy(ret_bfr, enum_name + n, 256);
+            ret = 1;
+            break;
+          }
+        }
+      }
+      else
+      {
+        DBGLS(enum_name)
+      }
+    }
+    ++i;
+  }
+
+  RegCloseKey(network_connections_key);
+  return ret;
+}
+
+HANDLE win_tun_open(char *name, int index)
+{
+ HANDLE h;
+ DWORD len;
+ ULONG x;
+ char guid[256];
+ char path[256];
+
+ if(! get_guid(name,guid) )
+ {
+   debug("Can't get GUID of %s", name);
+   return INVALID_HANDLE_VALUE;
+ }
+
+#ifndef USERMODEDEVICEDIR
+#define USERMODEDEVICEDIR "\\\\.\\Global\\"
+#define TAP_WIN_SUFFIX    ".tap"
+#endif
+
+ sprintf(path, USERMODEDEVICEDIR "%s" TAP_WIN_SUFFIX, guid);
+
+ DBGLA("Using device interface: %s", path);
+
+ h = CreateFile(path, GENERIC_READ | GENERIC_WRITE,
+                0,         /* was: FILE_SHARE_READ */
+                0, OPEN_EXISTING, FILE_ATTRIBUTE_SYSTEM | FILE_FLAG_OVERLAPPED, 0);
+ if (h != INVALID_HANDLE_VALUE)
+ {
+    SECURITY_ATTRIBUTES sa;
+    SECURITY_DESCRIPTOR sd;
+    memset(&sa, 0, sizeof(sa));
+    sa.nLength = sizeof(sa);
+    sa.lpSecurityDescriptor = &sd;
+    sa.bInheritHandle = TRUE;
+    if (!InitializeSecurityDescriptor(&sd, SECURITY_DESCRIPTOR_REVISION))
+    {
+      debug("initialize security descriptor failed\r\n");
+    }
+    else if (!SetSecurityDescriptorDacl(&sd, TRUE, NULL, FALSE)) {
+      debug("Set security descriptor dacl failed\r\n");
+    }
+    else  status = SetKernelObjectSecurity(handle, DACL_SECURITY_INFORMATION, &sd);
+
+    // get info from the fd
+    {
+      ULONG info[3];
+      if (DeviceIoControl(handle, TAP_WIN_IOCTL_GET_VERSION, info, sizeof(info), &info, sizeof(info), &len, NULL))
+      {
+        debug("TAP-Windows Driver Version %d.%d %s\r\n", (int)info[0], (int)info[0], (info[2] ? "(DEBUG)" : ""));
+      } else {
+        debug("Device io control GET_VERSION failed\r\n");
+      }
+    }
+
+    // set to connected
+    x = 1;
+    if (DeviceIoControl(handle, TAP_WIN_IOCTL_SET_MEDIA_STATUS, &x, sizeof(x), &x, sizeof(x), &len, NULL))
+    {
+      debug("Setting device to CONNECTED\r\n");
+    } else {
+      debug("setting device to CONNECTED failed\r\n");
+      return 1;
+    }
+
+    if(vpn_scripts_up[index] && vpn_scripts_up[index][0] && index<2 )
+    {
+      char  cmd[512];
+      sprintf(cmd, "%s %s%u %u.%u.%u.%u %u.%u.%u.%u ", vpn_scripts_up[index],
+         TUNTAPNames[index], tuntap_number[index],
+         ip&0xFF, (ip>>8)&0xFF, (ip>>16)&0xFF,  ip>>24,
+         m&0xFF,  (m>>8)&0xFF,  (m>>16)&0xFF,   m>>24
+      );
+
+      DBGLS(cmd);
+
+      RunScript(cmd);
+    }
+ }
+ return h;
+
+}
+
+#endif
 
 void CloseVPNClient(int i)
 {
 
+  maxVPNset.Clear(vpn_list[i]->s);
   SecClose((OpenSSLConnection*) vpn_list[i]->Adv);
   CloseSocket(vpn_list[i]->s);
+
   MyLock(vpn_mutex);
   free(vpn_list[i]);
   vpn_count --;
@@ -259,7 +435,7 @@ int Req::InsertVPNclient()
   int isTap;
   ulong ip;
   long long mac;
-  
+
 
   DBGL("");
 
@@ -277,9 +453,9 @@ int Req::InsertVPNclient()
       DBGL("");
 
 #ifdef WITHMD5
-       SendDigestAuthReq(loc); 
+       SendDigestAuthReq(loc);
 #else
-       Send(AuthErr, strlen(AuthErr)  ) ;// sizeof(AuthErr)-1); 
+       Send(AuthErr, strlen(AuthErr)  ) ;// sizeof(AuthErr)-1);
 #endif
     return -1;
    }
@@ -292,7 +468,7 @@ int Req::InsertVPNclient()
    if( (!t) || tuntap_fds[isTap] == -1 )
    {
      HttpReturnError("Error. Selected VPN type disabled...");
-     return -1; 
+     return -1;
    }
 
    DBGLS(t);
@@ -308,21 +484,21 @@ int Req::InsertVPNclient()
 
    cl->fl = F_VPNTUN << isTap;
    cl->tun_index = isTap;
-   
+
    ip = strtoul(t, &p, 16);
    if( (!ip) || (vpn_total_remote_ip[isTap] && ! IsVPN_IP_Free(ip)) )
    {
-     if(vpn_first_remote_ip[isTap] && vpn_total_remote_ip[isTap]) 
+     if(vpn_first_remote_ip[isTap] && vpn_total_remote_ip[isTap])
      {
        if(vpn_next_remote_ip[isTap] < vpn_first_remote_ip[isTap]) vpn_next_remote_ip[isTap] = vpn_first_remote_ip[isTap];
        ip = vpn_next_remote_ip[isTap];
        do{
-         if(IsVPN_IP_Free(ip)) 
+         if(IsVPN_IP_Free(ip))
          {
            vpn_next_remote_ip[isTap] = ip;
            goto found_free_ip;
          }
-         
+
          #ifdef BIG_ENDIAN
          ip++;
          if( (ip-vpn_first_remote_ip[isTap]) >= vpn_total_remote_ip[isTap] ) ip = vpn_first_remote_ip[isTap];
@@ -331,12 +507,12 @@ int Req::InsertVPNclient()
          ip++;
          if( (ip-htonl(vpn_first_remote_ip[isTap])) >= vpn_total_remote_ip[isTap] ) ip = vpn_first_remote_ip[isTap];
          else ip = htonl(ip);
-         #endif         
-         
+         #endif
+
        } while( ip != vpn_next_remote_ip[isTap] );
        ip = 0;
        debug("Not found free IP for %s\r\n", TUNTAPNames[isTap]);
-     found_free_ip:;  
+     found_free_ip:;
      }
    }
    t=loc + 1024;
@@ -349,22 +525,27 @@ int Req::InsertVPNclient()
        if(vpn_dns[isTap] && vpn_dns[isTap][0]) {
          l += sprintf(t + l,"dns: %s\r\n", vpn_dns[isTap]);
        cl->ipv4 = ip;
-       cl->ipv4bcast = ip| ~vpn_nmask[isTap];  
+       cl->ipv4bcast = ip| ~vpn_nmask[isTap];
        cl->fl |= F_VPN_IPSET;
       }
    }
    l += sprintf(t + l,"\r\n");
    cl->Send(t,l);
-   if(p && (mac = strtoll(SkipSpace(p) , 0, 16)) ) 
+   if(p && (mac = strtoll(SkipSpace(p) , 0, 16)) )
    {
      cl->macl = mac;
-     cl->fl |= F_VPN_MACSET;
-     DBGLS(p);
+     //! cl->fl |= F_VPN_MACSET;
+     DBGLA("set mac %s %llX", p, mac);
    }
 
    DBGL("Ok");
+   cl->pos_pkt = 0;
+
 
    vpn_list[vpn_count++] = cl;
+   maxVPNset.Set(s);
+   SetKeepAliveSock(s);
+
    fl = F_KEEP_ALIVE | F_VPNANY;
    s = -1;
    Adv = 0;
@@ -376,82 +557,95 @@ int VPNclient::RecvPkt()
 {
   int l,ll;
   //HANDLE h;
-  DBGL("recv");
+  DBGLA("recv %d", pos_pkt);
   if(pos_pkt<2) l=Recv(pkt + pos_pkt, MAX_MTU - pos_pkt);
+  DBGLA("l=%d pos=%d pkt_len=%d",l, pos_pkt, pkt_len);
   if(l<=0) return -1;
   pos_pkt += l;
   if(pos_pkt < 2) return 0;
-  if(pkt_len >= MAX_MTU) {
+  if(pkt_len >= MAX_MTU || ((uint)pos_pkt) > MAX_MTU ) {
     debug("VPN sinhronisation error\r\n");
+    pos_pkt = 0;
     return -1;
   }
-  while(pos_pkt >= (ll = pkt_len+2))
+  while(pos_pkt>2 && pos_pkt >= (ll = pkt_len+2))
   {
+
+    l=write(tuntap_fds[tun_index], pkt + 2, pkt_len);
+    DBGLA("tun_proto = %X l=%d", tunpkt.tun_proto, l )
+    if(l != pkt_len )
+    {
+       debug("TUN write %d error %d %d %s\r\n",pkt_len, l, errno, strerror(errno));
+       return -1;
+    }
+
     if(fl & F_VPNTUN)
     {
-      if( (! (fl & F_VPN_IPSET) ) && tunpkt.tun_proto == ETHERTYPE_IP && tunpkt.ip4.saddr)
+      if( (! (fl & F_VPN_IPSET) ) && tunpkt.tun_proto == ETHERTYPE_IP_LE && tunpkt.ip4.saddr)
       {
         ipv4 = tunpkt.ip4.saddr;
         fl |= F_VPN_IPSET;
       }
-      if( (! (fl & F_VPN_IP6SET) ) && tunpkt.tun_proto == ETHERTYPE_IPV6 && WORD_PTR(tunpkt.ip6.ip6_src.s6_addr[0]) == 0xfe80 )
+      if( (! (fl & F_VPN_IP6SET) ) && tunpkt.tun_proto == ETHERTYPE_IPV6_LE && WORD_PTR(tunpkt.ip6.ip6_src.s6_addr[0]) == 0xfe80 )
       {
+        DBGL("")
+
         memcpy(& ipv6[0], tappkt.ip6.ip6_src.s6_addr, sizeof(ipv6[0]) );
         fl |= F_VPN_IP6SET;
       }
-      if( (! (fl & F_VPN_IP6SET2) ) && tunpkt.tun_proto == ETHERTYPE_IPV6 && 
-          WORD_PTR(tunpkt.ip6.ip6_src.s6_addr[0]) < 0xfe00 && 
+      if( (! (fl & F_VPN_IP6SET2) ) && tunpkt.tun_proto == ETHERTYPE_IPV6_LE &&
+          WORD_PTR(tunpkt.ip6.ip6_src.s6_addr[0]) < 0xfe00 &&
           WORD_PTR(tunpkt.ip6.ip6_src.s6_addr[0]) & ~0x40  )
       {
+
+        DBGL("")
+
         memcpy(& ipv6[1], tappkt.ip6.ip6_src.s6_addr, sizeof(ipv6[0]) );
         fl |= F_VPN_IP6SET2;
       }
     }
     else if(fl & F_VPNTAP)
     {
-      if(! (fl & F_VPN_MACSET) ) 
+      DBGLA("tap proto = %X", tappkt.eth.ether_type)
+
+      if(! (fl & F_VPN_MACSET) )
       {
-        memcpy(&macb, &tappkt.eth.ether_shost, 6);
+        //memcpy(&macb, &tappkt.eth.ether_shost, 6);
+        macl = DDWORD_PTR(tappkt.eth.ether_shost[0]) & 0xFFFFffffFFLL;
         fl |= F_VPN_MACSET;
+        DBGLA("mac=%llX", macl)
       }
       if( (! (fl & F_VPN_IPSET) ) && tappkt.eth.ether_type == ETHERTYPE_IP && tappkt.ip4.saddr )
       {
         ipv4 = tunpkt.ip4.saddr;
-        fl |= F_VPN_MACSET;
+        fl |= F_VPN_IPSET;
+        DBGLA("ip=%X",ipv4)
       }
-      if( (! (fl & F_VPN_IP6SET) ) && tappkt.eth.ether_type == ETHERTYPE_IPV6 && WORD_PTR(tappkt.ip6.ip6_src.s6_addr[0]) == 
+      if( (! (fl & F_VPN_IP6SET) ) && tappkt.eth.ether_type == ETHERTYPE_IPV6 && WORD_PTR(tappkt.ip6.ip6_src.s6_addr[0]) ==
 #ifdef BIG_ENDIAN
         0xFE80
-#else        
-        0x80fe // LE machine!!! 
-#endif        
-      ) 
+#else
+        0x80fe // LE machine!!!
+#endif
+      )
       {
         memcpy(& ipv6[0], tappkt.ip6.ip6_src.s6_addr, sizeof(ipv6[0]) );
         fl |= F_VPN_IP6SET;
       }
-      if( (! (fl & F_VPN_IP6SET2) ) && tappkt.eth.ether_type == ETHERTYPE_IPV6 && 
-          tappkt.ip6.ip6_src.s6_addr[0] < 0xfe && 
-          WORD_PTR(tappkt.ip6.ip6_src.s6_addr[0]) & 
+      if( (! (fl & F_VPN_IP6SET2) ) && tappkt.eth.ether_type == ETHERTYPE_IPV6 &&
+          tappkt.ip6.ip6_src.s6_addr[0] < 0xfe &&
+          WORD_PTR(tappkt.ip6.ip6_src.s6_addr[0]) &
 #ifdef BIG_ENDIAN
           ~0x40
 #else
           ~0x4000
 #endif
-        ) 
+        )
       {
         memcpy(& ipv6[1], tappkt.ip6.ip6_src.s6_addr, sizeof(ipv6[0]) );
         fl |= F_VPN_IP6SET2;
       }
     }
-    if( (l=write(//(fl & F_VPNTUN) ? tun_fd : tap_fd, 
-                 tuntap_fds[tun_index], pkt + 2, pkt_len)) != pkt_len )
-    {
-       debug("TUN write %d error %d %d %s\r\n",pkt_len, l, errno, strerror(errno));
-       return -1;
-    }
-    VPNreceved += l;
-    VPNreceved_pkt ++;
 
     if(pos_pkt > ll)
     {
@@ -459,8 +653,11 @@ int VPNclient::RecvPkt()
       memcpy(pkt, pkt+ll, pos_pkt);
     }
     else pos_pkt = 0;
+    VPNreceved += l;
+    VPNreceved_pkt ++;
+
   }
-  return 0;
+  return 1;
 }
 
 int ReInitTUNTAP(char *reason, int i)
@@ -470,7 +667,33 @@ int ReInitTUNTAP(char *reason, int i)
   return tuntap_fds[i] = tun_alloc(i);
 }
 
-int VPN_Thread(void *) 
+void OnPktFromIf(uchar *pkt, int i)
+{
+  int r,l,k;
+ // DBGLA("%u read %u %u",TUNTAPNames[i], pkt_len,vpn_count);
+  l = 0;
+  for(k=0; k<vpn_count; k++)
+  {
+    r = vpn_list[k]->SendIsUs(pkt,i);
+    if( r < 0 ) CloseVPNClient(k);
+    else if(r > 0)
+    {
+      l++;
+      if(r == PKT_US) break;
+    }
+  }
+  if(!l)
+  {
+    DBGL("DROPED")
+    VPNdroped ++;  //TODO: bytes stat
+  }
+  else {
+    VPNsendet += l;
+    VPNsendet_pkt ++;
+  }
+}
+
+int VPN_Thread(void *)
 {
   fd_set set;
   fd_set er_set;
@@ -480,56 +703,41 @@ int VPN_Thread(void *)
     short pkt_len;
     uchar pkt[MAX_MTU];
   };
-  
-  while(is_no_exit) 
+
+  while(is_no_exit)
   {
     memcpy(&set, &VPNset, sizeof(set) );
     memcpy(&er_set,&set,sizeof(er_set));
     TVal.tv_sec=0;
     TVal.tv_usec=vpn_rescan_us;
     j=select(vpn_max_fd+1,&set,0,&er_set,&TVal);
-    if(j>0) 
+    if(j>0)
     {
 
       DBGL("");
+#ifndef VPN_WIN
 
-      for(i=0; i<2; i++) 
+      for(i=0; i<2; i++)
         if(tuntap_fds[i] > 0 && FD_ISSET(tuntap_fds[i], &set) )
         {
-          if( (pkt_len=read(tuntap_fds[i],pkt+2,MAX_MTU)) <= 0 ) 
+          if( (pkt_len=read(tuntap_fds[i],pkt+2,MAX_MTU)) <= 0 )
           {
               ReInitTUNTAP("read",i);
           }
           else
           {
+            OnPktFromIf(pkt,i);
 
-            DBGLA("%u read %u %u",TUNTAPNames[i], pkt_len,vpn_count);
-
-             l = 0;
-             for(k=0; k<vpn_count; k++) 
-             {
-               r = vpn_list[k]->SendIsUs(pkt,i);
-               if( r < 0 ) CloseVPNClient(k);
-               else if(r > 0)
-               {
-                 l++;
-                 if(r == PKT_US) break;
-               }
-             }
-             if(!l) VPNdroped ++;  //TODO: bytes stat 
-             else {
-               VPNsendet += l;
-               VPNsendet_pkt ++;
-             }
           }
-          j--; 
+          j--;
         }
         else  if( FD_ISSET(tuntap_fds[i], &er_set) )
         {
           ReInitTUNTAP("set",i);
-          j--; 
+          j--;
         }
-      for(i=0; i<vpn_count && j>0; i++) 
+#endif
+      for(i=0; i<vpn_count && j>0; i++)
         if( FD_ISSET(vpn_list[i]->s, &set) )
         {
           if(vpn_list[i]->RecvPkt()<0)  CloseVPNClient(i);
@@ -546,9 +754,58 @@ int VPN_Thread(void *)
   return 0;
 }
 
+#ifdef VPN_WIN
+struct AsincReadHelper_t
+{
+  HANDLE hfile;
+  HANDLE hevent;
+  OVERLAPPED ovd;
+  int index;
+  int current;
+  union {
+    short pkt_len;
+    uchar pkt[MAX_MTU];
+  } u[2];
+};
+
+void AsincReadServCB(AsincReadHelper_t *thi)
+{
+  int next = thi->current^1;
+  DWORD len;
+  if(GetOverlappedResult(thi->hfile, &thi->ovd, &len, 0) )
+  {
+    ResetEvent(thi->hevent);
+    memset(&thi->ovd, 0, offset(OVERLAPPED, &hEvent));
+    ReadFile(thi->hfile, thi->u[next].pkt+2, MAX_MTU, 0, thi->ovd);
+    thi->u[thi->current].pkt_len = len;
+    OnPktFromIf(thi->u[thi->current].pkt, thi->index);
+    thi->current = next;
+  }
+}
+
+void AsincReadClientCB(AsincReadHelper_t *thi)
+{
+  int next = thi->current^1;
+  DWORD len;
+  if(GetOverlappedResult(thi->hfile, &thi->ovd, &len, 0) )
+  {
+    ResetEvent(thi->hevent);
+    memset(&thi->ovd, 0, offset(OVERLAPPED, &hEvent));
+    if(vpn_cln_connected)
+    {
+      ReadFile(thi->hfile, thi->u[next].pkt+2, MAX_MTU, 0, thi->ovd);
+      thi->u[thi->current].pkt_len = len;
+      vpn_cln_connected->Send(thi->u[thi->current].pkt,len);
+    }
+    thi->current = next;
+  }
+}
+
+#endif
+
 void  CloseTunTap()
 {
-  for(int i=0; i<2; i++)
+  for(int i=0; i<3; i++)
      if(tuntap_fds[i] >= 0) {
      close(tuntap_fds[i]);
      tuntap_fds[i] = -1;
@@ -572,58 +829,70 @@ int VPN_Init()
   if(USE_TUN) tun_fd = tun_alloc(0);
   if(USE_TAP) tap_fd = tun_alloc(1);
   if(tun_fd < 0 && tap_fd < 0) return -1;
-  
+
   vpn_list = (VPNclient **) malloc( sizeof(VPNclient *) * (vpn_max+1) );
   if(!vpn_list) {
     CloseTunTap();
     return -1;
   }
-  
+
   return CreateThread(&secat,0x5000,(TskSrv)VPN_Thread, (void *)0, 0, &trd_id);
 }
 
 int VPNclient::SendIsUs(uchar *pktl, int tuntap)
 {
   int ret = PKT_NOT_US;
-  if(tuntap)
+  int proto;
+
+  if(!tuntap)
   { // TUN
+    DBGLA("tun %u %X %X", tun_index,fl,fl & F_VPNTUN )
     if(fl & F_VPNTUN)
     {
-#define pkt ((VPN_TUNPacket *) pktl)
-      DBGLA("tun pkt: %X", pkt->tun_proto);
-      switch(pkt->tun_proto)
+#define ppkt ((VPN_TUNPacket *) pktl)
+      proto = ppkt->tun_proto;
+      DBGLA("tun ppkt: %X %X", ppkt->tun_proto, proto);
+//      switch(ppkt->tun_proto)
+      switch(proto)
       {
-        case ETHERTYPE_IP:
-             if(pkt->ip4.daddr == ipv4) ret = PKT_US;
-             else if( (pkt->ip4.daddr & MCAST_MASK) == MCAST_DETECT ||
-               pkt->ip4.daddr == ipv4bcast ||
-               pkt->ip4.daddr == BROADCAST_ANY 
+        case ETHERTYPE_IP_LE:
+
+             DBGLA("IP: %X %X",ppkt->ip4.daddr, ipv4)
+
+             if(ppkt->ip4.daddr == ipv4) ret = PKT_US;
+             else if( (ppkt->ip4.daddr & MCAST_MASK) == MCAST_DETECT ||
+               ppkt->ip4.daddr == ipv4bcast ||
+               ppkt->ip4.daddr == BROADCAST_ANY
              ) ret = PKT_BCAST;
              else  break;
              if(0){
-        case ETHERTYPE_ARP:
-        case ETHERTYPE_REVARP:
+        case ETHERTYPE_ARP_LE:
+        case ETHERTYPE_REVARP_LE:
+             DBGLS("arp!")
              ret = PKT_BCAST;
              if(0) {
-        case ETHERTYPE_IPV6:
-             if( 
-                (!memcmp( & pkt->ip6.ip6_dst, &ipv6[0], sizeof(pkt->ip6.ip6_dst) ) ) ||
-                (!memcmp( & pkt->ip6.ip6_dst, &ipv6[1], sizeof(pkt->ip6.ip6_dst) ) ) 
+        case ETHERTYPE_IPV6_LE:
+             if(
+                (!memcmp( & ppkt->ip6.ip6_dst, &ipv6[0], sizeof(ppkt->ip6.ip6_dst) ) ) ||
+                (!memcmp( & ppkt->ip6.ip6_dst, &ipv6[1], sizeof(ppkt->ip6.ip6_dst) ) )
                ) ret = PKT_US;
-             else if(  
-#if __BYTE_ORDER__  !=  __ORDER_LITTLE_ENDIAN__ 
-                WORD_PTR(pkt->ip6.ip6_dst.s6_addr[0]) == 0xFF02  // Multicast
-#else                
-                WORD_PTR(pkt->ip6.ip6_dst.s6_addr[0]) == 0x20FF  // Multicast
-#endif                
+             else if(
+#if __BYTE_ORDER__  !=  __ORDER_LITTLE_ENDIAN__
+                WORD_PTR(ppkt->ip6.ip6_dst.s6_addr[0]) == 0xFF02  // Multicast
+#else
+                WORD_PTR(ppkt->ip6.ip6_dst.s6_addr[0]) == 0x20FF  // Multicast
+#endif
              ) ret = PKT_BCAST;
              else  break;
              }}
-             if(Send(pktl, pkt->len + 2)<=0) ret = -1;
+             if(Send(pktl, ppkt->len + 2)<=0) ret = -1;
+             break;
+        default:
 
-        
+          DBGLA("Unknow tun ppkt: %X (IP:%X)", ppkt->tun_proto,ETHERTYPE_IP_LE);
+
       }
-#undef  pkt
+#undef  ppkt
     }
     // TODO: else Tun/Tap gate
   }
@@ -631,21 +900,27 @@ int VPNclient::SendIsUs(uchar *pktl, int tuntap)
   { //TAP
     if(fl & F_VPNTAP)
     {
+#define ppkt ((VPN_TAPPacket *) pktl)
+      DBGLA("tap ppkt: %X %08X%04X %08X%04X", ppkt->eth.ether_type, DWORD_PTR(ppkt->eth.ether_dhost[0]), WORD_PTR(ppkt->eth.ether_dhost[4]) , mac[0], mac[1] );
+      if(
+#ifdef OPT64
+        macl == (DDWORD_PTR(ppkt->eth.ether_dhost[0]) & 0xFFFFffffFFLL)
+#else
+        (!memcmp(ppkt->eth.ether_dhost, &macb, 6)
+#endif
+        )
 
 
-#define pkt ((VPN_TAPPacket *) pktl)
-      DBGLA("tap pkt: %X %llX", pkt->eth.ether_type, DDWORD_PTR(pkt->eth.ether_dhost[0]) & 0xFFFFffffFFLL );
-      if(  (!memcmp(pkt->eth.ether_dhost, &macb, 6) ) ) ret = PKT_US;
+      ) ret = PKT_US;
       else if(
-           //(!memcmp(pkt->ether_dhost, &NullLongLong, 6) ) ||
-           //(!memcmp(pkt->ether_dhost, &BCAST_MAC, 6) ) ||
-           pkt->eth.ether_dhost[0] & 0x1   // multycast
+           //(!memcmp(ppkt->ether_dhost, &NullLongLong, 6) ) ||
+           ppkt->eth.ether_dhost[0] & 0x1   // multicast
       )  ret = PKT_BCAST;
       else return ret;
-      if(Send(pktl, pkt->len + 2)<=0) ret = -1;
-#undef  pkt
+      if(Send(pktl, ppkt->len + 2)<=0) ret = -1;
+#undef  ppkt
     }
-    // TODO: else Tun/Tap gate
+    // TODO: else Tun <=> Tap gate
   }
   return ret;
 }
@@ -654,7 +929,7 @@ void VPN_Done()
 {
   int i;
   MyLock(vpn_mutex);
-  
+
   for(i=0; i<vpn_count; i++)
   {
     CloseSocket(vpn_list[i]->s);
@@ -664,7 +939,7 @@ void VPN_Done()
 
   CloseTunTap();
   free(vpn_list);
-  
+
 }
 
 char *vpn_remote_host;
@@ -676,6 +951,7 @@ char vpn_realm[32];
 uint  vpn_client_ip;
 long long vpn_client_mac;
 
+#if 0
 void addRoute(uint dstip, uint dstmsk, uint gw)
 {
     //int rt_fd = socket( PF_INET, SOCK_DGRAM,  IPPROTO_IP);
@@ -683,17 +959,17 @@ void addRoute(uint dstip, uint dstmsk, uint gw)
 
     struct rtentry route;
     memset( &route, 0, sizeof( route ) );
-    
+
     ((struct sockaddr_in*) &route.rt_gateway)->sin_family = AF_INET;
     ((struct sockaddr_in*) &route.rt_gateway)->sin_addr.s_addr = gw;
-    
+
     ((struct sockaddr_in*) &route.rt_dst)->sin_family = AF_INET;
     ((struct sockaddr_in*) &route.rt_dst)->sin_addr.s_addr = dstip;
-    
+
     ((struct sockaddr_in*) &route.rt_genmask)->sin_family = AF_INET;
     ((struct sockaddr_in*) &route.rt_genmask)->sin_addr.s_addr = dstmsk;
     route.rt_flags = RTF_UP | RTF_GATEWAY;
-    
+
     route.rt_metric = 0;
 
     if (ioctl( rt_fd, SIOCADDRT, &route ) < 0)
@@ -703,22 +979,6 @@ void addRoute(uint dstip, uint dstmsk, uint gw)
     //close( fd );
 }
 
-int split(char *src, char *separators, char **result, int max_result)
-{
-  int ret = 0;
-  while(*src && ret<max_result)
-  {
-    *result=src;
-    //while( ! strchr(separators, *src ) ) { if(!*src) goto ex2loop; src++ ; }
-    if( (!(src = strpbrk(src, separators)) ) || ! *src )  goto ex2loop;
-    *src++ = 0;
-    while( strchr(separators, *src ) ) { if(!*src) goto ex2loop; src++ ; }
-    result++;
-    ret++;
-  }
- ex2loop: 
-  return ret;
-}
 
 uint GetDefaultRoute()
 {
@@ -729,10 +989,10 @@ uint GetDefaultRoute()
   char *lines[32];
   char *words[16];
   enum {Iface=0,   Destination,     Gateway,         Flags,   RefCnt,  Use,     Metric,  Mask,            MTU,     Window,  IRTT };
-#define MAX_ROUTE_SIZE 0x10000 
+#define MAX_ROUTE_SIZE 0x10000
   bfr=(char *)malloc(MAX_ROUTE_SIZE);
   fd=open("/proc/net/route",O_RDONLY);
-  if(fd > 0) 
+  if(fd > 0)
   {
     l = read(fd,bfr,MAX_ROUTE_SIZE-1);
     close(fd);
@@ -761,7 +1021,24 @@ uint GetDefaultRoute()
   //TODO
 #endif
 }
+#endif
 
+int split(char *src, char *separators, char **result, int max_result)
+{
+  int ret = 0;
+  while(*src && ret<max_result)
+  {
+    *result=src;
+    //while( ! strchr(separators, *src ) ) { if(!*src) goto ex2loop; src++ ; }
+    if( (!(src = strpbrk(src, separators)) ) || ! *src )  goto ex2loop;
+    *src++ = 0;
+    while( strchr(separators, *src ) ) { if(!*src) goto ex2loop; src++ ; }
+    result++;
+    ret++;
+  }
+ ex2loop:
+  return ret;
+}
 
 int FindCopyVar(char *s, char *name, char *t, int l)
 {
@@ -796,12 +1073,12 @@ int VPNclient::ClientConnect(OpenSSLConnection *x)
   uint HA1[6];
   char HA2Hex[40];
   int  tryes = 0;
-#define TRYES_REQUEST_BASIC 0x8000
+  static int AuthBasic;
   uint m=0xFFFFFF;
 
-  
+  vpn_cln_connected = 0;
   if(!vpn_remote_host) return -5;
-  if( (!PSecConnect) || PSecConnect == SecConnectAbcent) 
+  if( (!PSecConnect) || PSecConnect == SecConnectAbcent)
   {
     debug("Your version of 'seclib' library doesn't support functions required for VPN client. Please update it...\r\n");
     return -4;
@@ -810,26 +1087,32 @@ int VPNclient::ClientConnect(OpenSSLConnection *x)
 
  // DBGL("")
 
-agayn1:  
+agayn1:
   s=call_socket(vpn_remote_host, vpn_client_port);
-  if(s <= 0) 
+  if(s <= 0)
   {
     debug("VPN client: Can't connect to %s...\r\n", vpn_remote_host);
     return -1;
   }
-  
+
  // DBGL("")
 
-  if(! TLSBegin(x,tbtAnon) )
+  i = tbtAnon;
+  if(s_flgs[3] & FL3_VPN_CHKTLS    ) i |= tbtVerfyRequired;
+  if(s_flgs[3] & FL3_VPN_TLSIGNTIME) i |= tbtDontVerfyTyme;
+  if(s_flgs[3] & FL3_VPN_TLSSSIGN  ) i |= tbtDontVerfySigner;
+  if(s_flgs[3] & FL3_VPN_TLSSHSTYLE  ) i |= tbtSSHstyleVerfy;
+
+  if(! TLSBegin(x,i,(s_flgs[3] & FL3_VPN_CHKTLS)? vpn_remote_host : 0 ) )
   {
     debug("VPN client: Can't setup TLS to %s...\r\n", vpn_remote_host);
     CloseSocket(s);
     return -1;
   }
 
-//  DBGL("")
+  DBGL("TLS OK!")
   l = 1024;
-  if(tryes & TRYES_REQUEST_BASIC ) 
+  if(AuthBasic)
   {
     l += sprintf(bfr + l,"Basic ");
     l = Encode64(bfr + l, bfr + 1400, sprintf(bfr+1400, "%s:%s",vpn_user, vpn_passw ) ) - bfr;
@@ -844,9 +1127,9 @@ agayn1:
     dgtvars[digtVar_opaque  ] = vpn_opaque;
     ChkEmpty(vpn_notice);
     ChkEmpty(vpn_opaque);
-    
+
     //dgtvars[digtVar_qop] = 0;
-    
+
     //CalkHA1(vpn_user, vpn_passw, (uchar *)HA1);
     ConvPwdMD5L4(HA1, vpn_user, vpn_passw, vpn_realm);
     CalkPwdMD5D(dgtvars, HA1, "GET", HA2Hex);
@@ -866,7 +1149,7 @@ agayn1:
     "Host: %s\r\n"
     "%s: %X %llX\r\n"
     "Connection: keep-alive\r\n\r\n", vpn_name,
-    //vpn_user, r, bfr+1124, 
+    //vpn_user, r, bfr+1124,
     bfr+1024, vpn_remote_host,
     TUNTAPNames[tun_index], vpn_client_ip, vpn_mac[tun_index]
   );
@@ -883,12 +1166,12 @@ agayn1:
   };
   if( ! REPool(30000,s) ) {
     debug("VPN Connection timeout\r\n");
-    goto err_close;   
+    goto err_close;
   }
-  if( (l=Recv(bfr,sizeof(bfr)-1) ) <= 0 ) 
+  if( (l=Recv(bfr,sizeof(bfr)-1) ) <= 0 )
   {
      DBGL("Recv error")
-     goto err_close;   
+     goto err_close;
   }
 
   bfr[l] = 0;
@@ -900,7 +1183,7 @@ agayn1:
 
     debug("VPN client: server return error %d %.64s...\r\n", r, bfr);
 
-    if(r == 401) 
+    if(r == 401)
     {
       http_var=(char **) (bfr + 1024);
       rq = bfr;
@@ -913,8 +1196,8 @@ agayn1:
         DBGLS(t)
         if(strin(t, "Basic ") )
         {
-          if(tryes) goto err_close;   
-          tryes = TRYES_REQUEST_BASIC;
+          if(tryes) goto err_close;
+          AuthBasic ++ ;
           DBGLS("Basic")
           goto agayn1;
         }
@@ -922,9 +1205,9 @@ agayn1:
         FindCopyVar(t,"realm",  vpn_realm , sizeof(vpn_realm ));
         FindCopyVar(t,"nonce",  vpn_notice, sizeof(vpn_notice));
         FindCopyVar(t,"opaque", vpn_opaque, sizeof(vpn_opaque));
-        
+
         DBGLA(" %s %s %s", vpn_realm, vpn_notice, vpn_opaque)
-        
+
         if(!tryes) {
           SecClose(x);
           CloseSocket(s);
@@ -933,13 +1216,13 @@ agayn1:
         }
       }
     }
-    goto err_close;   
+    goto err_close;
   }
-  
+
   http_var=(char **) (bfr + 1024);
   rq = bfr;
   prepare_HTTP_var();
-  
+
   memset(&ifr, 0, sizeof(ifr) );
   //tun_index = (vpn.fl == F_VPNTAP)?0:1;
   DBGL("")
@@ -952,15 +1235,19 @@ agayn1:
     n=atouix(t); //ConvertIP(t);
     DBGLA("%X" , n)
 
-    
+    ifr.ifr_mtu = vpn_mtu[2];
+    if( (r = ioctl(rt_fd, SIOCSIFMTU, &ifr) ) < 0 )
+      debug("VPN: can't set MTU interface %s: %d %d %s\r\n", ifr.ifr_name, r, errno, strerror(errno) );
+
+
     //if(ipv4 != n)
     {
       ipv4 = n;
       ((struct sockaddr_in *) &ifr.ifr_addr)->sin_family = AF_INET;
       ((struct sockaddr_in *) &ifr.ifr_addr)->sin_addr.s_addr = ipv4;
       ioctl(rt_fd, SIOCSIFADDR, &ifr);
-      
-      t = GetVar(http_var,"nmask");
+
+      t = GetVar(http_var,"mask");
       if(t && t[0])
       {
         n=atouix(t); //ConvertIP(t);
@@ -968,9 +1255,46 @@ agayn1:
         {
           m = n;
           ipv4bcast = ipv4 | ~n;
+
+          DBGLA("mask=%X bc=%X", m, ipv4bcast)
+
           ((struct sockaddr_in *) &ifr.ifr_addr)->sin_family = AF_INET;
           ((struct sockaddr_in *) &ifr.ifr_addr)->sin_addr.s_addr = n;
           ioctl(tuntap_fds[tun_index], SIOCSIFNETMASK, &ifr);
+
+          ((struct sockaddr_in *) &ifr.ifr_addr)->sin_family = AF_INET;
+          ((struct sockaddr_in *) &ifr.ifr_addr)->sin_addr.s_addr = ipv4bcast;
+          ioctl(rt_fd, SIOCSIFBRDADDR, &ifr);
+
+          if(fl & F_VPNTUN)
+          {
+            t=GetVar(http_var, "gw");
+            if(t && t[0]) n = atouix(t);
+
+            if(n)
+            {
+              ((struct sockaddr_in *) &ifr.ifr_addr)->sin_family = AF_INET;
+              ((struct sockaddr_in *) &ifr.ifr_addr)->sin_addr.s_addr = n;
+              ioctl(rt_fd, SIOCSIFDSTADDR, &ifr);
+            }
+          }
+
+          if( (r = ioctl(rt_fd, SIOCGIFFLAGS, &ifr) ) < 0 )
+          {
+            debug("VPN: can't get flags interface %s: %d %d %s\r\n", ifr.ifr_name, r, errno, strerror(errno) );
+            ifr.ifr_flags = 0;
+          }
+
+//    ifr.ifr_flags = IFF_UP | IFF_ALLMULTI | IFF_ECHO | aflag;
+          ifr.ifr_flags |= IFF_UP | IFF_ALLMULTI | IFF_DYNAMIC | IFF_AUTOMEDIA | IFF_BROADCAST | IFF_MULTICAST;
+
+          if( (r=ioctl(rt_fd, SIOCSIFFLAGS, &ifr) ) )
+            debug("VPN: can't UP %X interface %s: %d %d %s\r\n", ifr.ifr_flags, ifr.ifr_name, r, errno, strerror(errno) );
+
+        }
+        else
+        {
+          DBGLS("NO MASK!!!!!!")
         }
       }
     }
@@ -978,19 +1302,33 @@ agayn1:
   t=GetVar(http_var, "gw");
   // TODO: set route
   if(t && t[0]) n = atouix(t);
+  ipv4gw = n;
   if( vpn_scripts_up[2] && vpn_scripts_up[2][0] )
   {
     char *dns=GetVar(http_var,"dns");
     sprintf(bfr, "%s %s%u %u.%u.%u.%u %u.%u.%u.%u %u.%u.%u.%u '%s'", vpn_scripts_up[2],
             TUNTAPNames[2], tuntap_number[2],
-            ipv4>>24, (ipv4>>16)&0xFF, (ipv4>>8)&0xFF, ipv4&0xFF,
-            m>>24, (m>>16)&0xFF, (m>>8)&0xFF, m&0xFF,
-            n>>24, (n>>16)&0xFF, (n>>8)&0xFF, n&0xFF
-            ,t,(dns)?dns:""
+            ipv4&0xFF, (ipv4>>8)&0xFF, (ipv4>>16)&0xFF,  ipv4>>24,
+            m&0xFF,  (m>>8)&0xFF,  (m>>16)&0xFF,   m>>24,
+            n&0xFF,  (n>>8)&0xFF,  (n>>16)&0xFF,   n>>24,
+            (dns)?dns:""
     );
     DBGLS(bfr);
     RunScript(bfr);
   }
+
+  pos_pkt = 0;
+
+ #ifdef USE_IPV6
+  i = sizeof(sa_c6);
+ #else
+  i = sizeof(sa_c);
+ #endif
+
+  getpeername(s,(sockaddr*) (&sa_c),&i);
+  SetKeepAliveSock(s);
+
+  vpn_cln_connected = this;
   DBGL("ConnectOk\n");
   return 1;
 }
@@ -1008,11 +1346,11 @@ int VPNClient(void *)
     short pkt_len;
     uchar pkt[MAX_MTU];
   };
-  
+
   DBGL("")
 
   //vpn.tun_index=0;
-  //if(TAP_SEPARATE) 
+  //if(TAP_SEPARATE)
   {
     vpn.tun_index=2;
     if(TAP_CLIENT){
@@ -1027,17 +1365,17 @@ int VPNClient(void *)
       TUNTAPNames[2] = "tun";
     }
   }
-  
+
   /*
   else if(TAP_CLIENT)
   {
     vpn.tun_index++ ;
     vpn.fl = F_VPNTAP;
   }
-  else  
+  else
     vpn.fl = F_VPNTUN;
   */
-  
+
   if(tuntap_fds[vpn.tun_index] < 0 ) tuntap_fds[vpn.tun_index] = tun_alloc(vpn.tun_index);
   if(tuntap_fds[vpn.tun_index] < 0 ) {
     return -1;
@@ -1046,14 +1384,14 @@ int VPNClient(void *)
   DBGL("")
 
   vpn_client_fd = tuntap_fds[vpn.tun_index];
-  
+
   //vpn_client_fd = tun_alloc(tuntap_client_number, (TUN_CLIENT)? IFF_TUN : IFF_TAP);
   //if(vpn_client_fd < 0) {
   //  return -1;
   //}
   while(is_no_exit)
   {
-    if( (r=vpn.ClientConnect(&vpn.tls)) < 0 ) 
+    if( (r=vpn.ClientConnect(&vpn.tls)) < 0 )
     {
 
       DBGL("")
@@ -1073,7 +1411,7 @@ int VPNClient(void *)
       FD_ZERO(&er_set);
       max_fd = vpn_client_fd;
       if(vpn_client_fd < vpn.s) max_fd = vpn.s;
-       
+
       while(is_no_exit)
       {
         FD_SET(vpn_client_fd, &set);
@@ -1086,13 +1424,13 @@ int VPNClient(void *)
         {
           if(FD_ISSET(vpn.s, &er_set)) goto err_s;
           if(FD_ISSET(vpn_client_fd, &er_set)) goto err_vpn;
-          
+
           if(FD_ISSET(vpn_client_fd, &set))
           {
-            if( (pkt_len=read(vpn_client_fd,pkt+2,MAX_MTU)) <= 0 ) 
+            if( (pkt_len=read(vpn_client_fd,pkt+2,MAX_MTU)) <= 0 )
             {
               //debug("VPN client error %d %s\r\n", errno, strerror(errno));
-          err_vpn:    
+          err_vpn:
               vpn_client_fd=ReInitTUNTAP("read",vpn.tun_index);
               if(vpn_client_fd < 0)
                 return -1;
@@ -1100,14 +1438,15 @@ int VPNClient(void *)
               if(vpn_client_fd < vpn.s) max_fd = vpn.s;
             }
             else {
-              vpn.Send(&pkt, pkt_len+2);
+              DBGLA("send %u", pkt_len)
+              vpn.Send(pkt, pkt_len+2);
             }
           }
           if(FD_ISSET(vpn.s, &set))
           {
-            if(vpn.RecvPkt()<0)  
+            if(vpn.RecvPkt()<0)
             {
-            err_s:  
+            err_s:
               SecClose(&vpn.tls);
               CloseSocket(vpn.s);
               RunDownScript(vpn.tun_index, vpn.ipv4);
@@ -1118,8 +1457,8 @@ int VPNClient(void *)
       }
     }
   }
-  
-  
+
+
   return 0;
 }
 

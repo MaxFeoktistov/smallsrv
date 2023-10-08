@@ -2,7 +2,7 @@
  * Copyright (C) 1999-2021 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
- * Author: Maksim Feoktistov 
+ * Author: Maksim Feoktistov
  *
  *
  * Small HTTP server is free software: you can redistribute it and/or modify it
@@ -15,11 +15,11 @@
  * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see https://www.gnu.org/licenses/ 
+ * along with this program.  If not, see https://www.gnu.org/licenses/
  *
  * Contact addresses for Email:  support@smallsrv.com
  *
- * 
+ *
  */
 
 #ifndef MINGW64
@@ -45,7 +45,7 @@
 #pragma GCC diagnostic ignored "-Waddress-of-packed-member"
 
 
-#ifdef  DJGPP 
+#ifdef  DJGPP
 typedef void* HKEY;
 #include "dgpp_quote.h"
 #else
@@ -90,7 +90,7 @@ typedef struct fd_set {
 
 #endif
 
-#ifdef  DJGPP 
+#ifdef  DJGPP
 extern "C" {
 int PASCAL __WSAFDIsSet(int, fd_set *);
 };
@@ -117,7 +117,11 @@ int PASCAL __WSAFDIsSet(int, fd_set *);
 #undef FD_SET
 #undef FD_CLR
 #undef FD_ISSET
-void win_fd_clr(int s, win_fd_set *set);
+#ifdef MINGW
+#undef fd_set
+#define win_fd_set fd_set
+#endif
+void win_fd_clr(int s, fd_set *set);
 #define FD_ZERO(set) ((set)->fd_count=0)
 #define FD_SET(fd,set) ((set)->fd_array[(set)->fd_count++]=fd)
 #define FD_ISSET(fd, set) __WSAFDIsSet((fd),(set))
@@ -149,7 +153,7 @@ extern SERVICE_STATUS ServiceStatus;
 #endif
 extern mrc_obj dlg2[];
 extern mrc_mnu mnu2[];
-extern //const 
+extern //const
        mrc_mnu mnu3[];
 extern mrc_mnu mnu4[];
 extern const char *url_desc[];
@@ -223,7 +227,7 @@ uchar *   unicode2utf(uchar *utf8_buf,ushort *ucs4_buf, int l);
 extern ulong _PerSecond1E7;
 // ulong _PerSecond1E7=10000000;
 //inline
-#ifdef  DJGPP 
+#ifdef  DJGPP
 
 struct timeval
 { ulong tv_sec,tv_usec;};
@@ -233,8 +237,8 @@ struct timeval
 inline ulong FileTime2time(FILETIME  &a)
 {
  ulong r,t;
- 
-#ifdef  DJGPP 
+
+#ifdef  DJGPP
  asm volatile(DJGPP_QUOTE subl  $0xFDE04000 ,%%eax
        sbbl  $0x14F373B ,%%edx
        cmpl  __PerSecond1E7,%%edx
@@ -247,7 +251,7 @@ inline ulong FileTime2time(FILETIME  &a)
       :"0"(a.dwLowDateTime),"1"(a.dwHighDateTime)
     );
 #else
- 
+
  asm volatile(" subl  $0xFDE04000 ,%%eax \n"
       " sbbl  $0x14F373B ,%%edx \n"
       "  cmpl  __PerSecond1E7,%%edx \n"
@@ -260,7 +264,7 @@ inline ulong FileTime2time(FILETIME  &a)
       :"0"(a.dwLowDateTime),"1"(a.dwHighDateTime)
     );
 
-#endif 
+#endif
     return r;
 }
 
@@ -286,7 +290,7 @@ void gettimeofday(struct timeval *x,...)
      DJGPP_QUOTE :"=&a"(x->tv_sec),"=&d"(x->tv_usec)
       :"0"(x->tv_sec),"1"(x->tv_usec)
     );
-    
+
 #else
 
  asm volatile(" subl  $0xFDE04000 ,%%eax \n"
@@ -300,7 +304,7 @@ void gettimeofday(struct timeval *x,...)
      :"=&a"(x->tv_sec),"=&d"(x->tv_usec)
       :"0"(x->tv_sec),"1"(x->tv_usec)
     );
-#endif 
+#endif
 
 }
 
@@ -378,13 +382,35 @@ long long atoll(const char *a);
 
 extern char dprbuf[256];
 extern int hstdout;
-#define dprint(a...)  
+#define dprint(a...)
 //_hwrite(hstdout,dprbuf,wsprintf(dprbuf,a )) ; Sleep(10);
-#define DBGLINE  
-//dprint("%s:%u\r\n",__FILE__,__LINE__); 
+#define DBGLINE
+//dprint("%s:%u\r\n",__FILE__,__LINE__);
 
 
 #define MIN_PTR (void *)0x40000
+
+typedef int (* tfASyncIOHelperCB)(void *par);
+struct ASyncIOHelper_t
+{
+  tfASyncIOHelperCB cb;
+  void  *par;
+};
+#define MAX_ASYNC_IO  8
+extern HANDLE  ASyncIOhevent[MAX_ASYNC_IO];
+extern ASyncIOHelper_t ASyncIOHelper[MAX_ASYNC_IO];
+extern int countASyncIO;
+extern int mutexASyncIO;
+extern ulong ASyncIOtrd_id;
+
+ulong WINAPI ASyncIOThread(void *);
+int AddASyncIO(tfASyncIOHelperCB cb, void  *par, HANDLE h);
+
+#define open  lopen
+#define creat lcreat
+#define read  lread
+#define write lwrite
+#define lseek llseek
 
 #ifdef DJGPP
 #define Malloc malloc

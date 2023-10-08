@@ -2,7 +2,7 @@
  * Copyright (C) 1999-2023 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
- * Author: Maksim Feoktistov 
+ * Author: Maksim Feoktistov
  *
  *
  * Small HTTP server is free software: you can redistribute it and/or modify it
@@ -15,11 +15,11 @@
  * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see https://www.gnu.org/licenses/ 
+ * along with this program.  If not, see https://www.gnu.org/licenses/
  *
  * Contact addresses for Email:  support@smallsrv.com
  *
- * 
+ *
  */
 
 
@@ -170,6 +170,9 @@ SPD(0,http)
 
 {"keep_alive_max",0,0x2000,(uint *)&maxKeepAlive, CS("Limit on the number of idle keep-alive connections waiting")},
 {"keep_alive_timeout",10,3600*8,(uint *)&TimeoutKeepAlive, CS("Timeout in seconds for idle keep-alive connection")},
+{"keep_alive_idle",0,3600*2,(uint *)&keepalive_idle, CS("Check live in seconds for idle keep-alive connection. 0 - use system default."
+  " (Supported from Linux 2.4, from Windows 10 v1709)")},
+
 
 #if defined(CD_VER) || !defined(SYSUNIX)
 {"cgi_ident",254, 0,(uint *)&cgi_detect, CS(sCGI_IDENT )},
@@ -313,7 +316,7 @@ RANGES(proxy,sIP_RANGES,sIP_RANGESD)
 
 
  XLIMIT(proxy, "Proxy",2),
- 
+
 
 {0,0,0,0, CS(sFTP_SERVE )},
 {"noftp_max",0,0,(uint *)0, CS(sDISABLE_F )},
@@ -485,6 +488,8 @@ SPD(5,tls)
 {"vpntap",3, FL3_VPN_TAP, (uint *)0, CS("Enable TLS VPN on Tap device" )},
 {"vpn_tun_number",0,1024,(uint *)&tuntap_number[0], CS("Tun device number")},
 {"vpn_tap_number",0,1024,(uint *)&tuntap_number[1], CS("Tap device number")},
+{"vpn_tun_mtu", MIN_MTU, MAX_MTU,(uint *)&vpn_mtu[0], CS("TLS VPN MTU for tun.")},
+{"vpn_tap_mtu", MIN_MTU, MAX_MTU,(uint *)&vpn_mtu[1], CS("TLS VPN MTU for tap.")},
 
 {"vpnpub",3, FL3_VPN_PUBLIC, (uint *)0, CS("Public access without password. (Otherwise only users with Proxy access can use this service) " )},
 
@@ -516,10 +521,17 @@ SPD(5,tls)
 {"vpncln_tap",3, FL3_TAP_CLIENT, (uint *)0, CS("VPN client to Tap. (Otherwise Tun)" )},
 
 {"vpn_tuntap_number",0,1024,(uint *)&tuntap_number[2], CS("TLS VPN client Tun/Tap device number")},
+{"vpn_client_mtu", MIN_MTU, MAX_MTU,(uint *)&vpn_mtu[2], CS("TLS VPN MTU for client.")},
 {"tuntap_ip" ,32,0,(uint *)&tuntap_ipv4[2], CS("Set client VPN interface IP address")},
 {"tuntap_nmask" ,32,0,(uint *)&tuntap_ipv4nmask[2], CS("Set  client VPN interface netmask")},
 {"vpncln_script_up" ,255,0,(uint *)&vpn_scripts_up[2], CS("Run init script when VPN connection estabilished")},
 {"vpncln_script_down" ,255,0,(uint *)&vpn_scripts_down[2], CS("Run deinit script when VPN connection closed")},
+
+{"vpncln_chktls",3, FL3_VPN_CHKTLS    , (uint *)0, CS("Validate remote TLS sertificate, check host name" )},
+{"vpncln_tlsigntime",3, FL3_VPN_TLSIGNTIME, (uint *)0, CS("Don't check remote sertificate time. Ignore expired. (GNUTLS only)" )},
+{"vpncln_tlsssign",3, FL3_VPN_TLSSSIGN  , (uint *)0, CS("Accept self signed sertificate. (GNUTLS only)" )},
+{"vpncln_tlssshstyle",3, FL3_VPN_TLSSHSTYLE  , (uint *)0, CS("SSH style of sertificate validate. (GNUTLS only. Public keys of new untracted remote will be stored in ~/.gnutls/known_hosts)" )},
+
 
 
 #endif // TLSVPN

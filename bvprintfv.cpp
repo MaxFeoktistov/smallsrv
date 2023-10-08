@@ -2,7 +2,7 @@
  * Copyright (C) 1999-2020 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
- * Author: Maksim Feoktistov 
+ * Author: Maksim Feoktistov
  *
  *
  * Small HTTP server is free software: you can redistribute it and/or modify it
@@ -15,11 +15,11 @@
  * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see https://www.gnu.org/licenses/ 
+ * along with this program.  If not, see https://www.gnu.org/licenses/
  *
  * Contact addresses for Email:  support@smallsrv.com
  *
- * 
+ *
  */
 
 //gcc -c -O2 -IE:\DJGPP\INCLUDE\WIN32 winpr.cpp
@@ -37,7 +37,7 @@ extern "C"
 {
 
 #define CRREPL 0
-  
+
 /*
 uint  atoui(char *a)
 {
@@ -60,7 +60,7 @@ uint atouis(const char *&a)
 };
 #define atoi atoui
 */
-  
+
 char * uitoa(char *t,ulong a,ulong d=1000000000,ulong o=10,char b='a')
 {
  ulong x;
@@ -78,7 +78,7 @@ char * uitoa(char *t,ulong a,ulong d=1000000000,ulong o=10,char b='a')
  if(!r)return t-1;
  return r;
 };
-#ifdef  PF_LONG_LONG         
+#ifdef  PF_LONG_LONG
 char * ulltoa(char *t,unsigned long long a,unsigned long long d=1000000000000000000ll,ulong o=10,char b='a')
 {
  uint x;
@@ -101,19 +101,19 @@ char * ulltoa(char *t,unsigned long long a,unsigned long long d=1000000000000000
 
 #ifndef BPRINTF_INLINE
 
-int BFILE::bprintf(const char *fmt,...)  
-{ 
+int BFILE::bprintf(const char *fmt,...)
+{
 #ifdef USEVALIST
    va_list a;
    int r;
-   
+
    va_start(a, fmt);
    r=bvprintf(fmt,a);
    va_end(a);
    return r;
-#else     
+#else
    return bvprintf(fmt,(void **) ((&fmt)+1 )) ;
-#endif        
+#endif
 };
 
 #endif
@@ -121,22 +121,22 @@ int BFILE::bprintf(const char *fmt,...)
 int BFILE::bvprintf(const char *fmt,va_list vl)
 {
  char *t1,*p,*pp;
-#ifdef  PF_LONG_LONG         
+#ifdef  PF_LONG_LONG
   union{
    long long lx;
-   int x;    
+   int x;
   };
  int i,ii,k,bl,bx;
 #else
  int i,ii,x,k,bl,bx;
 
-#endif 
+#endif
  int state;
  char bb[64];
  int w,l;
  i=0;
  ii=0;
- 
+
  if(fmt) while(*fmt)
  {
   if(*fmt=='%')
@@ -149,15 +149,15 @@ int BFILE::bvprintf(const char *fmt,va_list vl)
      case '+':  state|=2;    goto lb0;
      case '-':  state|=1;    state&=~0x40; goto lb0;
      case '#':  state|=4;    goto lb0;
-     case 'l':  
+     case 'l':
 #if __SIZEOF_LONG__ != 8
-         
-#ifdef  PF_LONG_LONG         
+
+#ifdef  PF_LONG_LONG
          (state&8)?0x10:
-#endif         
+#endif
          8;
          goto lb0;
-#endif         
+#endif
      case 'L':  state|=0x10; goto lb0;
      case 'h':  state|=0x20; goto lb0;
      case '0':  state|=0x40; state&=~2; goto lb0;
@@ -172,10 +172,10 @@ int BFILE::bvprintf(const char *fmt,va_list vl)
      case '8':
      case '9':  l=atouisc( fmt); fmt--; goto lb0;
      case '.':  w=atouisc( ++fmt); state|=0x200;  fmt--; goto lb0;
-#ifdef  PF_LONG_LONG         
+#ifdef  PF_LONG_LONG
      case 'u':  p=(state&0x10)?ulltoa(bb,va_arg(vl,long long) ):uitoa(bb,va_arg(vl,uint) ); if(0){
      case 'i':
-     case 'd':  if(state&0x10) 
+     case 'd':  if(state&0x10)
                 {
                     if((lx=va_arg(vl,long long))<0){lx=-lx; state|=0x100; } p=ulltoa(bb,lx);
                 }
@@ -228,7 +228,7 @@ int BFILE::bvprintf(const char *fmt,va_list vl)
 #if CRREPL
                 if(*p=='\n')*t++='\r';
 #endif
-               
+
                 *t++=(k<bl || k>=bx)?' ':*p++;
                 if( (i=t-bfr)> BFR_LIM )
                 {
@@ -308,10 +308,10 @@ int BFILE::bvprintf(const char *fmt,va_list vl)
    t=bfr;
  }
  return ii;
- */ 
- 
+ */
+
  return ii+(t-bfr);
- 
+
 };
 
 

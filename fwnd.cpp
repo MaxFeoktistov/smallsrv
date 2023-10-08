@@ -2,7 +2,7 @@
  * Copyright (C) 1999-2021 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
- * Author: Maksim Feoktistov 
+ * Author: Maksim Feoktistov
  *
  *
  * Small HTTP server is free software: you can redistribute it and/or modify it
@@ -15,11 +15,11 @@
  * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see https://www.gnu.org/licenses/ 
+ * along with this program.  If not, see https://www.gnu.org/licenses/
  *
  * Contact addresses for Email:  support@smallsrv.com
  *
- * 
+ *
  */
 
 #ifndef STRING_CONST_H
@@ -32,13 +32,13 @@
 #endif
 void *id_heap;
 #ifdef MINGW
-extern "C" { 
+extern "C" {
 int WINAPI WinMain1( HINSTANCE hinst, HANDLE prev_inst, LPSTR cmline, int cmdshow );
 void start()
 {
    id_heap=GetProcessHeap();
- 
-// GetInstance 
+
+// GetInstance
   //hinstanse=  GetModuleHandle(NULL);
   //cmdline=GetCommandLine()  ;
   ExitProcess(WinMain1(GetModuleHandle(NULL) ,// hinstanse,
@@ -104,16 +104,19 @@ long CALLBACK DefProc(HWND hwnd, UINT msg,UINT wparam, LONG lparam)
   case WM_INITDIALOG:
     return 1;
   case WM_DESTROY:
+#if ! defined(FREEVER)
     if(hwnd == dwnd2)
     {dwnd2=0;
-#if (! defined(CD_VER) ) && (! defined(FREEVER) )
+#if (! defined(CD_VER) )
      if((dlg2[0].Style&DS_MODALFRAME) && (user_name!=(about+sizeof(ABOUT_STR)+14)) )
      {is_no_exit=0; PostQuitMessage(0);}
 #endif
     }
-    else if(hwnd == dwndc )
+    else
+#endif
+    if(hwnd == dwndc )
     {dwndc=0;
-     SaveCfgIfNeed(); 
+     SaveCfgIfNeed();
      /*
      if(s_flg&FL_CFGUNSV)
      {bfr=new char[0x10000];
@@ -183,14 +186,14 @@ long CALLBACK DefProc(HWND hwnd, UINT msg,UINT wparam, LONG lparam)
 #endif
     ;
     if(0){
-  case WM_CLOSE: if( (s_aflg&AFL_EX2) || !(s_flg&0x10) ) break;
+  case WM_CLOSE: if( (s_aflg&AFL_EX2) || !(s_flg & FL_NOICON) ) break;
     }
     if(wstate)
     {ShowWindow(hwnd,SW_RESTORE);
-     wstate=0; 
+     wstate=0;
 #ifdef SEPLOG
      shown_log->
-#endif     
+#endif
      ShowProt();
     }
     SetForegroundWindow(hwnd);
@@ -198,7 +201,7 @@ long CALLBACK DefProc(HWND hwnd, UINT msg,UINT wparam, LONG lparam)
    }
    else if(lparam == WM_RBUTTONUP)
    {SetForegroundWindow(hwnd);
-  case WM_LBUTTONDBLCLK:       
+  case WM_LBUTTONDBLCLK:
     GetCursorPos(&ap);
     TrackPopupMenuEx(hmnu,TPM_RIGHTALIGN|TPM_LEFTBUTTON|TPM_RIGHTBUTTON|TPM_VERTICAL
     ,ap.x,ap.y,hwnd,0);
@@ -327,7 +330,7 @@ long CALLBACK DefProc(HWND hwnd, UINT msg,UINT wparam, LONG lparam)
      t=pu->dir(p);
      if( (((ulong)t -(ulong)pu) +strlen(t) )< (i+j+k+sizeof(*pu) ) )
      {pu->state=0;
-         
+
    case 761: //Add u
      i=GetDlgItemTextLen(hwnd,764);
      j=GetDlgItemTextLen(hwnd,765);
@@ -431,7 +434,7 @@ long CALLBACK DefProc(HWND hwnd, UINT msg,UINT wparam, LONG lparam)
       ShellExecute(0,"open",p,0,0,SW_SHOWNORMAL);
       return 1;
 #endif
-#ifdef SEPLOG      
+#ifdef SEPLOG
      case 360:
      case 361:
      case 362:
@@ -442,12 +445,12 @@ long CALLBACK DefProc(HWND hwnd, UINT msg,UINT wparam, LONG lparam)
      case 367:
      case 368:
      case 369:
-       // DBGLINE 
+       // DBGLINE
         if((uint)(i-=360)<10)
-        { 
-         //  DBGLINE 
+        {
+         //  DBGLINE
           // ModifyMenu(hmnu, 359,MF_BYCOMMAND,  )
-              
+
              CheckMenuItem(hmnu,360+oldchecked,MF_BYCOMMAND|MF_UNCHECKED);
              CheckMenuItem(hmnu,360+i,MF_BYCOMMAND|MF_CHECKED);
              oldchecked=i;
@@ -456,7 +459,7 @@ long CALLBACK DefProc(HWND hwnd, UINT msg,UINT wparam, LONG lparam)
         }
 
        // dprint("i=%d\n",i);
-        return 1;   
+        return 1;
 #endif
      case 150:/*"E&xit" */
      lbCancel:
@@ -479,4 +482,58 @@ lEx:
  return DefWindowProc(hwnd,msg,wparam,lparam);
 };
 
+#ifdef MAX_ASYNC_IO
+extern HANDLE  ASyncIOhevent[MAX_ASYNC_IO];
+extern ASyncIOHelper_t ASyncIOHelper[MAX_ASYNC_IO];
+extern int countASyncIO;
+extern int mutexASyncIO;
+
+int AddASyncIO(tfASyncIOHelperCB cb, void  *par, HANDLE h)
+{
+  int ret;
+  if(countASyncIO >= MAX_ASYNC_IO) return -1;
+  MyLock(mutexASyncIO);
+  ASyncIOhevent[countASyncIO] = h; //CreateEvent()
+  ASyncIOHelper[countASyncIO].cb = cb;
+  ASyncIOHelper[countASyncIO].par = par;
+  ret = countASyncIO;
+  countASyncIO ++;
+  if(! ASyncIOtrd_id ) CreateThread(&secat,0x1000,ASyncIOThread,(void *)0,0,&ASyncIOtrd_id);
+  MyUnlock(mutexASyncIO);
+
+  return ret;
+}
+
+ulong WINAPI ASyncIOThread(void *)
+{
+  DWORD r;
+  while(is_no_exit && countASyncIO)
+  {
+    r = WaitForMultipleObjects(countASyncIO, ASyncIOhevent, 0, 1500 );
+    if(r == WAIT_FAILED)
+    {
+      int c;
+      c = GetLastError();
+      debug("ASINC IO error %d %s\r\n",c,strerror(c));
+      Sleep(10000);
+      continue;
+      //break;
+    }
+    if(r == WAIT_TIMEOUT) continue;
+    if(r >= WAIT_OBJECT_0)
+    {
+      r -= WAIT_OBJECT_0;
+      if(r<countASyncIO)  ASyncIOHelper[r].cb( ASyncIOHelper[r].par);
+    }
+    while(++r<countASyncIO)
+    {
+      if( WaitForSingleObject(ASyncIOhevent[r],0) == WAIT_OBJECT_0) ASyncIOHelper[r].cb( ASyncIOHelper[r].par);
+    }
+  }
+  ASyncIOtrd_id = 0;
+  return 0;
+};
+
+
+#endif
 

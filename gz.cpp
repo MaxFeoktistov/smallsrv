@@ -125,7 +125,7 @@ int InitZLib()
 }
 
 //*
-#ifndef LPC_ARM 
+#ifndef NOTINTEL
 #define MCDECL  __attribute__ ((cdecl))
 #else
 #define MCDECL

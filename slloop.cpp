@@ -2,7 +2,7 @@
  * Copyright (C) 1999-2021 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
- * Author: Maksim Feoktistov 
+ * Author: Maksim Feoktistov
  *
  *
  * Small HTTP server is free software: you can redistribute it and/or modify it
@@ -15,11 +15,11 @@
  * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see https://www.gnu.org/licenses/ 
+ * along with this program.  If not, see https://www.gnu.org/licenses/
  *
  * Contact addresses for Email:  support@smallsrv.com
  *
- * 
+ *
  */
 
 
@@ -69,7 +69,7 @@ void signalChild(int , siginfo_t* info, ucontext_t* ptr)
     SendEvent(pid_to_wait, info->si_pid);
   }
 
-  
+
 }
 extern "C" ulong _etext,_edata;
 #ifdef FIX_EXCEPT
@@ -79,12 +79,12 @@ jmp_buf  jmp_env;
 int ext_cntr,ext_cntr2,ext_cntr3,ext_cnt4;
 time_t last_ext_time;
 
-#if  (!defined(ARM)) 
+#if  (!defined(ARM))
 //&& !defined(x86_64)
 void DebugStack(u_long *esp1)
 {
  u_long *esp=esp1;
- union{   
+ union{
  u_long *mesp;
  u_long mlesp;
  };
@@ -104,13 +104,13 @@ void DebugStack(u_long *esp1)
  rez[2]=(u_long)&_etext;
  rez[3]=0;
  rez[4]=0;
- 
+
  if( esp< (u_long *) &_edata )
  {
-   debug("Invalid stask range %X-%X",esp,mesp);  
-   return;    
- }    
- 
+   debug("Invalid stask range %X-%X",esp,mesp);
+   return;
+ }
+
  while(esp<mesp)
  {
    if(*esp>min && *esp< (u_long)&_etext)
@@ -119,48 +119,48 @@ void DebugStack(u_long *esp1)
      i++;
      if(i>=5)break;
    }
-   esp++;  
+   esp++;
  }
-#ifdef x86_64 
+#ifdef x86_64
  debug("In stack (%lX-%lX) found %u return address: %lX %lX %lX %lX %lX\n",esp1,mesp,i,rez[0],rez[1],rez[2],rez[3],rez[4]);
-#else 
+#else
  debug("In stack (%X-%X) found %u return address: %X %X %X %X %X\n",esp1,mesp,i,rez[0],rez[1],rez[2],rez[3],rez[4]);
-#endif 
+#endif
 
  ext_cntr--;
-    
-    
+
+
 };
 #endif
 
 void signalSegv(int , siginfo_t* info, ucontext_t* ptr)
 {
- int i;   
+ int i;
  int ll;
  Req *r;
  time_t  tt;
 
  if(!ext_cntr3){
   ext_cntr3++;
-  tt=time(0); 
+  tt=time(0);
   if( tt<last_ext_time)
   {
-     if(ext_cnt4>3) goto lbRestart;    
-  } 
+     if(ext_cnt4>3) goto lbRestart;
+  }
   else ext_cnt4=0;
   last_ext_time=tt+20;
   ext_cnt4++;
-  
+
 #ifdef FIX_EXCEPT
- 
+
  unsave_limit=1;
- ll=GetCurrentThreadId(); 
+ ll=GetCurrentThreadId();
 #if  (!defined(ARM)) && !defined(x86_64)
  debug("\r\nException at %X (%X) pid=%d code: %X thread %d stack:\r\n",info->si_addr,ptr?ptr->uc_mcontext.gregs[REG_EIP]:0,info->si_pid,info->si_code,ll);
 #else
  debug("\r\nException at %X pid=%d code: %X thread %d stack:\r\n",info->si_addr,info->si_pid,info->si_code,ll);
- 
-#endif 
+
+#endif
 // debug("\nExeption at %X\n last back in stack: %X %X\n",info->si_addr,i,ll);
 
 
@@ -168,33 +168,33 @@ void signalSegv(int , siginfo_t* info, ucontext_t* ptr)
  for(i=0;i<max_tsk;++i)if( ((u_long)(r=rreq[i]))>1  && r->thread_id == ll )
  {
    debug("Found error thread %u %.96s",i , r->inf );
-#if  (!defined(ARM)) 
+#if  (!defined(ARM))
 //   && !defined(x86_64)
 // ulong *esp,*espm;
-#if  !defined(x86_64)   
+#if  !defined(x86_64)
    if(ptr && ptr->uc_mcontext.gregs[REG_ESP]) DebugStack((u_long *) (ptr->uc_mcontext.gregs[REG_ESP]));
-#else   
+#else
    if(ptr && ptr->uc_mcontext.gregs[REG_RSP]) DebugStack((u_long *) (ptr->uc_mcontext.gregs[REG_RSP]));
 #endif
- 
+
 //   asm volatile("movl %%ebp, %%eax \n":"=&a" (ll) )  ;
 //   DebugStack((ulong *) ll);
- 
-#endif     
-   ext_cntr3--;  
-   longjmp(r->jmp_env,1);     
-   return ;
-  }    
 
- 
- debug("Not found error thread %X",ll);
- 
 #endif
- 
- 
+   ext_cntr3--;
+   longjmp(r->jmp_env,1);
+   return ;
+  }
+
+
+ debug("Not found error thread %X",ll);
+
+#endif
+
+
  }
- 
-lbRestart: 
+
+lbRestart:
  if(is_no_exit)
  {
   is_no_exit=0;
@@ -203,8 +203,8 @@ lbRestart:
   unsave_limit=1;
 #ifndef ARM
 
-#if 0  
-  
+#if 0
+
   void **bp,*ip;
   debug("\nPlease send this part of log to support@smallsrv.com: " STRVER " Exception at %X  EIP=%X\n"
   "EAX=%X EBX=%X ECX=%X EDX=%X ESI=%X EDI=%X ESP=%X; stack trace:\n"
@@ -226,7 +226,7 @@ lbRestart:
     if(bp >= (void**)bp[0] ) break;
     bp = (void**)bp[0];
   }while( bp );
-#endif  
+#endif
  /*
 
   if(unsave_limit>1)
@@ -245,8 +245,8 @@ lbRestart:
 //  asm volatile("movl %%ebp, %%eax \n":"=&a" (ll) )  ;
 //  DebugStack((ulong *) ll);
 
- 
-#endif     
+
+#endif
  }
  longjmp(jmp_env,1);
   //execve(cmdline,,)
@@ -281,35 +281,35 @@ fd_set er_set;
  #ifdef SEPLOG
  gLog.Init(0);//"");
 #endif
- 
+
 #ifdef FIX_EXCEPT
 
-    
+
    if(setjmp(jmp_env))
-   { 
-       
-    sleep(3);   
+   {
+
+    sleep(3);
     if( !vfork() )
      execl(__argv[0],__argv[0],0);
-     exit(0);      
-   }   
+     exit(0);
+   }
 
 #endif
  cmdline=argv[0];
  if(argc>1 )
  {
-   /*  
+   /*
    if( DWORD_PTR(argv[1][0]) == 0x00762D2D x4CHAR("--v") || DWORD_PTR(argv[1][0]) == 0x65762D2D x4CHAR("--ve") )
-   {    
+   {
      printf("%s\n", sSMALL_HTT);
      exit(0);
    }
    if( DWORD_PTR(argv[1][0]) ==  0x003F2D2D x4CHAR("--?")   ||
        DWORD_PTR(argv[1][0]) ==  0x00682D2D x4CHAR("--h")   ||
        DWORD_PTR(argv[1][0]) == 0x65682D2D x4CHAR("--he") )
-   {    
+   {
      PrintHelp();
-       
+
      exit(0);
    }
    */
@@ -318,16 +318,16 @@ fd_set er_set;
        case 0x00762D2D x4CHAR("--v") :
        case 0x65762D2D x4CHAR("--ve") :
            printf("%s\n", sSMALL_HTT);
-           exit(0); 
-       case  0x003F2D2D x4CHAR("--?"):             
+           exit(0);
+       case  0x003F2D2D x4CHAR("--?"):
          LoadLangCfg("shs_lang.cfg" );
- 
-       case  0x00682D2D x4CHAR("--h"):             
-       case 0x65682D2D x4CHAR("--he"):             
+
+       case  0x00682D2D x4CHAR("--h"):
+       case 0x65682D2D x4CHAR("--he"):
           PrintHelp();
           exit(0);
        case 0x00632D2D x4CHAR("--c"):
-        if(argc>2) 
+        if(argc>2)
         {
             if(!PrepCfg( argv[2] ) )
             {
@@ -336,17 +336,17 @@ fd_set er_set;
                    *t=0;
                     chdir(argv[2]);
                    *t='/';
-                }    
+                }
                 goto lbSkipCfg;
-            }    
-            
-            
+            }
+
+
         }
-           
+
    }
  }
  /*
- if(argc>2 && DWORD_PTR(argv[1][0]) == 0x00632D2D x4CHAR("--c") ) 
+ if(argc>2 && DWORD_PTR(argv[1][0]) == 0x00632D2D x4CHAR("--c") )
  {
    if(!PrepCfg( argv[2] ) )
    {
@@ -355,12 +355,12 @@ fd_set er_set;
        *t=0;
         chdir(argv[2]);
        *t='/';
-     }    
-   }    
+     }
+   }
  }
- else 
-   */  
-     
+ else
+   */
+
  if( (p=stristr(t=argv[0],".ex") ) )
  {if(*t=='\"')++t;
   ll=DWORD_PTR(p[1]);
@@ -392,7 +392,7 @@ lbSkipCfg:
    }
 #else
     daemon(1,1);
-#endif   
+#endif
    if( setsid()<0 )
    {
      printf("Running as daimon\n");
@@ -410,7 +410,7 @@ lbSkipCfg:
  signal(SIGPIPE  ,SIG_IGN);
 // signal(SIGCHILD  ,SignalChild);
 // SIGCANCEL
-  
+
   struct sigaction action;
   memset(&action, 0, sizeof(action));
   action.sa_sigaction = (tsighandler) signalSegv;
@@ -419,11 +419,11 @@ lbSkipCfg:
 
   action.sa_sigaction = (tsighandler) signalChild;
   sigaction(SIGCHLD, &action, NULL);
-  
+
   //if()
   {
-    if(setrlimit(RLIMIT_CORE,  &rlim)) 
-      debug("Cant set ulimit %d %s\n",errno,strerror(errno) )  ;  
+    if(setrlimit(RLIMIT_CORE,  &rlim))
+      debug("Cant set ulimit %d %s\n",errno,strerror(errno) )  ;
   }
 // debug("point 0 ...");
 
@@ -438,24 +438,15 @@ lbSkipCfg:
   lastday= (localtime((time_t *) & (stt.st_ctime))->tm_mday);
  }
  if( InitApplication() <= 0 )return 0;
-  /*
-  d_set  KeepAliveSet;
-  int keep_alive_max_fd;
-  int maxKeepAlive;
-  int KeepAliveCount;
-  Req **KeepAliveList;
-  int KeepAliveMutex;
-  */
- 
+
   for(i=0;i<TOTAL_SERVICES;++i)//if( runed[i]<max_srv[i] )
     for(k=0; k < MAX_ADAPT; ++k)    if( (j=soc_srv[i+k*MAX_SERV])>0)
     {
-      if( j>keep_alive_max_fd )keep_alive_max_fd=j;
-      FD_SET(j,&KeepAliveSet);
+      maxKeepAliveSet.Set(j);
       //debug("FD Set %d\n",)
-         printf("\rSET: %d %d %d\n",i,k,j);
+      //   printf("\rSET: %d %d %d\n",i,k,j);
     }
-    
+
  //do{sleep(1); }while(is_no_exit || (s_aflg&AFL_RESTART) );
 // debug("point 1 ...");
  while(is_no_exit)
@@ -463,8 +454,8 @@ lbSkipCfg:
   s=0;
 //  FD_ZERO(&set);
   memcpy(&set, &KeepAliveSet, sizeof(set) );
-  for(i=0;i<TOTAL_SERVICES;++i) 
-    if( runed[i] >= max_srv[i] ) 
+  for(i=0;i<TOTAL_SERVICES;++i)
+    if( runed[i] >= max_srv[i] && max_srv[i] )
     {
       for(k=0; k < MAX_ADAPT; ++k)
         if( (j=soc_srv[i+k*MAX_SERV])>0){
@@ -486,11 +477,11 @@ lbSkipCfg:
   memcpy(&er_set,&set,sizeof(er_set));
   if( (j=select(keep_alive_max_fd+1,&set,0,&er_set,&TVal))>0 )
   {
-    DBGLA("select return %u", j)
+    //DBGLA("select return %u", j)
     for(i=0; i<TOTAL_SERVICES; ++i)
     {
       if(runed[i]<max_srv[i] )
-        for(k=0; k < MAX_ADAPT; ++k)    
+        for(k=0; k < MAX_ADAPT; ++k)
           if(FD_ISSET(soc_srv[i+k*MAX_SERV],&set))
           {
             //     for(kk=k=0;k<i;++k)kk+=max_srv[i];
@@ -501,10 +492,10 @@ lbSkipCfg:
               last[i]=-1;
               continue;
             }
-            DBGL("Select Req..")
+            // DBGL("Select Req..")
             last[i]=CrThread( ((i+k*MAX_SERV)<<16)); // + k);
-            DBGLA("Select Req2.. KeepAliveCount=%d keep_alive_max_fd=%d\n", KeepAliveCount,keep_alive_max_fd)
-            
+            // DBGLA("Select Req2.. KeepAliveCount=%d keep_alive_max_fd=%d\n", KeepAliveCount,keep_alive_max_fd)
+
             if((--j) <= 0) goto ex_loop3;
           }
           else if(FD_ISSET(soc_srv[i+k*MAX_SERV],&er_set))
@@ -515,34 +506,34 @@ lbSkipCfg:
               MyLock(MutexEr);
               for(kk=0; kk < MAX_ADAPT; ++kk)
                 if(soc_srv[i+kk*MAX_SERV]>0)
-                {  closesocket(soc_srv[i+kk*MAX_SERV]);
+                {
+                  closesocket(soc_srv[i+kk*MAX_SERV]);
                   soc_srv[i+kk*MAX_SERV]=0;
                 }
-                
-                CreateSrv(i);
+              CreateSrv(i);
               MyUnlock(MutexEr);
             }
           }
-    }     
+    }
     if(KeepAliveList)
     {
-      DBGLA(" j=%d", j)
+      // DBGLA(" j=%d", j)
       MyLock(KeepAliveMutex);
       for(k=0; k<KeepAliveCount; )
       {
         Req *preq;
-        
+
         preq = KeepAliveList[k];
-        DBGLA("ka %d %d",k, preq->s);
-        
+        // DBGLA("ka %d %d",k, preq->s);
+
         if(FD_ISSET(preq->s,&er_set))
         {
-          DBGLA("ka err %d %d",k, preq->s);
+          // DBGLA("ka err %d %d",k, preq->s);
           RemoveAndDelKeepAlive(k);
         }
         else if(FD_ISSET(preq->s,&set))
         {
-          DBGLA("ka select %d %d",k, preq->s);
+          // DBGLA("ka select %d %d",k, preq->s);
           RemoveKeepAlive(k);
           CrThreadFunc((TskSrv)KeepAliveWike, preq);
           if((--j) <= 0) break;

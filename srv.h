@@ -36,8 +36,15 @@ void xdie(char *);
 
 #define DBGLS(a)  debug("%s:%u:%s %s\r\n",__FILE__ , __LINE__, __func__, a);
 #define DBGL(a)  debug("%s:%u:%s " a "\r\n",__FILE__ , __LINE__, __func__ );
-#define DBGLA(a,b...)  debug("%s:%u:%s " a "\r\n",__FILE__ , __LINE__, __func__, b );
+#define DBGLA(a,b...) debug("%s:%u:%s " a "\r\n",__FILE__ , __LINE__, __func__, b );
+//printf("%s:%u:%s " a "\r\n",__FILE__ , __LINE__, __func__, b );
+//debug("%s:%u:%s " a "\r\n",__FILE__ , __LINE__, __func__, b );
 
+#if __BYTE_ORDER__  ==  __ORDER_BIG_ENDIAN__
+#define BIG_ENDIAN
+#else
+#undef BIG_ENDIAN
+#endif
 
 #ifndef SYSUNIX
 
@@ -63,9 +70,9 @@ extern "C"{
 #include "md5.h"
 #endif
 #ifdef MINGW
-#undef fd_set 
+#undef fd_set
 #define win_fd_set fd_set
-#endif    
+#endif
 
 struct LogInfo ;
 struct MemList;
@@ -92,12 +99,12 @@ struct FTPSecCon;
 struct FCGI_task;
 
 #ifdef x86_64
-typedef unsigned long long arh_ulong; 
+typedef unsigned long long arh_ulong;
 #define ARH_MASK  0x3F
 #define ARH_SHIFT 6
 #define ARH_ONE   1ll
 #else
-typedef unsigned int arh_ulong; 
+typedef unsigned int arh_ulong;
 #define ARH_MASK  0x1F
 #define ARH_SHIFT 5
 #define ARH_ONE   1
@@ -115,7 +122,7 @@ struct Req
  #endif
  ulong tmout;
  time_t  KeepAliveExpired;
- 
+
  union{
   uint fl;
   ushort flsrv[2];
@@ -171,7 +178,7 @@ struct Req
  };
 #ifdef SYSUNIX
   struct stat *fileStat;
-#endif  
+#endif
  char *dir;
  int dirlen, ntsk, postsize;
  char *KeepAlive;
@@ -211,7 +218,8 @@ struct Req
 #define  tbtVerfyRequired 0x4
 #define  tbtDontVerfyTyme 0x8
 #define  tbtDontVerfySigner 0x10
- 
+#define  tbtSSHstyleVerfy  0x20
+
  int TLSBegin(OpenSSLConnection *x, int type=tbtAccept, char *verfyhost = 0);
  //int TLSBeginClient(OpenSSLConnection *x, int anon);
 
@@ -301,13 +309,25 @@ struct Req
  int InsertVPNclient();
 };
 
-extern fd_set KeepAliveSet;
-extern int keep_alive_max_fd;
+
+struct  maxFdSet
+{
+  int  max_fd;
+  fd_set set;
+  void Set(int fd);
+  void Fix();
+  void Clear(int fd);
+};
+extern maxFdSet maxKeepAliveSet;
+#define keep_alive_max_fd maxKeepAliveSet.max_fd
+#define KeepAliveSet maxKeepAliveSet.set
+
 extern int maxKeepAlive;
 extern Req **KeepAliveList;
 extern int KeepAliveMutex;
 extern int KeepAliveCount;
 extern int TimeoutKeepAlive;
+extern int keepalive_idle;
 
 
 #ifdef USE_IPV6
@@ -427,6 +447,10 @@ int FndLimit(int lst,LimitBase **ip, LimitBase **net, sockaddr_in *sa );
 #define FL3_VPN_CLIENT  0x00000020
 #define FL3_TAP_CLIENT  0x00000040
 #define FL3_VPN_PUBLIC  0x00000080
+#define FL3_VPN_CHKTLS      0x00000100
+#define FL3_VPN_TLSIGNTIME  0x00000200
+#define FL3_VPN_TLSSSIGN    0x00000400
+#define FL3_VPN_TLSSHSTYLE  0x00000800
 
 #define USE_TUN       (s_flgs[3] & FL3_VPN_TUN)
 #define USE_TAP       (s_flgs[3] & FL3_VPN_TAP)
@@ -513,14 +537,14 @@ struct User
 
 extern const char *digetvars[];
 #define digtVar_username  0
-#define digtVar_nonce     1 
+#define digtVar_nonce     1
 #define digtVar_uri       2
 #define digtVar_qop     3
 #define digtVar_nc      4
 #define digtVar_cnonce  5
 #define digtVar_response 6
 #define digtVar_opaque   7
-  
+
 #define  DIGT_MIN_REQUIRED (\
           (1<<digtVar_username)  | \
           (1<<digtVar_nonce   )  | \
@@ -582,6 +606,7 @@ void DeleteKeepAlive(Req* preq);
 // Function return -1, if removed anything, othervise index of oldest
 int RemoveExpired();
 void RemoveAndDelKeepAlive(int i);
+void SetKeepAliveSock(int s);
 
 
 
@@ -648,7 +673,7 @@ extern char *ext[22],*mime,*dns_file,**dns_nm,*primary_dns,*secondary_dns,
 extern char *realm;
 extern char *charset;
 extern char *vpn_name;
- 
+
 extern ulong  s_flgs[5],count_dns,cgi_timeout;
 extern u32 ip_cach[];
 extern User *userList;
@@ -755,6 +780,7 @@ extern char  *bind_a[MAX_SERV];
 
 #define  CONID_KEEPALIVE_MASK 0x100000
 #define  CONID_VPN_MASK 0x200000
+#define  CONID_VPNCL_VALUE 0x2FFFFF
 
 extern char *user_name,NullString[],about[],*wkday[],*month[],
  *CApath,*CAfile,*s_cert_file,*s_key_file,*TLSLibrary,*loc_sent,*loc_draft,*loc_trash,*tls_priority;
@@ -1046,7 +1072,7 @@ struct FCGI_req
 #define fcgistPART_HEAD   0x10
 #define fcgistPART_BODY   0x20
 #define fcgistSKIP_PADD   0x40
-  
+
   int  recv_len_left;
   int  padd;
   /*
@@ -1074,7 +1100,7 @@ struct FCGI_task
   PROCESS_INFORMATION pi;
 #endif
 //  uint state;
-  
+
 
   int  lock;
   int  r_lock;
@@ -1093,7 +1119,7 @@ struct FCGI_task
 
  // arh_ulong reqs[1];
   FCGI_req reqs[1];
-#endif  
+#endif
 
   //Req  *rwait[1];
   //fd_set connected_socket;
@@ -1102,10 +1128,10 @@ struct FCGI_task
   void Close();
 //  int  AppWrite(int idx, int type, int l, const void *data);
 //  int  AppRead(int idx, int max_l, void *data);
-  
+
 //  void AddRequest(Req *req);
 //  void Run(Req *req);
-  
+
   int  CheckLive();
   int  Connect(FCGI_req *f_req);
 //  void EndAllReq();

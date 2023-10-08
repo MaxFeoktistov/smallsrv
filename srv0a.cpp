@@ -454,6 +454,7 @@ void CloseServer()
 //#include "qsort.cpp"
 #include "stat.cpp"
 #include "accept.cpp"
+#include "tools.cpp"
 #include "gz.cpp"
 #include "req.cpp"
 

@@ -130,5 +130,29 @@ extern const struct in6_addr in6addr_linklocal_allrouters;
 
 
 
+// Options to use with [gs]etsockopt at the IPPROTO_TCP level.
+#define TCP_OFFLOAD_NO_PREFERENCE	0
+#define	TCP_OFFLOAD_NOT_PREFERRED	1
+#define TCP_OFFLOAD_PREFERRED		2
+
+#define TCP_EXPEDITED_1122  	 0x0002
+#define TCP_KEEPALIVE       	 3
+#define TCP_MAXSEG          	 4
+#define TCP_MAXRT           	 5
+#define TCP_STDURG          	 6
+#define TCP_NOURG           	 7
+#define TCP_ATMARK          	 8
+#define TCP_NOSYNRETRIES    	 9
+#define TCP_TIMESTAMPS      	 10
+#define TCP_OFFLOAD_PREFERENCE	 11
+#define TCP_CONGESTION_ALGORITHM 12
+#define TCP_DELAY_FIN_ACK        13
+#define TCP_MAXRTMS              14
+#define TCP_FASTOPEN             15
+#define TCP_KEEPCNT              16
+#define TCP_KEEPIDLE             TCP_KEEPALIVE
+#define TCP_KEEPINTVL            17
+
+
 
 #endif  /* _WINSOCKAPI_ */

@@ -2,7 +2,7 @@
  * Copyright (C) 1999-2022 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
- * Author: Maksim Feoktistov 
+ * Author: Maksim Feoktistov
  *
  *
  * Small HTTP server is free software: you can redistribute it and/or modify it
@@ -15,11 +15,11 @@
  * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see https://www.gnu.org/licenses/ 
+ * along with this program.  If not, see https://www.gnu.org/licenses/
  *
  * Contact addresses for Email:  support@smallsrv.com
  *
- * 
+ *
  */
 
 
@@ -111,18 +111,18 @@ int Req::Admin()
    {
   lbLogout:
 #ifdef WITHMD5
-       SendDigestAuthReq(loc); 
+       SendDigestAuthReq(loc);
 #else
-    Send(AuthErr, strlen(AuthErr)  ) ;// sizeof(AuthErr)-1); 
-#endif   
+    Send(AuthErr, strlen(AuthErr)  ) ;// sizeof(AuthErr)-1);
+#endif
     return -1;
    }
    if(s_flg&FL_RADMIN)
    {
-    bfl.bprintf(  HTMLTop, ( (charset && charset[0]) || lang_data ) ? charset : "; charset=utf-8", HTML_TOP2);  
+    bfl.bprintf(  HTMLTop, ( (charset && charset[0]) || lang_data ) ? charset : "; charset=utf-8", HTML_TOP2);
     bfl.fflush();
 
-       
+
     if( DWORD_PTR(loc[dirlen+10])==0x656C6966 x4CHAR("file") )
     {
      if(Wmail(tuser) == 162) LoadDomainM();
@@ -131,7 +131,7 @@ int Req::Admin()
    }
    else
    {
-    bfl.bprintf(  HTMLTop, ( (charset && charset[0]) || lang_data ) ? charset : "; charset=utf-8" ,"");  
+    bfl.bprintf(  HTMLTop, ( (charset && charset[0]) || lang_data ) ? charset : "; charset=utf-8" ,"");
    }
 
    bfl.fflush();
@@ -212,7 +212,7 @@ int Req::Admin()
                     )*cp->v=0;
             }
            }
-           else if(l) 
+           else if(l)
            {
              FREE_IF_HEAP2((*(char**)(cp->v)));
              strncpy((*(char**)(cp->v))=new char[l+8],u,l+1);
@@ -228,14 +228,14 @@ int Req::Admin()
       }
      }
      CheckValidCGIIdent();
-     
-     if( (s_flgs[2]&FL2_DOH) && doh_w<=0 ) 
+
+     if( (s_flgs[2]&FL2_DOH) && doh_w<=0 )
      {
-#ifdef SYSUNIX      
-        pipe(doh_pipe);  
+#ifdef SYSUNIX
+        pipe(doh_pipe);
 #else
         CreatePipe((HANDLE *)&doh_r,(HANDLE *)&doh_w,&secat,0x400);
-#endif   
+#endif
      }
 
      u=SaveCfgFile(b);
@@ -367,10 +367,10 @@ int Req::Admin()
 
    case 0x61656C63 x4CHAR("clea") :
     {
-     p=GetVar(req_var,"s");   
+     p=GetVar(req_var,"s");
      if(p)
      {
-#ifdef USE_IPV6         
+#ifdef USE_IPV6
         if( (u=GetVar(req_var,"n6")) )
         {
             LimitCntrIPv6 *pv;
@@ -384,7 +384,7 @@ int Req::Admin()
               else if((pv=ipv6cnts[j].Find(xaddr)))ipv6cnts[j].Del(pv);
         }
         else
-#endif        
+#endif
         if( (u=GetVar(req_var,"n")) )
         {
             LimitCntr *pv;
@@ -393,8 +393,8 @@ int Req::Admin()
             if(j<9 && ipcnts[j].n)
               if(!i){ipcnts[j].d[0].cnt=0; }
               else if((pv=ipcnts[j].Find(i)))ipcnts[j].Del(pv);
-            
-        }    
+
+        }
      }
     }
 if(0){
@@ -411,7 +411,37 @@ if(0){
           RemoveAndDelKeepAlive(i);
         }
       }
-      else if((i<max_tsk) && 
+#ifdef TLSVPN
+      else if(i ==  CONID_VPNCL_VALUE)
+      {
+        if(vpn_cln_connected && vpn_cln_connected->tmout == j)
+        {
+          #ifdef shutdown
+          #undef shutdown
+          shutdown(vpn_cln_connected->s,2);
+          #define shutdown(a,b)
+          #else
+          shutdown(vpn_cln_connected->s,2);
+          #endif
+        }
+      }
+      else if(i & CONID_VPN_MASK)
+      {
+        i&=~CONID_VPN_MASK;
+        if(i<vpn_count && vpn_list[i]->tmout==j )
+        {
+          #ifdef shutdown
+          #undef shutdown
+          shutdown(vpn_list[i]->s,2);
+          #define shutdown(a,b)
+          #else
+          shutdown(vpn_list[i]->s,2);
+          #endif
+        }
+
+      }
+#endif
+      else if((i<max_tsk) &&
         ((u_long)(rreq[i]) )>1  && rreq[i]->tmout==j
       )
 #ifdef shutdown
@@ -432,7 +462,7 @@ if(0){
     OutActualConn(b);
     OutVirusList(b);
     for(i=0;i<9; ++i) if(ipcnts[i].n)
-      OutSMTPLimit(b,i); 
+      OutSMTPLimit(b,i);
     if(total_dhcp_ip)ShowDHCP(b);
 
 
@@ -460,7 +490,7 @@ if(0){
         t1+=sprintf(t1=tuser->name,"%s",u)+1;
         t1+=sprintf(t1,"%s",t)+1;
         sprintf(t1,"%s",p);
-#endif        
+#endif
         tuser->next=userList;
         userList=tuser;
         goto lbState;
@@ -536,10 +566,10 @@ if(0){
         a->h=(char *)(a+1);
 #else
         a=(host_dir *) new char[sizeof(host_dir) + i + j+ strlen(u) +5];
-#endif        
+#endif
         i=sprintf(a->d=p+sprintf(p=a->h,u)+1,t);
         if(j)strcpy(a->d+(a->flg=i+1),t1);
-        
+
         a->next=hsdr.next;
         hsdr.next=a;
        }
@@ -569,58 +599,58 @@ if(0){
       HTTPOutUsersPage(&bfl); //b);
       break;
    case 0x74617473 x4CHAR("stat") :
-       DBGLINE 
+       DBGLINE
        j=255;
      if( (u=GetVar(req_var,"t")) )j=atoui(u);
      if( flog && (u=GetVar(req_var,"n")) && ((k=atoui(u))<3232) )
      {
-#define MAX_LOG_SIZE   0x4000000      
-      
+#define MAX_LOG_SIZE   0x4000000
+
 #ifdef SEPLOG
-      int hh[10]; 
+      int hh[10];
       int ll;
       if( (FL2_SEPARATELOG & s_flgs[2])    )
       {
-          i2=0;  
+          i2=0;
           u=0;
           for(i=0; i<10; i++)
           {
-            hh[i]=0;  
-            if(i==6 || i==8 || j==5) continue;   
+            hh[i]=0;
+            if(i==6 || i==8 || j==5) continue;
             if((i) && sepLog[i] == &gLog )   continue;
             if( j!=255 && j )
             {
                l= isCountAr[i]>>4;
-               if(l!=i)  continue; 
-            }    
-            if(i2>=MAX_LOG_SIZE)continue;    
+               if(l!=i)  continue;
+            }
+            if(i2>=MAX_LOG_SIZE)continue;
             sepLog[i]->MkFileName(b,k);
             if( (hh[i]=_lopen(b,0))>0)
             {
-               l=FileSize(hh[i]); 
+               l=FileSize(hh[i]);
                i2+=l;
             }
 
-    
+
           }
           l=i2;
       }
       else
       {
-         gLog.MkFileName(b,k);  
+         gLog.MkFileName(b,k);
          memset(hh,0,sizeof(hh));
          l=0;
          MyLock(mutex_pcnt);
-         
+
          if((hh[0]=_lopen(b,0))>0)
          {
-           l=FileSize(hh[0]);    
-         }    
+           l=FileSize(hh[0]);
+         }
       }
-     
+
       if(l>MAX_LOG_SIZE)l=MAX_LOG_SIZE;
       if(l)
-      {    
+      {
         do{
             ///if((u=new char[l+64]))break;
             if( (u=(char *)malloc(l+64) ) )break;
@@ -630,15 +660,15 @@ if(0){
               goto lbEndStat;
             };
         }while(1);
-        ll=0;  
+        ll=0;
         for(i=0;i<10;i++)if(hh[i]>0)
         {
          i2=_hread(hh[i],u+ll,l-ll);
          ll+=i2;
          if(ll>=l)break;
-        }  
-      } 
-      
+        }
+      }
+
    lbEndStat:
       for(i=0;i<10;i++)if(hh[i]>0)_lclose(hh[i]);
       MyUnlock(mutex_pcnt);
@@ -648,19 +678,19 @@ if(0){
        u[l]=0;
        DBGLINE
        HTTPOutStatistics(loc,u,j,k);
-       free(u);  
+       free(u);
        break;
-      }    
-      
-      
+      }
+
+
 #else
-         
+
       l=sprintf(b,"%s",flog);
       if( !(t=strrchr(b,'.')) )t=b+l;
       if(k)sprintf(t,"%4.4u",k);
       MyLock(pcnt);
 
-      
+
       if((i=_lopen(b,0))>0)
       {l=_llseek(i,0,2);
        if(l>MAX_LOG_SIZE)l=MAX_LOG_SIZE;
@@ -682,7 +712,7 @@ if(0){
         debug("Error read log (%u of %u)  bytes.  (%d %s)",i2,l,errno, strerror(errno));
        }
        _lclose(i);
-       
+
        MyUnlock(pcnt);
        if(i2<=0)goto lbStat;
        l=i2;
@@ -703,30 +733,30 @@ if(0){
 #ifdef SEPLOG
     if( (u=(char *)malloc(LOG_SIZE*8) ) )
     {
-        
+
        i2=0;
-       for(i=0;i<10;i++) 
+       for(i=0;i<10;i++)
        {
-         if(i==6 || i==8) continue;   
+         if(i==6 || i==8) continue;
          if((!i) || sepLog[i] !=&gLog )
          {
             memcpy(u+i2,sepLog[i]->lb_prot,l=sepLog[i]->lpprot-sepLog[i]->lb_prot);
             i2+=l;
-         }   
+         }
        }
        u[i2]=0;
        HTTPOutStatistics(loc,u,j,3232);
        i2=0;
      ///  delete u;
        free(u);
-        
-        
-    }    
+
+
+    }
 #else
      memcpy(loc,b_prot,i=pprot-b_prot);
      loc[i]=0;
      HTTPOutStatistics(loc+i+1,loc,j,3232);
-#endif     
+#endif
      break;
    case 0x72737573 x4CHAR("susr") :
      HTTPUserStat();
@@ -739,37 +769,37 @@ if(0){
    {HTTPOutRegPage(); break;}
 #endif
 #endif
-   case 0x6C676F6C x4CHAR("logl") : 
+   case 0x6C676F6C x4CHAR("logl") :
 #ifdef SEPLOG
     b_prot=gLog.lb_prot;
     pprot=gLog.lpprot;
     if( FL2_SEPARATELOG & s_flgs[2]     )
-    {    
-      j=0;  
+    {
+      j=0;
       if( (u=GetVar(req_var,"t")) )
       {
         j=atoui(u);
         if((uint)j < N_LOG){
             b_prot=sepLog[j]->lb_prot;
             pprot=sepLog[j]->lpprot;
-        }    
+        }
       }
       u=SrvNameSufix[j];
       if(*u == '.')u++;
-      
+
       bfl.bprintf( "<h2>%s</h2><table border=0 width=100%%><tr align=center><td><a href=\"?t=0\">General</a></td>" LF, u );
       for(j=1; j < N_LOG; j++)
-        if(sepLog[j]!=&gLog)  
+        if(sepLog[j]!=&gLog)
         {
             u=SrvNameSufix[j];
             if(*u != '.')continue;
-            u++; 
-            bfl.bprintf( "<td><a href=\"?t=%u\">%s</a></td>" LF ,j, u); 
-        }    
+            u++;
+            bfl.bprintf( "<td><a href=\"?t=%u\">%s</a></td>" LF ,j, u);
+        }
       bfl.bprintf( "</tr></table>");
       bfl.fflush();
-    }  
-#endif       
+    }
+#endif
        HTTPOutCurentLog(b); break;
    default:
      HttpReturnError( sERROR__BA );

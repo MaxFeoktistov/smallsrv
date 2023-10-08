@@ -2,7 +2,7 @@
 # Copyright (C) 1999-2022 Maksim Feoktistov.
 #
 # This file is part of Small HTTP server project.
-# Author: Maksim Feoktistov 
+# Author: Maksim Feoktistov
 #
 #
 # Small HTTP server is free software: you can redistribute it and/or modify it
@@ -15,11 +15,11 @@
 # General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with this program.  If not, see https://www.gnu.org/licenses/ 
+# along with this program.  If not, see https://www.gnu.org/licenses/
 #
 # Contact addresses for Email:  support@smallsrv.com
 #
-# 
+#
 #
 
 
@@ -34,10 +34,10 @@ G=  -g  -Os
 # -fno-verbose-asm -fno-implicit-templates -mno-align-double \
 # -mno-fancy-math-387 -DUSE_IPV6 -DUSE_FUTEX -DUSE_POOL -fno-exceptions -fno-nonansi-builtins  -fno-rtti  -fno-ms-extensions -fno-builtin  -fno-access-control  -Wno-deprecated  -fno-nonansi-builtins  -fno-optional-diags -momit-leaf-frame-pointer  -mno-red-zone -DFREEVER  -fno-pic
 # -fno-implicit-templates
- 
+
 OPT= -pipe  \
   -fno-stack-protector -fno-stack-check -fno-verbose-asm -fno-nonansi-builtins -fno-access-control  -fno-optional-diags -momit-leaf-frame-pointer\
- -DUSE_IPV6 -DUSE_FUTEX -DUSE_POOL -fno-exceptions  -Wno-deprecated -Wno-address-of-packed-member -fno-bounds-check -fno-tree-bit-ccp -fno-builtin -mno-red-zone -DFREEVER  -DWITHMD5 -DFIX_EXCEPT \
+ -DUSE_IPV6 -DUSE_FUTEX -DUSE_POOL -fno-exceptions  -Wno-deprecated -Wno-address-of-packed-member -fno-bounds-check -fno-tree-bit-ccp -fno-builtin -mno-red-zone -DFREEVER  -DWITHMD5 -DFIX_EXCEPT -DPF_LONG_LONG \
   -DUSEVALIST -DSEPLOG $(ADVOPT) -DVPN_LINUX -DTLSVPN
 
 #-fdelete-null-pointer-checks  -fdelayed-branch  -fdelete-dead-exceptions
@@ -45,13 +45,13 @@ OPT= -pipe  \
 #-mcpu=i486  -march=i486
 # -fno-threadsafe-statics
 
- 
+
 OPT64=  -Dx86_64 -DNOTINTEL $(OPT)
 
-GPP=gcc -m32 
-GCC=gcc -m32 
-GPP64=gcc -m64 
-GCC64=gcc -m64 
+GPP=gcc -m32
+GCC=gcc -m32
+GPP64=gcc -m64
+GCC64=gcc -m64
 
 ULGCC= PATH=/usr/local/arm-2010q1/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin ; arm-uclinuxeabi-gcc
 ULGPP= PATH=/usr/local/arm-2010q1/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin ; arm-uclinuxeabi-g++
@@ -62,7 +62,7 @@ ULCFLAGS= -mlittle-endian -marm  -mno-thumb-interwork -mthumb -march=armv7 -mfix
 # -fconserve-space -O2
 
 
-          
+
 S= -s
 
 #WINEGPP=wine c:\\MINGW2\\bin\\gcc.exe
@@ -70,8 +70,8 @@ S= -s
 #WINEAS=wine  c:\\MINGW2\\bin\\as.exe
 #WINERES=wine c:\\MINGW2\\bin\\windres.exe
 #MGDIR=c:\\MINGW2
-#WININC= -I$(MGDIR)\\include -I$(MGDIR)\\lib\\gcc\\mingw32\\8.2.0\\include 
-#WINLIB= -L$(MGDIR)\\lib 
+#WININC= -I$(MGDIR)\\include -I$(MGDIR)\\lib\\gcc\\mingw32\\8.2.0\\include
+#WINLIB= -L$(MGDIR)\\lib
 
 # WINEGPP=wine c:/mingw-w64/i686-8.1.0-win32-dwarf-rt_v6-rev0/mingw32/bin/gcc.exe -m32 -DMINGW64
 # WINEGCC=wine c:/mingw-w64/i686-8.1.0-win32-dwarf-rt_v6-rev0/mingw32/bin/gcc.exe -m32 -DMINGW64
@@ -105,25 +105,25 @@ WINLIB= -L$(MGDIR)/lib
 
 
 WINE=wine
-#WINEBIN2S=wine wo\\bin2s.exe 
-WINEBIN2S=./bin2s 
+#WINEBIN2S=wine wo\\bin2s.exe
+WINEBIN2S=./bin2s
 
 #WINECFLG=  -Iwinclude  -I$(MGDIR)\\include -fpack-struct -O2 -fno-verbose-asm -fno-implicit-templates -mno-svr3-shlib -mno-align-double -mno-fancy-math-387 -fconserve-space  -DSERVICE -DFREE_VER  -DFREEVER -DV_FULL=1 -DUSE_IPV6 -DMINGW -DRICON -mrtd
 #  -fno-implicit-templates
 
 WINECFLG= -Os -nostdinc -Iwinclude  $(WININC) -mno-align-double -mno-fancy-math-387 -fconserve-space  -fno-rtti -fno-threadsafe-statics -fno-access-control -fno-nonansi-builtins -fno-elide-constructors -fno-enforce-eh-specs -DSERVICE -DFREE_VER  -DFREEVER -DV_FULL=1 -DUSE_IPV6 -DMINGW -DRICON -mwindows -fno-optional-diags -momit-leaf-frame-pointer -mno-red-zone -fno-exceptions  -fno-stack-protector -no-pie -fno-ms-extensions -fno-stack-check -mno-stack-arg-probe -fmax-errors=10 -DSEPLOG -DSELECT1
-           
+
 WINELFLG=  -mwindows $(WINLIB) -luser32 -lkernel32 -lws2_32 -lgdi32 -lshell32 -lcomdlg32  -ladvapi32 -Xlinker --heap  -Xlinker 0x20000000 -Wl,--subsystem,windows  -nostartfiles -nodefaultlibs -Xlinker -Map -Xlinker wo/flxmap  -Xlinker --entry=_start    -fno-optional-diags -momit-leaf-frame-pointer  -mno-red-zone -fno-exceptions  -fno-stack-protector -fno-ms-extensions -no-pie -fno-stack-check -mno-stack-arg-probe
 
-#WINECFLG=  -nostdinc -Iwinclude  -I$(MGDIR)\\include -I$(MGDIR)\\lib\\gcc\\mingw32\\8.2.0\\include -fno-implicit-templates -mno-align-double -mno-fancy-math-387 -fconserve-space  -fno-rtti -fno-threadsafe-statics -fno-access-control -fno-nonansi-builtins -fno-elide-constructors -fno-enforce-eh-specs -DSERVICE -DFREE_VER  -DFREEVER -DV_FULL=1 -DUSE_IPV6 -DMINGW -DRICON -mwindows -fno-optional-diags -momit-leaf-frame-pointer -mno-red-zone -fno-exceptions  -fno-stack-protector -no-pie -fno-ms-extensions -fno-stack-check -mno-stack-arg-probe 
-           
+#WINECFLG=  -nostdinc -Iwinclude  -I$(MGDIR)\\include -I$(MGDIR)\\lib\\gcc\\mingw32\\8.2.0\\include -fno-implicit-templates -mno-align-double -mno-fancy-math-387 -fconserve-space  -fno-rtti -fno-threadsafe-statics -fno-access-control -fno-nonansi-builtins -fno-elide-constructors -fno-enforce-eh-specs -DSERVICE -DFREE_VER  -DFREEVER -DV_FULL=1 -DUSE_IPV6 -DMINGW -DRICON -mwindows -fno-optional-diags -momit-leaf-frame-pointer -mno-red-zone -fno-exceptions  -fno-stack-protector -no-pie -fno-ms-extensions -fno-stack-check -mno-stack-arg-probe
+
 #WINELFLG=    -mwindows -L$(MGDIR)\\lib -luser32 -lkernel32 -lws2_32 -lgdi32 -lshell32 -lcomdlg32  -ladvapi32 -Xlinker --heap  -Xlinker 0x20000000 -Wl,--subsystem,windows  -nostartfiles -nodefaultlibs -Xlinker -Map -Xlinker wo/flxmap  -Xlinker --entry=_start    -fno-optional-diags -momit-leaf-frame-pointer  -mno-red-zone -fno-exceptions  -fno-stack-protector -fno-ms-extensions -no-pie -fno-stack-check -mno-stack-arg-probe
 
-# 
-# WINECFLG=  -Os -nostdinc -Iwinclude  -I$(MGDIR)/include -I/usr/lib/gcc/i686-w64-mingw32/5.3-win32/include -fno-implicit-templates -mno-align-double -mno-fancy-math-387 -fconserve-space  -fno-rtti -fno-threadsafe-statics -fno-access-control -fno-nonansi-builtins -fno-elide-constructors -fno-enforce-eh-specs -DSERVICE -DFREE_VER  -DFREEVER -DV_FULL=1 -DUSE_IPV6 -DMINGW -DRICON -mwindows -fno-optional-diags -momit-leaf-frame-pointer -mno-red-zone -fno-exceptions  -fno-stack-protector -no-pie -fno-ms-extensions -fno-stack-check -mno-stack-arg-probe 
-#           
+#
+# WINECFLG=  -Os -nostdinc -Iwinclude  -I$(MGDIR)/include -I/usr/lib/gcc/i686-w64-mingw32/5.3-win32/include -fno-implicit-templates -mno-align-double -mno-fancy-math-387 -fconserve-space  -fno-rtti -fno-threadsafe-statics -fno-access-control -fno-nonansi-builtins -fno-elide-constructors -fno-enforce-eh-specs -DSERVICE -DFREE_VER  -DFREEVER -DV_FULL=1 -DUSE_IPV6 -DMINGW -DRICON -mwindows -fno-optional-diags -momit-leaf-frame-pointer -mno-red-zone -fno-exceptions  -fno-stack-protector -no-pie -fno-ms-extensions -fno-stack-check -mno-stack-arg-probe
+#
 # WINELFLG=    -mwindows -L$(MGDIR)/lib -luser32 -lkernel32 -lws2_32 -lgdi32 -lshell32 -lcomdlg32  -ladvapi32 -Xlinker --heap  -Xlinker 0x20000000 -Wl,--subsystem,windows  -nostartfiles -nodefaultlibs -Xlinker -Map -Xlinker wo/flxmap  -Xlinker --entry=_start    -fno-optional-diags -momit-leaf-frame-pointer  -mno-red-zone -fno-exceptions  -fno-stack-protector -fno-ms-extensions -no-pie -fno-stack-check -mno-stack-arg-probe
-# 
+#
 
 
 WIN64EGPP=x86_64-mingw32-gcc -m64 -DMINGW64
@@ -138,11 +138,11 @@ WIN64LIB= -L$(MG64DIR)/lib
 
 
 WIN64E=wine
-WIN64EBIN2S=./bin2s 
+WIN64EBIN2S=./bin2s
 
 # -fno-implicit-templates
 WIN64ECFLG= -Os -nostdinc -Iwinclude  $(WIN64INC) -mno-align-double -mno-fancy-math-387 -fconserve-space  -fno-rtti -fno-threadsafe-statics -fno-access-control -fno-nonansi-builtins -fno-elide-constructors -fno-enforce-eh-specs -DSERVICE -DFREE_VER  -DFREEVER -DV_FULL=1 -DUSE_IPV6 -DMINGW -DRICON -mwindows -fno-optional-diags -momit-leaf-frame-pointer -mno-red-zone -fno-exceptions  -fno-stack-protector -no-pie -fno-ms-extensions -fno-stack-check -mno-stack-arg-probe -fmax-errors=10  -DSEPLOG  -DSELECT1
-           
+
 WIN64ELFLG=  -mwindows $(WIN64LIB) -luser32 -lkernel32 -lws2_32 -lgdi32 -lshell32 -lcomdlg32  -ladvapi32 -Xlinker --heap  -Xlinker 0x20000000 -Wl,--subsystem,windows  -nostartfiles -nodefaultlibs -Xlinker -Map -Xlinker wo/flxmap  -Xlinker --entry=_start    -fno-optional-diags -momit-leaf-frame-pointer  -mno-red-zone -fno-exceptions  -fno-stack-protector -fno-ms-extensions -no-pie -fno-stack-check -mno-stack-arg-probe
 
 
@@ -154,9 +154,9 @@ WIN64ELFLG=  -mwindows $(WIN64LIB) -luser32 -lkernel32 -lws2_32 -lgdi32 -lshell3
 LOPT=   -dynamic-linker   -Xlinker -Map -Xlinker o/flxmap  -nodefaultlibs
 LOPT64=   -dynamic-linker   -Xlinker -Map -Xlinker o64/flxmap  -nodefaultlibs
 
-LIB= $(LIBDIR32) -lpthread  $(LIBDIR32) -ldl $(LIBDIR32) -lc -lc_nonshared
-LIB64= $(LIBDIR64) -lpthread  $(LIBDIR64) -ldl $(LIBDIR64) -lc -lc_nonshared
-LIB64u=  -ldl -lpthread  -lc -lc_nonshared
+LIB= $(LIBDIR32) -lpthread  $(LIBDIR32) -ldl $(LIBDIR32) -lc $(LIBDIR32) -lgcc -lc_nonshared
+LIB64= $(LIBDIR64) -lpthread  $(LIBDIR64) -ldl $(LIBDIR64) -lc  $(LIBDIR32) -lgcc -lc_nonshared
+LIB64u=  -ldl -lpthread  -lc -lgcc -lc_nonshared
 
 
 #LIB= -lpthread -ldl -lc -lc_nonshared
@@ -166,9 +166,9 @@ LIB64u=  -ldl -lpthread  -lc -lc_nonshared
 COBJS= o/to_linux.o o/bvprintfv.o o/vpn.o
 COBJS64= o64/to_linux.o o64/vpn.o
 
-AOBJS=mstring1.o srv0a.o srv_ssi.o srv_cgi.o req.o accept.o adminr.o restart.o proxy.o musers.o conf.o t2icfg.o stat.o icfgjs.o ftpd.o smptps.o smtpcl.o mailip.o dnsd.o tlsm.o gz.o dhcpd.o wmbx.o md5.o msprintfchk.o fcgi.o
+AOBJS=mstring1.o srv0a.o srv_ssi.o srv_cgi.o req.o accept.o tools.o adminr.o restart.o proxy.o musers.o conf.o t2icfg.o stat.o icfgjs.o ftpd.o smptps.o smtpcl.o mailip.o dnsd.o tlsm.o gz.o dhcpd.o wmbx.o md5.o msprintfchk.o fcgi.o
 
-AOBJS64=srv0a.o srv_ssi.o srv_cgi.o req.o accept.o adminr.o restart.o proxy.o musers.o conf.o t2icfg.o stat.o icfgjs.o ftpd.o smptps.o smtpcl.o mailip.o dnsd.o tlsm.o gz.o dhcpd.o wmbx.o bvprintfv.o md5.o msprintfchk.o fcgi.o
+AOBJS64=srv0a.o srv_ssi.o srv_cgi.o req.o accept.o tools.o adminr.o restart.o proxy.o musers.o conf.o t2icfg.o stat.o icfgjs.o ftpd.o smptps.o smtpcl.o mailip.o dnsd.o tlsm.o gz.o dhcpd.o wmbx.o bvprintfv.o md5.o msprintfchk.o fcgi.o
 
 POBJS=$(AOBJS)
 # telnet.o
@@ -191,7 +191,7 @@ FLIBS=libc.so libpthread.so libdl.so libgnutls.so libssl.so
 FAKELIBS=$(addprefix fakelibs/,$(FLIBS))
 #FLIBS64=libc.so libdl.so libpthread.so libgnutls.so libssl.so
 FAKELIBS64=$(addprefix fakelibs64/,$(FLIBS))
-    
+
 FLIBSARM= libgnutls.so libssl.so
 FAKELIBSARM=$(addprefix fakelibsarm/,$(FLIBSARM))
 
@@ -217,13 +217,13 @@ all: /dev/shm/shttps/o/1.x o/1.x getstr i32 i64 i32f i64f win arm
 
 i32: o/httpd.exe o/libsec111.so o/libsecgnutls.so
 
-#o/libsecgnutls.so o/libsec.so o/libsec111.so 
+#o/libsecgnutls.so o/libsec.so o/libsec111.so
 
 i64: o64/httpd.exe o64/libsecgnutls.so o64/libsec111.so
 
 i32f: $(FAKELIBS) o/of/httpd.exe o/of/libsec111.so o/of/libsecgnutls.so
 
-#o/libsecgnutls.so o/libsec.so o/libsec111.so 
+#o/libsecgnutls.so o/libsec.so o/libsec111.so
 
 i64f: $(FAKELIBS64) o64/of/httpd.exe o64/of/libsecgnutls.so o64/of/libsec111.so
 
@@ -284,22 +284,22 @@ fakelibsarm/1.x:
 	mkdir -p fakelibsarm
 	echo  ok >$@
 
-$(FAKELIBS) : fakelibs/1.x 
+$(FAKELIBS) : fakelibs/1.x
 
-$(FAKELIBS64) : fakelibs64/1.x 
+$(FAKELIBS64) : fakelibs64/1.x
 
-$(FAKELIBSARM) : fakelibsarm/1.x 
+$(FAKELIBSARM) : fakelibsarm/1.x
 
-fakelibs/libc.so: /usr/lib/i386-linux-gnu/libc.so.6  
+fakelibs/libc.so: /usr/lib/i386-linux-gnu/libc.so.6
 	./mkfakelib.pl $< fakelibs/
 
 fakelibs/libdl.so: /lib/i386-linux-gnu/libdl.so
 	./mkfakelib.pl $< fakelibs/
 
-fakelibs/%.so: /usr/lib/i386-linux-gnu/%.so  
+fakelibs/%.so: /usr/lib/i386-linux-gnu/%.so
 	./mkfakelib.pl $< fakelibs/
 
-fakelibs64/libc.so: /usr/lib/x86_64-linux-gnu/libc.so.6  
+fakelibs64/libc.so: /usr/lib/x86_64-linux-gnu/libc.so.6
 	./mkfakelib64.pl $< fakelibs64/ -c
 
 fakelibs64/libdl.so: /lib/x86_64-linux-gnu/libdl.so
@@ -308,7 +308,7 @@ fakelibs64/libdl.so: /lib/x86_64-linux-gnu/libdl.so
 fakelibs64/%.so: /usr/lib/x86_64-linux-gnu/%.so
 	./mkfakelib64.pl $< fakelibs64/ -c
 
-fakelibsarm/%.so: /usr/lib/i386-linux-gnu/%.so  
+fakelibsarm/%.so: /usr/lib/i386-linux-gnu/%.so
 	./mkfakelib_arm.pl $< fakelibsarm/ -c
 
 .cpp.S:
@@ -320,8 +320,8 @@ fakelibsarm/%.so: /usr/lib/i386-linux-gnu/%.so
 LIBDIR32F=-Lfakelibs/
 LIBDIR64F=-Lfakelibs64/
 
-LIBF= $(LIBDIR32F) -lpthread  $(LIBDIR32F) -ldl $(LIBDIR32F) -lc -lc_nonshared
-LIB64F= $(LIBDIR64F) -lpthread  $(LIBDIR64F) -ldl $(LIBDIR64F) -lc -lc_nonshared
+LIBF= $(LIBDIR32F) -lpthread  $(LIBDIR32F) -ldl $(LIBDIR32F) -lc $(LIBDIR32F) -lgcc -lc_nonshared
+LIB64F= $(LIBDIR64F) -lpthread  $(LIBDIR64F) -ldl $(LIBDIR64F) -lc $(LIBDIR64F) -lgcc -lc_nonshared
 
 cleanobj:
 	rm $(OOBJS) $(OOBJS64)
@@ -329,7 +329,7 @@ cleanobj:
 getstr: getstr.cpp
 	g++ -m32 -pipe -fpack-struct -fconserve-space -O2 -s getstr.cpp -o getstr
 
-md5:   md5.c 
+md5:   md5.c
 	gcc -s -pipe -m32 -Os md5.c -DTEST  -DSYSUNIX -DV_FULL=1  -o md5
 
 o/1.x: /dev/shm/shttps/o/1.x
@@ -337,32 +337,32 @@ o/1.x: /dev/shm/shttps/o/1.x
 	ln -sf /dev/shm/shttps/o64 .
 	ln -sf /dev/shm/shttps/wo .
 	ln -sf /dev/shm/shttps/arm .
+	mkdir -p  o/dist o/adist/ o64/dist o64/distu o/of o64/of
+	mkdir -p  o/dist/langpacks/en o/adist/langpacks/en o64/dist/langpacks/en o64/distu/langpacks/en
+	mkdir -p  o/dist/langpacks/ru o/adist/langpacks/ru o64/dist/langpacks/ru o64/distu/langpacks/ru
 
 /dev/shm/shttps/o/1.x :
 	mkdir -p /dev/shm/shttps/o ; mkdir -p /dev/shm/shttps/o64 ; mkdir -p /dev/shm/shttps/wo ; mkdir -p /dev/shm/shttps/arm ; echo 1 >$@
-	mkdir -p  o/dist o/adist/ o64/dist o64/distu o/of o64/of
-	mkdir -p  o/dist/langpacks/en o/adist/langpacks/en o64/dist/langpacks/en o64/distu/langpacks/en 
-	mkdir -p  o/dist/langpacks/ru o/adist/langpacks/ru o64/dist/langpacks/ru o64/distu/langpacks/ru 
 
 
 o/httpd.exe: $(OOBJS)
-	$(GCC)  $(G)  $(OOBJS) -o $@  $(LOPT) $(LIB)  
+	$(GCC)  $(G)  $(OOBJS) -o $@  $(LOPT) $(LIB)
 
 o/of/httpd.exe: $(OOBJS)
-	$(GCC)  $(G)  $(OOBJS) -o $@  $(LOPT) $(LIBF)  
+	$(GCC)  $(G)  $(OOBJS) -o $@  $(LOPT) $(LIBF)
 
 tclean:
 	rm $(OOBJS)
 
 
 o64/httpd.exe: $(OOBJS64)
-	$(GCC64)  $(G)  $(OOBJS64) -o $@  $(LOPT64) $(LIB64)   
+	$(GCC64)  $(G)  $(OOBJS64) -o $@  $(LOPT64) $(LIB64)
 
 o64/of/httpd.exe: $(OOBJS64)
-	$(GCC64)  $(G)  $(OOBJS64) -o $@  $(LOPT64) $(LIB64F)   
+	$(GCC64)  $(G)  $(OOBJS64) -o $@  $(LOPT64) $(LIB64F)
 
 o64/httpdu.exe: $(OOBJS64)
-	$(GCC64)  $(G)  $(OOBJS64) -o $@  $(LOPT64) $(LIB64u)   
+	$(GCC64)  $(G)  $(OOBJS64) -o $@  $(LOPT64) $(LIB64u)
 
 wo/http.exe: $(WINOOBJS)
 	$(WINEGCC) -s  $(WINOOBJS) -o $@ $(WINELFLG)
@@ -371,7 +371,7 @@ wo/httpg.exe: $(WINOOBJS)
 	$(WINEGCC) -g  $(WINOOBJS) -o $@ $(WINELFLG)
 
 #   -nostartfiles	 -Telfi386.x  -nodefaultlibs
-   
+
 #	$(GCC) $(G)   /usr/lib/i386-linux-gnu/crt1.o /usr/lib/i386-linux-gnu/crti.o $(OOBJS) -o $@ $(LIB) $(LOPT)  /usr/lib/i386-linux-gnu/crtn.o -nostartfiles  -Telfi386.x -nodefaultlibs
 
 #	   $(GCC) $(G)   $(OOBJS) -o $@ $(LIB) $(LOPT)   -nostartfiles -Telfi386.x -nodefaultlibs
@@ -400,21 +400,21 @@ wo/shttpsr_mgi.exe: wo/stpdtari.o wo/sethttp3ri.o wo/mstring1.o wo/updr.res
 	upx -9 $@
 
 
-wo/uninst.exe: wo/uninst.o 
+wo/uninst.exe: wo/uninst.o
 	$(WINEGCC)  -s  $^ -o $@  -nodefaultlibs -L$(MGDIR)\\lib -luser32 -lkernel32 -lgdi32 -lcomdlg32 -ladvapi32 -lshell32 -Wl,--subsystem,windows -nostartfiles  -Xlinker -Map -Xlinker wo/flxmaps  -Xlinker --entry=_start  -nostartfiles -Xlinker -Map -Xlinker wo/flxmap  -Xlinker --entry=_start    -fno-optional-diags -momit-leaf-frame-pointer  -mno-red-zone -fno-exceptions  -fno-stack-protector -fno-ms-extensions -no-pie -fno-stack-check -mno-stack-arg-probe
 
 
 wo/stpdta.o: wo/stpdta.s wo/uninst.bin wo/http.bin wo/ind1.bin wo/eshs_lang.bin wo/shs_lang.bin wo/lnotes.bin wo/lic.bin
-	 cd wo ;  $(WINEAS)  stpdta.s -o stpdta.o  
+	 cd wo ;  $(WINEAS)  stpdta.s -o stpdta.o
 
 wo/stpdtar.o: wo/stpdtar.s wo/uninst.bin wo/http.bin wo/ind1r.bin wo/eshs_lang.bin wo/shs_lang.bin wo/lnotes.bin wo/licr.bin
-	 cd wo ;  $(WINEAS)  stpdtar.s -o stpdtar.o  
+	 cd wo ;  $(WINEAS)  stpdtar.s -o stpdtar.o
 
 wo/stpdtai.o: wo/stpdtai.s wo/uninst.bin wo/http.bin wo/ind1.bin wo/eshs_lang.bin wo/shs_lang.bin wo/lnotes.bin wo/lic.bin wo/ipbase.s
-	 cd wo ;  $(WINEAS)  stpdtai.s -o stpdtai.o  
+	 cd wo ;  $(WINEAS)  stpdtai.s -o stpdtai.o
 
 wo/stpdtari.o: wo/stpdtari.s wo/uninst.bin wo/http.bin wo/ind1r.bin wo/eshs_lang.bin wo/shs_lang.bin wo/lnotes.bin wo/licr.bin wo/ipbase.s
-	 cd wo ;  $(WINEAS)  stpdtari.s -o stpdtari.o  
+	 cd wo ;  $(WINEAS)  stpdtari.s -o stpdtari.o
 
 wo/stpdta.s: stpdta.s
 	cp -f $< $@
@@ -428,7 +428,7 @@ wo/stpdtai.s: stpdtai.s
 wo/stpdtari.s: stpdtari.s
 	cp -f $< $@
 
-wo/%.bin:  wo/%.exe 
+wo/%.bin:  wo/%.exe
 	$(WINEBIN2S)  $< $@
 
 # wo/%.bin:  %.htm
@@ -440,19 +440,19 @@ wo/ind1.bin:  desc.htm
 wo/ind1r.bin:  descr.htm
 	$(WINEBIN2S)  $< $@
 
-wo/licr.bin : licr06.txt 
+wo/licr.bin : licr06.txt
 	$(WINEBIN2S)  $< $@
 
-wo/lic.bin :  license06.txt 
+wo/lic.bin :  license06.txt
 	$(WINEBIN2S)  $< $@
 
-wo/shs_lang.bin :  ru/shs_lang.cfg 
+wo/shs_lang.bin :  ru/shs_lang.cfg
 	$(WINEBIN2S)  $< $@
 
-wo/eshs_lang.bin : en/shs_lang.cfg 
+wo/eshs_lang.bin : en/shs_lang.cfg
 	$(WINEBIN2S)  $< $@
 
-wo/lnotes.bin :  lang_notes.txt 
+wo/lnotes.bin :  lang_notes.txt
 	$(WINEBIN2S)  $< $@
 
 wo/ipbase.s : ipbase.bin
@@ -517,46 +517,46 @@ o/httpd.exr: $(ROBJS)
 
 
 #o/dist/%.so: o/%.so
-#	cp -f $^ $@ 
+#	cp -f $^ $@
 
 o/dist/%.so: o/of/%.so
-	cp -f $^ $@ 
+	cp -f $^ $@
 
 #o/dist/libsecgnutls.so: o/libsecgnutls.so
-#	cp -f $^ $@ 
+#	cp -f $^ $@
 
 # o64/dist/libsec.so: o64/libsec.so
-# 	cp -f $^ $@ 
+# 	cp -f $^ $@
 
 o64/dist/%.so: o64/of/%.so
-	cp -f $^ $@ 
+	cp -f $^ $@
 
 o64/dist/libsecgnutls.so: o64/libsecgnutls.so
-	cp -f $^ $@ 
+	cp -f $^ $@
 
 o64/distu/libsec.so: o64/libsec.so
-	cp -f $^ $@ 
+	cp -f $^ $@
 
 o64/distu/%.so: o64/%.so
-	cp -f $^ $@ 
+	cp -f $^ $@
 
 o/distu/%.so: o/%.so
-	cp -f $^ $@ 
+	cp -f $^ $@
 
 o64/distu/libsecgnutls.so: o64/libsecgnutls.so
-	cp -f $^ $@ 
+	cp -f $^ $@
 
 o/dist/descu.htm o/adist/descu.htm o64/dist/descu.htm o64/distu/descu.htm: descu.htm
-	cp -f $^ $@ 
+	cp -f $^ $@
 
 o/dist/license06.txt o/adist/license06.txt o64/dist/license06.txt o64/distu/license06.txt: license06.txt
-	cp -f $^ $@ 
+	cp -f $^ $@
 
 o/dist/notes.ssl o/adist/notes.ssl o64/dist/notes.ssl o64/distu/notes.ssl: notes.ssl
-	cp -f $^ $@ 
+	cp -f $^ $@
 
 o/adist/%.so: at/%.so
-	cp -f $^ $@ 
+	cp -f $^ $@
 
 
 en/shs_lang.cfg : lS1_lf.cfg
@@ -578,14 +578,14 @@ dist:   o/dist/license06.txt o/adist/license06.txt o/dist/langpacks/ru/shs_lang.
 #dist64: o64/dist/libsec.so o64/dist/libsec111.so o64/dist/libsecgnutls.so o64/distu/libsec.so o64/distu/libsecgnutls.so o64/dist/langpacks/ru/shs_lang.cfg o64/dist/langpacks/en/shs_lang.cfg
 
 
-dist64: o64/dist/langpacks/ru/shs_lang.cfg o64/dist/langpacks/en/shs_lang.cfg o64/dist/libsec111.so o64/dist/libsecgnutls.so o64/distu/langpacks/ru/shs_lang.cfg o64/distu/langpacks/en/shs_lang.cfg o64/distu/libsec111.so o64/distu/libsecgnutls.so 
+dist64: o64/dist/langpacks/ru/shs_lang.cfg o64/dist/langpacks/en/shs_lang.cfg o64/dist/libsec111.so o64/dist/libsecgnutls.so o64/distu/langpacks/ru/shs_lang.cfg o64/distu/langpacks/en/shs_lang.cfg o64/distu/libsec111.so o64/distu/libsecgnutls.so
 	cp o64/of/httpd.exe o64/dist/
 	cd o64/dist/ ; strip httpd.exe ; chmod -R go-w,u+rw,a+X * ; chmod  0755 httpd.exe *.so  sndmsg ; chmod  0600 httpd.cfg ;  rm -f shttplnx64.tgz ; tar --owner=root --group=root -czf shttplnx64.tgz * ; chmod a+rw shttplnx64.tgz
 	cp o64/httpd.exe o64/distu/httpd.exe
 	cd o64/distu/ ; strip httpd.exe ; chmod -R go-w,u+rw,a+X * ; chmod  0755 httpd.exe *.so  sndmsg ; chmod  0600 httpd.cfg ;  rm -f shttplnx64u.tgz ; tar --owner=root --group=root -czf shttplnx64u.tgz * ; chmod 0644 shttplnx64u.tgz
 
 
-#  o64/dist/descu.htm o64/distu/descu.htm  o64/dist/license06.txt o64/distu/license06.txt o64/distu/langpacks/ru/shs_lang.cfg o64/distu/langpacks/en/shs_lang.cfg 	
+#  o64/dist/descu.htm o64/distu/descu.htm  o64/dist/license06.txt o64/distu/license06.txt o64/distu/langpacks/ru/shs_lang.cfg o64/distu/langpacks/en/shs_lang.cfg
 # 	cp o64/httpdu.exe o64/distu/httpd.exe
 # 	cd o64/distu/ ; strip httpd.exe ;    chmod -R 0444 *  ; chmod -R a+X * ; chmod  0755 httpd.exe *.so  sndmsg ; chmod  0600 httpd.cfg ;  rm -f shttplnx64u.tgz ; tar --owner=root --group=root -czf shttplnx64u.tgz * ; chmod a+rw shttplnx64u.tgz
 
@@ -597,7 +597,7 @@ sinst:  o/dist/httpd.exe o/dist/shttplnx.tgz o/distu/shttplnxu.tgz o/adist/shttp
 # 	mv /mnt/d/shttps/httpd.exe /mnt/d/shttps/oldhttpd_$(shell date "+%F_%R").exe
 # 	cp o/distu/httpd.exe /mnt/d/shttps/
 
-sinste:  o/dist/httpd.exe o/dist/shttplnx.tgz o64/dist/shttplnx64.tgz 
+sinste:  o/dist/httpd.exe o/dist/shttplnx.tgz o64/dist/shttplnx64.tgz
 	chmod 0666 wo/shttps*.exe
 	for i in wo/shttps_mg.exe wo/shttpsr_mg.exe o/dist/shttplnx.tgz o64/dist/shttplnx64.tgz ; do cp $$i /mnt/d/var/www/pre/ ; done
 	mv /mnt/d/shttps/httpd.exe /mnt/d/shttps/oldhttpd.exe
@@ -619,7 +619,7 @@ sinstf:  o/dist/httpd.exe o/dist/shttplnx.tgz o/adist/shttparmlnx.tgz o64/dist/s
 	mv /mnt/d/shttps/httpd.exe /mnt/d/shttps/oldhttpd.exe
 	cp o/distu/httpd.exe /mnt/d/shttps/
 	for i in indexr.htm index.htm shttp3e.xml shttp3.xml ; do cp $$i /mnt/d/var/www/ ; done
-	
+
 
 o/dist/langpacks/en/shs_lang.cfg: en/shs_lang.cfg
 	cp -f $< $@
@@ -640,16 +640,16 @@ o64/distu/langpacks/ru/shs_lang.cfg: ru/shs_lang.cfg
 	cp -f $< $@
 
 o/libsec.so: runssl.cpp
-	 $(GCC) -s -o $@  -fPIC  $(OPT) -shared -O2  $< $(LIBDIR32) -lssl 
+	 $(GCC) -s -o $@  -fPIC  $(OPT) -shared -O2  $< $(LIBDIR32) -lssl
 
 o64/libsec.so: runssl.cpp
 	 $(GCC64) -s -o $@  -fPIC  $(OPT64) -shared -O2  $<  -nodefaultlibs $(LIBDIR64) -lssl  $(LIBDIR64) -lc
 
 o/libsecgnutls.so: rungnutls.cpp
-	 $(GCC) -s -o $@  -fPIC  $(OPT) -shared -O2  $<  -nodefaultlibs $(LIBDIR32) -l:libgnutls.so  $(LIBDIR32) -lc 
+	 $(GCC) -s -o $@  -fPIC  $(OPT) -shared -O2  $<  -nodefaultlibs $(LIBDIR32) -l:libgnutls.so  $(LIBDIR32) -lc
 
 o64/libsecgnutls.so: rungnutls.cpp
-	 $(GCC64) -s -o $@   -fPIC $(OPT64) -shared -O2  $<  -nodefaultlibs $(LIBDIR64) -l:libgnutls.so  $(LIBDIR64) -lc 
+	 $(GCC64) -s -o $@   -fPIC $(OPT64) -shared -O2  $<  -nodefaultlibs $(LIBDIR64) -l:libgnutls.so  $(LIBDIR64) -lc
 
 o/libsec111.so: runssl111.cpp
 	 $(GCC) -s -o $@  -fPIC  $(OPT) -shared -O2  $< $(LIBDIR32) -lssl -DOSSL111 -I/usr/src/openssl-1.1.1m/include
@@ -658,16 +658,16 @@ o64/libsec111.so: runssl111.cpp
 	 $(GCC64) -s -o $@  -fPIC  $(OPT64) -shared -O2  $<  -nodefaultlibs $(LIBDIR64) -lssl  $(LIBDIR64) -lc -DOSSL111 -I/usr/src/openssl-1.1.1m/include
 
 o/of/libsec.so: runssl.cpp
-	 $(GCC) -s -o $@  -fPIC  $(OPT) -shared -O2  $< $(LIBDIR32F) -lssl 
+	 $(GCC) -s -o $@  -fPIC  $(OPT) -shared -O2  $< $(LIBDIR32F) -lssl
 
 o64/of/libsec.so: runssl.cpp
 	 $(GCC64) -s -o $@  -fPIC  $(OPT64) -shared -O2  $<  -nodefaultlibs $(LIBDIR64F) -lssl  $(LIBDIR64F) -lc
 
 o/of/libsecgnutls.so: rungnutls.cpp
-	 $(GCC) -s -o $@  -fPIC  $(OPT) -shared -O2  $<  -nodefaultlibs $(LIBDIR32F) -l:libgnutls.so  $(LIBDIR32F) -lc 
+	 $(GCC) -s -o $@  -fPIC  $(OPT) -shared -O2  $<  -nodefaultlibs $(LIBDIR32F) -l:libgnutls.so  $(LIBDIR32F) -lc
 
 o64/of/libsecgnutls.so: rungnutls.cpp
-	 $(GCC64) -s -o $@   -fPIC $(OPT64) -shared -O2  $<  -nodefaultlibs $(LIBDIR64F) -l:libgnutls.so  $(LIBDIR64F) -lc 
+	 $(GCC64) -s -o $@   -fPIC $(OPT64) -shared -O2  $<  -nodefaultlibs $(LIBDIR64F) -l:libgnutls.so  $(LIBDIR64F) -lc
 
 o/of/libsec111.so: runssl111.cpp
 	 $(GCC) -s -o $@  -fPIC  $(OPT) -shared -O2  $< $(LIBDIR32F) -lssl -DOSSL111 -I/usr/src/openssl-1.1.1m/include
@@ -679,20 +679,20 @@ at/libsec111.so: runssl111.cpp
 	 $(ATGPP) -s -o $@  -DOSSL111 -I/usr/src/openssl-1.1.1m/include -fPIC $(ATFLAGS) -shared -O2  $<  -nodefaultlibs  -L$(ATLIB)/ -lc -L./fakelibsarm -lssl
 
 at/libsecgnutls.so: rungnutls.cpp
-	 $(ATGPP) -s -o $@   -fPIC $(ATFLAGS) -shared -O2  $<  -nodefaultlibs  -L$(ATLIB)/ -lc -L./fakelibsarm -l:libgnutls.so  
+	 $(ATGPP) -s -o $@   -fPIC $(ATFLAGS) -shared -O2  $<  -nodefaultlibs  -L$(ATLIB)/ -lc -L./fakelibsarm -l:libgnutls.so
 
 at/libsec111.so at/libsecgnutls.so: $(FAKELIBSARM)
 
 
-SSLIDIR=z:\\home\\adv\\openssl\\include 
+SSLIDIR=z:\\home\\adv\\openssl\\include
 
 wo/libsec.o: wo/runssl.cpp
-	$(WINEGCC)  $(G)  $< -c -o $@ -I$(MGDIR)\\include -fno-implicit-templates -DSERVICE -DFREE_VER  -DFREEVER -DV_FULL=1 -DUSE_IPV6 -DMINGW -I$(SSLIDIR) -nodefaultlibs -nostartfiles 
-	
-SSLIDIR111=/home/adv/openssl-1.1.1m/include 
+	$(WINEGCC)  $(G)  $< -c -o $@ -I$(MGDIR)\\include -fno-implicit-templates -DSERVICE -DFREE_VER  -DFREEVER -DV_FULL=1 -DUSE_IPV6 -DMINGW -I$(SSLIDIR) -nodefaultlibs -nostartfiles
+
+SSLIDIR111=/home/adv/openssl-1.1.1m/include
 
 wo/libsec111.o: runssl111.cpp
-	$(WINEGCC)  $(G)  $< -c -o $@ $(WINECFLG) -DOSSL111 -I$(MGDIR)\\include -fno-implicit-templates -DSERVICE -DFREE_VER  -DFREEVER -DV_FULL=1 -DUSE_IPV6 -DMINGW -I$(SSLIDIR111) -nodefaultlibs -nostartfiles 
+	$(WINEGCC)  $(G)  $< -c -o $@ $(WINECFLG) -DOSSL111 -I$(MGDIR)\\include -fno-implicit-templates -DSERVICE -DFREE_VER  -DFREEVER -DV_FULL=1 -DUSE_IPV6 -DMINGW -I$(SSLIDIR111) -nodefaultlibs -nostartfiles
 
 SSLLIBDIR=z:\\home\\adv\\openssl\\lib
 SSLLIBDIR111=/home/adv/openssl-1.1.1m
@@ -702,7 +702,7 @@ wo/libsec.dll: wo/libsec.o
 	$(WINEGCC)  -s  $< -o $@  -shared  -nodefaultlibs -nostartfiles -L$(SSLLIBDIR) -lssl -lcrypto -L$(MGDIR)\\lib -luser32 -lkernel32 -lws2_32 -lgdi32 -lshell32 -lcomdlg32  -ladvapi32 -lmsvcrt_fix -lgcc -Wl,--entry=_DllMainCRTStartup  -Xlinker --heap  -Xlinker 0x20000000   -Wl,--stack -Wl,0x800000 -Wl,-Map -Wl,wo/dllmap -Wl,--subsystem,windows
 
 wo/libsec111.dll: wo/libsec111.o
-	$(WINEGCC)  -g  $< -o $@  -shared  -nodefaultlibs -nostartfiles -L$(SSLLIBDIR111) -lssl -lcrypto -L$(MGDIR)/lib -luser32 -lkernel32 -lws2_32 -lgdi32 -lshell32 -lcomdlg32  -ladvapi32 -lgcc -Wl,--entry=_DllMainCRTStartup -Wl,--heap -Xlinker 0x800000 -Wl,--stack -Wl,0x400000 -Wl,--subsystem,windows -Wl,-Map -Wl,wo/dllmap 
+	$(WINEGCC)  -g  $< -o $@  -shared  -nodefaultlibs -nostartfiles -L$(SSLLIBDIR111) -lssl -lcrypto -L$(MGDIR)/lib -luser32 -lkernel32 -lws2_32 -lgdi32 -lshell32 -lcomdlg32  -ladvapi32 -lgcc -Wl,--entry=_DllMainCRTStartup -Wl,--heap -Xlinker 0x800000 -Wl,--stack -Wl,0x400000 -Wl,--subsystem,windows -Wl,-Map -Wl,wo/dllmap
 
 wo/libsec.dll: /home/adv/openssl/lib/libssl.a /home/adv/openssl/lib/libcrypto.a
 
@@ -711,8 +711,8 @@ GNUTSLIDIR=z:\\home\\adv\\gnutls\\include
 
 
 wo/libsecgnutls.o: rungnutls.cpp
-	$(WINEGCC)  $(G)  $< -c -o $@ -I$(MGDIR)\\include -fno-implicit-templates -DSERVICE -DFREE_VER  -DFREEVER -DV_FULL=1 -DUSE_IPV6 -DMINGW -I$(GNUTSLIDIR) -nodefaultlibs -nostartfiles 
-	
+	$(WINEGCC)  $(G)  $< -c -o $@ -I$(MGDIR)\\include -fno-implicit-templates -DSERVICE -DFREE_VER  -DFREEVER -DV_FULL=1 -DUSE_IPV6 -DMINGW -I$(GNUTSLIDIR) -nodefaultlibs -nostartfiles
+
 
 GNUTSLLIBDIR=z:\\home\\adv\\gnutls\\lib
 
@@ -728,20 +728,20 @@ cleangen:
 	rm -f $(GENERATED)
 
 cleanall: clean cleangen
-	rm -f o/httpd.exe o64/httpd.exe wo/http.exe http.exe wo/httpg.exe wo/shttps_mg.exe  wo/shttps_mgi.exe  wo/shttpsr_mg.exe  wo/shttpsr_mgi.exe wo/uninst.exe wo/libsecgnutls.dll o/libsec111.so o/libsecgnutls.so o64/httpd.exe o64/libsecgnutls.so o64/libsec111.so at/httpd.exe at/libsec111.so at/libsecgnutls.so 
+	rm -f o/httpd.exe o64/httpd.exe wo/http.exe http.exe wo/httpg.exe wo/shttps_mg.exe  wo/shttps_mgi.exe  wo/shttpsr_mg.exe  wo/shttpsr_mgi.exe wo/uninst.exe wo/libsecgnutls.dll o/libsec111.so o/libsecgnutls.so o64/httpd.exe o64/libsecgnutls.so o64/libsec111.so at/httpd.exe at/libsec111.so at/libsecgnutls.so
 
 o/srv0a.o o64/srv0a.o wo/srv0a.o r/srv0a.o lpc/srv0a.o at/srv0a.o : g4strc.h srv0a.cpp slloop.cpp srvars.cpp seplog.cpp onelog.cpp
 o/adminr.o o64/adminr.o r/adminr.o wo/adminr.o at/adminr.o : g4strc.h adminr.cpp t2icfghtm.cpp g4strhtm.hh
 o/stat.o o64/stat.o wo/stat.o r/stat.o at/stat.o mips/stat.o : g4strc.h stat.cpp cstat.cpp statusr.cpp
 o/smptps.o o64/smptps.o r/smptps.o mips/smptps.o at/smptps.o : g4strc.h smptps.cpp pop3d.cpp
-wo/fwnd.o: wndcfg.cpp 
+wo/fwnd.o: wndcfg.cpp
 o/conf.o o64/conf.o o/t2icfg.o o64/t2icfg.o wo/conf.o wo/t2icfg.o at/t2icfg.o at/conf.o: g4strc.h g4s1.hh g4strcwm.h S2_lf.hh
 o/wmbx.o o64/wmbx.o o/t2icfg.o wo/wmbx.o at/t2icfg.o at/wmbx.o: g4strc.h g4s1.hh g4strcwm.h
 o/srv_ssi.o o64/srv_ssi.o wo/srv_ssi.o r/srv_ssi.o lpc/srv_ssi.o at/srv_ssi.o : g4strc.h regular.cpp
 
 
 
-NIOBJS=to_linux.o srv0a.o srv_ssi.o srv_cgi.o req.o accept.o adminr.o restart.o proxy.o musers.o conf.o icfg.o stat.o icfgjs.o reghtm.o ftpd.o smptps.o smtpcl.o mailip.o dnsd.o tlsm.o gz.o dhcpd.o wmbx.o bvprintf.o msprintfchk.o
+NIOBJS=to_linux.o srv0a.o srv_ssi.o srv_cgi.o req.o accept.o tools.o adminr.o restart.o proxy.o musers.o conf.o icfg.o stat.o icfgjs.o reghtm.o ftpd.o smptps.o smtpcl.o mailip.o dnsd.o tlsm.o gz.o dhcpd.o wmbx.o bvprintf.o msprintfchk.o
 
 MIPSDIR=/opt/brcm/hndtools-mipsel-linux-3.2.3
 MIPSPATH=$(MIPSDIR)/bin:$(PATH)
@@ -795,13 +795,13 @@ arm/libsec.so:    arm/runssl.o
 #arm/libsec111.so:    arm/runssl111.o
 #	 export PATH=$(ARMPATH) ; arm-linux-gcc $(G) -s $^  -o $@  -shared $(ARMLOPT) $(LIB)
 
-LIOBJS=to_linux.o srv0a.o srv_ssi.o srv_cgi.o req.o accept.o adminr.o restart.o proxy.o musers.o conf.o t2icfg.o stat.o icfgjs.o ftpd.o smptps.o smtpcl.o mailip.o dnsd.o tlsm.o gz.o dhcpd.o wmbx.o bvprintf.o telnet.o md5.o msprintfchk.o
+LIOBJS=to_linux.o srv0a.o srv_ssi.o srv_cgi.o req.o accept.o tools.o adminr.o restart.o proxy.o musers.o conf.o t2icfg.o stat.o icfgjs.o ftpd.o smptps.o smtpcl.o mailip.o dnsd.o tlsm.o gz.o dhcpd.o wmbx.o bvprintf.o telnet.o md5.o msprintfchk.o
 
 LIOBJS1=$(LIOBJS) pthread.o
 
-# 
+#
 
-LPCOBJS=$(addprefix lpc/,$(LIOBJS1)) 
+LPCOBJS=$(addprefix lpc/,$(LIOBJS1))
 
 lpc/%.o : %.cpp
 	  $(ULGPP) -c $(S)  -DARM -DLINUX  -DSYSUNIX -DARM -DNOTINTEL -DLPC_ARM -DFREEVER -DTELNET -DV_FULL=1 $(ULCFLAGS) -o $@  $<
@@ -829,12 +829,12 @@ ATINCLUDE3=/usr/src/musl-1.2.3/arch/arm
 ATINCLUDE4=/usr/src/musl-1.2.3/obj/include
 ATINCLUDE5=/usr/src/musl-1.2.3/arch/generic
 
-ATFLAGS= -mlittle-endian -marm  -mcpu=arm926ej-s -mthumb-interwork  -msoft-float -Uarm  -nostdinc -I$(ATINCLUDE) -I$(ATINCLUDE3) -I$(ATINCLUDE4) -I$(ATINCLUDE5) -I$(ATSYSINCLUDE)  -Wno-deprecated-declarations -Wno-conversion  -Wno-write-strings  -fno-access-control  -fno-nonansi-builtins -fno-elide-constructors -fno-enforce-eh-specs   -fno-rtti  -fno-weak -nostdinc++  -Wnoexcept   -fno-exceptions -Wno-format -fpermissive -DARM -DLINUX  -DSYSUNIX -DNOTINTEL -DAT_ARM -DFREEVER -DTELNET -DUSE_IPV6 -DV_FULL=1 -DUSE_FUTEX -DUSE_POOL -DWITHMD5 -DFIX_EXCEPT -DUSEVALIST 
+ATFLAGS= -mlittle-endian -marm  -mcpu=arm926ej-s -mthumb-interwork  -msoft-float -Uarm  -nostdinc -I$(ATINCLUDE) -I$(ATINCLUDE3) -I$(ATINCLUDE4) -I$(ATINCLUDE5) -I$(ATSYSINCLUDE)  -Wno-deprecated-declarations -Wno-conversion  -Wno-write-strings  -fno-access-control  -fno-nonansi-builtins -fno-elide-constructors -fno-enforce-eh-specs   -fno-rtti  -fno-weak -nostdinc++  -Wnoexcept   -fno-exceptions -Wno-format -fpermissive -DARM -DLINUX  -DSYSUNIX -DNOTINTEL -DAT_ARM -DFREEVER -DTELNET -DUSE_IPV6 -DV_FULL=1 -DUSE_FUTEX -DUSE_POOL -DWITHMD5 -DFIX_EXCEPT -DUSEVALIST
 
 #   -fno-implicit-templates -fno-implicit-inline-templates  -fno-for-scope-fnothrow-opt  -fno-pretty-templates
 
 
-ATOBJS0=to_linux.o srv0a.o srv_ssi.o srv_cgi.o req.o accept.o adminr.o restart.o proxy.o musers.o conf.o t2icfg.o stat.o icfgjs.o ftpd.o smptps.o smtpcl.o mailip.o dnsd.o tlsm.o gz.o dhcpd.o wmbx.o bvprintfv.o telnet.o md5.o msprintfchk.o fcgi.o
+ATOBJS0=to_linux.o srv0a.o srv_ssi.o srv_cgi.o req.o accept.o tools.o adminr.o restart.o proxy.o musers.o conf.o t2icfg.o stat.o icfgjs.o ftpd.o smptps.o smtpcl.o mailip.o dnsd.o tlsm.o gz.o dhcpd.o wmbx.o bvprintfv.o telnet.o md5.o msprintfchk.o fcgi.o
 
 ATOBJS=$(addprefix at/,$(ATOBJS0))
 
@@ -845,7 +845,7 @@ at/%.o : %.cpp
 at/%.o : %.c
 	  $(ATGPP) -c $(S) $(ATFLAGS) -o $@  $<
 
-	  
+
 at/atobjdir:
 	mkdir -p /dev/shm/shttps/o/at
 	[ -d at ] || ln -sf /dev/shm/shttps/o/at .
@@ -855,9 +855,9 @@ at/atobjdir:
 at/httpd.exe: $(ATOBJS)
 	$(ATGPP)  $(S) -o $@ $^  -mlittle-endian  -msoft-float -march=armv5te -mtune=arm9tdmi -L$(ATLIB)/  -L$(ATSYSLIB)  -nostartfiles  $(ATLIB)/crt1.o $(ATLIB)/crti.o $(ATLIB)/crtn.o -static -lc -lutil -lpthread
 
-	
 
-	 
+
+
 ANDRARMDIR=/usr/local/android-ndk-r4/build/platforms/android-4/arch-arm/usr/
 ANDRARMPATH=/usr/local/android-ndk-r4/build/prebuilt/linux-x86/arm-eabi-4.4.0/bin:$(PATH)
 ANDRARMOBJ=$(addprefix andrarm/,$(NIOBJS))
