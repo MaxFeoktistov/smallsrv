@@ -34,14 +34,23 @@ void dbgf(char *er,int s);
 void xdie(char *);
 #define die(e) {xdie(e); return -1;}
 
+//#define DEBUG_VERSION 1
+#ifdef DEBUG_VERSION
+
 #define DBGLS(a)  debug("%s:%u:%s %s\r\n",__FILE__ , __LINE__, __func__, a);
 #define DBGL(a)  debug("%s:%u:%s " a "\r\n",__FILE__ , __LINE__, __func__ );
 #define DBGLA(a,b...) debug("%s:%u:%s " a "\r\n",__FILE__ , __LINE__, __func__, b );
 //printf("%s:%u:%s " a "\r\n",__FILE__ , __LINE__, __func__, b );
-//debug("%s:%u:%s " a "\r\n",__FILE__ , __LINE__, __func__, b );
+#else
+
+#define DBGLS(a)
+#define DBGL(a)
+#define DBGLA(a,b...)
+
+#endif
 
 #if __BYTE_ORDER__  ==  __ORDER_BIG_ENDIAN__
-#define BIG_ENDIAN
+#define BIG_ENDIAN 1
 #else
 #undef BIG_ENDIAN
 #endif
@@ -153,6 +162,7 @@ struct Req
 #define F_VPN_IPSET  0x40
 #define F_VPN_IP6SET  0x10
 #define F_VPN_IP6SET2  0x80
+#define F_VPN_LASTSINHERROR 0x200
 
  int  timout;
  char *loc, *rq;
@@ -451,6 +461,7 @@ int FndLimit(int lst,LimitBase **ip, LimitBase **net, sockaddr_in *sa );
 #define FL3_VPN_TLSIGNTIME  0x00000200
 #define FL3_VPN_TLSSSIGN    0x00000400
 #define FL3_VPN_TLSSHSTYLE  0x00000800
+#define FL3_VPN_SCRKEEP     0x00001000
 
 #define USE_TUN       (s_flgs[3] & FL3_VPN_TUN)
 #define USE_TAP       (s_flgs[3] & FL3_VPN_TAP)
@@ -607,7 +618,7 @@ void DeleteKeepAlive(Req* preq);
 int RemoveExpired();
 void RemoveAndDelKeepAlive(int i);
 void SetKeepAliveSock(int s);
-
+int WINAPI KeepAliveThread(void *);
 
 
 int CheckCode(uchar *bfr,uint i,uint j);
@@ -717,6 +728,7 @@ extern char *phtml_ini;
 extern uchar icn[];
 #define MAX_ADAPT  5
 #define MAX_SERV   10
+#define MAX_SERV_MASK 0xF
 
 #define MAX_SOCK  (MAX_ADAPT*MAX_SERV+12)
 

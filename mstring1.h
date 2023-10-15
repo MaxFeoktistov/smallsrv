@@ -2,7 +2,7 @@
  * Copyright (C) 1999-2020 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
- * Author: Maksim Feoktistov 
+ * Author: Maksim Feoktistov
  *
  *
  * Small HTTP server is free software: you can redistribute it and/or modify it
@@ -15,11 +15,11 @@
  * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see https://www.gnu.org/licenses/ 
+ * along with this program.  If not, see https://www.gnu.org/licenses/
  *
  * Contact addresses for Email:  support@smallsrv.com
  *
- * 
+ *
  */
 
 
@@ -95,6 +95,9 @@ inline unsigned int * memchr4(const unsigned int *_s,unsigned int _c,size_t _n)
 #else
 #include <sys/types.h>
 
+#define strcasestr stristr
+#define strcasecmp stricmp
+
 #define _INC_STRING 1
 
 #ifndef NULL
@@ -102,12 +105,13 @@ inline unsigned int * memchr4(const unsigned int *_s,unsigned int _c,size_t _n)
 #endif
 void tsttfnc();
 
-#define CHECK_EDIESIECX    " test %%edi,%%edi ; jz 5f ; test %%esi,%%esi ; jz 5f ;  jecxz 5f ;"   
-#define CHECK_ESIECX       " test %%esi,%%esi ; jz 5f ; jecxz 5f ;"   
-#define CHECK_EDIECX       " test %%edi,%%edi ; jz 5f ; jecxz 5f ;"   
+#define CHECK_EDIESIECX    " test %%edi,%%edi ; jz 5f ; test %%esi,%%esi ; jz 5f ;  jecxz 5f ;"
+#define CHECK_ESIECX       " test %%esi,%%esi ; jz 5f ; jecxz 5f ;"
+#define CHECK_EDIECX       " test %%edi,%%edi ; jz 5f ; jecxz 5f ;"
 
 #define  ENDCHK   "\n5: \n"
 
+#pragma GCC diagnostic ignored "-Wbuiltin-declaration-mismatch"
 
 inline char *  memchr(const void *_s, int _c, size_t _n)
 {
@@ -168,7 +172,7 @@ inline int memicmp(const void *_s1, const void *_s2, size_t _n)
 inline void *  memcpy(void *_s1, const void *_s2, size_t _n)
 {
   asm volatile(
-      "test %%edi,%%edi ; jz 1f ; test %%esi,%%esi ; jz 1f ;  jecxz 1f ;"   
+      "test %%edi,%%edi ; jz 1f ; test %%esi,%%esi ; jz 1f ;  jecxz 1f ;"
       "cld; rep; movsb;\n"
 "1:                    ":
                      "=&D" (_s2),"=&S" (_s2),"=&c" (_n)
@@ -180,7 +184,7 @@ inline void *  memcpy(void *_s1, const void *_s2, size_t _n)
 inline void *  memcpy_back(void *_s1, const void *_s2, size_t _n)
 {
   asm volatile(
-           " test %%edi,%%edi ; jz 1f ; test %%esi,%%esi ; jz 1f ;  jecxz 1f ;"    
+           " test %%edi,%%edi ; jz 1f ; test %%esi,%%esi ; jz 1f ;  jecxz 1f ;"
            "std; rep; movsb;\n"
            "cld ; \n"
 "1:                    "
@@ -218,7 +222,7 @@ char *  strchr(const char *_s, int _c);
 inline char *  rstrchr(const char *_s, int _c)
 {
   asm volatile(
-      " test %%edi,%%edi ; jz 5f ; "   
+      " test %%edi,%%edi ; jz 5f ; "
       "std\n"
 "    2: scasb\n"
 "       je  1f\n"
@@ -244,7 +248,7 @@ int     stricmp(const char *_s1, const char *_s2);
 inline char *  strcpy(char *_s1, const char *_s2)
 {
   asm volatile(
-   " test %%edi,%%edi ; jz 5f ; test %%esi,%%esi ; jz 5f ;"      
+   " test %%edi,%%edi ; jz 5f ; test %%esi,%%esi ; jz 5f ;"
       "cld;\n"
 "     1:lodsb\n"
 "       stosb\n"
@@ -285,7 +289,7 @@ inline size_t  strcspn(const char *_s1, const char *_s2)
 //#define strerror( _errcode)  ""
 #ifdef __cplusplus
 extern "C" {
-#endif    
+#endif
  char * strerror(int errnum);
 #ifdef __cplusplus
 }
@@ -297,7 +301,7 @@ inline size_t  strlen(const char *_s)
   asm volatile("cld;\n"
 "       xorb %%al,%%al;\n"
 "       xorl %%ecx,%%ecx;\n"
-"       test %%edi,%%edi ; jz 5f \n"   
+"       test %%edi,%%edi ; jz 5f \n"
 "       decl %%ecx;\n"
 "       repne; scasb;\n"
 "       incl %%ecx;\n"
@@ -314,7 +318,7 @@ inline size_t  strlen(const char *_s)
 inline char *  strncat(char *_s1, const char *_s2, size_t _n)
 {
   asm volatile(
-      " test %%edi,%%edi ; jz 5f ; test %%esi,%%esi ; jz 5f  ;\n"   
+      " test %%edi,%%edi ; jz 5f ; test %%esi,%%esi ; jz 5f  ;\n"
         "cld; movl $-1,%%ecx;\n"
 "       xor %%al,%%al;\n"
 "       repne; scasb;\n"
@@ -360,7 +364,7 @@ inline char *  strncat_rl(char *_s1, const char *_s2, size_t _n)
 inline int  strncmp(const char *_s1, const char *_s2, size_t _n)
 {
   asm volatile(
-      " test %%edi,%%edi ; jz 1f ; test %%esi,%%esi ; jz 1f ; "   
+      " test %%edi,%%edi ; jz 1f ; test %%esi,%%esi ; jz 1f ; "
       " cld; jecxz 1f;\n"
 "    3: lodsb; scasb; jne 2f;\n"
 "       orb %%al,%%al\n"
@@ -381,7 +385,7 @@ inline int  strncmp(const char *_s1, const char *_s2, size_t _n)
 inline char *  strncpy(char *_s1, const char *_s2, size_t _n)
 {
   asm volatile(
-  "jecxz 5f \n"   
+  "jecxz 5f \n"
   "cld; incl %%ecx ;\n"
 "     1:lodsb\n"
 "       stosb\n"

@@ -226,6 +226,8 @@ long CALLBACK DefProc(HWND hwnd, UINT msg,UINT wparam, LONG lparam)
     case 3911:
     case 3912:
     case 3913:
+    case 3914:
+    case 3915:
       if((i=LOWORD(wparam)-3900)<iofs)
       {wparam=(MnuOffset[i]<<16)|SB_THUMBTRACK;
        goto lbScroll;

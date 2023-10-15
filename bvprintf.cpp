@@ -79,7 +79,7 @@ char * uitoa(char *t,ulong a,ulong d=1000000000,ulong o=10,char b='a')
  return r;
 };
 #ifdef  PF_LONG_LONG
-char * ulltoa(char *t,unsigned long long a,unsigned long long d=1000000000000000000ll,ulong o=10,char b='a')
+static char * my_ulltoa(char *t,unsigned long long a,unsigned long long d=1000000000000000000ll,ulong o=10,char b='a')
 {
  uint x;
  char *r=0;
@@ -158,7 +158,7 @@ int BFILE::bvprintf(const char *fmt,void **v)
      case '#':  state|=4;    goto lb0;
      case 'l':
 #if __SIZEOF_LONG__ != 8
-
+                state|=
 #ifdef  PF_LONG_LONG
          (state&8)?0x10:
 #endif
@@ -180,20 +180,20 @@ int BFILE::bvprintf(const char *fmt,void **v)
      case '9':  l=atouisc( fmt); fmt--; goto lb0;
      case '.':  w=atouisc( ++fmt); state|=0x200;  fmt--; goto lb0;
 #ifdef  PF_LONG_LONG
-     case 'u':  p=(state&0x10)?ulltoa(bb,va_arg(vl,long long) ):uitoa(bb,va_arg(vl,uint) ); if(0){
+     case 'u':  p=(state&0x10)?my_ulltoa(bb,va_arg(vl,long long) ):uitoa(bb,va_arg(vl,uint) ); if(0){
      case 'i':
      case 'd':  if(state&0x10)
                 {
-                    if((lx=va_arg(vl,long long))<0){lx=-lx; state|=0x100; } p=ulltoa(bb,lx);
+                    if((lx=va_arg(vl,long long))<0){lx=-lx; state|=0x100; } p=my_ulltoa(bb,lx);
                 }
                 else
                 {
                     if((x=va_arg(vl,int))<0){x=-x; state|=0x100; } p=uitoa(bb,x);
                 }
                 if(0){
-     case 'o':  p=(state&0x10)?ulltoa(bb,va_arg(vl,long long),01000000000000000000000ll,8 ):uitoa(bb,va_arg(vl,uint),010000000000,8   ); if(0){
-     case 'X':  p=(state&0x10)?ulltoa(bb,va_arg(vl,long long),0x1000000000000000ll,16,'A' ):uitoa(bb,va_arg(vl,uint),0x10000000,16,'A'); if(0){
-     case 'x':  p=(state&0x10)?ulltoa(bb,va_arg(vl,long long),0x1000000000000000ll,16,'a' ):uitoa(bb,va_arg(vl,uint),0x10000000,16,'a');
+     case 'o':  p=(state&0x10)?my_ulltoa(bb,va_arg(vl,long long),01000000000000000000000ll,8 ):uitoa(bb,va_arg(vl,uint),010000000000,8   ); if(0){
+     case 'X':  p=(state&0x10)?my_ulltoa(bb,va_arg(vl,long long),0x1000000000000000ll,16,'A' ):uitoa(bb,va_arg(vl,uint),0x10000000,16,'A'); if(0){
+     case 'x':  p=(state&0x10)?my_ulltoa(bb,va_arg(vl,long long),0x1000000000000000ll,16,'a' ):uitoa(bb,va_arg(vl,uint),0x10000000,16,'a');
                 }}}};
 #else
      case 'u':  p=uitoa(bb,(u_long)(*v++) ); if(0){

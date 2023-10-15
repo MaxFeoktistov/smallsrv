@@ -111,7 +111,7 @@ WINEBIN2S=./bin2s
 #WINECFLG=  -Iwinclude  -I$(MGDIR)\\include -fpack-struct -O2 -fno-verbose-asm -fno-implicit-templates -mno-svr3-shlib -mno-align-double -mno-fancy-math-387 -fconserve-space  -DSERVICE -DFREE_VER  -DFREEVER -DV_FULL=1 -DUSE_IPV6 -DMINGW -DRICON -mrtd
 #  -fno-implicit-templates
 
-WINECFLG= -Os -nostdinc -Iwinclude  $(WININC) -mno-align-double -mno-fancy-math-387 -fconserve-space  -fno-rtti -fno-threadsafe-statics -fno-access-control -fno-nonansi-builtins -fno-elide-constructors -fno-enforce-eh-specs -DSERVICE -DFREE_VER  -DFREEVER -DV_FULL=1 -DUSE_IPV6 -DMINGW -DRICON -mwindows -fno-optional-diags -momit-leaf-frame-pointer -mno-red-zone -fno-exceptions  -fno-stack-protector -no-pie -fno-ms-extensions -fno-stack-check -mno-stack-arg-probe -fmax-errors=10 -DSEPLOG -DSELECT1
+WINECFLG= -Os -nostdinc -Iwinclude  $(WININC) -mno-align-double -mno-fancy-math-387 -fconserve-space  -fno-rtti -fno-threadsafe-statics -fno-access-control -fno-nonansi-builtins -fno-elide-constructors -fno-enforce-eh-specs -DSERVICE -DFREE_VER  -DFREEVER -DV_FULL=1 -DUSE_IPV6 -DMINGW -DRICON -mwindows -fno-optional-diags -momit-leaf-frame-pointer -mno-red-zone -fno-exceptions  -fno-stack-protector -no-pie -fno-ms-extensions -fno-stack-check -mno-stack-arg-probe -fmax-errors=10 -DSEPLOG -DSELECT1  -DVPN_WIN -DTLSVPN -DWITHMD5
 
 WINELFLG=  -mwindows $(WINLIB) -luser32 -lkernel32 -lws2_32 -lgdi32 -lshell32 -lcomdlg32  -ladvapi32 -Xlinker --heap  -Xlinker 0x20000000 -Wl,--subsystem,windows  -nostartfiles -nodefaultlibs -Xlinker -Map -Xlinker wo/flxmap  -Xlinker --entry=_start    -fno-optional-diags -momit-leaf-frame-pointer  -mno-red-zone -fno-exceptions  -fno-stack-protector -fno-ms-extensions -no-pie -fno-stack-check -mno-stack-arg-probe
 
@@ -180,7 +180,7 @@ OOBJS=$(COBJS) $(addprefix o/,$(POBJS))
 
 OOBJS64=$(COBJS64) $(addprefix o64/,$(AOBJS64))
 
-WINOOBJS= wo/fwnd.o $(addprefix wo/,$(AOBJS)) wo/bvprintf.o wo/srvdat.o wo/isapi.o wo/qsort.o wo/updr.res
+WINOOBJS= wo/fwnd.o $(addprefix wo/,$(AOBJS)) wo/bvprintf.o wo/srvdat.o wo/isapi.o wo/qsort.o wo/vpn.o wo/updr.res
 
 GENERATED=S2_lf.hh lS2_lf.cfg g4strc.h S3_lf.hh lS3_lf.cfg g4strcwm.h t2icfg.cpp S1_lf.hh lS1_lf.cfg g4s1.hh o/s1.hh
 
@@ -207,10 +207,12 @@ FAKELIBSARM=$(addprefix fakelibsarm/,$(FLIBSARM))
 #all: wo/tstwin.o
 
 #all: wo/libsec111.dll
+#all: wo/libsecgnutls.dll
 
 #all: /dev/shm/shttps/o/1.x o/1.x getstr $(FAKELIBS) $(FAKELIBS64) i32 i64 win
 all: /dev/shm/shttps/o/1.x o/1.x getstr i32 i64 i32f i64f win arm
 
+# all: win o/httpd.exe
 #wo/libsec111.dll arm
 
 # i32: o/httpd.exe
@@ -689,36 +691,39 @@ SSLIDIR=z:\\home\\adv\\openssl\\include
 wo/libsec.o: wo/runssl.cpp
 	$(WINEGCC)  $(G)  $< -c -o $@ -I$(MGDIR)\\include -fno-implicit-templates -DSERVICE -DFREE_VER  -DFREEVER -DV_FULL=1 -DUSE_IPV6 -DMINGW -I$(SSLIDIR) -nodefaultlibs -nostartfiles
 
-SSLIDIR111=/home/adv/openssl-1.1.1m/include
+SSLIDIR111=/usr/src/openssl-1.1.1w/include
 
 wo/libsec111.o: runssl111.cpp
-	$(WINEGCC)  $(G)  $< -c -o $@ $(WINECFLG) -DOSSL111 -I$(MGDIR)\\include -fno-implicit-templates -DSERVICE -DFREE_VER  -DFREEVER -DV_FULL=1 -DUSE_IPV6 -DMINGW -I$(SSLIDIR111) -nodefaultlibs -nostartfiles
+	$(WINEGCC)  $(G)  $< -c -o $@ $(WINECFLG) -DOSSL111 -I$(MGDIR)/include -fno-implicit-templates -DSERVICE -DFREE_VER -DFREEVER -DV_FULL=1 -DUSE_IPV6 -I$(SSLIDIR111) -nodefaultlibs -nostartfiles
 
 SSLLIBDIR=z:\\home\\adv\\openssl\\lib
-SSLLIBDIR111=/home/adv/openssl-1.1.1m
+SSLLIBDIR111=/usr/src/openssl-1.1.1w
 
 
 wo/libsec.dll: wo/libsec.o
 	$(WINEGCC)  -s  $< -o $@  -shared  -nodefaultlibs -nostartfiles -L$(SSLLIBDIR) -lssl -lcrypto -L$(MGDIR)\\lib -luser32 -lkernel32 -lws2_32 -lgdi32 -lshell32 -lcomdlg32  -ladvapi32 -lmsvcrt_fix -lgcc -Wl,--entry=_DllMainCRTStartup  -Xlinker --heap  -Xlinker 0x20000000   -Wl,--stack -Wl,0x800000 -Wl,-Map -Wl,wo/dllmap -Wl,--subsystem,windows
 
 wo/libsec111.dll: wo/libsec111.o
+	$(WINEGCC)  -g  $< -o $@  -shared  -nodefaultlibs -nostartfiles -L$(SSLLIBDIR111) -Wl,-Bstatic -lssl -Wl,-Bstatic -lcrypto  -L$(MGDIR)/lib -luser32  -lws2_32 -lkernel32 -lgdi32 -lshell32 -lcomdlg32  -ladvapi32 -lmsvcrt -Wl,-Bstatic -lgcc -Wl,--entry=_DllMainCRTStartup -Wl,--heap -Xlinker 0x800000 -Wl,--stack -Wl,0x400000 -Wl,--subsystem,windows -Wl,-Map -Wl,wo/dllmap
+
+wo/libsec111dyn.dll: wo/libsec111.o
 	$(WINEGCC)  -g  $< -o $@  -shared  -nodefaultlibs -nostartfiles -L$(SSLLIBDIR111) -lssl -lcrypto -L$(MGDIR)/lib -luser32 -lkernel32 -lws2_32 -lgdi32 -lshell32 -lcomdlg32  -ladvapi32 -lgcc -Wl,--entry=_DllMainCRTStartup -Wl,--heap -Xlinker 0x800000 -Wl,--stack -Wl,0x400000 -Wl,--subsystem,windows -Wl,-Map -Wl,wo/dllmap
 
 wo/libsec.dll: /home/adv/openssl/lib/libssl.a /home/adv/openssl/lib/libcrypto.a
 
 
-GNUTSLIDIR=z:\\home\\adv\\gnutls\\include
+GNUTSLIDIR=/usr/src/gnutls-3.6.0-w32/lib
 
 
 wo/libsecgnutls.o: rungnutls.cpp
-	$(WINEGCC)  $(G)  $< -c -o $@ -I$(MGDIR)\\include -fno-implicit-templates -DSERVICE -DFREE_VER  -DFREEVER -DV_FULL=1 -DUSE_IPV6 -DMINGW -I$(GNUTSLIDIR) -nodefaultlibs -nostartfiles
+	$(WINEGCC)  $(G)  $< -c -o $@ -I$(MGDIR)/include -fno-implicit-templates -DSERVICE -DFREE_VER  -DFREEVER -DV_FULL=1 -DUSE_IPV6 -DMINGW -I$(GNUTSLIDIR)
 
 
-GNUTSLLIBDIR=z:\\home\\adv\\gnutls\\lib
+GNUTSLLIBDIR=/usr/src/gnutls-3.6.0-w32/lib
 
 
 wo/libsecgnutls.dll: wo/libsecgnutls.o
-	$(WINEGCC)  -s  $< -o $@  -shared  -nodefaultlibs -nostartfiles -L$(GNUTSLLIBDIR) -lgnutls -L$(MGDIR)\\lib -luser32 -lkernel32 -lws2_32 -lgdi32 -lshell32 -lcomdlg32  -ladvapi32 -Wl,--entry=_DllMainCRTStartup  -Wl,--heap -Wl,0x20000000 -Wl,--stack -Wl,0x800000 -Wl,-Map -Wl,wo/dllmap -Wl,--subsystem,windows
+	$(WINEGCC)  -s  $< -o $@  -shared  -nodefaultlibs -nostartfiles -L$(GNUTSLLIBDIR) -l:libgnutls.dll.a -L$(MGDIR)/lib -luser32 -lkernel32 -lws2_32 -lgdi32 -lshell32 -lcomdlg32  -ladvapi32 -Wl,--entry=_DllMainCRTStartup  -Wl,--heap -Wl,0x20000000 -Wl,--stack -Wl,0x800000 -Wl,-Map -Wl,wo/dllmap -Wl,--subsystem,windows
 
 
 clean:

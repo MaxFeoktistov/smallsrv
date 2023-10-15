@@ -242,7 +242,7 @@ int WINAPI SetServ(uint fnc)
 
  memset(&req,0,sizeof(req) );
 
- serv=(serv2=fnc>>16)%MAX_SERV;
+ serv=(serv2=fnc>>16) % MAX_SERV;
  req.ntsk=(fnc&0xFFF);
  runed[serv]++;
  req.timout=30;
@@ -470,7 +470,7 @@ cnt:
 
 int WINAPI KeepAliveWike(Req *preq)
 {
-  int serv=preq->flsrv[1] % MAX_SERV;
+  int serv=preq->flsrv[1] & MAX_SERV_MASK;
 #ifdef FIX_EXCEPT
   if(SetFixExept(preq) )
   {
@@ -518,6 +518,83 @@ cnt:
   return 0;
 }
 
+#ifndef SYSUNIX
+
+static const uchar KeepAliveServers[] = {SRV_HTTP, SRV_SSL};
+int WINAPI KeepAliveThread(void *)
+{
+  fd_set set;
+  fd_set er_set;
+  int n,i,k,kk;
+  Req *preq;
+  timeval  tval;
+
+  while(is_no_exit)
+  {
+    if(!KeepAliveCount) Sleep(1000);
+    else
+    {
+      memcpy(&set, &KeepAliveSet, sizeof(set) );
+      n = KeepAliveCount;
+      for(i=0; i< sizeof(KeepAliveServers) ; i++ )
+      {
+        k=KeepAliveServers[i];
+        if( runed[k] < max_srv[k] )
+          goto checkEach;
+      }
+      Sleep(1000);
+      continue ;
+    checkEach:
+      for(i=0; i< sizeof(KeepAliveServers) && n>0 ; i++ )
+      {
+        k=KeepAliveServers[i];
+        if(  max_srv[k] && runed[k] >= max_srv[k] )
+        {
+          MyLock(KeepAliveMutex);
+          for(kk=0; kk<KeepAliveCount && n>0; kk++)
+          {
+            if( (KeepAliveList[kk]->flsrv[1] & MAX_SERV_MASK) == k) FD_CLR(KeepAliveList[kk]->s,&set);
+            n--;
+          }
+          MyUnlock(KeepAliveMutex);
+        }
+      }
+      if(!n) Sleep(1000);
+      else
+      {
+        tval.tv_sec=1;
+        tval.tv_usec=500000;
+        memcpy(&er_set,&set,sizeof(er_set));
+        if( (kk=select(keep_alive_max_fd+1,&set,0,&er_set,&tval))>0 )
+        {
+          MyLock(KeepAliveMutex);
+          for(k=0; k<KeepAliveCount; )
+          {
+            preq = KeepAliveList[k];
+            // DBGLA("ka %d %d",k, preq->s);
+            if(FD_ISSET(preq->s,&er_set))
+            {
+              // DBGLA("ka err %d %d",k, preq->s);
+              RemoveAndDelKeepAlive(k);
+            }
+            else if(FD_ISSET(preq->s,&set))
+            {
+              // DBGLA("ka select %d %d",k, preq->s);
+              RemoveKeepAlive(k);
+              CrThreadFunc((TskSrv)KeepAliveWike, preq);
+              if((--kk) <= 0) break;
+            }
+            else k++;
+          }
+          MyUnlock(KeepAliveMutex);
+        }
+      }
+    }
+  }
+  return 0;
+}
+
+#endif
 
 int Req::HttpReturnError(char *err,int errcode)
 {char out_buf[2124];

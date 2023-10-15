@@ -54,6 +54,7 @@ void *  memmove(void *_s1, const void *_s2, size_t _n)
  return _s1;
 }
 
+#define __STRALIGN_H_ 1
 #include <windows.h>
 #ifdef  DJGPP
 extern "C" {

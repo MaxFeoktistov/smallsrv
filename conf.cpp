@@ -2,7 +2,7 @@
  * Copyright (C) 1999-2022 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
- * Author: Maksim Feoktistov 
+ * Author: Maksim Feoktistov
  *
  *
  * Small HTTP server is free software: you can redistribute it and/or modify it
@@ -15,11 +15,11 @@
  * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see https://www.gnu.org/licenses/ 
+ * along with this program.  If not, see https://www.gnu.org/licenses/
  *
  * Contact addresses for Email:  support@smallsrv.com
  *
- * 
+ *
  */
 
 
@@ -61,6 +61,22 @@ uint atoui(const char *a)
 };
 
 #if (! defined(SYSUNIX)) //&&  (! defined(MINGW))
+
+int asci2n(int a)
+{
+  if(a>='a')  return a-('a' - 10);
+  if(a>='A')  return a-('A' - 10);
+  return a-'0';
+}
+
+long long strtoll(const char *a, char **endptr, int base)
+{long long r=0;
+ uint l;
+ if(!base) base = 10;
+ while( (l=asci2n(*a)) < base ){ r=r*base + l; a++;};
+ if(endptr) *endptr = (char *) a;
+ return r;
+};
 
 
 long long atoll(const char *a)
@@ -142,7 +158,7 @@ char * ArgvCompatibleStrstr(char *str,char *substr)
 #endif
 
 
-ulong ConvertIP(//const 
+ulong ConvertIP(//const
                char * &t)
 {union{ uchar a[4]; ulong r;};
   a[0]=atouis(t); ++t;
@@ -236,12 +252,12 @@ inline int IsInIPRangeIP(ulong *lst,ulong ip)
 }
 
 inline int IsInIPR(int r,ulong ip)
-{ 
-    return 
+{
+    return
     // IsInIPRangeIP(Range[r],ip)?   1-2*IsInIPRangeIP(Range[r+1],ip) :0;
     ip && IsInIPRangeIP(Range[r],ip)  && ! IsInIPRangeIP(Range[r+1],ip) ;
-    
-    
+
+
 }
 
 int IsInIPRR(int r,sockaddr_in *psa_c)
@@ -360,7 +376,7 @@ void CheckValidCGIIdent()
 
 #ifdef SEPLOG
  InitSepLog();
-#endif 
+#endif
  if(maxKeepAlive) KeepAliveList = (Req **) malloc( sizeof(Req *) * (maxKeepAlive + 2) );
 
 }
@@ -378,7 +394,7 @@ void InitParam(char *cln)
  char *tt;
 #ifndef x86_64
  char **ttuser;
-#endif 
+#endif
  User *ptuser;
  };
  host_dir *a,*b;
@@ -434,7 +450,7 @@ void InitParam(char *cln)
 
 #ifdef x86_64
  for(i=0; (ptuser[i].name = t=strstr(t+1," user=") ); ++i)ptuser[i].name+=6;
-#else 
+#else
  for(i=0; ttuser[i]=t=strstr(t+1," user="); ++i);
 #endif
  a=&hsdr;t=cln;
@@ -444,9 +460,9 @@ void InitParam(char *cln)
   a=(a->next = (host_dir *) malloc(sizeof(host_dir) ) ) ;
   a->h = t+9;
   a->next = 0;
-#else 
+#else
   (a=(a->next = (host_dir *) (t) ))->next=0;
-#endif  
+#endif
   if( (t=strchr(t+9,';') ) )
   {*t=0;   t++;
    for(b=&hsdr;(b) && (b!=a);b=b->next)
@@ -462,13 +478,13 @@ void InitParam(char *cln)
    }
   }
  };
- for(i=0; 
+ for(i=0;
 #ifdef x86_64
      ptuser[i].name
-#else     
+#else
      ttuser[i]
-#endif     
-     
+#endif
+
      ; ++i)
  {
 #ifdef AT_ARM
@@ -478,21 +494,21 @@ void InitParam(char *cln)
     MessageBox(0, sBAD_USER_ ,puser->name,MB_ICONSTOP|MB_OK);
    puser->next=0;
 #else
-  
+
   puser=(puser)?
 #ifdef x86_64
     puser->next= ptuser+i : userList=ptuser;
-#else  
+#else
   (puser->next=(User *)(ttuser[i]+1) ) : userList=puser=(User *)(ttuser[i]+1);
-#endif  
+#endif
   puser->next=0;
   if(!puser->Parse())
     MessageBox(0, sBAD_USER_ ,puser->name,MB_ICONSTOP|MB_OK);
-#endif  
+#endif
  };
 #endif
- 
-#ifndef x86_64  
+
+#ifndef x86_64
  free(tt);
 // delete tt;
 #endif
@@ -566,20 +582,20 @@ int PrepCfg(char *fname)
   InitParam(t);
   xxx=a;
   if(!conf_name)
-  {    
+  {
     l=strlen(fname);
     conf_name= (char *) malloc(l+2);
     if(      conf_name)
     {
       strcpy(conf_name,fname);
-    }    
-  }  
+    }
+  }
   return 0;
- }//else 
+ }//else
      MessageBox(0, sUNABLE_TO ,fname,MB_ICONSTOP|MB_OK);
- 
- return -1; 
-    
+
+ return -1;
+
 };
 
 int CfgParam::TextCfgString(char *bfr)
@@ -625,9 +641,9 @@ void SaveConfigFile(char *bfr,char *fnm)
  UpdAbout();
 #endif
 #endif
- 
+
  debug("Save configuration...");
- 
+
  for(CfgParam *cp=ConfigParams;cp->desc||cp->name;++cp)j+=cp->TextCfgString(bfr+j);
 
  j+=sprintf(bfr+j,"\r\n# Other\r\n");
@@ -660,8 +676,8 @@ void SaveConfigFile(char *bfr,char *fnm)
 
 void SaveCfgIfNeed()
 {
-  char *b;  
-    
+  char *b;
+
      if(s_flg&FL_CFGUNSV)
      {b=new char[0x10000];
       SaveCfgFile(b);
@@ -670,10 +686,10 @@ void SaveCfgIfNeed()
 }
 char * SaveCfgFile(char *b)
 {char *u,*p;
-    
- if(!conf_name)  
+
+ if(!conf_name)
  {
-   int l;  
+   int l;
     u=cmdline;
     if( (p=(*u=='\"')? strchr(++u,'\"') : strchr(u,' ') ))*p=0;
     if( (p=strrchr(u,'.')))
@@ -689,9 +705,9 @@ char * SaveCfgFile(char *b)
 #else
 "httpd.cfg"
 #endif
-    ; 
+    ;
  }
- SaveConfigFile(b,conf_name); 
+ SaveConfigFile(b,conf_name);
  s_flg&=~FL_CFGUNSV;
  return conf_name;
 }
@@ -748,15 +764,15 @@ struct LangRecord
 LangRecord  LangData[]=
 {
 {"charset",&charset},
-#include "S1_lf.hh"    
-#include "S2_lf.hh"    
+#include "S1_lf.hh"
+#include "S2_lf.hh"
 #include "S3_lf.hh"
 #include "S5_lf.hh"
- {0,0}   
+ {0,0}
 };
 void FixSlach(char *a)
 {
-  char *b;  
+  char *b;
  b=a;
  while(*b)
  {
@@ -765,22 +781,22 @@ void FixSlach(char *a)
      b++;
      switch(*b)
      {
-         case 'n':  *a++='\n';   break ;     
-         case 'r':  *a++='\r';   break ;     
-         case 't':  *a++='\t';   break ;     
-    //     case '\\':  *a++='\\';  break ;     
-    //     case '\'':  *a++='\'';  break ;     
-    //     case '\"':  *a++='\"';  break ;     
+         case 'n':  *a++='\n';   break ;
+         case 'r':  *a++='\r';   break ;
+         case 't':  *a++='\t';   break ;
+    //     case '\\':  *a++='\\';  break ;
+    //     case '\'':  *a++='\'';  break ;
+    //     case '\"':  *a++='\"';  break ;
          default: *a++=*b;
      }
-   }   
+   }
    else if(*b==' '){ if(a[-1]!=' ') *a++=' ';}
    else if( *b!='\n' )*a++=*b;
    b++;
-  }    
- 
+  }
+
  *a=0;
-    
+
 }
 char *lang_data;
 
@@ -788,28 +804,28 @@ int CntLines(char *p,char *e)
 {
   int r=0;
   while(p<e && *p)if(*p++=='\n')++r;
-  return r;  
+  return r;
 }
 int LoadLangCfg(char *fname)
 {
 #if 1
  char *t,*a,*b,*p;
  int i,l,q,line;
- CfgParam *cp; 
+ CfgParam *cp;
  if( ( i=_lopen(fname,0) )<=0 )
  {
    //  debug("Cant load %s; %s",fname,strerror(errno));
      return -1;
- }    
- 
+ }
+
  l=FileSize(i);
- 
- 
+
+
  if(! (lang_data=new char[l+16]) ){ return -1;}
  debug("Load %s; %u",fname,l);
  t=lang_data;
- *t++=0; 
- *t++='\n'; 
+ *t++=0;
+ *t++='\n';
  _hread(i,t,l);  t[l]=0;
  _lclose(i);
  a=b=t;
@@ -821,15 +837,15 @@ int LoadLangCfg(char *fname)
    b++;
  }
  *a=0;
- 
+
  a=t-1;
  line=1;
  while(*a)
  {
- //  if( *a=='\n')line++;  
+ //  if( *a=='\n')line++;
    if( *a=='\n'  && a[1]!='\n' )
    {
-     *a++=0;  
+     *a++=0;
      //b=strchr(a,'=');
      b=strpbrk(a,"=\n \t");
      if(!b)break;
@@ -838,10 +854,10 @@ int LoadLangCfg(char *fname)
      if(!*b)break;
      if(*b!='='){
          //printf
-         debug("**Lang file error at line %u near '%.20s'\n",line,b); 
-         a=b;   
+         debug("**Lang file error at line %u near '%.20s'\n",line,b);
+         a=b;
          if(*b=='\n')line++;
-         continue ; 
+         continue ;
      }
      *p=0;
      b=SkipSpace(b+1);
@@ -854,25 +870,25 @@ int LoadLangCfg(char *fname)
          p=*(LangData[i].t);
          for(cp=ConfigParams; cp->desc||cp->name;++cp)
          {
-           if(cp->desc && cp->desc==p && (cp->desc<lang_data || cp->desc>b) ){cp->desc=b ;}    
-           if(cp->adv && cp->adv==p && (cp->adv<lang_data || cp->adv > b)){cp->adv=b ;}    
-         }   
+           if(cp->desc && cp->desc==p && (cp->desc<lang_data || cp->desc>b) ){cp->desc=b ;}
+           if(cp->adv && cp->adv==p && (cp->adv<lang_data || cp->adv > b)){cp->adv=b ;}
+         }
          for(int j=0; anFnd[j] ; j++ )
             if(anFnd[j] == p)  anFnd[j]=b;
          *(LangData[i].t)=b;
-     
-         goto  ExLP2;  
-       }    
+
+         goto  ExLP2;
+       }
      }
      debug("Lang element '%.12s' not found\n",a);
-     
+
   ExLP2:
      p=strstr(b,"\n\n");
      if(!p)  goto  ExLP3;
      line+=CntLines(b,p)+2;
      *p=0;
-     if(LangData[i].name)    FixSlach(b); 
-    
+     if(LangData[i].name)    FixSlach(b);
+
 
      a=p+1;
    }
@@ -882,14 +898,14 @@ int LoadLangCfg(char *fname)
      if(!p) break ;
      line+=CntLines(a,p)+2;
      a=p+1;
-   }  
-     
+   }
+
  }
- 
+
 ExLP3:;
 #endif
-  return 0; 
-    
+  return 0;
+
 }
 
 

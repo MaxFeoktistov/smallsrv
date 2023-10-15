@@ -2,7 +2,7 @@
  * Copyright (C) 1999-2020 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
- * Author: Maksim Feoktistov 
+ * Author: Maksim Feoktistov
  *
  *
  * Small HTTP server is free software: you can redistribute it and/or modify it
@@ -15,11 +15,11 @@
  * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see https://www.gnu.org/licenses/ 
+ * along with this program.  If not, see https://www.gnu.org/licenses/
  *
  * Contact addresses for Email:  support@smallsrv.com
  *
- * 
+ *
  */
 
 
@@ -77,11 +77,11 @@ HKEY startup=0;
 
 
 #ifdef MINGW
-extern "C" { 
+extern "C" {
 //int WINAPI WinMain( HINSTANCE hinst, HANDLE prev_inst, LPSTR cmline, int cmdshow );
 void start()
 {
- 
+
   ExitProcess(WinMain(GetModuleHandle(NULL) ,// hinstanse,
                        0,
                       GetCommandLine() //cmdline
@@ -94,13 +94,13 @@ void start()
 
 #endif
 
-extern "C" { 
+extern "C" {
 
 #ifdef MINGW
 #define TYPE_SC_HANDLE     (SC_HANDLE__*)
 int WINAPI WinMain(HINSTANCE__*hinst, HINSTANCE__*prev_inst, CHAR*cmdline, int cmdshow)
 #else
-#define TYPE_SC_HANDLE  
+#define TYPE_SC_HANDLE
 int WINAPI WinMain( HANDLE hinst, HANDLE prev_inst, LPSTR cmdline, int cmdshow )
 #endif
 {
@@ -161,6 +161,7 @@ int WINAPI WinMain( HANDLE hinst, HANDLE prev_inst, LPSTR cmdline, int cmdshow )
    }
    else if(i!=CSIDL_COMMON_PROGRAMS){i=CSIDL_COMMON_PROGRAMS; goto lbNT;}
   };
+  return 0;
 }
 
 }

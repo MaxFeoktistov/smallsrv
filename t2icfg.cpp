@@ -489,12 +489,17 @@ SPD(5,tls)
 {"vpntap",3, FL3_VPN_TAP, (uint *)0, CS( t2T_2471473  )},
 {"vpn_tun_number",0,1024,(uint *)&tuntap_number[0], CS( t2T_6497414 )},
 {"vpn_tap_number",0,1024,(uint *)&tuntap_number[1], CS( t2T_6425577 )},
+#ifndef VPN_WIN
 {"vpn_tun_mtu", MIN_MTU, MAX_MTU,(uint *)&vpn_mtu[0], CS( t2T_6533180 )},
 {"vpn_tap_mtu", MIN_MTU, MAX_MTU,(uint *)&vpn_mtu[1], CS( t2T_6461343 )},
-
+{"tundev" ,128,0,(uint *)&tundev, CS( t2T_2095850 )},
+#else
+{"vpn_tunif" ,128,0,(uint *)&vpnIfNames[0], CS( t2T_4008588 )},
+{"vpn_tapif" ,128,0,(uint *)&vpnIfNames[1], CS( t2T_3952141 )},
+{"tundev" ,128,0,(uint *)&tundev, CS( t2T_20958500 )},
+#endif
 {"vpnpub",3, FL3_VPN_PUBLIC, (uint *)0, CS( t2T_2917144  )},
 
-{"tundev" ,128,0,(uint *)&tundev, CS( t2T_2095850 )},
 
 {"tun_ip" ,20,0,(uint *)&tuntap_ipv4[0], CS( t2T_3296505 )},
 {"tun_nmask" ,20,0,(uint *)&tuntap_ipv4nmask[0], CS( t2T_5261510 )},
@@ -504,6 +509,10 @@ SPD(5,tls)
 
 {"tun_script_up" ,255,0,(uint *)&vpn_scripts_up[0], CS( t2T_6317118 )},
 {"tap_script_up" ,255,0,(uint *)&vpn_scripts_up[1], CS( t2T_6240151 )},
+
+#ifdef VPN_WIN
+{"vpn_script_keep",3, FL3_VPN_SCRKEEP, (uint *)0, CS( t2T_5577742  )},
+#endif
 
 {"tun_remote_ip1", 20, 0,(uint *)&vpn_first_remote_ipc[0], CS( t2T_7936585 )},
 {"tun_remote_max", 0, 1024,(uint *)&vpn_total_remote_ip[0], CS( t2T_8186840 )},
@@ -518,11 +527,17 @@ SPD(5,tls)
 {"vpn_remote_host",512, 0,(uint *)&vpn_remote_host, CS( t2T_6407430 )},
 {"vpn_remote_user",32, 0,(uint *)&vpn_user, CS( t2T_4550693 )},
 {"vpn_remote_passw",32, 0,(uint *)&vpn_passw, CS( t2T_5067174 )},
+{"vpn_client_port",1,0xFFFE,(uint *)&vpn_client_port, CS( t2T_7244850 )},
 
 {"vpncln_tap",3, FL3_TAP_CLIENT, (uint *)0, CS( t2T_3867597  )},
 
 {"vpn_tuntap_number",0,1024,(uint *)&tuntap_number[2], CS( t2T_7581972 )},
+#ifndef VPN_WIN
 {"vpn_client_mtu", MIN_MTU, MAX_MTU,(uint *)&vpn_mtu[2], CS( t2T_7490219 )},
+#else
+{"vpn_tapif" ,128,0,(uint *)&vpnIfNames[2], CS( t2T_3952141 )},
+#endif
+
 {"tuntap_ip" ,32,0,(uint *)&tuntap_ipv4[2], CS( t2T_4130456 )},
 {"tuntap_nmask" ,32,0,(uint *)&tuntap_ipv4nmask[2], CS( t2T_6268646 )},
 {"vpncln_script_up" ,255,0,(uint *)&vpn_scripts_up[2], CS( t2T_7330605 )},

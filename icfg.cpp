@@ -212,7 +212,7 @@ SPD(0,http)
 {"runsystem"  ,1,FL1_RUNSYSTEM,(uint *)0, CS("Run 'system' files"  )},
 #endif
 
-{"ssi_chunk",2,FL2_CHUNKED,(uint *)0, CS("Use 'chunked' transfer for SSI." )},
+{"ssi_chunk",2,FL2_CHUNKED,(uint *)0, CS("Use 'chunked' transfer for SSI and CGI." )},
 
 {"nomsd" ,1,FL1_NOM, (uint *)0, CS("Disable multi stream download for one file.")},
 {"http_gzip" ,1,FL1_GZ, (uint *)0, CS("Use gzip packing, if posible.")},
@@ -488,12 +488,17 @@ SPD(5,tls)
 {"vpntap",3, FL3_VPN_TAP, (uint *)0, CS("Enable TLS VPN on Tap device" )},
 {"vpn_tun_number",0,1024,(uint *)&tuntap_number[0], CS("Tun device number")},
 {"vpn_tap_number",0,1024,(uint *)&tuntap_number[1], CS("Tap device number")},
+#ifndef VPN_WIN
 {"vpn_tun_mtu", MIN_MTU, MAX_MTU,(uint *)&vpn_mtu[0], CS("TLS VPN MTU for tun.")},
 {"vpn_tap_mtu", MIN_MTU, MAX_MTU,(uint *)&vpn_mtu[1], CS("TLS VPN MTU for tap.")},
-
+{"tundev" ,128,0,(uint *)&tundev, CS("Tun device pathname")},
+#else
+{"vpn_tunif" ,128,0,(uint *)&vpnIfNames[0], CS("Tun interface name")},
+{"vpn_tapif" ,128,0,(uint *)&vpnIfNames[1], CS("Tap interface name")},
+{"tundev" ,128,0,(uint *)&tundev, CS("Tun driver Id (tap0901 for TAP-Windows Adaptor 9.24)")},
+#endif
 {"vpnpub",3, FL3_VPN_PUBLIC, (uint *)0, CS("Public access without password. (Otherwise only users with Proxy access can use this service) " )},
 
-{"tundev" ,128,0,(uint *)&tundev, CS("Tun device pathname")},
 
 {"tun_ip" ,20,0,(uint *)&tuntap_ipv4[0], CS("Set Tun interface IP address")},
 {"tun_nmask" ,20,0,(uint *)&tuntap_ipv4nmask[0], CS("Set Tun interface netmask")},
@@ -503,6 +508,10 @@ SPD(5,tls)
 
 {"tun_script_up" ,255,0,(uint *)&vpn_scripts_up[0], CS("Run init script for Tun device")},
 {"tap_script_up" ,255,0,(uint *)&vpn_scripts_up[1], CS("Run init script for Tap device")},
+
+#ifdef VPN_WIN
+{"vpn_script_keep",3, FL3_VPN_SCRKEEP, (uint *)0, CS("Keep open console window after run script for debug" )},
+#endif
 
 {"tun_remote_ip1", 20, 0,(uint *)&vpn_first_remote_ipc[0], CS("First IP address to allocate for remote client that connected to Tun.")},
 {"tun_remote_max", 0, 1024,(uint *)&vpn_total_remote_ip[0], CS("Total IP addresses to allocate for remote client that connected to Tun.")},
@@ -517,11 +526,17 @@ SPD(5,tls)
 {"vpn_remote_host",512, 0,(uint *)&vpn_remote_host, CS("Host to connect to remote TLS VPN server")},
 {"vpn_remote_user",32, 0,(uint *)&vpn_user, CS("TLS VPN User name")},
 {"vpn_remote_passw",32, 0,(uint *)&vpn_passw, CS("TLS VPN Password")},
+{"vpn_client_port",1,0xFFFE,(uint *)&vpn_client_port, CS("TLS VPN remote port. (Usually 443)")},
 
 {"vpncln_tap",3, FL3_TAP_CLIENT, (uint *)0, CS("VPN client to Tap. (Otherwise Tun)" )},
 
 {"vpn_tuntap_number",0,1024,(uint *)&tuntap_number[2], CS("TLS VPN client Tun/Tap device number")},
+#ifndef VPN_WIN
 {"vpn_client_mtu", MIN_MTU, MAX_MTU,(uint *)&vpn_mtu[2], CS("TLS VPN MTU for client.")},
+#else
+{"vpn_tapif" ,128,0,(uint *)&vpnIfNames[2], CS("Tap interface name")},
+#endif
+
 {"tuntap_ip" ,32,0,(uint *)&tuntap_ipv4[2], CS("Set client VPN interface IP address")},
 {"tuntap_nmask" ,32,0,(uint *)&tuntap_ipv4nmask[2], CS("Set  client VPN interface netmask")},
 {"vpncln_script_up" ,255,0,(uint *)&vpn_scripts_up[2], CS("Run init script when VPN connection estabilished")},

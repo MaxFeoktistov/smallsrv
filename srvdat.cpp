@@ -2,7 +2,7 @@
  * Copyright (C) 1999-2021 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
- * Author: Maksim Feoktistov 
+ * Author: Maksim Feoktistov
  *
  *
  * Small HTTP server is free software: you can redistribute it and/or modify it
@@ -15,11 +15,11 @@
  * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see https://www.gnu.org/licenses/ 
+ * along with this program.  If not, see https://www.gnu.org/licenses/
  *
  * Contact addresses for Email:  support@smallsrv.com
  *
- * 
+ *
  */
 
 
@@ -33,7 +33,7 @@
 mrc_mnu  mnu2[]=
 {
  {0,125,"&Открыть окно" },
-#ifndef CD_VER 
+#ifndef CD_VER
  {0,126,"&Настройки..." },
  {0,354,"На&стройки/текущие состояние (браузер)" },
  {0,355,"&Пользователи и Виртуальные хосты (браузер)" },
@@ -58,7 +58,7 @@ mrc_mnu  mnu2[]=
  {0,0,0}
 };
 
-//const 
+//const
 mrc_mnu  mnu3[]=
 {
  {0,3900,"О&бщие" },
@@ -113,7 +113,7 @@ mrc_mnu  mnu2[]=
  {MF_GRAYED,345,"Send outgoing mail now" },
  {MF_GRAYED,347,"Reload host definition file" },
 #endif
-#ifdef SEPLOG      
+#ifdef SEPLOG
    {MF_POPUP,10,"&Log to view"},
    {0,360,"&General/HTTP" },
    {0,361,"&Proxy" },
@@ -125,11 +125,11 @@ mrc_mnu  mnu2[]=
    {0,367,"&DNS" },
    {0,369,"DH&CP" },
 #endif
- 
+
  {0,344,"&About" },
  {MF_SEPARATOR,1,0},
  {0,150,"E&xit" },
- 
+
 #if (! defined(CD_VER) ) && (! defined(FREEVER) )
  {MF_SEPARATOR,135,0},
  {0,353,"&Order regestration (Online)"    },
@@ -141,7 +141,7 @@ mrc_mnu  mnu2[]=
 mrc_mnu  mnu4[]=
 {
    {MF_POPUP,0,"&Server"},
-#ifdef SEPLOG      
+#ifdef SEPLOG
    {MF_POPUP,10,"Log to view"},
    {0,360,"General/HTTP" },
    {0,361,"Proxy" },
@@ -154,10 +154,10 @@ mrc_mnu  mnu4[]=
    {0,369,"DHCP" },
 #endif
    {0,0,0}
-    
+
 };
 */
-//const 
+//const
 mrc_mnu  mnu3[]=
 {
  {0,3900,"&General" },
@@ -171,13 +171,15 @@ mrc_mnu  mnu3[]=
  {0,3906,"&SMTP" },
  {0,3907,"DH&CP" },
  {0,3908,"&TLS/SSL"},
+ {0,3909,"VP&N Server"},
+ {0,3910,"VPN C&lient"},
  {MF_POPUP,5,"&Other" },
- {0,3909,"&CGI Interpreters" },
- {0,3910,"&Mime types" },
- {0,3911,"&Users" },
- {0,3912,"&Virtual hosts and directories" },
-#define MNU_CGI   10
-#define MNU_VHOST 13
+ {0,3911,"&CGI Interpreters" },
+ {0,3912,"&Mime types" },
+ {0,3913,"&Users" },
+ {0,3914,"&Virtual hosts and directories" },
+#define MNU_CGI   12
+#define MNU_VHOST 15
 #else
 #define MNU_CGI   2
 #define MNU_VHOST 4
@@ -245,5 +247,7 @@ BROWSEINFO binf={ 0,0,fnamebuf,"Select",0,0,0,0};
 
 
 HMENU hmnu,hmmnu;
+#if ! defined(FREEVER)
 HWND dwnd2=0;
+#endif
 HWND  dwndc;

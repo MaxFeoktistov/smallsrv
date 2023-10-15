@@ -33,13 +33,17 @@
 #include <net/route.h>
 #include <linux/if.h>
 #include <linux/if_tun.h>
+#include "srv.h"
 
+#elif defined(VPN_WIN)
+
+#include "srv.h"
+#include <tap-windows.h>
+#include <nethdr.h>
 #else
 // TODO: not Linux TUN/TAP
 #endif
 
-#include "mdef.h"
-#include "srv.h"
 
 //#define MAX_MTU  1602
 #define MIN_MTU  1024
@@ -50,8 +54,11 @@ extern "C" {
 struct VPN_TUNPacket
 {
   ushort len;
+#ifdef USE_TUN_PI
+#error "use pi"
   ushort tun_flags;
   ushort tun_proto;
+#endif
 #if 0
   def BIG_ENDIAN
 
@@ -144,8 +151,6 @@ extern int vpn_max;
 extern int vpn_count;
 //volatile
 extern int vpn_mutex;
-extern char *tundev;
-extern int  tuntap_number[3];
 
 extern char* tuntap_ipv4[3];
 extern char* tuntap_ipv4nmask[3];
@@ -176,18 +181,29 @@ extern VPNclient * vpn_cln_connected;
 
 extern const char * TUNTAPNames[3];
 extern int vpn_mtu[3];
+extern int  tuntap_number[3];
+extern char *tundev;
+extern int vpn_client_port;
 
 
+#ifdef VPN_WIN
+extern char * vpnIfNames[3];
+HANDLE tun_alloc(int idx);
+#else
 int tun_alloc(int idx);
+#endif
+
+
+
 void CloseVPNClient(int i);
 int ReInitTUNTAP(char *reason, int i);
-int VPN_Thread(void *);
+ulong WINAPI VPN_Thread(void *);
 void  CloseTunTap();
 int VPN_Init();
 void VPN_Done();
 
 
-int VPNClient(void *);
+ulong WINAPI VPNClient(void *);
 
 }
 #endif

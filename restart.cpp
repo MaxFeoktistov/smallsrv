@@ -2,7 +2,7 @@
  * Copyright (C) 1999-2023 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
- * Author: Maksim Feoktistov 
+ * Author: Maksim Feoktistov
  *
  *
  * Small HTTP server is free software: you can redistribute it and/or modify it
@@ -15,11 +15,11 @@
  * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see https://www.gnu.org/licenses/ 
+ * along with this program.  If not, see https://www.gnu.org/licenses/
  *
  * Contact addresses for Email:  support@smallsrv.com
  *
- * 
+ *
  */
 
 
@@ -63,7 +63,7 @@ void Restart()
 #ifndef SYSUNIX
   p=stristr(cmdline,".exe");
   if(p) {
-    p[4]=0;  
+    p[4]=0;
   }
 #endif
   RestartServer(t,0);
@@ -119,7 +119,7 @@ void RestartServer(char *u,int cnt)
   sleep(1);
   if(!fork())
 #else
-#error "exec without fork"      
+#error "exec without fork"
   is_no_exit=0;
   usleep(500000);
   unsave_limit=1;
@@ -152,7 +152,7 @@ void OkCfgWindow()
  char  u[512],*t,*x;
  HWND  tw;
  int i,j,k,l,chk=0;
- 
+
  int lis_no_exit=is_no_exit;
   for(k=0;ConfigParams[k].desc;++k)if( ConfigParams[k].name )
   {
@@ -224,14 +224,14 @@ void OkCfgWindow()
     debug( s_R_N____R );
     Sleep(500);
     is_no_exit=0;
-    
+
     //RestartServer(x,0);
     Restart();
   }
   else
   {
      CheckValidCGIIdent();
-     if( (s_flgs[2]&FL2_DOH) && doh_w<=0 ) 
+     if( (s_flgs[2]&FL2_DOH) && doh_w<=0 )
      {
         CreatePipe((HANDLE *)&doh_r,(HANDLE *)&doh_w,&secat,0x400);
      }
@@ -280,10 +280,10 @@ int CrThreadFunc(TskSrv Fnc,Req *par)
 {int i;
  MyLock(hcLock);
  if((i=FreeThreads())>=0)
- { 
+ {
    par->ntsk = i;
    hndls[i]=
-     (THREADHANDLE) 
+     (THREADHANDLE)
      CreateThread(&secat,0x5000,Fnc,par,0,&trd_id);
  }
  MyUnlock(hcLock);
@@ -297,7 +297,7 @@ int CrThread(uint fnc)
  MyLock(hcLock);
  if((i=FreeThreads())>=0)
  { hndls[i]=
-     (THREADHANDLE) 
+     (THREADHANDLE)
      CreateThread(&secat,0x5000,(TskSrv)SetServ,(void *)(long)(fnc|i),0,&trd_id);
  }
  MyUnlock(hcLock);
@@ -310,7 +310,7 @@ char * GetNextBindAddr(char *p, void *sa_server)
  char *t;
 // debug("GNBA %s",p);
 #ifdef USE_IPV6
- 
+
   if( (t=strpbrk(p,".:")) && *t==':' )
   {
     ((sockaddr_in6 *)sa_server)->sin6_family=AF_INET6;
@@ -346,13 +346,13 @@ int ChkWaitBind()
 {
    if(!bind_wait_close)
    {
-     debug("Wait 3 seconds for close old instance of server and try again...");  
+     debug("Wait 3 seconds for close old instance of server and try again...");
      Sleep(3000);
      bind_wait_close++;
      return 1;
-   } 
+   }
    return 0;
-    
+
 }
 
 int CreateSrv(int j)
@@ -420,7 +420,7 @@ union{
 //  debug("Sock %d %d",s,k);
 
   //sa_server.sin_addr.s_addr=0; //htonl(INADDR_ANY);
-  
+
 try_bind_again:
   if(bind(s,(struct sockaddr *) &sa_server,
 #ifdef USE_IPV6
@@ -442,13 +442,13 @@ try_bind_again:
    /*
    if(!bind_wait_close)
    {
-     debug("Wait 3 seconds for close old instance of server and try again...");  
+     debug("Wait 3 seconds for close old instance of server and try again...");
      Sleep(3000);
      bind_wait_close++;
      goto try_bind_again;
-   } 
+   }
    */
-     
+
    CloseSocket(s);
 
    //die( sCOULD_NOT0 );
@@ -456,10 +456,10 @@ try_bind_again:
   }
   else if(bind_wait_close == 1)
   {
-     bind_wait_close++; 
-     debug("Successfully bind to :%u (second time)", htons(sa_server.sin_port));  
+     bind_wait_close++;
+     debug("Successfully bind to :%u (second time)", htons(sa_server.sin_port));
   }
-      
+
   listen(s,3);
 
   soc_srv[jj+k*MAX_SERV]=s;
@@ -562,23 +562,23 @@ int InitApplication()
   hProcess=GetCurrentProcess();
 #endif
 
-#ifdef SEPLOG  
-#define  pprot  gLog.lpprot   
+#ifdef SEPLOG
+#define  pprot  gLog.lpprot
 #define  GetProt() gLog.GetProt()
 #define  RelProt() gLog.RelProt()
   InitSepLog();
-#endif  
+#endif
 
 
   GetProt();
-  
+
   pprot+=sprintf(pprot,"%s\r\n\r\n",about);
   i=0;
   if(max_srv[0])
   {
-   pprot+=sprintf(pprot, 
+   pprot+=sprintf(pprot,
 #ifdef RUS
-  "HTTP "                 
+  "HTTP "
   "Стартовый каталог=%s по умолчанию=%s "
 #else
    sROOT_DIR_
@@ -664,7 +664,7 @@ int InitApplication()
 //   else
 //   {
 //     pprot+=sprintf(pprot,"Cant init TLS/SSL library\r\n");
-//   }    
+//   }
 #ifdef SYSUNIX
   if(oldprot!=pprot)RelProt();
   GetProt();
@@ -727,19 +727,20 @@ int InitApplication()
 #ifdef TLSVPN
   if( max_srv[SRV_SSL] )
   {
-    if(VPN_Init()!=-1) 
+    if(VPN_Init()!=-1)
     {
       pprot+=sprintf(pprot, "TLS VPN enabled\r\n" );
     }
   }
-  if(vpn_remote_host && vpn_remote_host[0]) 
+  if(vpn_remote_host && vpn_remote_host[0])
   {
     CreateThread(&secat,0x5000,VPNClient,(void *)0,0,&trd_id);
     pprot+=sprintf(pprot, "TLS VPN client started\r\n" );
   }
-  #endif
-  
+#endif
+
 #ifndef SYSUNIX
+  if(maxKeepAlive) CreateThread(&secat,0x2000,(TskSrv) KeepAliveThread,0,0,&trd_id);
 
   mwnd=CreateWindowEx( 0 /*((s_flg&0x10)>>4)*WS_EX_TOOLWINDOW*/ ,"FMFROM",wnd_name,
                        DS_3DLOOK|WS_CLIPCHILDREN|WS_CAPTION|WS_POPUP|WS_SYSMENU|WS_MINIMIZEBOX|WS_DLGFRAME|((wstate=FL_HIDE&s_flg)?0:WS_VISIBLE),
@@ -755,11 +756,11 @@ int InitApplication()
         WS_BORDER|WS_CHILD|WS_VISIBLE|ES_MULTILINE|
         ES_READONLY|WS_VSCROLL,
         rc.left,rc.top,rc.right,rc.bottom,
-        mwnd,(HMENU) //hmmnu 
+        mwnd,(HMENU) //hmmnu
          101
         ,hinstance, 0);
   InsertMenu(GetSystemMenu(mwnd,0),0,MF_POPUP|MF_BYPOSITION|MF_HILITE,(uint)hmnu,"&Server");
-  
+
   nid.hWnd=mwnd; nid.hIcon=hicon;
   if(! (s_flg&0x10) )s_aflg|=!Shell_NotifyIcon(NIM_ADD,&nid);
   SendMessage(ewnd,WM_SETFONT,(ulong)GetStockObject(17),1);

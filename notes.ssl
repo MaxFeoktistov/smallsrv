@@ -1,0 +1,98 @@
+
+  Notes for this release of "libsec.so", "libsec111.so" and "libsecgnutls.so" libraries
+
+     Introduction:
+
+     The  shared  library libsec.so was  compiled for work with OpenSSL library versions 9.8 or early.
+     The  shared  library libsec111.so was compiled for work with OpenSSL library versions 1.1.1
+     The  shared  library libsecgnutls.so was  compiled for work with GnuTLS library.
+OpenSSL sources are available  here: http://www.openssl.org/
+GnuTLS sources are available  here: https://www.gnutls.org/
+     Loot of Linux distributing packages already included OpenSSL as
+binaries /usr/bin/openssl and shared library named e.g.
+/usr/lib/libssl.so.0.9.7  Libsec.so request this, but also it may work
+with preveous, and probably with next OpenSSL versions.
+
+     In  any  case,  you may get the sources and compile it by your self
+with any options up you like.
+
+     Interface:
+
+    The libsec*.so has easy interface:
+
+int STDCALL InitLib(
+   int  (* F_printf)(char *fmt,...), // Callback to printf like C printf
+   int  (* F_send)(void  *param,void  *bfr,int len), // Callback function for send
+   int  (* F_recv)(void  *param,void  *bfr,int len), // Callback function for receive
+   char  *CApath,       // patch for  CA-files
+   char *CAfile,        // CAfile
+   char * s_cert_file,  // cert file
+   char * s_key_file    // key file
+   ); // This function return 1 if success, 0 if fail
+
+
+typedef struct _SecConnection
+{int state;
+ void *CallbackParam;   // Callback param for F_send, F_recv functions
+ void *con;
+ void *io,*ssl_bio,*sbio;
+} SecConnection;
+
+
+int STDCALL SecAccept(SecConnection *s);  // In this function .so
+// allocate memory for new connection  This function return 1 if success, 0 if fail.
+
+
+int STDCALL SecRecv  (SecConnection *s,char *bfr,int l); // This function
+// encode bfr data and send it to user trough F_send callback.
+// s->callback must be set to param for F_send, F_recv functions
+// Function return number of sent bytes, 0 if connection closed, negative if error.
+int STDCALL SecSend  (SecConnection *s,char *bfr,int l); // This function
+// receive data  trough F_recv callback decode it to the bfr.
+// Function return number of bytes placed to the bfr, 0 if connection closed, negative if error.
+int STDCALL SecClose (SecConnection *s );
+//This function release memory allocated for connection.
+
+void SetPriority(char *t); //This function Sets priorities for the ciphers, key exchange methods, and macs.
+
+int SecConnect(OpenSSLConnection *s, int flags, char *verfyhost); // This function prepare client TLS connection
+// Flags:
+#define  tbtAnon    0x1            /* Don't use server sertificate */
+#define  tbtVerfyRequired 0x4      /* Verfy hostname */
+#define  tbtDontVerfyTyme 0x8      /* GNUTLS only. Don't verfy timestamp */
+#define  tbtDontVerfySigner 0x10   /* GNUTLS only. Don't verfy issuer */
+#define  tbtSSHstyleVerfy  0x20    /* GNUTLS only. SSH style. First time new host will be valid, and public key will be stored */
+// verfyhost must be NULL if don't verfy, or name of remote host for verfication.
+// This function return 1 if success, 0 if fail.
+
+typedef int (*TSecUpdateCB)(OpenSSLConnection *s); // Function that must be call when address of caller object changed.
+
+
+
+     Copyrights:
+
+OpenSSL Copyright (C) 1995-2019 Eric Young (eay@cryptsoft.com)
+This product includes software developed by the OpenSSL Project for use
+in the OpenSSL Toolkit. (http://www.openssl.org/)
+This product includes cryptographic software written by Eric Young (eay@cryptsoft.com).
+This product includes software written by Tim Hudson (tjh@cryptsoft.com).
+This product includes software written by Dr Stephen N Henson (shenson@bigfoot.com).
+
+Since GnuTLS version 3.1.10, the core library is released under
+the GNU Lesser General Public License (LGPL) version 2.1 or later
+(see doc/COPYING.LESSER for the license terms).
+List of GnuTLS authors available on https://www.gnutls.org/contrib.html
+GnuTLS is available because of the efforts of many people. The development team is listed below.
+
+Nikos Mavrogiannopoulos
+Tim Rühsen
+Daiki Ueno
+Simon Josefsson
+Dmitry Eremin-Solenikov
+
+
+
+                                            Best regards, Max Feoktistov
+
+
+

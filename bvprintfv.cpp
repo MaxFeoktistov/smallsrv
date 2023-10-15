@@ -67,8 +67,10 @@ char * uitoa(char *t,ulong a,ulong d=1000000000,ulong o=10,char b='a')
  char *r=0;
  while(d)
  {
+
   x=a/d;
   a=a%d;
+
   if(x && !r)r=t;
   if( (x+='0')>'9' )x+=b-'0'-10;
   *t++=x;
@@ -87,6 +89,7 @@ char * ulltoa(char *t,unsigned long long a,unsigned long long d=1000000000000000
  {
   x=a/d;
   a=a%d;
+
   if(x && !r)r=t;
   if( (x+='0')>'9' )x+=b-'0'-10;
   *t++=x;
@@ -151,7 +154,7 @@ int BFILE::bvprintf(const char *fmt,va_list vl)
      case '#':  state|=4;    goto lb0;
      case 'l':
 #if __SIZEOF_LONG__ != 8
-
+                state|=
 #ifdef  PF_LONG_LONG
          (state&8)?0x10:
 #endif

@@ -2,7 +2,7 @@
  * Copyright (C) 1999-2021 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
- * Author: Maksim Feoktistov 
+ * Author: Maksim Feoktistov
  *
  *
  * Small HTTP server is free software: you can redistribute it and/or modify it
@@ -15,11 +15,11 @@
  * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see https://www.gnu.org/licenses/ 
+ * along with this program.  If not, see https://www.gnu.org/licenses/
  *
  * Contact addresses for Email:  support@smallsrv.com
  *
- * 
+ *
  */
 
 #ifndef MINGW64
@@ -44,9 +44,9 @@
 #pragma GCC diagnostic ignored "-Wliteral-suffix"
 
 
-#ifdef  DJGPP 
+#ifdef  DJGPP
 typedef void* HKEY;
-#endif 
+#endif
 #include <sys/types.h>
 #include <ctype.h>
 #include "mstring1.h"
@@ -86,7 +86,7 @@ typedef struct fd_set {
 
 #endif
 
-#ifdef  DJGPP 
+#ifdef  DJGPP
 extern "C" {
 int PASCAL __WSAFDIsSet(int, fd_set *);
 };
@@ -116,7 +116,7 @@ int PASCAL __WSAFDIsSet(int, fd_set *);
 #define FD_ZERO(set) ((set)->fd_count=0)
 #define FD_SET(fd,set) ((set)->fd_array[(set)->fd_count++]=fd)
 #define FD_ISSET(fd, set) __WSAFDIsSet((fd),(set))
-//#define FD_CLR(fd, set) 
+//#define FD_CLR(fd, set)
 
 extern "C" {
 
@@ -144,7 +144,7 @@ extern SERVICE_STATUS ServiceStatus;
 #endif
 extern mrc_obj dlg2[];
 extern mrc_mnu mnu2[];
-extern //const 
+extern //const
        mrc_mnu mnu3[];
 extern mrc_mnu mnu4[];
 extern const char *url_desc[];
@@ -152,7 +152,8 @@ extern char fnamebuf[512],hstflt[];
 extern OPENFILENAME ofn;
 extern BROWSEINFO binf;
 extern HMENU hmnu,hmmnu;
-extern HWND dwnd2,dwndc;
+//extern HWND dwnd2,dwndc;
+extern HWND dwndc;
 
 extern SECURITY_ATTRIBUTES secat;
 extern NOTIFYICONDATA nid;
@@ -217,7 +218,7 @@ uchar *   unicode2utf(uchar *utf8_buf,ushort *ucs4_buf, int l);
 extern ulong _PerSecond1E7;
 // ulong _PerSecond1E7=10000000;
 //inline
-#ifdef  DJGPP 
+#ifdef  DJGPP
 
 struct timeval
 { ulong tv_sec,tv_usec;};
@@ -227,8 +228,8 @@ struct timeval
 inline ulong FileTime2time(FILETIME  &a)
 {
  ulong r,t;
- 
-#ifdef  DJGPP 
+
+#ifdef  DJGPP
  asm volatile(" subl  $0xFDE04000 ,%%eax
        sbbl  $0x14F373B ,%%edx
        cmpl  __PerSecond1E7,%%edx
@@ -241,7 +242,7 @@ inline ulong FileTime2time(FILETIME  &a)
       :"0"(a.dwLowDateTime),"1"(a.dwHighDateTime)
     );
 #else
- 
+
  asm volatile(" subl  $0xFDE04000 ,%%eax \n"
       " sbbl  $0x14F373B ,%%edx \n"
       "  cmpl  __PerSecond1E7,%%edx \n"
@@ -254,7 +255,7 @@ inline ulong FileTime2time(FILETIME  &a)
       :"0"(a.dwLowDateTime),"1"(a.dwHighDateTime)
     );
 
-#endif 
+#endif
     return r;
 }
 
@@ -267,7 +268,7 @@ void gettimeofday(struct timeval *x,...)
  SystemTimeToFileTime(&stime, (FILETIME *)x);
 
 //debug("TIME %X %X",x->tv_sec,x->tv_usec);
-#ifdef  DJGPP 
+#ifdef  DJGPP
  asm volatile(" subl  $0xFDE04000 ,%%eax
        sbbl  $0x14F373B ,%%edx
        cmpl  __PerSecond1E7,%%edx
@@ -280,7 +281,7 @@ void gettimeofday(struct timeval *x,...)
       :"0"(x->tv_sec),"1"(x->tv_usec)
     );
 #else
- 
+
  asm volatile(" subl  $0xFDE04000 ,%%eax \n"
     " sbbl  $0x14F373B ,%%edx\n"
     "        cmpl  __PerSecond1E7,%%edx\n"
@@ -292,7 +293,7 @@ void gettimeofday(struct timeval *x,...)
      :"=&a"(x->tv_sec),"=&d"(x->tv_usec)
       :"0"(x->tv_sec),"1"(x->tv_usec)
     );
-#endif 
+#endif
 
 }
 
@@ -323,8 +324,8 @@ char * strerror(int ErrorCode);
 #define sdnst6 (soc_srv[7+9])
 
 
-#define MNU_CGI   10
-#define MNU_VHOST 13
+#define MNU_CGI   12
+#define MNU_VHOST 15
 #define  FNCATRIBUTE
 
 int GetFileAttributes_UTF(char *a);
@@ -370,10 +371,10 @@ long long atoll(const char *a);
 
 extern char dprbuf[256];
 extern int hstdout;
-#define dprint(a...)  
+#define dprint(a...)
 //_hwrite(hstdout,dprbuf,wsprintf(dprbuf,a )) ; Sleep(10);
-#define DBGLINE  
-//dprint("%s:%u\r\n",__FILE__,__LINE__); 
+#define DBGLINE
+//dprint("%s:%u\r\n",__FILE__,__LINE__);
 
 
 #define MIN_PTR (void *)0x40000

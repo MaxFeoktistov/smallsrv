@@ -2,7 +2,7 @@
  * Copyright (C) 1999-2022 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
- * Author: Maksim Feoktistov 
+ * Author: Maksim Feoktistov
  *
  *
  * Small HTTP server is free software: you can redistribute it and/or modify it
@@ -15,25 +15,25 @@
  * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see https://www.gnu.org/licenses/ 
+ * along with this program.  If not, see https://www.gnu.org/licenses/
  *
  * Contact addresses for Email:  support@smallsrv.com
  *
- * 
+ *
  */
 
 
 
 #ifdef  MINGW
 extern "C" {
-    
+
 int DllMainCRTStartup(
    void* hinstDLL,
    long     fdwReason,
    void *   lpvReserved
 )
 {
-    
+
     return 1;
 };
 
@@ -45,11 +45,11 @@ int DllMainCRTStartup(
 #undef inline
 void *  memmove(void *_s1, const void *_s2, size_t _n)
 {
- if(_n)   
+ if(_n)
    if(_s1>_s2) memcpy(_s1,_s2,_n);
    else if(_s1<_s2)memcpy_back( ((char *)_s1)+_n,((char *)_s2)+_n,_n);
-       
- return _s1;   
+
+ return _s1;
 }
 
 #define __STRALIGN_H_ 1
@@ -82,7 +82,7 @@ void *  memmove(void *_s1, const void *_s2, size_t _n)
 
 
 
- 
+
 #define  tbtAccept  0x2
 #define  tbtAnon    0x1
 #define  tbtVerfyRequired 0x4
@@ -106,20 +106,20 @@ extern "C"{
 #endif
 
 
-#ifdef MINGW 
+#ifdef MINGW
 static void *id_heap;
-//inline 
+//inline
 void * malloc(size_t n){return HeapAlloc(id_heap,HEAP_ZERO_MEMORY,n);}
-//inline 
+//inline
 void * realloc(void *p,size_t n){return  HeapReAlloc(id_heap,HEAP_ZERO_MEMORY,p,n); }
-//inline 
+//inline
 void   free(void *p) { HeapFree(id_heap,0,p); }
 
 //#define malloc WMALLOC
 //#define free WFREE
-    
+
 static int  hstdout;
-//=(int)GetStdHandle((ulong)STD_OUTPUT_HANDLE);  
+//=(int)GetStdHandle((ulong)STD_OUTPUT_HANDLE);
 static char ddbg[4512];
 
 //#define  DBG_STEP() _hwrite(hstdout,ddbg,wsprintf(ddbg,"SSLDBG:%u\r\n",__LINE__ )); MessageBox(0,ddbg,"DBG",MB_OK);
@@ -135,21 +135,21 @@ void  SetDfnc(tDebugFnc f,tDebugPrintFnc fp);
 
 void  DebugFnc(char *f,int l)
 {
-  // _hwrite(hstdout,ddbg,wsprintf(ddbg,"SSLDBG:%.50s,%u\r\n",f,l ));  
+  // _hwrite(hstdout,ddbg,wsprintf(ddbg,"SSLDBG:%.50s,%u\r\n",f,l ));
   // l=wsprintf(ddbg,"SSLDBG:%.50s,%u\r\n",(f)?f:"??",l );
-  //_hwrite(hstdout,ddbg,l);  
+  //_hwrite(hstdout,ddbg,l);
 };
 static int mem_count,mem_n;
 void  MDebugFnc1(const char*t,const char *f,int l,ulong p,int n)
 {
   // l=wsprintf(ddbg,"SSLDBG:%s,%.50s,%u %X=%u  %u,%u\r\n",t,(f)?f:"??",l,p,n,mem_count,mem_n );
-  // _hwrite(hstdout,ddbg,l);  
+  // _hwrite(hstdout,ddbg,l);
 };
 #define MDebugFnc(a...)
 
 void _cdecl DebugPrintFnc(char *a,...) ;
 
-//#define  DBG_STEP() 
+//#define  DBG_STEP()
 //DebugFnc("runssl",__LINE__);
 
 
@@ -172,15 +172,15 @@ void * dbg_malloc(size_t n,const char *f,int l){
      dbg_mem *d;
      ulong rl;
     };
-    if(!n)return 0; 
+    if(!n)return 0;
     r=(char *)HeapAlloc(id_heap,HEAP_ZERO_MEMORY,n+sizeof(dbg_mem)+4);
     if(r)
     {
-      mem_count+=n;  
+      mem_count+=n;
       mem_n++;
       MDebugFnc("malloc",f,l,rl,n);
 
-      
+
       d->check=0x5A4B8F12;
       d->f=f;
       d->l=l;
@@ -191,14 +191,14 @@ void * dbg_malloc(size_t n,const char *f,int l){
     else
     {
       MDebugFnc("malloc FAIL!",f,l,0,n);
-        
+
     }
-    return r+sizeof(dbg_mem);   
-    
+    return r+sizeof(dbg_mem);
+
 }
 
 void   dbg_free(void *p
-  ,const char *f,int l   
+  ,const char *f,int l
 ) {
     union{
      char *r;
@@ -207,26 +207,26 @@ void   dbg_free(void *p
     };
     if(!p)
     {
-      return ;  
-    }    
+      return ;
+    }
     r=(char *)p;
     r-=sizeof(dbg_mem);
     if(d->check == 0x5A4B8F12)
     {
-      mem_count-=d->n;  
+      mem_count-=d->n;
       mem_n--;
       d->check = 0;
       MDebugFnc((DWORD_PTR(r[d->n+sizeof(dbg_mem)])==0x5A4B7F12)?"free" : "free check FAIL!",d->f,d->l,rl,d->n);
     }
     else
-    {    
+    {
       MDebugFnc("free bad p","",0,rl,0);
       return ;
-    }  
+    }
 
-  
-    HeapFree(id_heap,0,r); 
-    
+
+    HeapFree(id_heap,0,r);
+
 }
 
 void * dbg_realloc(void *p,size_t n,const char *f,int l){
@@ -241,29 +241,29 @@ void * dbg_realloc(void *p,size_t n,const char *f,int l){
         MDebugFnc( "realloc with zero pointer",f,l,0,n);
         return dbg_malloc(n,f,l);
     }
-    
+
     if(!n) { dbg_free(p,f,l); return 0; }
-    
+
     r=(char *)p;
     r-=sizeof(dbg_mem);
     if(d->check == 0x5A4B8F12)
     {
       MDebugFnc( (DWORD_PTR(r[d->n+sizeof(dbg_mem)])==0x5A4B7F12) ? "realloc1":"realloc check FAIL!",d->f,d->l,rl,d->n);
-      on=d->n;  
+      on=d->n;
 
     }
     else
     {
         MDebugFnc("realloc bad p",f,l,rl,n);
         return 0;
-    }    
+    }
 
 //    if(d->n > n)return r;
-    
-    r=(char *) HeapReAlloc(id_heap,HEAP_ZERO_MEMORY,r,n+sizeof(dbg_mem)+4); 
+
+    r=(char *) HeapReAlloc(id_heap,HEAP_ZERO_MEMORY,r,n+sizeof(dbg_mem)+4);
     if(r)
     {
-      mem_count+=n-on;  
+      mem_count+=n-on;
       MDebugFnc("realloc2",f,l,rl,n);
 
       d->check=0x5A4B8F12;
@@ -271,39 +271,41 @@ void * dbg_realloc(void *p,size_t n,const char *f,int l){
       d->l=l;
       d->n=n;
       DWORD_PTR(r[n+sizeof(dbg_mem)])=0x5A4B7F12;
-  
-      return r+sizeof(dbg_mem);   
+
+      return r+sizeof(dbg_mem);
     }
     else
     {
       MDebugFnc("realloc FAIL!",f,l,(ulong)p,n);
-        
+
     }
-    return r;   
-    
+    return r;
+
 }
 
 /*
-void _cdecl DebugPrintFnc(char *a,...) 
+void _cdecl DebugPrintFnc(char *a,...)
 {
      int l;
      va_list v;
      va_start(v,a);
- //    _hwrite(hstdout,ddbg,wvsprintf(ddbg,a,(char *)(&a+1) )); 
- //    _hwrite(hstdout,ddbg,wvsprintf(ddbg,a,v )); 
+ //    _hwrite(hstdout,ddbg,wvsprintf(ddbg,a,(char *)(&a+1) ));
+ //    _hwrite(hstdout,ddbg,wvsprintf(ddbg,a,v ));
     l=wvsprintf(ddbg,a,v);
-    _hwrite(hstdout,ddbg,l); 
-    va_end(v); 
+    _hwrite(hstdout,ddbg,l);
+    va_end(v);
 }
 // */
 
+#define  DBG_STEP()
+#define  DBG_STEPA(a,b...)
 
 #else
 
 #define  DBG_STEP()
 #define  DBG_STEPA(a,b...)
-//#define  DBG_STEP() printf("SSLDBG:%s:%u\r\n", __func__, __LINE__ ); 
-//#define  DBG_STEPA(a,b...) printf("SSLDBG:%s:%u " a " \r\n", __func__, __LINE__, b ); 
+//#define  DBG_STEP() printf("SSLDBG:%s:%u\r\n", __func__, __LINE__ );
+//#define  DBG_STEPA(a,b...) printf("SSLDBG:%s:%u " a " \r\n", __func__, __LINE__, b );
 
 #endif
 
@@ -343,14 +345,14 @@ static X509_STORE *X509_store;
 
 static int bwrite(BIO *t, const char *b, int l)
 { //(Fprintf)("BIO write %u",l);
- DebugPrintFnc("\r\nBwrite %X %u\r\n",b,l);   
- return (FSend)(BIODATA(t),(void *)b,l); 
+ DebugPrintFnc("\r\nBwrite %X %u\r\n",b,l);
+ return (FSend)(BIODATA(t),(void *)b,l);
 }
 static int bread(BIO *t, char *b, int l)
 {
  //(Fprintf)("BIO read %u",l);
  void *v=BIODATA(t);
- DebugPrintFnc("\r\nBread %X %X %u\r\n",v,b,l);   
+ DebugPrintFnc("\r\nBread %X %X %u\r\n",v,b,l);
  return (FRecv)(v //BIODATA(t)
            ,b,l);
 }
@@ -360,7 +362,7 @@ static int bputs  (BIO *t, const char *b)
  int i,j;
   if(!b)return 0;
   j=strlen(b);
-  DebugPrintFnc("\r\nBputs %X %.64s %u\r\n",b,j);   
+  DebugPrintFnc("\r\nBputs %X %.64s %u\r\n",b,j);
   ((char *)b)[j]='\n';
   i=(FSend)(BIODATA(t),(void *)b,j+1);
   ((char *)b)[j]=0;
@@ -374,7 +376,7 @@ static int bgets  (BIO *t, char *b, int l)
  for(i=0;i<l;++i)
  { if((FRecv)(BIODATA(t),b,1)<=0)break;
    if(*b++=='\n'){
-       if(!i)++i; 
+       if(!i)++i;
        break;
     }
  }
@@ -385,18 +387,18 @@ static int bgets  (BIO *t, char *b, int l)
 static long ctrl  (BIO *p, int a, long b, void *c)
 {
 // (Fprintf)("BIO CTRL %u %u %X",a,b,c);
-  DebugFnc("BIO CTRL ",a);  
+  DebugFnc("BIO CTRL ",a);
  int *s;
- long l; 
-// DBG_STEP()   
+ long l;
+// DBG_STEP()
  switch (a)
  {
   case BIO_CTRL_DUP:
   case BIO_CTRL_FLUSH:
   case BIO_CTRL_SET:
-          return 1;      
+          return 1;
   case BIO_CTRL_GET: return BIO_TYPE_CIPHER;
-      
+
   case BIO_CTRL_WPENDING: return 0x2000;
   case BIO_CTRL_PENDING:
           s=(int *)  BIODATA(p);
@@ -485,12 +487,12 @@ static ulong Rnd()
 #ifndef  MINGW
 
  gettimeofday(&tv,0);
- 
+
 #else
  SYSTEMTIME  stime;
  GetLocalTime(&stime);
  SystemTimeToFileTime(&stime, (FILETIME *)&tv);
-#endif 
+#endif
 
  v2=tv.tv_sec+tv.tv_usec;
  r=rol( (OldRnd^tv.tv_usec)
@@ -525,7 +527,7 @@ static int set_cert_stuff(SSL_CTX *ctx, char *cert_file, char *key_file)
   DBG_STEP()
   if(SSL_CTX_use_certificate_file(ctx,cert_file, SSL_FILETYPE_PEM) <= 0)
   {
-   DBG_STEP()   
+   DBG_STEP()
    BIO_printf(bio_err,"unable to get certificate from '%s'",cert_file);
    ERR_print_errors(bio_err);
    return(0);
@@ -533,7 +535,7 @@ static int set_cert_stuff(SSL_CTX *ctx, char *cert_file, char *key_file)
   DBG_STEP()
   if (key_file == NULL)
   {lb1:
-   DBG_STEP()     
+   DBG_STEP()
    key_file=cert_file;
   }
   DBG_STEP()
@@ -546,7 +548,7 @@ static int set_cert_stuff(SSL_CTX *ctx, char *cert_file, char *key_file)
   }
   DBG_STEP()
 
-  
+
  /* If we are using DSA, we can copy the parameters from
   * the private key */
 
@@ -650,15 +652,15 @@ char *priority_str="ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-RSA-A
 
 void SetPriority(char *t)
 {
-  priority_str=t;    
+  priority_str=t;
 }
 
 
 int REinitCTX()
 {
 
- reinit_ctx_need=0;  
- 
+ reinit_ctx_need=0;
+
  SSL_CTX_set_quiet_shutdown(ctx,1);
  DBG_STEP()
 // SSL_CTX_set_options(ctx,0);
@@ -668,15 +670,15 @@ int REinitCTX()
 // SSL_CTX_sess_set_cache_size(ctx,512);
 // SSL_CTX_sess_set_cache_size(ctx,0);
  SSL_CTX_set_session_cache_mode(ctx,SSL_SESS_CACHE_OFF);
- 
+
  DBG_STEP()
 
 //*
- if ( CApath && CApath[0] && (!SSL_CTX_load_verify_locations(ctx,CAfile,CApath)) 
+ if ( CApath && CApath[0] && (!SSL_CTX_load_verify_locations(ctx,CAfile,CApath))
   //   ||  (!SSL_CTX_set_default_verify_paths(ctx))
   )
     {
-      DBG_STEP()  
+      DBG_STEP()
 //     BIO_printf(bio_err,"X509_load_verify_locations\n");
      (Fprintf)("X509 load verify locations");
      DBG_STEP()
@@ -704,19 +706,19 @@ DBG_STEP()
  if (CAfile != NULL)
    SSL_CTX_set_client_CA_list(ctx,SSL_load_client_CA_file(CAfile));
 DBG_STEP()
-    
-  return 1;  
-    
+
+  return 1;
+
 }
 
 int OsslErrCb(const char *str, size_t len, void *u)
 {
-    
+
     (Fprintf)("OpenSSL:%.128s",(str)?str:"null");
     DBG_STEPA( "%s", (str)?str:"null" )
 //    if(len && str)_hwrite(hstdout,str,len);
     return len;
-    
+
 }
 #define  DBG_ERR(a)  OsslErrCb(a,sizeof(a),0)
 
@@ -728,24 +730,24 @@ int InitLib( TFprintf prnt,TFtransfer fsend,TFtransfer frecv,char *lCApath,char 
 //  ,int s_server_verify
 )
 {
-    
-#ifdef MINGW 
+
+#ifdef MINGW
  id_heap =  HeapCreate(0,0x1000,0x2000000);
  if(!id_heap)
  {
-   id_heap=GetProcessHeap(); 
+   id_heap=GetProcessHeap();
    (prnt)("Cant create heap\r\n");
- }    
- 
+ }
+
  hstdout=(int)
-      GetStdHandle((ulong)STD_OUTPUT_HANDLE);  
-//      GetStdHandle((ulong)STD_ERROR_HANDLE);  
+      GetStdHandle((ulong)STD_OUTPUT_HANDLE);
+//      GetStdHandle((ulong)STD_ERROR_HANDLE);
 //  if(hstdout<0)
 //  {
-//    hstdout=_lcreat("err_ssl.txt",0);    
-//  }     
+//    hstdout=_lcreat("err_ssl.txt",0);
+//  }
  MDebugFnc("test",0,0,0,0);
-#endif   
+#endif
  if(prnt)
  {
   Fprintf=prnt;
@@ -753,26 +755,26 @@ int InitLib( TFprintf prnt,TFtransfer fsend,TFtransfer frecv,char *lCApath,char 
  }
  DBG_STEP()
  FSend=fsend; FRecv=frecv;
- 
+
 //  ERR_print_errors_cb(int (*cb)(const char *str, size_t len, void *u), void *u)
 
 #ifdef  OSSL111
  /*
   if(!CRYPTO_set_mem_functions( dbg_malloc,dbg_realloc,dbg_free))
   {
-     (prnt)("Cant set mem functions\r\n");   
+     (prnt)("Cant set mem functions\r\n");
   }
   */
   SSL_load_error_strings();
   ERR_load_crypto_strings();
   ERR_print_errors_cb(OsslErrCb, 0);
-        
+
   srv_meth = BIO_meth_new(BIO_TYPE_CIPHER, "Server");
   if(!srv_meth)
   {
       DBG_ERR("BIO_meth_new return 0");
       return 0;
-  }    
+  }
   BIO_meth_set_write(srv_meth,  bwrite) ;
   BIO_meth_set_read(srv_meth,   bread) ;
   BIO_meth_set_puts(srv_meth,   bputs);
@@ -781,24 +783,24 @@ int InitLib( TFprintf prnt,TFtransfer fsend,TFtransfer frecv,char *lCApath,char 
   BIO_meth_set_create(srv_meth, create);
   BIO_meth_set_destroy(srv_meth,destroy);
  //callback_ctrl
-  
+
   //CRYPTO_set_mem_debug(1);
  // CRYPTO_set_mem_ex_functions( dbg_malloc,dbg_realloc,dbg_free);
  // CRYPTO_set_locked_mem_ex_functions( dbg_malloc,dbg_realloc,dbg_free);
-#else 
+#else
 
  #ifdef  MINGW
 // SetDfnc(DebugFnc,DebugPrintFnc);
  SetDfnc(DebugFnc,(tDebugPrintFnc)prnt);
- 
+
  CRYPTO_set_mem_ex_functions( dbg_malloc,dbg_realloc,dbg_free);
  //CRYPTO_set_mem_functions( dbg_malloc,dbg_realloc,dbg_free);
 
 #endif
 
-#endif 
- 
-///! 
+#endif
+
+///!
  OpenSSL_add_ssl_algorithms();
  DBG_STEP()
 // ctx=SSL_CTX_new(SSLv23_server_method());
@@ -808,10 +810,10 @@ int InitLib( TFprintf prnt,TFtransfer fsend,TFtransfer frecv,char *lCApath,char 
 //  DBG_STEP()
  if(!ctx)
  {
-   DBG_STEP()    
-   return 0;    
+   DBG_STEP()
+   return 0;
  }
-//TLS_RSA_WITH_AES_256_CBC_SHA   
+//TLS_RSA_WITH_AES_256_CBC_SHA
  CApath       =lCApath     ;
  CAfile       =lCAfile     ;
  s_cert_file  =ls_cert_file;
@@ -841,8 +843,8 @@ BIO *BIO_new(BIO_METHOD *method)
 // */
 #ifdef MINGW
 
-int __errno;
-int * _errno(){__errno= GetLastError(); return &__errno ; };
+//int __errno;
+//int * _errno(){__errno= GetLastError(); return &__errno ; };
 //void OPENSSL_cleanse(void *x,int l)
 // void OPENSSL_cleanse(void* x , size_t l)
 // {
@@ -896,17 +898,17 @@ struct _reent
   * _impure_ptr = &_impure;
 
   unsigned short * * _imp___ctype_ ;
-  
+
 //   {
 //     0,0,0,0,0,0,0
 //   };
   //__ctype_arr;
-#endif  
-  
+#endif
+
 #if 1
 
 #ifdef   _CRTIMP
-#define DLLIMPORT 
+#define DLLIMPORT
   //_CRTIMP
   //__attribute__((dllimport))
 #else
@@ -914,8 +916,8 @@ struct _reent
 #define DLLIMPORT
 
 #endif
-  
-  
+
+
   static int tbl_days[]=
   {
    0,                       // Jan
@@ -931,21 +933,21 @@ struct _reent
    31+28+31+30+31+30+31+31+30+31,  // Nov
    31+28+31+30+31+30+31+31+30+31+30  // Dec
   };
-  
+
 struct tm *gmtime_r(const time_t *timep, struct tm *result)
 {
-   union{   
+   union{
    FILETIME FileTime;
    long long  tt;
    };
    SYSTEMTIME   SystemTime;
    if(result)
-   { 
+   {
 
         tt= (10000000ll * (*timep)) + 0x14F373BFDE04000ll;
-            
+
         FileTimeToSystemTime( &FileTime,&SystemTime);
-        
+
         result->tm_sec  = SystemTime. wSecond ;
         result->tm_min  = SystemTime. wMinute ;
         result->tm_hour = SystemTime. wHour ;
@@ -955,7 +957,7 @@ struct tm *gmtime_r(const time_t *timep, struct tm *result)
         result->tm_wday = SystemTime. wDayOfWeek ;
         result->tm_yday = SystemTime.wDay +  tbl_days[result->tm_mon];
         if(result->tm_mon>1 && ! (result->tm_year&3) )result->tm_yday++;
-    
+
         // result->tm_isdst = SystemTime. wHour>7;
    }
     return result;
@@ -963,11 +965,11 @@ struct tm *gmtime_r(const time_t *timep, struct tm *result)
 int TZ_add_sec;
 struct tm *localtime_r(const time_t *timep, struct tm *result)
 {
-  time_t mtime=*timep+TZ_add_sec;  
+  time_t mtime=*timep+TZ_add_sec;
   return  gmtime_r(&mtime, result) ;
-    
+
 };
- 
+
  int getuid(){return 100;};
  int geteuid(){return 100;};
  int getgid(void){return 100;};
@@ -976,34 +978,34 @@ struct tm *localtime_r(const time_t *timep, struct tm *result)
  int tcsetattr(int fd, int optional_actions,
                      const struct termios *termios_p){return 0;};
  int sigaction(int signum, const struct sigaction *act,
-                     struct sigaction *oldact){return 0;};    
- 
+                     struct sigaction *oldact){return 0;};
 
- typedef void (*sighandler_t)(int);                    
+
+ typedef void (*sighandler_t)(int);
  sighandler_t signal(int signum, sighandler_t handler)
  { return 0; };
 
- 
- char* getenv(const char *name){return 0;};   
- DLLIMPORT int _cdecl isspace(int a){return (int) strchr(" \t\v\f\r\n",a); }
+
+ char* getenv(const char *name){return 0;};
+// DLLIMPORT int _cdecl isspace(int a){return (int) strchr(" \t\v\f\r\n",a); }
  DLLIMPORT int _cdecl isalnum(int a){ return (a>='A' && a<='Z') || (a>='a' && a<='z') || (a>='0' && a<='9') ; }
 //  int __mingw_vsprintf(char *fmt,void **)
-/* */                    
+/* */
   int __mingw_vprintf(const char*fmt, char*l)
   {
-    return Fprintf("OPENSSL:%s",fmt);    
+    return Fprintf("OPENSSL:%s",fmt);
   }
   int __mingw_vfprintf(FILE *f, const char*fmt, char*l)
   {
-    return Fprintf("OPENSSL:%s",fmt);    
+    return Fprintf("OPENSSL:%s",fmt);
   }
   int __mingw_vsprintf(char *t,const char*fmt, char*l)
   {
-      return wvsprintf(t,fmt,l);    
+      return wvsprintf(t,fmt,l);
   }
-  
-// */ 
-//static 
+
+// */
+//static
 int PerSecond1E7=10000000l;
 inline
 void gettimeofday(struct timeval *x,...)
@@ -1013,7 +1015,7 @@ void gettimeofday(struct timeval *x,...)
  SystemTimeToFileTime(&stime, (FILETIME *)x);
 
 //debug("TIME %X %X",x->tv_sec,x->tv_usec);
- 
+
  asm volatile(
     " subl  $0xFDE04000 ,%%eax \n"
     " sbbl  $0x14F373B ,%%edx\n"
@@ -1029,7 +1031,7 @@ void gettimeofday(struct timeval *x,...)
 
 }
 #if defined(_USE_32BIT_TIME_T)
-#define time _time32
+#define time _time32a
 #endif
 time_t __cdecl time(time_t* y)
 {
@@ -1043,26 +1045,26 @@ time_t __cdecl time(time_t* y)
 #endif
 //*
 void ERR_put_error1(int lib, int func,int reason,const char *file,int line)
-{ 
-    
+{
+
     (Fprintf)("OpenSSL error: lib=%d func=%d reason=%d %s line=%d ",lib,func,reason,file?file:"*",line);
    // DebugPrintFnc("OpenSSL error: lib=%d func=%d reason=%d %s line=%d\n",lib,func,reason,file?file:"*",line);
-    
+
 };
 // */
 
 int shs_print_cb(const char *str, size_t len, void *bp)
 {
-  //DebugPrintFnc("OpenSSL error:%s\n",str);  
+  //DebugPrintFnc("OpenSSL error:%s\n",str);
   return  (Fprintf)("OpenSSL error:%s",str);
-}                     
+}
 #endif
 
 static int CommonPrepareCon(struct OpenSSLConnection *s, SSL_CTX *ct)
 {
 
 //  SSL_CTX_flush_sessions(ctx,time(0));
-  
+
   if ((s->con=SSL_new(ct)) == NULL)
   {
    DBG_STEP()
@@ -1075,12 +1077,12 @@ static int CommonPrepareCon(struct OpenSSLConnection *s, SSL_CTX *ct)
   s->sbio=BIO_new(srv_meth);
   BIO_set_data(s->sbio,s->CallbackParam);
   BIO_set_init(s->sbio, 1);
-#else  
+#else
   s->sbio=BIO_new(&srv_meth);
   s->sbio->ptr=s->CallbackParam;
   s->sbio->init=1;
   s->sbio->flags=0;
-#endif  
+#endif
   SSL_set_bio(s->con,s->sbio,s->sbio);
   return 1;
 }
@@ -1100,38 +1102,38 @@ int SecAccept(struct OpenSSLConnection *s)
 
   SSL_set_accept_state(s->con);
   BIO_set_ssl(s->ssl_bio,s->con,BIO_CLOSE);
-#if 0  
+#if 0
   if( (r=SSL_do_handshake( s->con ) ) <0 )
   {
      SecClose(s);
      if(!act_con_cnt)
      {
         (Fprintf)("TLS handshake error %d %d reinit",r,SSL_get_error(s->con,r) );
-        REinitCTX();    
-       
+        REinitCTX();
+
      }
      else
      {
        (Fprintf)("TLS handshake error %d %d ; Now opened  %d TLS thread.  Reinit need %d",r,SSL_get_error(s->con,r),act_con_cnt,       reinit_ctx_need );
-       reinit_ctx_need++;    
-       if(reinit_ctx_need==1)  
+       reinit_ctx_need++;
+       if(reinit_ctx_need==1)
        {
          reinit_ctx_need_time=time(0)+30;
-         
+
        }
        else
        {
                 if(reinit_ctx_need_time < time(0) )
                 {
-                    REinitCTX();    
-                }    
-       }    
-     }    
-     return 0; 
+                    REinitCTX();
+                }
+       }
+     }
+     return 0;
   }
 #endif
 
-  DBG_STEP()   
+  DBG_STEP()
 //  BIO_push(s->io,s->ssl_bio);
   return 1;
 };
@@ -1141,9 +1143,9 @@ int SecUpdateCB(OpenSSLConnection *s)
 {
 #ifdef  OSSL111
   BIO_set_data(s->sbio,s->CallbackParam);
-#else  
+#else
   s->sbio->ptr=s->CallbackParam;
-#endif  
+#endif
   return 1;
 };
 
@@ -1151,10 +1153,10 @@ int SecUpdateCB(OpenSSLConnection *s)
 int SecConnect(struct OpenSSLConnection *s, int anon, char *verfyhost)
 {
   int r;
-  if(!clctx) 
+  if(!clctx)
   {
     clctx = SSL_CTX_new(TLS_client_method());
-    if(!clctx) 
+    if(!clctx)
     {
       DBG_STEP()
       return 0;
@@ -1183,24 +1185,24 @@ int SecRecv(struct OpenSSLConnection *s,char *b,int l)
 }
 int SecSend(struct OpenSSLConnection *s,char *b,int l)
 {
- DBG_STEP()   
+ DBG_STEP()
  return BIO_write(s->ssl_bio,b,l);
 }
 //return BIO_write(s->io,b,l);}
 int SecClose(struct OpenSSLConnection *s)
 {
 // BIO_flush(s->io);
- 
+
  BIO_flush(s->ssl_bio);
  DBG_STEP()
- 
+
  if(!SSL_get_current_cipher(s->con))
  {
-   Fprintf("TLS no chipper. Reinit CTX need");  
-   reinit_ctx_need++;    
- } 
+   Fprintf("TLS no chipper. Reinit CTX need");
+   reinit_ctx_need++;
+ }
  else reinit_ctx_need=0;
- 
+
 // BIO_free(s->ssl_bio);
 // BIO_free(s->io);
 // BIO_free_all(s->io);
@@ -1210,28 +1212,28 @@ int SecClose(struct OpenSSLConnection *s)
  if(reinit_ctx_need  )
  {
      if((!act_con_cnt))
-     {    
-   
-       REinitCTX();    
+     {
+
+       REinitCTX();
      }
      else
      {
        (Fprintf)("TLS handshake error ; Now opened  %d TLS thread.  Reinit need %d",act_con_cnt,       reinit_ctx_need );
-       if(reinit_ctx_need==1)  
+       if(reinit_ctx_need==1)
        {
          reinit_ctx_need_time=time(0)+30;
-         
+
        }
        else
        {
                 if(reinit_ctx_need > 2 && reinit_ctx_need_time < time(0) )
                 {
                     (Fprintf)("TLS reinit " );
-                    REinitCTX();    
-                }    
-       }    
+                    REinitCTX();
+                }
+       }
      }
- }    
+ }
  return 1;
 }
 
