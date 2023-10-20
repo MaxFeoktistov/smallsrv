@@ -2,7 +2,7 @@
  * Copyright (C) 1999-2022 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
- * Author: Maksim Feoktistov 
+ * Author: Maksim Feoktistov
  *
  *
  * Small HTTP server is free software: you can redistribute it and/or modify it
@@ -15,11 +15,11 @@
  * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see https://www.gnu.org/licenses/ 
+ * along with this program.  If not, see https://www.gnu.org/licenses/
  *
  * Contact addresses for Email:  support@smallsrv.com
  *
- * 
+ *
  */
 
 
@@ -88,10 +88,10 @@ int MyLock(volatile int &x){int a=(int) GetCurrentThreadId();
 
    do{ while(x && x!=a && --dead_lock_chk>0)
 #ifdef USE_FUTEX
-    futex((int *)&x,FUTEX_WAIT,x,&timeout_50ms,0,0);  
-#else      
-    Sleep(50); 
-#endif       
+    futex((int *)&x,FUTEX_WAIT,x,&timeout_50ms,0,0);
+#else
+    Sleep(50);
+#endif
      x=a;
 //   Sleep(0);
 #ifdef SYSUNIX
@@ -107,9 +107,9 @@ int MyLock(volatile int &x){int a=(int) GetCurrentThreadId();
  while(x!=a){
   while(x)
   {
-       Sleep(20); 
+       Sleep(20);
        if(x==a)goto ex2;
-       if(--dead_lock_chk<0){ x=a; goto ex2; }  
+       if(--dead_lock_chk<0){ x=a; goto ex2; }
   }
   if((b=InterlockedExchange((long *)&x,a)))x=b;
  }
@@ -123,8 +123,8 @@ void MyUnlockOwn(volatile int &x){
   {
       x=0;
 #ifdef USE_FUTEX
-      futex((int *)&x,FUTEX_WAKE,1,0,0,0);  
-#endif    
+      futex((int *)&x,FUTEX_WAKE,1,0,0,0);
+#endif
   }
 }
 
@@ -136,17 +136,17 @@ TLog  *shown_log=&gLog;
 int oldchecked;
 void TLog::ShowProt()
 {
-  if(shown_log!=this)return ; 
+  if(shown_log!=this)return ;
 #define b_prot lb_prot
 #else
 void ShowProt()
 {
 #endif
 
- if( (s_flgs[2]&FL2_UTF)  && utf2unicode((uchar *)b_prot,wb_prot)>0)    
+ if( (s_flgs[2]&FL2_UTF)  && utf2unicode((uchar *)b_prot,wb_prot)>0)
  {
-    SetWindowTextW(ewnd,(LPCWSTR)wb_prot); 
- }    
+    SetWindowTextW(ewnd,(LPCWSTR)wb_prot);
+ }
  else SetWindowText(ewnd,b_prot);
  SendMessage(ewnd,EM_LINESCROLL,0,SendMessage(ewnd,EM_GETLINECOUNT,0,0)-4);
 };
@@ -171,8 +171,8 @@ void xdie(char *er)
 #ifdef SEPLOG
 void Req::OutErr(char *er)
 {char buf1[200];
- uint k=flsrv[1];
- if(k>=N_LOG)k=0;   
+ uint k=flsrv[1] & MAX_SERV_MASK;
+ if(k>=N_LOG)k=0;
  sprintf(buf1,"Error: %.160s\r\n",er);
  sepLog[k]->LAddToLog(buf1,s);
 }
@@ -226,17 +226,17 @@ int IPv6S(char *addr6,in6_addr &sin6_addr)
   return sprintf(addr6,"%X:%X:%X:%X:%X:%X:%X:%X",
     htons(XAR[0]),htons(XAR[1]),htons(XAR[2]),htons(XAR[3]),htons(XAR[4]),
     htons(XAR[5]),htons(XAR[6]),htons(XAR[7]));
-#undef XAR   
+#undef XAR
 //  }
-    
+
 }
 void IP2S(char *addr6,sockaddr_in* xsa)
 {
 #define XAR  (((sockaddr_in6 *)xsa)->sin6_addr.s6_addr16)
  if(((sockaddr_in6 *)xsa)->sin6_family==AF_INET6)
  {
-    IPv6S(addr6,((sockaddr_in6 *)xsa)->sin6_addr); 
- /*    
+    IPv6S(addr6,((sockaddr_in6 *)xsa)->sin6_addr);
+ /*
   if(
      ((sockaddr_in6 *)xsa)->sin6_addr.s6_addr32[0]==0 &&
      ((sockaddr_in6 *)xsa)->sin6_addr.s6_addr32[1]==0 &&
@@ -256,7 +256,7 @@ void IP2S(char *addr6,sockaddr_in* xsa)
     htons(XAR[0]),htons(XAR[1]),htons(XAR[2]),htons(XAR[3]),htons(XAR[4]),
     htons(XAR[5]),htons(XAR[6]),htons(XAR[7]));
   }
-*/  
+*/
  }
  else
    sprintf(addr6,"%u.%u.%u.%u",
@@ -273,25 +273,25 @@ void IP2S(char *addr6,sockaddr_in* xsa)
 
 char *TrimLogLines(char *s)
 {
- int i=0,mtrim_log_lines;   
+ int i=0,mtrim_log_lines;
  char *t=s,*e;
 
  if(trim_log_lines<32)trim_log_lines=32;
- mtrim_log_lines=trim_log_lines+3;   
+ mtrim_log_lines=trim_log_lines+3;
  while(*s)
  {
    if(*s=='\r' || *s=='\n')
    {
-     i=0;    
-   }    
-   if(i<mtrim_log_lines)  
-     *t++=*s;    
-   else 
+     i=0;
+   }
+   if(i<mtrim_log_lines)
+     *t++=*s;
+   else
        if(i==trim_log_lines) WORD_PTR(t[i-2])=0x2e2e;
-   
+
    i++;
    s++;
- }    
+ }
  *t=0;
  return t;
 }
@@ -302,7 +302,7 @@ char *TrimLogLines(char *s)
 #else
 #include "onelog.cpp"
 #endif
-  
+
 #ifdef SERVICE
 void CloseService()
 {if(sesh && ServiceStatus.dwCurrentState!=SERVICE_STOPPED)
@@ -334,14 +334,14 @@ void StopSocket()
   */
    MAX_SOCK  ; i++) if(soc_srv[i]>0){CloseSocket(soc_srv[i]); soc_srv[i]=0; }
 
-      
+
 }
 void CloseServer()
 {int i;
 #ifdef SYSUNIX
  if(s_aflg&AFL_EXIT){Sleep(3000); }
  s_aflg|=AFL_EXIT;
-#else  
+#else
   if(! (s_flg&FL_NOICON) )Shell_NotifyIcon(NIM_DELETE,&nid);
 #endif
  is_no_exit=0;
@@ -350,9 +350,9 @@ void CloseServer()
  DoneSepLog();
  DestroyWindow(mwnd);
  DestroyIcon(
-#ifndef DJGPP     
-     (HICON__ *) 
-#endif     
+#ifndef DJGPP
+     (HICON__ *)
+#endif
      hicon);
 #if V_FULL
 /*
@@ -370,7 +370,7 @@ void CloseServer()
 // SaveDNS();
 #endif
  CloseFCGI_tasks();
- if(KeepAliveList) 
+ if(KeepAliveList)
  {
    MyLock(KeepAliveMutex);
    for(i=0; i<KeepAliveCount; i++ )
@@ -488,13 +488,13 @@ void PrintHelp()
 {
 #ifndef SYSUNIX
  int h=(int)GetStdHandle((ulong)STD_OUTPUT_HANDLE);
-  
+
 #define printf(a...)  _hwrite(h,b_prot,wsprintf(b_prot,a))
- 
-#endif     
+
+#endif
      printf("%s\nCommand line:\n%s [--v][--c config_file|@config_file][--h|?] [{Params }]\n--v print version and exit\n--c config_file use directed config file instead default\n@config_file  use directed config file after default\n--h,--? print this help and exit\nParams the same as the params in config file:\n",sSMALL_HTT,
-      cmdline     
-    //        argv[0] 
+      cmdline
+    //        argv[0]
            );
       for(CfgParam *cp=ConfigParams;cp->desc /*&& cp->name*/;++cp)
        if(!cp->name)
@@ -504,28 +504,28 @@ void PrintHelp()
        else
        {
             if( (cp->min==255 || cp->min==256) && cp->v )
-            {   
-                printf("%s=path - %s\n",cp->name,cp->desc); 
-                
+            {
+                printf("%s=path - %s\n",cp->name,cp->desc);
+
             }
             else     if(cp->v )
             {
-               if(cp->adv) 
+               if(cp->adv)
                {
                    printf("%s=value - ",cp->name);
                    printf(cp->desc,cp->adv);
                    printf("\n");
                }
-               else 
+               else
                    printf("%s=value - %s\n",cp->name,cp->desc);
             }
             else
                printf("%s - %s\n",cp->name,cp->desc);
-       }    
+       }
 #ifndef SYSUNIX
 #undef printf
-#endif   
-    
+#endif
+
 }
 
 #ifndef SYSUNIX
@@ -582,23 +582,23 @@ extern "C" int RMain(void *)
  int ll;
 // ulong ull;
 // };
-#ifdef SEPLOG 
+#ifdef SEPLOG
  gLog.Init(0); //"");
-#endif 
+#endif
  if(strstr(cmdline," --v") )
  {
    _hwrite((int)GetStdHandle((ulong)STD_OUTPUT_HANDLE),sSMALL_HTT "\n",sizeof(sSMALL_HTT)+1);
-   return 0;  
- }    
+   return 0;
+ }
  if( ( (t=strstr(cmdline," --h") ) || (t=strstr(cmdline," --?") ) ) && ! (t[4])  )
  {
      *t=0;
      PrintHelp();
-     return 0;  
- }    
+     return 0;
+ }
  if( (t=strstr(cmdline," --c ") ) )
  {
-   t=SkipSpace(t+5); 
+   t=SkipSpace(t+5);
    ll=' ';
    if(*t=='\"')
    {
@@ -606,7 +606,7 @@ extern "C" int RMain(void *)
      ll='\"';
    }
    if((p=strchr(t,ll)))*p=0;
-   PrepCfg(t);  
+   PrepCfg(t);
    if(t[1]==':' || t[2]==':' && (pp=strrchr(t,'\\')) )
    {
     *pp=0;
@@ -632,8 +632,8 @@ extern "C" int RMain(void *)
  if(InitApplication()<=0)return 0;
 #if  (! defined(FREEVER) )
  if(CheckDate(cmdline)){CloseService();  ExitProcess(0);} ;
-#endif 
-#if (! defined(CD_VER) ) 
+#endif
+#if (! defined(CD_VER) )
 #if (! defined(SYSUNIX) )  && (! defined(FREEVER) )
  if(userList && userList->next && userList->next->next &&
    user_name!=(about+sizeof(ABOUT_STR)+14) )
@@ -660,7 +660,7 @@ extern "C" int RMain(void *)
  {
 #if ! defined(FREEVER)
   if( ( (!dwnd2) || !IsDialogMessage(dwnd2,&msg) ) )
-#endif    
+#endif
   {if( dwndc && IsDialogMessage(dwndc,&msg) )
    {
     if(msg.message!=WM_KEYDOWN)continue;
@@ -671,9 +671,9 @@ extern "C" int RMain(void *)
    {
       DefProc(mwnd, WM_LBUTTONDBLCLK,msg.wParam, msg.lParam) ;
       continue;
-   } 
+   }
   // else
-   {    
+   {
      TranslateMessage( &msg );
      DispatchMessage( &msg );
    }

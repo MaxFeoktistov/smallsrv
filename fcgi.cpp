@@ -2,7 +2,7 @@
  * Copyright (C) 1999-2023 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
- * Author: Maksim Feoktistov 
+ * Author: Maksim Feoktistov
  *
  *
  * Small HTTP server is free software: you can redistribute it and/or modify it
@@ -15,11 +15,11 @@
  * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see https://www.gnu.org/licenses/ 
+ * along with this program.  If not, see https://www.gnu.org/licenses/
  *
  * Contact addresses for Email:  support@smallsrv.com
  *
- * 
+ *
  */
 
 
@@ -36,14 +36,14 @@ extern "C" {
 #define FCGIDEBUG(a, b...)
   // debug( "%s:%d:" a , __func__, __LINE__, b );
   // printf( "%s:%d:" a , __func__, __LINE__, b );
-#define FCGIDEBUG0() 
+#define FCGIDEBUG0()
  // debug( "%s:%d\n" , __func__, __LINE__ );
  // printf( "%s:%d\n" , __func__, __LINE__ );
 
 int  Req::CallFCGI(char *name)
 {
   FCGI_task *p;
-  
+
   FCGIDEBUG0()
 
   for(p=fcgi_list; p ; p=p->next)
@@ -79,11 +79,11 @@ int FCGI_task::Open(char *name)
 {
   int i;
 #ifdef SYSUNIX
-  
+
   if( s_flgs[3] & FL3_FCGI_SI )
   {
     FCGIDEBUG("%X\n", s_flgs[3] )
-    
+
     listen_fd = socket(AF_UNIX, SOCK_STREAM, 0);
     sockaddr_len = sprintf(sau.sun_path, "%s/shs%u",fcgi_upath, ++unix_socket_number);
     sau.sun_family=AF_UNIX;
@@ -100,7 +100,7 @@ int FCGI_task::Open(char *name)
 #endif
   {
     FCGIDEBUG("%X %X\n", s_flgs[3], INADDR_LOOPBACK );
-    
+
     sa.sin_family=AF_INET;
     sa.sin_port=0;
     sa.sin_addr.s_addr = 0x0100007F; //INADDR_LOOPBACK;
@@ -173,7 +173,7 @@ int FCGI_task::Open(char *name)
 
   FCGIDEBUG0()
 
-#if 0 
+#if 0
   i = 3;
   do{
     if(--i < 0 )
@@ -189,7 +189,7 @@ int FCGI_task::Open(char *name)
     Sleep(100);
   } while(Reconnect() < 0) ;
 #endif
-  
+
 #ifdef FCGI_THREAD
   if(! FCGI_thread_runed) {
     ulong id;
@@ -216,14 +216,14 @@ int FCGI_task::Connect(FCGI_req *f_req)
   #ifdef SYSUNIX
   fcntl(f_req->s, F_SETFD, fcntl(f_req->s, F_GETFD) | FD_CLOEXEC);
   #endif
-  
+
   if( connect(f_req->s, (sockaddr *)&sa, sockaddr_len) < 0 )
   {
     closesocket(f_req->s);
     f_req->s = 0;
     return -1;
   }
-  
+
   return 0;
 }
 
@@ -252,7 +252,7 @@ void FCGI_task::Close()
       CloseSocket(reqs[idx].s);
       reqs[idx].s = 0;
     }
-  */  
+  */
   if(listen_fd > 0)
   {
     closesocket(listen_fd);
@@ -277,7 +277,7 @@ void FCGI_task::Close()
       FCGIDEBUG("SrvEventWait return %d\r\n",status)
 
       ec=waitpid(child_pid,(int *)&status,WNOHANG);
-      
+
     }
 
     FCGIDEBUG0()
@@ -397,7 +397,7 @@ int Req::DoFCGI(FCGI_task *fcgi)
 
 
    FCGIDEBUG("cl=%d\r\n", cl)
-  
+
    if(cl>post_limit)
    {
        debug("Size of method POST %u exceeds maximum %u",cl,post_limit);
@@ -421,7 +421,7 @@ int Req::DoFCGI(FCGI_task *fcgi)
   else
     fcgi->Param(this, "SCRIPT_NAME", loc+dirlen);
   if( trn ) fcgi->Param(this, "PATH_INFO", trn);
-  for(tt= http_var;(*tt) && (tt[1]); tt+=2) 
+  for(tt= http_var;(*tt) && (tt[1]); tt+=2)
   {
     char bb[512];
     sprintf(bb, "HTTP_%.255s", *tt);
@@ -446,12 +446,12 @@ int Req::DoFCGI(FCGI_task *fcgi)
   fcgi->AppWrite(this, FCGI_STDIN, 0, "");
   //fcgi->state |= fcgistWAIT_RECV;
 
-  timout = 0;
+  event = 0;
   fl |= F_FCGI;
   fcgi->n_wait ++;
   fcgi->reqs[ntsk>>ARH_SHIFT] |= (ARH_ONE << (ntsk & ARH_MASK) ) ;
   do{
-    if(SrvEventWait(&timout, 2000)) break;
+    if(SrvEventWait(&event, 2000)) break;
     if(RESelect1(0,1000,s)) {
       fcgi->AppWrite(this, FCGI_ABORT_REQUEST, 0, "");
       break;
@@ -480,7 +480,7 @@ int Req::DoFCGI(FCGI_task *fcgi)
 
 
    FCGIDEBUG("cl=%d\r\n", cl)
-  
+
    if(cl>post_limit)
    {
        debug("Size of method POST %u exceeds maximum %u",cl,post_limit);
@@ -488,7 +488,7 @@ int Req::DoFCGI(FCGI_task *fcgi)
        //goto ern;
        return 0;
    };
-   
+
   bfr = (char *) malloc(0x10010);
   if(!bfr){
     debug("FCGI: No memory\r\n");
@@ -499,7 +499,7 @@ int Req::DoFCGI(FCGI_task *fcgi)
   memset(&f_req, 0, sizeof(f_req));
   f_req.req = this;
   fcgi->Connect(&f_req);
-  
+
   f_req.AppWrite( FCGI_BEGIN_REQUEST, sizeof(def_brr.body),(void *)&def_brr.body);
   f_req.Param( "REQUEST_METHOD", ((fl&F_POST)?"POST":"GET"));
   f_req.Param( "REMOTE_HOST", (char *) (http_var+MAX_HTTP_VARS+2));
@@ -515,7 +515,7 @@ int Req::DoFCGI(FCGI_task *fcgi)
   else
     f_req.Param( "SCRIPT_NAME", loc+dirlen);
   if( trn ) f_req.Param( "PATH_INFO", trn);
-  for(tt= http_var;(*tt) && (tt[1]); tt+=2) 
+  for(tt= http_var;(*tt) && (tt[1]); tt+=2)
   {
     char bb[512];
     sprintf(bb, "HTTP_%.255s", *tt);
@@ -539,17 +539,17 @@ int Req::DoFCGI(FCGI_task *fcgi)
   }
   f_req.AppWrite( FCGI_STDIN, 0, "");
 
-  timout = 0;
+  event = 0;
   fl |= F_FCGI;
   fcgi->n_wait ++;
   //fcgi->reqs[ntsk>>ARH_SHIFT] |= (ARH_ONE << (ntsk & ARH_MASK) ) ;
   while( f_req.FCGIDoInput(bfr) ) {
-    //if(SrvEventWait(&timout, 2000)) break;
+    //if(SrvEventWait(&event, 2000)) break;
     if(RESelect1(0,1000,s)) {
       f_req.AppWrite(FCGI_ABORT_REQUEST, 0, "");
       break;
     }
-  } 
+  }
   fcgi->n_wait --;
   //fcgi->reqs[ntsk>>ARH_SHIFT] &= ~ (ARH_ONE << (ntsk & ARH_MASK) ) ;
   fl &= ~F_FCGI;
@@ -565,10 +565,10 @@ int Req::DoFCGI(FCGI_task *fcgi)
 
 // void FCGI_task::Run(Req*  req)
 // {
-// 
+//
 // }
 
-int lock_FCGItask; 
+int lock_FCGItask;
 void CloseFCGI_tasks()
 {
   FCGI_task *p,*t;
@@ -602,7 +602,7 @@ int FCGI_req::FCGIDoInput(char *bfr)
   };
 
 
-  while( (j=RESelect1(0,10000,s)) > 0 ) 
+  while( (j=RESelect1(0,10000,s)) > 0 )
   {
     //FCGIDEBUG("p= %lX\r\n",p)
     if(state & fcgistPART_HEAD)
@@ -624,20 +624,20 @@ int FCGI_req::FCGIDoInput(char *bfr)
       }
       l = recv(s, bfr, 0x10000, 0);
     }
-    
+
     FCGIDEBUG("recv %d %d\r\n", s, l)
-    
-    if(l<=0) 
+
+    if(l<=0)
     {
-     // lb_closed:    
+     // lb_closed:
        return 0;
       //p->EndReq(idx);
       /*
        *    // Close all request
        *    p->EndAllReq();
-       *    
+       *
        *    if(p->Reconnect() < 0) {
-       *      
+       *
        *      FCGIDEBUG("p= %lX\r\n",p)
        *      t = p;
        *      p = p->next;
@@ -689,18 +689,18 @@ int FCGI_req::FCGIDoInput(char *bfr)
       {
         case  FCGI_STDERR:
         case  FCGI_STDOUT:
-          
+
           FCGIDEBUG("FCGI_STDOUT %X %d %d |%.32s|\r\n", type,l,j,data)
           if(j > l)
-          {   
-            
+          {
+
             recv_len_left = j - l;
             state |= fcgistPART_BODY;
             //last_id = i;
             j = l;
           }
           if(j>0) {
-            if( (!req->Tout) && !(req->fl&F_SKIPHEAD) ) 
+            if( (!req->Tout) && !(req->fl&F_SKIPHEAD) )
             {
               if(req->SendChk( HTTP_HEAD_BEGIN , sizeof(HTTP_HEAD_BEGIN) - 1 ) <=0 ) goto lb_disconnect;
             }
@@ -708,17 +708,17 @@ int FCGI_req::FCGIDoInput(char *bfr)
             {
              lb_disconnect:
               AppWrite(FCGI_ABORT_REQUEST, 0, "");
-              //SendEvent(req->timout, 1);
+              //SendEvent(req->event, 1);
               return 0;
              // p->EndReq(idx);
             }
           }
           break;
         case FCGI_END_REQUEST:
-          
+
           FCGIDEBUG("FCGI_END_REQUEST %d\r\n",l)
-          
-          //SendEvent(req->timout, 1);
+
+          //SendEvent(req->event, 1);
           //p->EndReq(idx);
           return 0;
           //break;
@@ -728,14 +728,14 @@ int FCGI_req::FCGIDoInput(char *bfr)
       l -= j;
       pbfr = data+j;
       if(padd && l>0) {
-        if(l >= padd) 
+        if(l >= padd)
         {
           l -= padd;
           pbfr += padd;
         }
         else
         {
-          padd-=l; 
+          padd-=l;
           l=0;
           state |= fcgistSKIP_PADD;
         }
@@ -755,7 +755,7 @@ int FCGI_req::FCGIDoInput(char *bfr)
 void FCGI_task::EndReq(int idx)
 {
   FCGI_req *f_req = reqs + idx;
-  SendEvent(f_req->req->timout, 1);
+  SendEvent(f_req->req->event, 1);
   CloseSocket(f_req->s);
   MyLock(lock);
   f_req->s = 0;
@@ -767,12 +767,12 @@ void FCGI_task::EndReq(int idx)
 void FCGI_task::EndAllReq()
 {
  int i;
-  for(i=0; i<max_tsk && n_wait > 0 ; i++ ) 
+  for(i=0; i<max_tsk && n_wait > 0 ; i++ )
   {
     if(reqs[i].s > 0)EndReq(i);
     /*
     if(rreq[i] &&  (reqs[i>>ARH_SHIFT] & (ARH_ONE << (i&ARH_MASK) )  ) ) {
-      SendEvent(rreq[i]->timout, 2);
+      SendEvent(rreq[i]->event, 2);
     }
     */
   }
@@ -781,10 +781,10 @@ void FCGI_task::EndAllReq()
 int FCGI_thread(void *)
 {
 #ifdef MINGW
-#undef fd_set 
+#undef fd_set
 #define win_fd_set fd_set
-#endif    
-  
+#endif
+
   FCGI_task *p,*t;
   fd_set set;
   int s, j, l, w;
@@ -830,9 +830,9 @@ int FCGI_thread(void *)
       }
     }
     MyUnlock(lock_FCGItask);
-    if(!s) 
+    if(!s)
     {
-      Sleep(300);  
+      Sleep(300);
     }
     else if( (j=select(s+1, &set,0,0,&tval))>0 )
     {
@@ -843,11 +843,11 @@ int FCGI_thread(void *)
 
         FCGIDEBUG("p= %lX\r\n",p)
         w = 0;
-        for(int idx=0; w < p->n_wait && idx<max_tsk; idx++ ) 
+        for(int idx=0; w < p->n_wait && idx<max_tsk; idx++ )
         {
           f_req = p->reqs + idx;
           if(f_req->s > 0)
-          { 
+          {
             w++;
             if( FD_ISSET(f_req->s, &set) )
             {
@@ -871,19 +871,19 @@ int FCGI_thread(void *)
                 }
                 l = recv(f_req->s, bfr, 0x10000, 0);
               }
-              
+
               FCGIDEBUG("recv %d %d\r\n", f_req->s, l)
-              
-              if(l<=0) 
+
+              if(l<=0)
               {
-                lb_closed:    
+                lb_closed:
                 p->EndReq(idx);
                 /*
                  *    // Close all request
                  *    p->EndAllReq();
-                 *    
+                 *
                  *    if(p->Reconnect() < 0) {
-                 *      
+                 *
                  *      FCGIDEBUG("p= %lX\r\n",p)
                  *      t = p;
                  *      p = p->next;
@@ -935,18 +935,18 @@ int FCGI_thread(void *)
                 {
                   case  FCGI_STDERR:
                   case  FCGI_STDOUT:
-                    
+
                     FCGIDEBUG("FCGI_STDOUT %X %d %d |%.32s|\r\n", type,l,j,data)
                     if(j > l)
-                    {   
-                      
+                    {
+
                       f_req->recv_len_left = j - l;
                       f_req->state |= fcgistPART_BODY;
                       //f_req->last_id = i;
                       j = l;
                     }
                     if(j>0) {
-                      if( (!c_req->Tout) && !(c_req->fl&F_SKIPHEAD) ) 
+                      if( (!c_req->Tout) && !(c_req->fl&F_SKIPHEAD) )
                       {
                         if(c_req->SendChk( HTTP_HEAD_BEGIN , sizeof(HTTP_HEAD_BEGIN) - 1 ) <=0 ) goto lb_disconnect;
                       }
@@ -954,16 +954,16 @@ int FCGI_thread(void *)
                       {
                       lb_disconnect:
                         p->AppWrite(c_req, FCGI_ABORT_REQUEST, 0, "");
-                        //SendEvent(c_req->timout, 1);
+                        //SendEvent(c_req->event, 1);
                         p->EndReq(idx);
                       }
                     }
                     break;
                   case FCGI_END_REQUEST:
-                    
+
                     FCGIDEBUG("FCGI_END_REQUEST %d\r\n",l)
-                    
-                    //SendEvent(c_req->timout, 1);
+
+                    //SendEvent(c_req->event, 1);
                      p->EndReq(idx);
                     break;
                   default:
@@ -972,14 +972,14 @@ int FCGI_thread(void *)
                 l -= j;
                 pbfr = data+j;
                 if(p->padd && l>0) {
-                  if(l >= f_req->padd) 
+                  if(l >= f_req->padd)
                   {
                     l -= f_req->padd;
                     pbfr += f_req->padd;
                   }
                   else
                   {
-                    f_req->padd-=l; 
+                    f_req->padd-=l;
                     l=0;
                     f_req->state |= fcgistSKIP_PADD;
                   }
@@ -991,11 +991,11 @@ int FCGI_thread(void *)
                 memcpy(f_req->bfr, pbfr, l);
                 f_req->state |= fcgistPART_HEAD;
               }
-              
+
             }
           }
-          
-        }   
+
+        }
 
       }
     }
@@ -1008,7 +1008,7 @@ int FCGI_thread(void *)
   return 0;
 }
 
-#endif    
+#endif
 
 int SrvEventWait(int *event, uint timeout)
 {
@@ -1039,7 +1039,7 @@ void* RemoveFromList(void **plist, void *object, int next_offset)
     char *pnextc;
   };
   void *list = *plist;
-  if(list && list == object) 
+  if(list && list == object)
   {
     pnextc = ((char *)list) + next_offset;
     *(void **)plist = * (void **) ( ((char*)object) + next_offset );

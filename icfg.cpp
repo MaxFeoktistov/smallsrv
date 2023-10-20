@@ -513,20 +513,24 @@ SPD(5,tls)
 {"vpn_script_keep",3, FL3_VPN_SCRKEEP, (uint *)0, CS("Keep open console window after run script for debug" )},
 #endif
 
-{"tun_remote_ip1", 20, 0,(uint *)&vpn_first_remote_ipc[0], CS("First IP address to allocate for remote client that connected to Tun.")},
-{"tun_remote_max", 0, 1024,(uint *)&vpn_total_remote_ip[0], CS("Total IP addresses to allocate for remote client that connected to Tun.")},
+{"tun_remote_ip", 20, 0,(uint *)&vpn_first_remote_ipc[0], CS("First IP address to allocate for remote client that connected to Tun. (Optional)")},
+{"tun_remote_max", 0, 1024,(uint *)&vpn_total_remote_ip[0], CS("Total IP addresses to allocate for remote client that connected to Tun. (Optional. Set to 0 to use external DHCP server, or another methods)")},
+{"tun_remote_dns", 0, 1024,(uint *)&vpn_dns[0], CS("DNS servers that will be offered to the TUN client.")},
 
-{"tap_remote_ip2" ,20, 0,(uint *)&vpn_first_remote_ipc[1], CS("First IP address to allocate for remote client that connected to Tap.")},
-{"tap_remote_max", 0, 1024,(uint *)&vpn_total_remote_ip[1], CS("Total IP addresses to allocate for remote client that connected to Tap.")},
+{"tap_remote_ip" ,20, 0,(uint *)&vpn_first_remote_ipc[1], CS("First IP address to allocate for remote client that connected to Tap. (Optional)")},
+{"tap_remote_max", 0, 1024,(uint *)&vpn_total_remote_ip[1], CS("Total IP addresses to allocate for remote client that connected to Tap. (Optional. Set to 0 to use external DHCP server, or another methods)")},
+{"tap_remote_dns", 0, 1024,(uint *)&vpn_dns[0], CS("DNS servers that will be offered to the TAP client. (Optional) ")},
 
 
 {0,0,0,0, CS("HTTP TLS VPN Client")},
 
 {"vpnclient",3,FL3_VPN_CLIENT,(uint *)0, CS("Enable to connect to TLS VPN remote host" )},
 {"vpn_remote_host",512, 0,(uint *)&vpn_remote_host, CS("Host to connect to remote TLS VPN server")},
+{"vpn_client_port",1,0xFFFE,(uint *)&vpn_client_port, CS("TLS VPN remote port. (Usually 443)")},
+{"vpn_client_url" ,128,0,(uint *)&vpncln_name, CS("TLS VPN URL name (direct only local part of URL e.g. \"/$_vpn_$\"). Must be the same as directed on the remote server")},
+
 {"vpn_remote_user",32, 0,(uint *)&vpn_user, CS("TLS VPN User name")},
 {"vpn_remote_passw",32, 0,(uint *)&vpn_passw, CS("TLS VPN Password")},
-{"vpn_client_port",1,0xFFFE,(uint *)&vpn_client_port, CS("TLS VPN remote port. (Usually 443)")},
 
 {"vpncln_tap",3, FL3_TAP_CLIENT, (uint *)0, CS("VPN client to Tap. (Otherwise Tun)" )},
 

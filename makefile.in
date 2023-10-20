@@ -110,7 +110,7 @@ WINEBIN2S=./bin2s
 #WINECFLG=  -Iwinclude  -I$(MGDIR)\\include -fpack-struct -O2 -fno-verbose-asm -fno-implicit-templates -mno-svr3-shlib -mno-align-double -mno-fancy-math-387 -fconserve-space  -DSERVICE -DFREE_VER  -DFREEVER -DV_FULL=1 -DUSE_IPV6 -DMINGW -DRICON -mrtd
 #  -fno-implicit-templates
 
-WINECFLG= -Os -nostdinc -Iwinclude  $(WININC) -mno-align-double -mno-fancy-math-387 -fconserve-space  -fno-rtti -fno-threadsafe-statics -fno-access-control -fno-nonansi-builtins -fno-elide-constructors -fno-enforce-eh-specs -DSERVICE -DFREE_VER  -DFREEVER -DV_FULL=1 -DUSE_IPV6 -DMINGW -DRICON -mwindows -fno-optional-diags -momit-leaf-frame-pointer -mno-red-zone -fno-exceptions  -fno-stack-protector -no-pie -fno-ms-extensions -fno-stack-check -mno-stack-arg-probe -fmax-errors=10 -DSEPLOG -DSELECT1
+WINECFLG= -Os -nostdinc -Iwinclude  $(WININC) -mno-align-double -mno-fancy-math-387 -fconserve-space  -fno-rtti -fno-threadsafe-statics -fno-access-control -fno-nonansi-builtins -fno-elide-constructors -fno-enforce-eh-specs -DSERVICE -DFREE_VER  -DFREEVER -DV_FULL=1 -DUSE_IPV6 -DMINGW -DRICON -mwindows -fno-optional-diags -momit-leaf-frame-pointer -mno-red-zone -fno-exceptions  -fno-stack-protector -no-pie -fno-ms-extensions -fno-stack-check -mno-stack-arg-probe -fmax-errors=10 -DSEPLOG -DSELECT1  -DVPN_WIN -DTLSVPN -DWITHMD5
 
 WINELFLG=  -mwindows $(WINLIB) -luser32 -lkernel32 -lws2_32 -lgdi32 -lshell32 -lcomdlg32  -ladvapi32 -Xlinker --heap  -Xlinker 0x20000000 -Wl,--subsystem,windows  -nostartfiles -nodefaultlibs -Xlinker -Map -Xlinker wo/flxmap  -Xlinker --entry=_start    -fno-optional-diags -momit-leaf-frame-pointer  -mno-red-zone -fno-exceptions  -fno-stack-protector -fno-ms-extensions -no-pie -fno-stack-check -mno-stack-arg-probe
 
@@ -179,7 +179,7 @@ OOBJS=$(COBJS) $(addprefix o/,$(POBJS))
 
 OOBJS64=$(COBJS64) $(addprefix o64/,$(AOBJS64))
 
-WINOOBJS= wo/fwnd.o $(addprefix wo/,$(AOBJS)) wo/bvprintf.o wo/srvdat.o wo/isapi.o wo/qsort.o wo/updr.res
+WINOOBJS= wo/fwnd.o $(addprefix wo/,$(AOBJS)) wo/bvprintf.o wo/srvdat.o wo/isapi.o wo/qsort.o wo/vpn.o wo/updr.res
 
 GENERATED=S2_lf.hh lS2_lf.cfg g4strc.h S3_lf.hh lS3_lf.cfg g4strcwm.h t2icfg.cpp S1_lf.hh lS1_lf.cfg g4s1.hh o/s1.hh
 
@@ -326,7 +326,7 @@ o/1.x: /dev/shm/shttps/o/1.x
 	ln -sf /dev/shm/shttps/o64 .
 	ln -sf /dev/shm/shttps/wo .
 	ln -sf /dev/shm/shttps/arm .
-	mkdir -p  o/dist o/adist/ o64/dist o64/distu o/of o64/of
+	mkdir -p  o/dist o/distu o/adist/ o64/dist o64/distu o/of o64/of
 	mkdir -p  o/dist/langpacks/en o/adist/langpacks/en o64/dist/langpacks/en o64/distu/langpacks/en 
 	mkdir -p  o/dist/langpacks/ru o/adist/langpacks/ru o64/dist/langpacks/ru o64/distu/langpacks/ru 
 
@@ -393,16 +393,17 @@ wo/uninst.exe: wo/uninst.o
 	$(WINEGCC)  -s  $^ -o $@  -nodefaultlibs -L$(MGDIR)\\lib -luser32 -lkernel32 -lgdi32 -lcomdlg32 -ladvapi32 -lshell32 -Wl,--subsystem,windows -nostartfiles  -Xlinker -Map -Xlinker wo/flxmaps  -Xlinker --entry=_start  -nostartfiles -Xlinker -Map -Xlinker wo/flxmap  -Xlinker --entry=_start    -fno-optional-diags -momit-leaf-frame-pointer  -mno-red-zone -fno-exceptions  -fno-stack-protector -fno-ms-extensions -no-pie -fno-stack-check -mno-stack-arg-probe
 
 
-wo/stpdta.o: wo/stpdta.s wo/uninst.bin wo/http.bin wo/ind1.bin wo/eshs_lang.bin wo/shs_lang.bin wo/lnotes.bin wo/lic.bin
+
+wo/stpdta.o: wo/stpdta.s wo/uninst.bin wo/http.bin wo/ind1.bin wo/eshs_lang.bin wo/shs_lang.bin wo/lnotes.bin wo/lic.bin wo/vpn_if_up.bin wo/vpn_if_client_up.bin wo/vpn_if_client_down.bin wo/manifest.bin
 	 cd wo ;  $(WINEAS)  stpdta.s -o stpdta.o
 
-wo/stpdtar.o: wo/stpdtar.s wo/uninst.bin wo/http.bin wo/ind1r.bin wo/eshs_lang.bin wo/shs_lang.bin wo/lnotes.bin wo/licr.bin
+wo/stpdtar.o: wo/stpdtar.s wo/uninst.bin wo/http.bin wo/ind1r.bin wo/eshs_lang.bin wo/shs_lang.bin wo/lnotes.bin wo/licr.bin wo/vpn_if_up.bin wo/vpn_if_client_up.bin wo/vpn_if_client_down.bin wo/manifest.bin
 	 cd wo ;  $(WINEAS)  stpdtar.s -o stpdtar.o
 
-wo/stpdtai.o: wo/stpdtai.s wo/uninst.bin wo/http.bin wo/ind1.bin wo/eshs_lang.bin wo/shs_lang.bin wo/lnotes.bin wo/lic.bin wo/ipbase.s
+wo/stpdtai.o: wo/stpdtai.s wo/uninst.bin wo/http.bin wo/ind1.bin wo/eshs_lang.bin wo/shs_lang.bin wo/lnotes.bin wo/lic.bin wo/ipbase.s wo/vpn_if_up.bin wo/vpn_if_client_up.bin wo/vpn_if_client_down.bin wo/manifest.bin
 	 cd wo ;  $(WINEAS)  stpdtai.s -o stpdtai.o
 
-wo/stpdtari.o: wo/stpdtari.s wo/uninst.bin wo/http.bin wo/ind1r.bin wo/eshs_lang.bin wo/shs_lang.bin wo/lnotes.bin wo/licr.bin wo/ipbase.s
+wo/stpdtari.o: wo/stpdtari.s wo/uninst.bin wo/http.bin wo/ind1r.bin wo/eshs_lang.bin wo/shs_lang.bin wo/lnotes.bin wo/licr.bin wo/ipbase.s wo/vpn_if_up.bin wo/vpn_if_client_up.bin wo/vpn_if_client_down.bin wo/manifest.bin
 	 cd wo ;  $(WINEAS)  stpdtari.s -o stpdtari.o
 
 wo/stpdta.s: stpdta.s
@@ -424,6 +425,12 @@ wo/%.bin:  wo/%.exe
 # 	$(WINEBIN2S)  $< $@
 
 wo/ind1.bin:  desc.htm
+	$(WINEBIN2S)  $< $@
+
+wo/manifest.bin: http.exe.manifest
+	$(WINEBIN2S)  $< $@
+
+wo/%.bin: script_examples/%.bat
 	$(WINEBIN2S)  $< $@
 
 wo/ind1r.bin:  descr.htm
@@ -537,6 +544,21 @@ o64/distu/libsecgnutls.so: o64/libsecgnutls.so
 o/dist/descu.htm o/adist/descu.htm o64/dist/descu.htm o64/distu/descu.htm: descu.htm
 	cp -f $^ $@
 
+o/dist/%.sh: script_examples/%.sh
+	cp -f $^ $@
+
+o/distu/%.sh: script_examples/%.sh
+	cp -f $^ $@
+
+o/adist/%.sh: script_examples/%.sh
+	cp -f $^ $@
+
+o64/dist/%.sh: script_examples/%.sh
+	cp -f $^ $@
+
+o64/distu/%.sh: script_examples/%.sh
+	cp -f $^ $@
+
 o/dist/license06.txt o/adist/license06.txt o64/dist/license06.txt o64/distu/license06.txt: license06.txt
 	cp -f $^ $@
 
@@ -554,7 +576,14 @@ ru/shs_lang.cfg : lS1_lf.cfg
 	./add_to_langcfg.pl lS1_lf.cfg $@
 
 
-dist:   o/dist/license06.txt o/adist/license06.txt o/dist/langpacks/ru/shs_lang.cfg o/dist/langpacks/en/shs_lang.cfg o/dist/descu.htm o/adist/descu.htm o/dist/notes.ssl o/adist/notes.ssl o64/dist/notes.ssl o64/distu/notes.ssl  o/dist/libsec111.so o/distu/libsec111.so  o/distu/libsecgnutls.so  o/adist/libsec111.so  o/adist/libsecgnutls.so dist64
+SCRIPTS=vpn_if_client_down.sh vpn_if_client_up.sh vpn_if_up.sh
+OSCRIPTS=$(addprefix o/dist/,$(SCRIPTS))
+OUSCRIPTS=$(addprefix o/distu/,$(SCRIPTS))
+ASCRIPTS=$(addprefix o/adist/,$(SCRIPTS))
+O64SCRIPTS=$(addprefix o64/dist/,$(SCRIPTS))
+O64USCRIPTS=$(addprefix o64/distu/,$(SCRIPTS))
+
+dist:   o/dist/license06.txt o/adist/license06.txt o/dist/langpacks/ru/shs_lang.cfg o/dist/langpacks/en/shs_lang.cfg o/dist/descu.htm o/adist/descu.htm o/dist/notes.ssl o/adist/notes.ssl o64/dist/notes.ssl o64/distu/notes.ssl  o/dist/libsec111.so o/distu/libsec111.so  o/distu/libsecgnutls.so  o/adist/libsec111.so  o/adist/libsecgnutls.so $(OSCRIPTS) $(OUSCRIPTS) $(ASCRIPTS) dist64
 	cp o/of/httpd.exe o/dist/
 	cd o/dist/ ; strip httpd.exe ; chmod -R go-w,u+rw,a+X * ; chmod  0755 httpd.exe *.so  sndmsg ; chmod  0600 httpd.cfg ;  rm -f shttplnx.tgz ; tar --owner=root --group=root -czf shttplnx.tgz * ; chmod 0644 shttplnx.tgz
 	cp at/httpd.exe o/adist/
@@ -565,7 +594,7 @@ dist:   o/dist/license06.txt o/adist/license06.txt o/dist/langpacks/ru/shs_lang.
 #dist64: o64/dist/libsec.so o64/dist/libsec111.so o64/dist/libsecgnutls.so o64/distu/libsec.so o64/distu/libsecgnutls.so o64/dist/langpacks/ru/shs_lang.cfg o64/dist/langpacks/en/shs_lang.cfg
 
 
-dist64: o64/dist/langpacks/ru/shs_lang.cfg o64/dist/langpacks/en/shs_lang.cfg o64/dist/libsec111.so o64/dist/libsecgnutls.so o64/distu/langpacks/ru/shs_lang.cfg o64/distu/langpacks/en/shs_lang.cfg o64/distu/libsec111.so o64/distu/libsecgnutls.so
+dist64: o64/dist/langpacks/ru/shs_lang.cfg o64/dist/langpacks/en/shs_lang.cfg o64/dist/libsec111.so o64/dist/libsecgnutls.so o64/distu/langpacks/ru/shs_lang.cfg o64/distu/langpacks/en/shs_lang.cfg o64/distu/libsec111.so o64/distu/libsecgnutls.so $(O64SCRIPTS) $(O64USCRIPTS)
 	cp o64/of/httpd.exe o64/dist/
 	cd o64/dist/ ; strip httpd.exe ; chmod -R go-w,u+rw,a+X * ; chmod  0755 httpd.exe *.so  sndmsg ; chmod  0600 httpd.cfg ;  rm -f shttplnx64.tgz ; tar --owner=root --group=root -czf shttplnx64.tgz * ; chmod a+rw shttplnx64.tgz
 	cp o64/httpd.exe o64/distu/httpd.exe
@@ -573,9 +602,17 @@ dist64: o64/dist/langpacks/ru/shs_lang.cfg o64/dist/langpacks/en/shs_lang.cfg o6
 
 
 
-sinst:  o/dist/httpd.exe o/dist/shttplnx.tgz o/adist/shttparmlnx.tgz o64/dist/shttplnx64.tgz  o64/distu/shttplnx64u.tgz
+
+sinst:  o/dist/httpd.exe o/dist/shttplnx.tgz o/distu/shttplnxu.tgz o/adist/shttparmlnx.tgz o64/dist/shttplnx64.tgz  o64/distu/shttplnx64u.tgz
 	chmod 0666 wo/shttps*.exe
-	for i in wo/shttps_mg.exe wo/shttpsr_mg.exe o/dist/shttplnx.tgz o/adist/shttparmlnx.tgz o64/dist/shttplnx64.tgz o64/distu/shttplnx64u.tgz ; do cp $$i /mnt/d/var/www/pre/ ; done
+	for i in wo/shttps_mg.exe wo/shttpsr_mg.exe o/dist/shttplnx.tgz o/distu/shttplnxu.tgz o/adist/shttparmlnx.tgz o64/dist/shttplnx64.tgz o64/distu/shttplnx64u.tgz ; do cp $$i /mnt/d/var/www/pre/ ; done
+
+# 	mv /mnt/d/shttps/httpd.exe /mnt/d/shttps/oldhttpd_$(shell date "+%F_%R").exe
+# 	cp o/distu/httpd.exe /mnt/d/shttps/
+
+sinste:  o/dist/httpd.exe o/dist/shttplnx.tgz o64/dist/shttplnx64.tgz
+	chmod 0666 wo/shttps*.exe
+	for i in wo/shttps_mg.exe wo/shttpsr_mg.exe o/dist/shttplnx.tgz o64/dist/shttplnx64.tgz ; do cp $$i /mnt/d/var/www/pre/ ; done
 	mv /mnt/d/shttps/httpd.exe /mnt/d/shttps/oldhttpd.exe
 	cp o/dist/httpd.exe /mnt/d/shttps/
 
@@ -651,36 +688,39 @@ SSLIDIR=z:\\home\\adv\\openssl\\include
 wo/libsec.o: wo/runssl.cpp
 	$(WINEGCC)  $(G)  $< -c -o $@ -I$(MGDIR)\\include -fno-implicit-templates -DSERVICE -DFREE_VER  -DFREEVER -DV_FULL=1 -DUSE_IPV6 -DMINGW -I$(SSLIDIR) -nodefaultlibs -nostartfiles
 
-SSLIDIR111=/home/adv/openssl-1.1.1m/include
+SSLIDIR111=/usr/src/openssl-1.1.1w/include
 
 wo/libsec111.o: runssl111.cpp
-	$(WINEGCC)  $(G)  $< -c -o $@ $(WINECFLG) -DOSSL111 -I$(MGDIR)\\include -fno-implicit-templates -DSERVICE -DFREE_VER  -DFREEVER -DV_FULL=1 -DUSE_IPV6 -DMINGW -I$(SSLIDIR111) -nodefaultlibs -nostartfiles
+	$(WINEGCC)  $(G)  $< -c -o $@ $(WINECFLG) -DOSSL111 -I$(MGDIR)/include -fno-implicit-templates -DSERVICE -DFREE_VER -DFREEVER -DV_FULL=1 -DUSE_IPV6 -I$(SSLIDIR111) -nodefaultlibs -nostartfiles
 
 SSLLIBDIR=z:\\home\\adv\\openssl\\lib
-SSLLIBDIR111=/home/adv/openssl-1.1.1m
+SSLLIBDIR111=/usr/src/openssl-1.1.1w
 
 
 wo/libsec.dll: wo/libsec.o
 	$(WINEGCC)  -s  $< -o $@  -shared  -nodefaultlibs -nostartfiles -L$(SSLLIBDIR) -lssl -lcrypto -L$(MGDIR)\\lib -luser32 -lkernel32 -lws2_32 -lgdi32 -lshell32 -lcomdlg32  -ladvapi32 -lmsvcrt_fix -lgcc -Wl,--entry=_DllMainCRTStartup  -Xlinker --heap  -Xlinker 0x20000000   -Wl,--stack -Wl,0x800000 -Wl,-Map -Wl,wo/dllmap -Wl,--subsystem,windows
 
 wo/libsec111.dll: wo/libsec111.o
+	$(WINEGCC)  -g  $< -o $@  -shared  -nodefaultlibs -nostartfiles -L$(SSLLIBDIR111) -Wl,-Bstatic -lssl -Wl,-Bstatic -lcrypto  -L$(MGDIR)/lib -luser32  -lws2_32 -lkernel32 -lgdi32 -lshell32 -lcomdlg32  -ladvapi32 -lmsvcrt -Wl,-Bstatic -lgcc -Wl,--entry=_DllMainCRTStartup -Wl,--heap -Xlinker 0x800000 -Wl,--stack -Wl,0x400000 -Wl,--subsystem,windows -Wl,-Map -Wl,wo/dllmap
+
+wo/libsec111dyn.dll: wo/libsec111.o
 	$(WINEGCC)  -g  $< -o $@  -shared  -nodefaultlibs -nostartfiles -L$(SSLLIBDIR111) -lssl -lcrypto -L$(MGDIR)/lib -luser32 -lkernel32 -lws2_32 -lgdi32 -lshell32 -lcomdlg32  -ladvapi32 -lgcc -Wl,--entry=_DllMainCRTStartup -Wl,--heap -Xlinker 0x800000 -Wl,--stack -Wl,0x400000 -Wl,--subsystem,windows -Wl,-Map -Wl,wo/dllmap
 
 wo/libsec.dll: /home/adv/openssl/lib/libssl.a /home/adv/openssl/lib/libcrypto.a
 
 
-GNUTSLIDIR=z:\\home\\adv\\gnutls\\include
+GNUTSLIDIR=/usr/src/gnutls-3.6.0-w32/lib
 
 
 wo/libsecgnutls.o: rungnutls.cpp
-	$(WINEGCC)  $(G)  $< -c -o $@ -I$(MGDIR)\\include -fno-implicit-templates -DSERVICE -DFREE_VER  -DFREEVER -DV_FULL=1 -DUSE_IPV6 -DMINGW -I$(GNUTSLIDIR) -nodefaultlibs -nostartfiles
+	$(WINEGCC)  $(G)  $< -c -o $@ -I$(MGDIR)/include -fno-implicit-templates -DSERVICE -DFREE_VER  -DFREEVER -DV_FULL=1 -DUSE_IPV6 -DMINGW -I$(GNUTSLIDIR)
 
 
-GNUTSLLIBDIR=z:\\home\\adv\\gnutls\\lib
+GNUTSLLIBDIR=/usr/src/gnutls-3.6.0-w32/lib
 
 
 wo/libsecgnutls.dll: wo/libsecgnutls.o
-	$(WINEGCC)  -s  $< -o $@  -shared  -nodefaultlibs -nostartfiles -L$(GNUTSLLIBDIR) -lgnutls -L$(MGDIR)\\lib -luser32 -lkernel32 -lws2_32 -lgdi32 -lshell32 -lcomdlg32  -ladvapi32 -Wl,--entry=_DllMainCRTStartup  -Wl,--heap -Wl,0x20000000 -Wl,--stack -Wl,0x800000 -Wl,-Map -Wl,wo/dllmap -Wl,--subsystem,windows
+	$(WINEGCC)  -s  $< -o $@  -shared  -nodefaultlibs -nostartfiles -L$(GNUTSLLIBDIR) -l:libgnutls.dll.a -L$(MGDIR)/lib -luser32 -lkernel32 -lws2_32 -lgdi32 -lshell32 -lcomdlg32  -ladvapi32 -Wl,--entry=_DllMainCRTStartup  -Wl,--heap -Wl,0x20000000 -Wl,--stack -Wl,0x800000 -Wl,-Map -Wl,wo/dllmap -Wl,--subsystem,windows
 
 
 clean:

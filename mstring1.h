@@ -111,7 +111,7 @@ void tsttfnc();
 
 #define  ENDCHK   "\n5: \n"
 
-#pragma GCC diagnostic ignored "-Wbuiltin-declaration-mismatch"
+//#pragma GCC diagnostic ignored "-Wbuiltin-declaration-mismatch"
 
 inline char *  memchr(const void *_s, int _c, size_t _n)
 {

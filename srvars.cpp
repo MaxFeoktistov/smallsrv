@@ -375,6 +375,7 @@ int keepalive_idle;
 
 #ifdef TLSVPN
 char *vpn_name="/$_vpn_$";
+char *vpncln_name="/$_vpn_$";
 #endif
 
 

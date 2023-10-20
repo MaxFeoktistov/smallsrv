@@ -53,9 +53,9 @@ int STDCALL SecSend  (SecConnection *s,char *bfr,int l); // This function
 int STDCALL SecClose (SecConnection *s );
 //This function release memory allocated for connection.
 
-void SetPriority(char *t); //This function Sets priorities for the ciphers, key exchange methods, and macs.
+void STDCALL SetPriority(char *t); //This function Sets priorities for the ciphers, key exchange methods, and macs.
 
-int SecConnect(OpenSSLConnection *s, int flags, char *verfyhost); // This function prepare client TLS connection
+int STDCALL SecConnect(OpenSSLConnection *s, int flags, char *verfyhost); // This function prepare client TLS connection
 // Flags:
 #define  tbtAnon    0x1            /* Don't use server sertificate */
 #define  tbtVerfyRequired 0x4      /* Verfy hostname */
@@ -65,7 +65,7 @@ int SecConnect(OpenSSLConnection *s, int flags, char *verfyhost); // This functi
 // verfyhost must be NULL if don't verfy, or name of remote host for verfication.
 // This function return 1 if success, 0 if fail.
 
-typedef int (*TSecUpdateCB)(OpenSSLConnection *s); // Function that must be call when address of caller object changed.
+int STDCALL SecUpdateCB(OpenSSLConnection *s); // Function that must be call when address of caller object changed.
 
 
 

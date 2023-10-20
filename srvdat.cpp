@@ -114,7 +114,7 @@ mrc_mnu  mnu2[]=
  {MF_GRAYED,347,"Reload host definition file" },
 #endif
 #ifdef SEPLOG
-   {MF_POPUP,10,"&Log to view"},
+   {MF_POPUP,11,"&Log to view"},
    {0,360,"&General/HTTP" },
    {0,361,"&Proxy" },
    {0,362,"&FTP" },
@@ -124,6 +124,7 @@ mrc_mnu  mnu2[]=
    {0,366,"HTTP.&err" },
    {0,367,"&DNS" },
    {0,369,"DH&CP" },
+   {0,360+VPN_LOG,"&VPN" },
 #endif
 
  {0,344,"&About" },

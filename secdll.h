@@ -2,7 +2,7 @@
  * Copyright (C) 1999-2020 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
- * Author: Maksim Feoktistov 
+ * Author: Maksim Feoktistov
  *
  *
  * Small HTTP server is free software: you can redistribute it and/or modify it
@@ -15,11 +15,11 @@
  * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see https://www.gnu.org/licenses/ 
+ * along with this program.  If not, see https://www.gnu.org/licenses/
  *
  * Contact addresses for Email:  support@smallsrv.com
  *
- * 
+ *
  */
 
 
@@ -33,6 +33,9 @@ typedef struct _SecConnection
  void *io,*ssl_bio,*sbio;
 } SecConnection;
 
+#ifndef  STDCALL
+#define STDCALL
+#endif
 
 int STDCALL InitLib(
    int  (* F_printf)(char *fmt,...), // Callback to printf like C printf
@@ -57,6 +60,18 @@ int STDCALL SecSend  (SecConnection *s,char *bfr,int l); // This function
 // Function return number of bytes placed to the bfr, 0 if connection closed, negative if error.
 int STDCALL SecClose (SecConnection *s );
 //This function release memory allocated for connection.
+
+int STDCALL SecConnect(OpenSSLConnection *s, int flags, char *verfyhost); // This function prepare client TLS connection
+// Flags:
+#define  tbtAnon    0x1            /* Don't use server sertificate */
+#define  tbtVerfyRequired 0x4      /* Verfy hostname */
+#define  tbtDontVerfyTyme 0x8      /* GNUTLS only. Don't verfy timestamp */
+#define  tbtDontVerfySigner 0x10   /* GNUTLS only. Don't verfy issuer */
+#define  tbtSSHstyleVerfy  0x20    /* GNUTLS only. SSH style. First time new host will be valid, and public key will be stored */
+// verfyhost must be NULL if don't verfy, or name of remote host for verfication.
+// This function return 1 if success, 0 if fail.
+
+int STDCALL SecUpdateCB(OpenSSLConnection *s); // Function that must be call when address of caller object changed.
 
 
 #endif

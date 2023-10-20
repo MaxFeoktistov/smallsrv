@@ -117,9 +117,21 @@ int PASCAL __WSAFDIsSet(int, fd_set *);
 #define  tbtDontVerfySigner 0x10
 #define  tbtSSHstyleVerfy  0x20
 
+//#define DEBUG_VERSION 1
+#ifdef DEBUG_VERSION
+
 #define DBGLS(a)  Fprintf("%s:%u:%s %s\r\n",__FILE__ , __LINE__, __func__, a);
 #define DBGL(a)   Fprintf("%s:%u:%s " a "\r\n",__FILE__ , __LINE__, __func__ );
 #define DBGLA(a,b...) Fprintf("%s:%u:%s " a "\r\n",__FILE__ , __LINE__, __func__, b );
+
+#else
+
+#define DBGLS(a)
+#define DBGL(a)
+#define DBGLA(a,b...)
+
+#endif
+
 
 
 #ifdef __cplusplus

@@ -2,7 +2,7 @@
  * Copyright (C) 1999-2020 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
- * Author: Maksim Feoktistov 
+ * Author: Maksim Feoktistov
  *
  *
  * Small HTTP server is free software: you can redistribute it and/or modify it
@@ -15,11 +15,11 @@
  * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see https://www.gnu.org/licenses/ 
+ * along with this program.  If not, see https://www.gnu.org/licenses/
  *
  * Contact addresses for Email:  support@smallsrv.com
  *
- * 
+ *
  */
 
 //as stpdta.s -o stpdta.o
@@ -38,6 +38,15 @@
 .globl _fe_lange
 .globl _fb_lnotes
 .globl _fe_lnotes
+.globl _fb_s1
+.globl _fb_s2
+.globl _fb_s3
+.globl _fe_s1
+.globl _fe_s2
+.globl _fe_s3
+
+.align 0
+
 /*.globl _fb_ipbase
 .globl _fe_ipbase*/
 _fb_uttp:
@@ -64,6 +73,23 @@ _fe_lnotes:
 _fb_lis:
 .include "licr.bin"
 _fe_lis:
+_fb_s1:
+.include "vpn_if_up.bin"
+_fe_s1:
+_fb_s2:
+.include "vpn_if_client_up.bin"
+_fe_s2:
+_fb_s3:
+.include "vpn_if_client_down.bin"
+_fe_s3:
+
+
+.globl _fb_s4
+.globl _fe_s4
+_fb_s4:
+.include "manifest.bin"
+_fe_s4:
+
 .long 0
 //.space  1024,0
 

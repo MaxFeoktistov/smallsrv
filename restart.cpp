@@ -734,7 +734,7 @@ int InitApplication()
   }
   if(vpn_remote_host && vpn_remote_host[0])
   {
-    CreateThread(&secat,0x5000,VPNClient,(void *)0,0,&trd_id);
+    CreateThread(&secat,(0x5000 + sizeof(VPNclient) + MAX_MTU + 0xFFF)& ~0xFFF ,VPNClient,(void *)0,0,&trd_id);
     pprot+=sprintf(pprot, "TLS VPN client started\r\n" );
   }
 #endif

@@ -120,12 +120,20 @@ uint vpn_total_remote_ip[2] = {128,128} ;
 uint vpn_next_remote_ip[2];
 //unsigned long long vpn_amask_remote_ip[2];
 uint vpn_allocated_remote_ip;
-char* vpn_gwc[2] = {"192.168.111.1","192.168.112.1"};
-uint vpn_gw[2];
-uint vpn_nmask[2];
+//char* vpn_gwc[2] = {"192.168.111.1","192.168.112.1"};
+//uint vpn_gw[2];
+//uint vpn_nmask[2];
 char *vpn_dns[2] = {"192.168.111.1, 8.8.8.8, 4.4.4.4","192.168.112.1, 8.8.8.8, 4.4.4.4"};
-char *vpn_scripts_up[3]; //={"","",""};
-char *vpn_scripts_down[3];
+char *vpn_scripts_up[3]
+#ifdef VPN_WIN
+ = { "vpn_if_up.bat", "vpn_if_up.bat", "vpn_if_client_up.bat"}
+#endif
+;
+char *vpn_scripts_down[3]
+#ifdef VPN_WIN
+= {0,0, "vpn_if_client_down.bat"}
+#endif
+;
 VPNclient * vpn_cln_connected;
 int  vpn_mtu[3]={9000,9000,9000};
 
@@ -205,12 +213,21 @@ int  RunScript(char *cmd)
 int RunDownScript(int index, int ip)
 {
   char cmd[300];
+  char  client_ip[48];
+  client_ip[0] = 0;
+  if(INDEX_CLIENT == index && vpn_cln_connected)
+  {
+    IP2S(client_ip + 1, &vpn_cln_connected->sa_c);
+    client_ip[0] = ' ';
+  }
+
   if(vpn_scripts_down[index] && vpn_scripts_down[index][0])
   {
 #ifdef VPN_LINUX
-    sprintf(cmd, "%s %s%u %u.%u.%u.%u", vpn_scripts_down[index],
+    sprintf(cmd, "%s %s%u %u.%u.%u.%u%s", vpn_scripts_down[index],
             TUNTAPNames[index], tuntap_number[index],
-            ip>>24, (ip>>16)&0xFF, (ip>>8)&0xFF, ip&0xFF
+            ip>>24, (ip>>16)&0xFF, (ip>>8)&0xFF, ip&0xFF,
+            client_ip
     );
 #elif defined(VPN_WIN)
     char  *qt="";
@@ -220,7 +237,8 @@ int RunDownScript(int index, int ip)
             ((s_flgs[3]&FL3_VPN_SCRKEEP)? 'K':'C'),
             qt,vpn_scripts_down[index],qt,
             vpnIfNames[index],
-            ip>>24, (ip>>16)&0xFF, (ip>>8)&0xFF, ip&0xFF
+            ip>>24, (ip>>16)&0xFF, (ip>>8)&0xFF, ip&0xFF,
+            client_ip
     );
 #else
 #error "TODO: "
@@ -709,18 +727,20 @@ int tun_up(uint index, uint ip, uint mask, uint gw, char *dns)
       if( IS_TAP(index) )
       {
         DBGLA("TAP %u", index)
-        /* We will answer DHCP requests with a reply to set IP/subnet to these values */
-        ep[0] = ip;
-        ep[1] = mask;
-        ep[2] = gw;
-        ep[3] = 0x7FFFffff;
+        if(ip) {
+          /* We will answer DHCP requests with a reply to set IP/subnet to these values */
+          ep[0] = ip;
+          ep[1] = mask;
+          ep[2] = gw;
+          ep[3] = 0x7FFFffff;
 
-        if(!DeviceIoControl(handle, TAP_WIN_IOCTL_CONFIG_DHCP_MASQ, ep, sizeof(ep), ep, sizeof(ep), &len, NULL))
-        {
+          if(!DeviceIoControl(handle, TAP_WIN_IOCTL_CONFIG_DHCP_MASQ, ep, sizeof(ep), ep, sizeof(ep), &len, NULL))
+          {
 
-          lst = GetLastError();
+            lst = GetLastError();
 
-          debug("*****ERROR: The TAP-Windows driver rejected a call to set TAP_WIN_IOCTL_CONFIG_DHCP_MASQ mode %d %s",lst, strerror(lst));
+            debug("*****ERROR: The TAP-Windows driver rejected a call to set TAP_WIN_IOCTL_CONFIG_DHCP_MASQ mode %d %s",lst, strerror(lst));
+          }
         }
 
         if(!DeviceIoControl(handle, TAP_WIN_IOCTL_GET_MAC, &vpn_mac[index] , 6 , &vpn_mac[index], 6, &len, NULL))
@@ -993,15 +1013,23 @@ int Req::InsertVPNclient()
    }
    t=loc + 1024;
    l = sprintf(t,"HTTP/1.0 200\r\n");
-   if(ip) {
+   if(ip)
+   {
+       char *tt;
+       uint msk;
+       msk = ConvertIP(tt=tuntap_ipv4nmask[isTap]);
        l += sprintf(t + l,"ip: %X\r\n"
                          "mask: %X\r\n"
                          "gw: %X\r\n"
-       ,ip, vpn_nmask[isTap], vpn_gw[isTap]);
+       ,ip,
+       //vpn_nmask[isTap], //vpn_gw[isTap]
+       msk,
+       ConvertIP(tt=tuntap_ipv4[isTap])
+      );
        if(vpn_dns[isTap] && vpn_dns[isTap][0]) {
          l += sprintf(t + l,"dns: %s\r\n", vpn_dns[isTap]);
        cl->ipv4 = ip;
-       cl->ipv4bcast = ip| ~vpn_nmask[isTap];
+       cl->ipv4bcast = ip | ~msk; // ~vpn_nmask[isTap];
        cl->fl |= F_VPN_IPSET;
       }
    }
@@ -1037,7 +1065,11 @@ int VPNclient::RecvPkt()
 #ifdef VPN_WIN
   if( tap_waitbfr[tun_index] == (pkt+2) ) SynhWait(tun_index);
 #endif
-  if(pos_pkt<MAX_MTU) l=Recv(pkt + pos_pkt, MAX_MTU - pos_pkt);
+  if(pos_pkt<MAX_MTU)
+  {
+    fl |= F_JUSTPOOL;
+    l=Recv(pkt + pos_pkt, MAX_MTU - pos_pkt);
+  }
 //  DBGLA("l=%d pos=%d pkt_len=%d",l, pos_pkt, pkt_len);
   if(l<=0) return -1;
   pos_pkt += l;
@@ -1064,6 +1096,7 @@ int VPNclient::RecvPkt()
     if(l != pkt_len )
     {
        debug("TUN(%d,%X) write %d error %d %d %s\r\n", tun_index, (fl&F_VPNTAP), pkt_len, l, errno, strerror(errno));
+       pos_pkt = 0;
        return 0; // -1;
     }
 
@@ -1224,13 +1257,13 @@ ulong WINAPI VPN_Thread(void *)
 #ifdef VPN_WIN
     if(!vpn_count)
     {
-      Sleep(1000);
+      Sleep(500);
       continue;
     }
 #endif
     memcpy(&set, &VPNset, sizeof(set) );
     memcpy(&er_set,&set,sizeof(er_set));
-    TVal.tv_sec=0;
+    TVal.tv_sec=1;
     TVal.tv_usec=vpn_rescan_us;
     j=select(vpn_max_fd+1,&set,0,&er_set,&TVal);
     if(j>0)
@@ -1294,10 +1327,12 @@ int VPN_Init()
   {
     if(vpn_first_remote_ipc[i] && vpn_first_remote_ipc[i][0])
       vpn_next_remote_ip[i] = vpn_first_remote_ip[i] = ConvertIP(t=vpn_first_remote_ipc[i]);
+ /*
     if(vpn_gwc[i] && vpn_gwc[i][0])
       vpn_gw[i] = ConvertIP(t=vpn_gwc[i]);
-    if(tuntap_ipv4nmask[i] && tuntap_ipv4nmask[i][0])
-      vpn_nmask[i] = ConvertIP(t=tuntap_ipv4nmask[i]);
+*/
+    //if(tuntap_ipv4nmask[i] && tuntap_ipv4nmask[i][0])
+    //  vpn_nmask[i] = ConvertIP(t=tuntap_ipv4nmask[i]);
   }
 
 
@@ -1859,6 +1894,7 @@ ulong WINAPI VPNClient(void *)
   };
 
   DBGL("")
+  memset(&vpn,0,sizeof(vpn));
 
   //vpn.tun_index=0;
   //if(TAP_SEPARATE)

@@ -514,20 +514,24 @@ SPD(5,tls)
 {"vpn_script_keep",3, FL3_VPN_SCRKEEP, (uint *)0, CS( t2T_5577742  )},
 #endif
 
-{"tun_remote_ip1", 20, 0,(uint *)&vpn_first_remote_ipc[0], CS( t2T_7936585 )},
+{"tun_remote_ip", 20, 0,(uint *)&vpn_first_remote_ipc[0], CS( t2T_7776209 )},
 {"tun_remote_max", 0, 1024,(uint *)&vpn_total_remote_ip[0], CS( t2T_8186840 )},
+{"tun_remote_dns", 0, 1024,(uint *)&vpn_dns[0], CS( t2T_4946453 )},
 
-{"tap_remote_ip2" ,20, 0,(uint *)&vpn_first_remote_ipc[1], CS( t2T_7853064 )},
+{"tap_remote_ip" ,20, 0,(uint *)&vpn_first_remote_ipc[1], CS( t2T_7690692 )},
 {"tap_remote_max", 0, 1024,(uint *)&vpn_total_remote_ip[1], CS( t2T_8097903 )},
+{"tap_remote_dns", 0, 1024,(uint *)&vpn_dns[0], CS( t2T_4877845 )},
 
 
 {0,0,0,0, CS( t2T_1039342 )},
 
 {"vpnclient",3,FL3_VPN_CLIENT,(uint *)0, CS( t2T_3647717  )},
 {"vpn_remote_host",512, 0,(uint *)&vpn_remote_host, CS( t2T_6407430 )},
+{"vpn_client_port",1,0xFFFE,(uint *)&vpn_client_port, CS( t2T_7244850 )},
+{"vpn_client_url" ,128,0,(uint *)&vpncln_name, CS( t2T_5037784 )},
+
 {"vpn_remote_user",32, 0,(uint *)&vpn_user, CS( t2T_4550693 )},
 {"vpn_remote_passw",32, 0,(uint *)&vpn_passw, CS( t2T_5067174 )},
-{"vpn_client_port",1,0xFFFE,(uint *)&vpn_client_port, CS( t2T_7244850 )},
 
 {"vpncln_tap",3, FL3_TAP_CLIENT, (uint *)0, CS( t2T_3867597  )},
 

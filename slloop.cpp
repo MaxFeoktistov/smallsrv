@@ -467,7 +467,7 @@ lbSkipCfg:
         MyLock(KeepAliveMutex);
         for(kk=0; kk<KeepAliveCount; kk++)
         {
-          if(KeepAliveList[kk]->flsrv[1] == k) FD_CLR(KeepAliveList[kk]->s,&set);
+          if( (KeepAliveList[kk]->flsrv[1] & MAX_SERV_MASK) == k) FD_CLR(KeepAliveList[kk]->s,&set);
         }
         MyUnlock(KeepAliveMutex);
       }

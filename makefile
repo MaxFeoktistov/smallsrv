@@ -233,7 +233,7 @@ i64f: $(FAKELIBS64) o64/of/httpd.exe o64/of/libsecgnutls.so o64/of/libsec111.so
 
 arm: at/atobjdir at/httpd.exe at/libsec111.so at/libsecgnutls.so
 
-win:  wo/http.exe wo/httpg.exe bin2s wo/shttps_mg.exe wo/shttpsr_mg.exe wo/shttps_mgi.exe wo/shttpsr_mgi.exe
+win:  wo/http.exe wo/httpg.exe bin2s wo/shttps_mg.exe wo/shttpsr_mg.exe wo/shttps_mgi.exe wo/shttpsr_mgi.exe wo/libsecgnutls.dll
 
 
 o/%.o :  %.cpp
@@ -339,7 +339,7 @@ o/1.x: /dev/shm/shttps/o/1.x
 	ln -sf /dev/shm/shttps/o64 .
 	ln -sf /dev/shm/shttps/wo .
 	ln -sf /dev/shm/shttps/arm .
-	mkdir -p  o/dist o/adist/ o64/dist o64/distu o/of o64/of
+	mkdir -p  o/dist o/distu o/adist/ o64/dist o64/distu o/of o64/of
 	mkdir -p  o/dist/langpacks/en o/adist/langpacks/en o64/dist/langpacks/en o64/distu/langpacks/en
 	mkdir -p  o/dist/langpacks/ru o/adist/langpacks/ru o64/dist/langpacks/ru o64/distu/langpacks/ru
 
@@ -406,16 +406,17 @@ wo/uninst.exe: wo/uninst.o
 	$(WINEGCC)  -s  $^ -o $@  -nodefaultlibs -L$(MGDIR)\\lib -luser32 -lkernel32 -lgdi32 -lcomdlg32 -ladvapi32 -lshell32 -Wl,--subsystem,windows -nostartfiles  -Xlinker -Map -Xlinker wo/flxmaps  -Xlinker --entry=_start  -nostartfiles -Xlinker -Map -Xlinker wo/flxmap  -Xlinker --entry=_start    -fno-optional-diags -momit-leaf-frame-pointer  -mno-red-zone -fno-exceptions  -fno-stack-protector -fno-ms-extensions -no-pie -fno-stack-check -mno-stack-arg-probe
 
 
-wo/stpdta.o: wo/stpdta.s wo/uninst.bin wo/http.bin wo/ind1.bin wo/eshs_lang.bin wo/shs_lang.bin wo/lnotes.bin wo/lic.bin
+
+wo/stpdta.o: wo/stpdta.s wo/uninst.bin wo/http.bin wo/ind1.bin wo/eshs_lang.bin wo/shs_lang.bin wo/lnotes.bin wo/lic.bin wo/vpn_if_up.bin wo/vpn_if_client_up.bin wo/vpn_if_client_down.bin wo/manifest.bin
 	 cd wo ;  $(WINEAS)  stpdta.s -o stpdta.o
 
-wo/stpdtar.o: wo/stpdtar.s wo/uninst.bin wo/http.bin wo/ind1r.bin wo/eshs_lang.bin wo/shs_lang.bin wo/lnotes.bin wo/licr.bin
+wo/stpdtar.o: wo/stpdtar.s wo/uninst.bin wo/http.bin wo/ind1r.bin wo/eshs_lang.bin wo/shs_lang.bin wo/lnotes.bin wo/licr.bin wo/vpn_if_up.bin wo/vpn_if_client_up.bin wo/vpn_if_client_down.bin wo/manifest.bin
 	 cd wo ;  $(WINEAS)  stpdtar.s -o stpdtar.o
 
-wo/stpdtai.o: wo/stpdtai.s wo/uninst.bin wo/http.bin wo/ind1.bin wo/eshs_lang.bin wo/shs_lang.bin wo/lnotes.bin wo/lic.bin wo/ipbase.s
+wo/stpdtai.o: wo/stpdtai.s wo/uninst.bin wo/http.bin wo/ind1.bin wo/eshs_lang.bin wo/shs_lang.bin wo/lnotes.bin wo/lic.bin wo/ipbase.s wo/vpn_if_up.bin wo/vpn_if_client_up.bin wo/vpn_if_client_down.bin wo/manifest.bin
 	 cd wo ;  $(WINEAS)  stpdtai.s -o stpdtai.o
 
-wo/stpdtari.o: wo/stpdtari.s wo/uninst.bin wo/http.bin wo/ind1r.bin wo/eshs_lang.bin wo/shs_lang.bin wo/lnotes.bin wo/licr.bin wo/ipbase.s
+wo/stpdtari.o: wo/stpdtari.s wo/uninst.bin wo/http.bin wo/ind1r.bin wo/eshs_lang.bin wo/shs_lang.bin wo/lnotes.bin wo/licr.bin wo/ipbase.s wo/vpn_if_up.bin wo/vpn_if_client_up.bin wo/vpn_if_client_down.bin wo/manifest.bin
 	 cd wo ;  $(WINEAS)  stpdtari.s -o stpdtari.o
 
 wo/stpdta.s: stpdta.s
@@ -437,6 +438,12 @@ wo/%.bin:  wo/%.exe
 # 	$(WINEBIN2S)  $< $@
 
 wo/ind1.bin:  desc.htm
+	$(WINEBIN2S)  $< $@
+
+wo/manifest.bin: http.exe.manifest
+	$(WINEBIN2S)  $< $@
+
+wo/%.bin: script_examples/%.bat
 	$(WINEBIN2S)  $< $@
 
 wo/ind1r.bin:  descr.htm
@@ -551,6 +558,21 @@ o64/distu/libsecgnutls.so: o64/libsecgnutls.so
 o/dist/descu.htm o/adist/descu.htm o64/dist/descu.htm o64/distu/descu.htm: descu.htm
 	cp -f $^ $@
 
+o/dist/%.sh: script_examples/%.sh
+	cp -f $^ $@
+
+o/distu/%.sh: script_examples/%.sh
+	cp -f $^ $@
+
+o/adist/%.sh: script_examples/%.sh
+	cp -f $^ $@
+
+o64/dist/%.sh: script_examples/%.sh
+	cp -f $^ $@
+
+o64/distu/%.sh: script_examples/%.sh
+	cp -f $^ $@
+
 o/dist/license06.txt o/adist/license06.txt o64/dist/license06.txt o64/distu/license06.txt: license06.txt
 	cp -f $^ $@
 
@@ -569,7 +591,14 @@ ru/shs_lang.cfg : lS1_lf.cfg
 
 # dist:   o/dist/libsec.so o/dist/libsec111.so o/dist/license06.txt o/adist/license06.txt o/dist/libsecgnutls.so o/dist/langpacks/ru/shs_lang.cfg o/dist/langpacks/en/shs_lang.cfg o/dist/descu.htm o/adist/
 
-dist:   o/dist/license06.txt o/adist/license06.txt o/dist/langpacks/ru/shs_lang.cfg o/dist/langpacks/en/shs_lang.cfg o/dist/descu.htm o/adist/descu.htm o/dist/notes.ssl o/adist/notes.ssl o64/dist/notes.ssl o64/distu/notes.ssl  o/dist/libsec111.so o/distu/libsec111.so  o/distu/libsecgnutls.so  o/adist/libsec111.so  o/adist/libsecgnutls.so dist64
+SCRIPTS=vpn_if_client_down.sh vpn_if_client_up.sh vpn_if_up.sh descu.htm httpd.cfg  lang_notes.txt libsec111.so license.ssl sndmsg notes.ssl libsecgnutls.so  license06.txt notes.ssl
+OSCRIPTS=$(addprefix o/dist/,$(SCRIPTS))
+OUSCRIPTS=$(addprefix o/distu/,$(SCRIPTS))
+ASCRIPTS=$(addprefix o/adist/,$(SCRIPTS))
+O64SCRIPTS=$(addprefix o64/dist/,$(SCRIPTS))
+O64USCRIPTS=$(addprefix o64/distu/,$(SCRIPTS))
+
+dist:   o/dist/license06.txt o/adist/license06.txt o/dist/langpacks/ru/shs_lang.cfg o/dist/langpacks/en/shs_lang.cfg $(OSCRIPTS) $(OUSCRIPTS) $(ASCRIPTS) dist64
 	cp o/of/httpd.exe o/dist/
 	cd o/dist/ ; strip httpd.exe ; chmod -R go-w,u+rw,a+X * ; chmod  0755 httpd.exe *.so  sndmsg ; chmod  0600 httpd.cfg ;  rm -f shttplnx.tgz ; tar --owner=root --group=root -czf shttplnx.tgz * ; chmod 0644 shttplnx.tgz
 	cp at/httpd.exe o/adist/
@@ -580,7 +609,7 @@ dist:   o/dist/license06.txt o/adist/license06.txt o/dist/langpacks/ru/shs_lang.
 #dist64: o64/dist/libsec.so o64/dist/libsec111.so o64/dist/libsecgnutls.so o64/distu/libsec.so o64/distu/libsecgnutls.so o64/dist/langpacks/ru/shs_lang.cfg o64/dist/langpacks/en/shs_lang.cfg
 
 
-dist64: o64/dist/langpacks/ru/shs_lang.cfg o64/dist/langpacks/en/shs_lang.cfg o64/dist/libsec111.so o64/dist/libsecgnutls.so o64/distu/langpacks/ru/shs_lang.cfg o64/distu/langpacks/en/shs_lang.cfg o64/distu/libsec111.so o64/distu/libsecgnutls.so
+dist64: o64/dist/langpacks/ru/shs_lang.cfg o64/dist/langpacks/en/shs_lang.cfg o64/dist/libsec111.so o64/dist/libsecgnutls.so o64/distu/langpacks/ru/shs_lang.cfg o64/distu/langpacks/en/shs_lang.cfg o64/distu/libsec111.so o64/distu/libsecgnutls.so $(O64SCRIPTS) $(O64USCRIPTS)
 	cp o64/of/httpd.exe o64/dist/
 	cd o64/dist/ ; strip httpd.exe ; chmod -R go-w,u+rw,a+X * ; chmod  0755 httpd.exe *.so  sndmsg ; chmod  0600 httpd.cfg ;  rm -f shttplnx64.tgz ; tar --owner=root --group=root -czf shttplnx64.tgz * ; chmod a+rw shttplnx64.tgz
 	cp o64/httpd.exe o64/distu/httpd.exe
@@ -639,6 +668,40 @@ o64/distu/langpacks/en/shs_lang.cfg: en/shs_lang.cfg
 	cp -f $< $@
 
 o64/distu/langpacks/ru/shs_lang.cfg: ru/shs_lang.cfg
+	cp -f $< $@
+
+o%/license.ssl: lbins/license.ssl
+	cp -f $< $@
+
+
+%/license06.txt: license06.txt
+	cp -f $< $@
+
+%/notes.ssl: notes.ssl
+	cp -f $< $@
+
+%/descu.htm: descu.htm
+	cp -f $< $@
+
+%/lang_notes.txt: lang_notes.txt
+	cp -f $< $@
+
+o%/httpd.cfg: lbins/httpd.cfg
+	cp -f $< $@
+
+o64/distu/sndmsg: lbins/o64u/sndmsg
+	cp -f $< $@
+
+o64/dist/sndmsg: lbins/o64/sndmsg
+	cp -f $< $@
+
+o/dist/sndmsg: lbins/o/sndmsg
+	cp -f $< $@
+
+o/distu/sndmsg: lbins/u/sndmsg
+	cp -f $< $@
+
+o/adist/sndmsg: lbins/arm/sndmsg
 	cp -f $< $@
 
 o/libsec.so: runssl.cpp

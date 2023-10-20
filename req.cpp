@@ -2,7 +2,7 @@
  * Copyright (C) 1999-2023 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
- * Author: Maksim Feoktistov 
+ * Author: Maksim Feoktistov
  *
  *
  * Small HTTP server is free software: you can redistribute it and/or modify it
@@ -15,11 +15,11 @@
  * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see https://www.gnu.org/licenses/ 
+ * along with this program.  If not, see https://www.gnu.org/licenses/
  *
  * Contact addresses for Email:  support@smallsrv.com
  *
- * 
+ *
  */
 
 
@@ -61,7 +61,7 @@ char* ConvertUtf(char *s,ushort *w)
    {
      if( (*t&0xE0)==0xC0 )
      {
-       t++;  
+       t++;
        if((*t&0xC0)!=0xC0) return 0;
        ++r;
        ++t;
@@ -69,10 +69,10 @@ char* ConvertUtf(char *s,ushort *w)
      else if( (*t&0xE0)>=0x80 )return 0;
    }
    if(!r)return 0;
-   
+
    if(w)
    {
-     utf2unicode((uchar *)s,w);  
+     utf2unicode((uchar *)s,w);
    }
 
     for(p=t=(uchar *)s; *t ;  )
@@ -95,13 +95,13 @@ char* ConvertUtf(char *s,ushort *w)
   return (char*)p;
 }
 */
-#undef FindFirstFile    
-#undef _lopen           
+#undef FindFirstFile
+#undef _lopen
 #undef GetFileAttributes
-#undef FindNextFile     
+#undef FindNextFile
 
 #define   FindFirstFile        FindFirstFile_UTF
-#define   _lopen               lopen_UTF 
+#define   _lopen               lopen_UTF
 #define   GetFileAttributes   GetFileAttributes_UTF
 #define   FindNextFile        FindNextFile_UTF
 
@@ -216,14 +216,14 @@ int Req::HttpReq()
  int l,i,h,ii,xgz,ll,ncntn,proxy_flg;
  ulong ttm=0,tick;
  int head;
-#ifndef SYSUNIX 
-union{ 
-#endif    
+#ifndef SYSUNIX
+union{
+#endif
  WIN32_FIND_DATA fd;
-#ifndef SYSUNIX 
+#ifndef SYSUNIX
  WIN32_FIND_DATAW fdw;
 };
-#endif    
+#endif
  SYSTEMTIME tm;
  HANDLE hf;
  union{host_dir *a; ulong  ul;};
@@ -247,7 +247,7 @@ union{
 
 
  LimitBase *lipo,*lneto;
- proxy_flg=((fl>>16)%9)==1; /*F_PROXY*/
+ proxy_flg=((fl>>16)%9 )==1; /*F_PROXY*/
  if(  FndLimit(ncntn=(proxy_flg?2:7) ,&lipo,&lneto,&sa_c ) )
  {
    HttpReturnError("Limit overflow");
@@ -311,9 +311,9 @@ lbxx:
 
  sprintf(inf,"%.94s",in_buf+((in_buf[8]==':')?11:4));
 
- 
+
  tp1=inf+1;
- 
+
  if( DWORD_PTR(*in_buf)==0x4E4E4F43  // x4CHAR("CONN")
                ) {tp1+=4; h=4; }
  else  if( DWORD_PTR(in_buf[0]) == 0x20544547 x4CHAR("GET ") ) h=4;
@@ -465,7 +465,7 @@ bdreq:
  if( strin(in_buf+dirlen,"/$_ip2country_$" ) && (s_flgs[2]&FL2_IPCONTRY)  )
  {
   IP2country();
-  goto ex2b;  
+  goto ex2b;
  }
  if(  (s_flgs[2]&FL2_DOH) && doh_w>0 && ! strcmp(in_buf+dirlen,"/dns-query" )  )
  {
@@ -481,30 +481,30 @@ bdreq:
   t=(char *) this;
   _hwrite(doh_w,(char *)&t,sizeof(t));
     while(!dirlen)
-    {    
+    {
 #ifdef USE_FUTEX
-     futex((int *)&dirlen,FUTEX_WAIT,0,&timeout_30s,0,0);  
-#else      
-     Sleep(50); 
-#endif       
-    }  
+     futex((int *)&dirlen,FUTEX_WAIT,0,&timeout_30s,0,0);
+#else
+     Sleep(50);
+#endif
+    }
 //    debug("DoH ready %d",dirlen);
     if(dirlen>0)
     {
         t=out_buf+1024;
-        Send(t,sprintf(t,  
+        Send(t,sprintf(t,
   "HTTP/1.0 200 Ok\r\n"
   "Content-Length: %u\r\n"
   //"Cache-control: max-age=%u\r\n"
   "Content-Type: application/dns-message\r\n\r\n", dirlen
-                 )); 
-       Send(pst,dirlen); 
+                 ));
+       Send(pst,dirlen);
     }
     else
     {
-      HttpReturnError("Resolving error");  
-    }    
-    goto ex2b;  
+      HttpReturnError("Resolving error");
+    }
+    goto ex2b;
  }
 #ifdef TLSVPN
  if( ( s_flgs[3] & (FL3_VPN_TUN|FL3_VPN_TAP) ) && Snd == &TLSSend && strin(in_buf+dirlen, vpn_name )  ) {
@@ -526,12 +526,12 @@ bdreq:
 #ifdef WITHMD5
 //    if(  ( (s_flgs[2] & FL2_MD5PASS) || ! (s_flgs[1]&FL1_CRYPTPWD) ) &&  (s_flgs[2] & FL2_USEMD5D) && !(fl&F_DIGET_UNAVILABLE)  )
 //    {
-       SendDigestAuthReq(in_buf); 
+       SendDigestAuthReq(in_buf);
 //    }
 #else
      send(s,AuthErr,    strlen(AuthErr)  //sizeof(AuthErr)-1
               ,0);
-#endif      
+#endif
    goto ex2b;
   }
   dir=a->d;
@@ -565,8 +565,8 @@ bdreq:
      }
      l+=ll;
     // debug("req=|%s| p=|%s| %u %u",req,p+1,l,ll);
-    }    
-      
+    }
+
   }
   p+=sprintf(templ=p,"%.63s",def_name);}
 lcnt_trn:
@@ -601,9 +601,9 @@ lcnt_trn:
       (fd.dwFileAttributes&FILE_ATTRIBUTE_SYSTEM)
   )tpp=(char *)1;
 #endif
-  
+
   ii=9;
-  
+
   if(fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
   {for(p=in_buf;*p;p++)if(*p=='\\')*p='/';
    WORD_PTR(*p)='/';
@@ -618,9 +618,9 @@ lcnt_trn:
    if(t[2]>='a')h&=~0x200000;
    if(t[3]>='a')h&=~0x20000000;
    if(xgz && (stristr(NoGZSuf,t))) {xgz=0; fl&=~F_GZ; }
-   for(ii=0;ext_types[ii];ii++)if(h==ext_types[ii]) //goto lbExtFound; 
+   for(ii=0;ext_types[ii];ii++)if(h==ext_types[ii]) //goto lbExtFound;
      break;
-  // ii=9; 
+  // ii=9;
   // lbExtFound:
    if(
 #if defined(SYSUNIX) && !defined(CD_VER)
@@ -642,7 +642,7 @@ lcnt_trn:
      send(s,in_buf,sprintf(in_buf,"HTTP/1.0 %u Ok\r\nContent-Type: text/html\r\n"
      "%s\r\n"
      "\r\n",(loc!=error_file)?200:404,header),0) ;
-//! remove next line     
+//! remove next line
 //    debug("SSI HEAD");
     }
     else
@@ -656,7 +656,7 @@ lcnt_trn:
 //#if !defined(SYSUNIX) || defined(CD_VER)
    if( h==0x4D54502E x4CHAR(".PTM") || h==0x5448502E x4CHAR(".PHT") || h==0x5048502E x4CHAR(".PHP")  )
    {
-       fl|=F_PHP; 
+       fl|=F_PHP;
        goto lcgi;
    }
 //#endif
@@ -679,13 +679,13 @@ lcgi:
    fileStat=&(fd.st);
 #endif
   // debug("CGI: %X %X h=%X\n", (fl&F_PHP), (s_flgs[3] & FL3_FCGI_PHP), h);
-   if((fl&F_PHP) && (s_flgs[3] & FL3_FCGI_PHP) && phtml_dir) 
+   if((fl&F_PHP) && (s_flgs[3] & FL3_FCGI_PHP) && phtml_dir)
    {
       CallFCGI(phtml_dir);
    }
-   else if( 
-#if defined(SYSUNIX) 
-    ( fcgi_group && (fd.st.st_gid == fcgi_group) ) || 
+   else if(
+#if defined(SYSUNIX)
+    ( fcgi_group && (fd.st.st_gid == fcgi_group) ) ||
 #endif
         (fcgi_detect && fcgi_detect[0] &&
      stristr(in_buf, fcgi_detect) != 0  ) )
@@ -695,11 +695,11 @@ lcgi:
    else
      ExecCGI();
    if(CheckEndChunked() > 0) goto ex1;
-   
+
    goto ex2a;
   };
 
-  DBGL(" just file"); 
+  DBGL(" just file");
 
   FileTimeToSystemTime(& (fd.ftLastWriteTime),&tm);
   if( (tpp=GetVar(http_var,"If_modified_since")) )
@@ -715,19 +715,19 @@ lcgi:
    else
    {
      DBGLA("Modified! %s != %s\r\n", tpp,p ); // ******
-       
+
    }
   }
   else { DBGL("not found If_modified_since"); } //********
   tpp=tipes[ii];
   if( (ii>=9) && mime && t && t[1] )
   {
-    /*  
+    /*
     if(in_buf==error_file)
     {
        in_buf=xin_buf;
        strcpy(in_buf,error_file);
-    }    
+    }
     */
     DWORD_PTR(* (tpp=in_buf+16384) ) = DWORD_PTR(*t);
    tpp[4]=0;
@@ -743,7 +743,7 @@ lcgi:
   {if(templ)
    {
    lbTmpl:
-    if( (s_flg&FL_NODIR) // && user_name==(about+sizeof(ABOUT_STR)+14) 
+    if( (s_flg&FL_NODIR) // && user_name==(about+sizeof(ABOUT_STR)+14)
       )goto lbe1;
     DWORD_PTR(*templ)='*';
 
@@ -796,7 +796,7 @@ lcgi:
 
  if((h=_lopen(in_buf,0))<0)
  {lbe1:;
-  if( //in_buf!=error_file && 
+  if( //in_buf!=error_file &&
       loc !=error_file )
   {if( (h=strlen(in_buf)) > 800){ DWORD_PTR(in_buf[800])=0x2E2E; h=802; }
    sprintf(in_buf+h,"(%s)\r\nError. File not found.\r\n",a?a->h:"Undefined/default");
@@ -810,7 +810,7 @@ lcgi:
       AddToLog(in_buf+dirlen,s);
     }
     else
-    {    
+    {
      trn=in_buf;
      AddToLog(req=in_buf+dirlen,s);
     }
@@ -821,7 +821,7 @@ lcgi:
     in_buf=xin_buf;
     strcpy(in_buf,error_file);
 
-    
+
     goto lcnt_trn;
    }
   }
@@ -935,12 +935,12 @@ lcgi:
    DBGL("KeepAlive not avilablie\n");
    fl &= ~F_KEEP_ALIVE;
    break;
- }  
+ }
  //DBGL("KeepAlive try avilablie\n");
  if(KeepAliveList)
  {
    DBGL("KeepAlive enable\n");
-   
+
    // Wait 0.5 .. 1.5s for next request
    ii=RESelect(0,500000,1,s);
    if(!ii) {
@@ -951,12 +951,12 @@ lcgi:
    }
  }
  else
- {  
+ {
    i=20;
    if( proxy_flg /*fl&F_PROXY */) i=3;
    do{if(--i<=0 || !(waited[(fl>>16)&1]) )goto ex3;}while(!(ii=RESelect(0,300000,1,s)));
  }
- 
+
 }while(ii>0);
 ex3:
 ex2:
@@ -972,7 +972,7 @@ ex2:
  else{
 ex2a:
   GZEnd();
-ex3a:  
+ex3a:
   if(!ttm)ttm+=GetTickCount()-tick;
   sprintf(xin_buf,"HTTP  in:%u out:%u %s Time:%u\r\n",Tin,Tout,(a && a->h) ?a->h:"",ttm);
 
@@ -996,15 +996,15 @@ ex2b:
 //#undef debug
 int nonceCounter,nonceFirst,tempKey;
 int Req::SendDigestAuthReq(char *bfr){
- ulong opaque;   
+ ulong opaque;
  char nonce[64];
  char ipv6[40];
  int is_proxy;
- 
+
  if(  ( (s_flgs[1]&FL1_CRYPTPWD) && !(s_flgs[2] & FL2_MD5PASS) ) || (fl&F_DIGET_UNAVILABLE)  || ! (s_flgs[2] & FL2_USEMD5D)   )
  {
      DBGLA("Digest unavilable (%X && %X) || %X || %X", (s_flgs[1]&FL1_CRYPTPWD),  !(s_flgs[2] & FL2_MD5PASS) ,  (fl&F_DIGET_UNAVILABLE)  , ! (s_flgs[2] & FL2_USEMD5D) )
-     return Send(AuthErr, strlen(AuthErr)  ) ; //sizeof(AuthErr)-1); 
+     return Send(AuthErr, strlen(AuthErr)  ) ; //sizeof(AuthErr)-1);
  }
  if(!tempKey)
  {
@@ -1016,70 +1016,70 @@ int Req::SendDigestAuthReq(char *bfr){
    Sleep(1);
 #endif
      tempKey=Rnd();
- }    
+ }
  nonceCounter++;
- 
+
  DWORD_PTR(ipv6[0])='n';
  opaque=sa_c.sin_addr. S_ADDR;
 #ifdef USE_IPV6
  if(sa_c.sin_family==AF_INET6)
  {
-   sprintf(ipv6,"i%Xg%Xh%Xm%Xx",sa_c6.sin6_addr.s6_addr32[0],sa_c6.sin6_addr.s6_addr32[1],sa_c6.sin6_addr.s6_addr32[2],sa_c6.sin6_addr.s6_addr32[3]); 
+   sprintf(ipv6,"i%Xg%Xh%Xm%Xx",sa_c6.sin6_addr.s6_addr32[0],sa_c6.sin6_addr.s6_addr32[1],sa_c6.sin6_addr.s6_addr32[2],sa_c6.sin6_addr.s6_addr32[3]);
    if(sa_c6.sin6_addr.s6_addr32[2]==0xFFFF0000)opaque=sa_c6.sin6_addr.s6_addr32[3];
  }
-#endif 
+#endif
  sprintf(nonce,"%8.8X%8.8X%s%Xr%X",
-         tempKey,opaque, //sa_c.sin_addr. S_ADDR, 
+         tempKey,opaque, //sa_c.sin_addr. S_ADDR,
            ipv6 ,nonceCounter,Rnd()
  );
- opaque=MkName(nonce); 
- 
+ opaque=MkName(nonce);
+
  is_proxy=((fl>>16)%9)==1;
- return 
+ return
  //int r=
- Send(bfr,sprintf(bfr,  
-  "HTTP/1.0 40%u Unauthorized" CRLF  
-  "%s-Authenticate: Digest realm=\"%s\","   
+ Send(bfr,sprintf(bfr,
+  "HTTP/1.0 40%u Unauthorized" CRLF
+  "%s-Authenticate: Digest realm=\"%s\","
 //  " qop=\"auth\","
   "%s"
-  " nonce=\"%s\","    
-  " opaque=\"%X\""    CRLF 
-  "Content-Type: text/html" CRLF  
-   CRLF  
+  " nonce=\"%s\","
+  " opaque=\"%X\""    CRLF
+  "Content-Type: text/html" CRLF
+   CRLF
   "<h1>Authorization request\r\n", is_proxy?7:1  ,  is_proxy?"Proxy":"WWW" ,realm,(FL2_PARANOIDMD5 & s_flgs[2]  )?" qop=\"auth\",":"", nonce+8,opaque
                  ));
- 
+
  // debug(bfr);
  // return r;
-}; 
+};
 int Req::CheckNonce(char *nonce,char *opaque)
 {
  char nonce2[64];
  char ipv6[40];
  char *p;
 #ifdef USE_IPV6
- uint l;   
+ uint l;
  p=nonce+9;
  if(sa_c.sin_family==AF_INET6)
  {
-   l=sprintf(ipv6,"i%Xg%Xh%Xm%Xx",sa_c6.sin6_addr.s6_addr32[0],sa_c6.sin6_addr.s6_addr32[1],sa_c6.sin6_addr.s6_addr32[2],sa_c6.sin6_addr.s6_addr32[3]);  
+   l=sprintf(ipv6,"i%Xg%Xh%Xm%Xx",sa_c6.sin6_addr.s6_addr32[0],sa_c6.sin6_addr.s6_addr32[1],sa_c6.sin6_addr.s6_addr32[2],sa_c6.sin6_addr.s6_addr32[3]);
    if(! (p=strstr(nonce,ipv6)))return 0;
    p +=l;
  }
  else
-#endif 
-   if(strtoul(nonce,0,16)!=sa_c.sin_addr. S_ADDR) 
+#endif
+   if(strtoul(nonce,0,16)!=sa_c.sin_addr. S_ADDR)
    {
        debug("Bad nonce IP");
 
-       return 0;   
-   }   
-   
+       return 0;
+   }
+
  sprintf(nonce2,"%8.8X%s",tempKey,nonce);
  if(MkName(nonce2)!= strtoul(opaque,0,16) )
  {
      debug("Bad nonce 2");
-     
+
      return 0;
  }
  l=strtoul(p,&p,16);
@@ -1087,35 +1087,35 @@ int Req::CheckNonce(char *nonce,char *opaque)
  {
      debug("Bad nonce 3");
      return 0;
- }   
+ }
  if( (nonceCounter>=nonceFirst) ?
        l>=nonceFirst && l<=nonceCounter :
-       l>=nonceFirst || l<=nonceCounter 
+       l>=nonceFirst || l<=nonceCounter
    )
   {
 //      debug("Ok nonce");
-      
+
      return 1;
-  }   
+  }
 
  debug("Bad nonce 4");
  return 0;
 };
 
-#endif 
+#endif
 
 #undef send
 #undef recv
 
 #ifndef SYSUNIX
 
-#undef   _lopen            
+#undef   _lopen
 #undef   GetFileAttributes
-#undef   FindFirstFile  
-#undef   FindNextFile     
+#undef   FindFirstFile
+#undef   FindNextFile
 
 #define   FindNextFile        FindNextFileA
-#define   _lopen              lopen           
+#define   _lopen              lopen
 #define   GetFileAttributes   GetFileAttributesA
 #define   FindFirstFile       FindFirstFileA
 

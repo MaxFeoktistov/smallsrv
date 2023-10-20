@@ -2,7 +2,7 @@
  * Copyright (C) 1999-2020 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
- * Author: Maksim Feoktistov 
+ * Author: Maksim Feoktistov
  *
  *
  * Small HTTP server is free software: you can redistribute it and/or modify it
@@ -15,11 +15,11 @@
  * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see https://www.gnu.org/licenses/ 
+ * along with this program.  If not, see https://www.gnu.org/licenses/
  *
  * Contact addresses for Email:  support@smallsrv.com
  *
- * 
+ *
  */
 
 
@@ -29,7 +29,7 @@
 #define __CRT__NO_INLINE 1
 #endif
 
-#ifdef  DJGPP 
+#ifdef  DJGPP
 typedef void* HKEY;
 #else
 
@@ -43,7 +43,7 @@ typedef void* HKEY;
 #pragma GCC diagnostic ignored "-Wnarrowing"
 #pragma GCC diagnostic ignored "-Wliteral-suffix"
 
-#endif 
+#endif
 #include <sys/types.h>
 #include <ctype.h>
 
@@ -71,7 +71,11 @@ typedef void* HKEY;
 extern "C" char  fb_ind[10],fb_lis[10],fb_lisrus[10],fe_ind[10],fe_lis[10],fe_lisrus[10],fb_http[10],fe_http[10],fb_uttp[10],fe_uttp[10],*end,fb_lang[10],fe_lang[10],
 fb_lange[10],fe_lange[10],
 fb_ipbase[10],fe_ipbase[10],
-fb_lnotes[10],fe_lnotes[10]
+fb_lnotes[10],fe_lnotes[10],
+fb_s1[10],fe_s1[10],
+fb_s2[10],fe_s2[10],
+fb_s3[10],fe_s3[10],
+fb_s4[10],fe_s4[10]
 ;
 char *easyfl[]=
 {
@@ -80,6 +84,10 @@ char *easyfl[]=
  "desc.htm",fb_ind,fe_ind,
  "license.txt",fb_lis,fe_lis,
  "lang_notes.txt",fb_lnotes,fe_lnotes,
+ "vpn_if_up.bat",fb_s1,fe_s1,
+ "vpn_if_client_up.bat",fb_s2,fe_s2,
+ "vpn_if_client_down.bat",fb_s3,fe_s3,
+ "http.exe.manifest",fb_s4,fe_s4,
 #ifdef RUS
   "shs_lang.cfg",fb_lang,fe_lang,
 #endif
@@ -109,9 +117,9 @@ HWND  mwnd;
 #ifdef SERVICE
 SC_HANDLE  sch;
 #ifndef MINGW
-HANDLE 
+HANDLE
 #else
-SC_HANDLE  
+SC_HANDLE
 #endif
   hs;
 
@@ -218,11 +226,11 @@ FILETIME CreationTime;
 
 
 #ifdef MINGW
-extern "C" { 
+extern "C" {
 //int WINAPI WinMain( HINSTANCE hinst, HANDLE prev_inst, LPSTR cmline, int cmdshow );
 void start()
 {
- 
+
   ExitProcess(WinMain(GetModuleHandle(NULL) ,// hinstanse,
                        0,
                       GetCommandLine() //cmdline
@@ -286,22 +294,22 @@ long CALLBACK  dlgFnc(HWND hwnd, UINT msg,UINT wparam, LONG lparam)
     if((i=strlen(target))>3)
     {strcpy(target+i,"\\http.exe");
      if(hs){ControlService(hs,SERVICE_CONTROL_STOP,&SerStat); DeleteService(hs);} DeleteFile(target);
-/*     
+/*
      strcpy(target+i,"\\http.cfg"); DeleteFile(target);
      strcpy(target+i,"\\desc.htm"); DeleteFile(target);
      strcpy(target+i,"\\license.txt");DeleteFile(target);
-*/     
+*/
      for(t=easyfl;*t;t+=3)
      {
-       sprintf(target+i,"\\%s",*t);    
+       sprintf(target+i,"\\%s",*t);
         DeleteFile(target);
      }
 
      for(t=ddirs;*t;t++)
      {
-       sprintf(target+i,"\\%s",*t);    
+       sprintf(target+i,"\\%s",*t);
        RemoveDirectory(target);
-     }  
+     }
      target[i]=0;
      RemoveDirectory(target);
     }
@@ -332,7 +340,7 @@ long CALLBACK  dlgFnc(HWND hwnd, UINT msg,UINT wparam, LONG lparam)
      CreateDirectory("langpacks",0);
      CreateDirectory("langpacks\\ru",0);
      CreateDirectory("langpacks\\en",0);
-     
+
      for(m=fb_uttp;m<fe_uttp;++m)
       if( DWORD_PTR(*m)==0x4D4D4D4D && DWORD_PTR(m[4])==0x46464646)
       {sprintf(m+8,"%s\\",target);
@@ -348,7 +356,11 @@ long CALLBACK  dlgFnc(HWND hwnd, UINT msg,UINT wparam, LONG lparam)
        "Невозможно создать файл\nВероятно предыдущая версия сейчас используется?\nЗакройте и попробуйте снова. "
 #endif
        ,t[0],MB_RETRYCANCEL|MB_ICONSTOP )==IDCANCEL) return 0;
-       _hwrite(i,t[1],t[2]-t[1]);
+       l=t[2]-t[1];
+       if(stristr(t[0],".bat") || stristr(t[0],".cfg") || stristr(t[0],".manifest") || stristr(t[0],".txt")  )
+         while(0 == t[1][l-1] ) --l;
+
+       _hwrite(i,t[1],l);
        _lclose(i);
      }
 #ifdef SERVICE
@@ -356,7 +368,7 @@ long CALLBACK  dlgFnc(HWND hwnd, UINT msg,UINT wparam, LONG lparam)
 #ifndef RICON
    if((xx=IsDChk(mwnd,149)&1) && sch)
      ticon[132]=1;
-#else 
+#else
  //  if ! defined(MINGW)
   if((xx=IsDChk(mwnd,149)&1) && sch) Ucode[4]=1;
 #endif
@@ -530,7 +542,7 @@ int InitApplication()
 #ifdef MINGW
 int WINAPI WinMain(HINSTANCE__*hinst, HINSTANCE__*prev_inst, CHAR*cmdline, int cmdshow)
 #else
-#define TYPE_SC_HANDLE  
+#define TYPE_SC_HANDLE
 int WINAPI WinMain( HANDLE hinst, HANDLE prev_inst, LPSTR cmdline, int cmdshow )
 #endif
 {MSG msg;

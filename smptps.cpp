@@ -2,7 +2,7 @@
  * Copyright (C) 1999-2022 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
- * Author: Maksim Feoktistov 
+ * Author: Maksim Feoktistov
  *
  *
  * Small HTTP server is free software: you can redistribute it and/or modify it
@@ -15,11 +15,11 @@
  * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see https://www.gnu.org/licenses/ 
+ * along with this program.  If not, see https://www.gnu.org/licenses/
  *
  * Contact addresses for Email:  support@smallsrv.com
  *
- * 
+ *
  */
 
 
@@ -98,15 +98,15 @@ int Req::OutSMTPLimit(char *bfr,int ll)
 {
  int j,k;
 #ifdef USE_IPV6
- union{   
+ union{
     X *r;
     X6 *r6;
- };   
- union{   
+ };
+ union{
     X *e;
     X6 *e6;
  };
- union{   
+ union{
    MListCntr *l;
    MListCntrIPv6 *l6;
  };
@@ -114,7 +114,7 @@ int Req::OutSMTPLimit(char *bfr,int ll)
     X *r;
     X *e;
     MListCntr *l;
-#endif 
+#endif
  CntrCode  *cc;
  char contry[8];
 
@@ -138,9 +138,9 @@ int Req::OutSMTPLimit(char *bfr,int ll)
     {
       if( (cc=FindCntr(htonl(r->ip) ) ) )
       {
-         sprintf(contry," (%2.2s)",cc->nm);   
+         sprintf(contry," (%2.2s)",cc->nm);
       }
-    }   
+    }
   j+=sprintf(bfr+j,
    "<tr valign=center><td><font size=2 class=f2>%u) <b>%u.%u.%u.%u%s"
    "</td><td align=center><font size=2 class=f2><b>%u</b></font>"
@@ -159,7 +159,7 @@ int Req::OutSMTPLimit(char *bfr,int ll)
    }
  }
 #ifdef USE_IPV6
- char ipv6a[64]; 
+ char ipv6a[64];
  l6=ipv6cnts+ll;
 
  for(e6=(r6=l6->d)+l6->n;r6<e6;++r6)
@@ -169,9 +169,9 @@ int Req::OutSMTPLimit(char *bfr,int ll)
     {
       if( (cc=FindCntr(htonl(r->ip) ) ) )
       {
-         sprintf(contry," (%2.2s)",cc->nm);   
+         sprintf(contry," (%2.2s)",cc->nm);
       }
-    } */  
+    } */
   IPv6S(ipv6a,r6->ip.ip);
   j+=sprintf(bfr+j,
    "<tr valign=center><td><font size=2 class=f2>%u) <b>%.64s"
@@ -184,7 +184,7 @@ int Req::OutSMTPLimit(char *bfr,int ll)
     "</form></font>"
    "</td></tr>" HTML_LN,
     k++,ipv6a,
-    r6->cnt&msk ,ipv6a,ll 
+    r6->cnt&msk ,ipv6a,ll
     ,(s_flg&FL_RADMIN)?"submit":"hidden");
    if(j>0x3000)
    {if(Send(bfr,j)<=0) return -1;
@@ -288,7 +288,7 @@ int IsUsHost(char *t)
  if(FL_VHALIAS&s_flg)for(host_dir *a=hsdr.next;a;a=a->next)if(!stricmp(a->h,t))return 1;
 #ifdef  SEPLOG
 // sepLog[SRV_SMTP]->Ldebug("Bad host %s\n",t);
-#endif 
+#endif
  return 0;
 }
 //---
@@ -300,7 +300,7 @@ int Req::RGetCMD(char *b)
 {char *t;
  int i,j;
 #ifdef  SEPLOG
- uint k=flsrv[1];
+ uint k=flsrv[1] & MAX_SERV_MASK;
  if(k>=10)k=3;
 
 #undef debug
@@ -308,8 +308,8 @@ int Req::RGetCMD(char *b)
 
 #define debug(a...)  sepLog[k]->Ldebug(a)
 #define AddToLog(a...)  sepLog[k]->LAddToLog(a)
- 
-#endif 
+
+#endif
  i=0;
  do{
   if((j=Recv(b+i,512-i))<=0)
@@ -324,9 +324,9 @@ int Req::RGetCMD(char *b)
  }while( !(t=strchr(b,'\n')) );
  DWORD_PTR(t[-1])=0;
  if(s_flg&FL_FULLLOG)
- {    
+ {
      AddToLog(b,s,FmtShort);
- }    
+ }
  return DWORD_PTR(*b)|0x20202020;
 }
 #ifdef SEPLOG
@@ -348,12 +348,12 @@ char *MailVars[12]={"msg",0,"sender",0,"hello",0,"control",0,"checkhello",0,0};
 LimitBase * AddToList(int i,sockaddr_in *sa,int c)
 {
  time_t tmt=time(0);
-    
+
 #ifdef USE_IPV6
  union{
   LimitCntr *spm;
   LimitCntrIPv6 *spm6;
- };   
+ };
  if(IsIPv6(sa)) //sa->sin_family==AF_INET6)
  {
     if(ltime[i])ipv6cnts[i].FreeOld(tmt-ltime[i]);
@@ -362,11 +362,11 @@ LimitBase * AddToList(int i,sockaddr_in *sa,int c)
     spm6->first=tmt;
     spm6->cnt=c;
     return spm6;
- }    
+ }
 #else
  LimitCntr *spm;
-#endif     
-   
+#endif
+
  if(ltime[i])ipcnts[i].FreeOld(tmt-ltime[i]);
  spm=ipcnts[i].Push();
  spm->ip= IPv4addr(sa); //sa->sin_addr. S_ADDR;
@@ -400,7 +400,7 @@ int FileLine::ReadLine()
 }
 
 struct CheckUserList{
- union{   
+ union{
   struct sockaddr_in *psa;
   struct sockaddr_in6 *psa6;
  };
@@ -505,11 +505,11 @@ int Req::CheckDNSBL(char *t,struct sockaddr_in *sa)
 #ifdef USE_IPV6
    if( IsIPv6(sa) ) //sa->sin_family == AF_INET6  )
    {
-     sprintf(bfr+IPv6S(bfr,((sockaddr_in6 *)sa)->sin6_addr),".%64s",t);  
-   }    
-   else 
+     sprintf(bfr+IPv6S(bfr,((sockaddr_in6 *)sa)->sin6_addr),".%64s",t);
+   }
+   else
    {
-     uint tt=IPv4addr(sa);  
+     uint tt=IPv4addr(sa);
      sprintf(bfr,"%u.%u.%u.%u.%.64s",
      BYTE_PTR(tt,3),
      BYTE_PTR(tt,2),
@@ -534,7 +534,7 @@ int Req::CheckDNSBL(char *t,struct sockaddr_in *sa)
 #endif
     t //dnsbl
     );
-#endif       
+#endif
     if(gethostbyname(bfr))
     {
      Send(bfr,sprintf(bfr,"%u %.64s spamers list content your IP\r\n",pass_port,t));
@@ -630,7 +630,7 @@ int Req::SMTPReq()
 
    gl = AddrHash(&sa_c);
 
-   if( (s_flgs[1]&FL1_SMTP_AVT) && 
+   if( (s_flgs[1]&FL1_SMTP_AVT) &&
        //sa_c.sin_family == AF_INET &&
        //sa_c.sin_addr. S_ADDR &&
        //memchr4(POP3usr,sa_c.sin_addr. S_ADDR,16) &&
@@ -638,41 +638,41 @@ int Req::SMTPReq()
        memchr4(POP3usr,gl,16) &&
        (GetTickCount()-POP3usrTime)<0x200000
      ) ++us_ip;
-/*   
+/*
    else {
      debug("dt:%X %u %X %X POP3usr{%X %X} {%X %X}\n",GetTickCount()-POP3usrTime,iPOP3usr, sa_c.sin_addr.S_ADDR, gl,
-           POP3usr[0],POP3usr[1], 
-           POP3usr[(iPOP3usr-1)&0xF], 
+           POP3usr[0],POP3usr[1],
+           POP3usr[(iPOP3usr-1)&0xF],
            POP3usr[(iPOP3usr-2)&0xF]  );
    }
-*/   
+*/
  }
 
  ul.th=this;
 #ifdef USE_IPV6
  if(IsIPv6(&sa_c)) //sa_c.sin_family==AF_INET6)
  {
-  
+
     if((spm6=ipv6cnts[1].Find(sa_c6.sin6_addr)))
     {
         if( (! ltime[1] ) || (time(0) - spm6->first)<ltime[1] ){spm6->cnt++; goto erSnd; }
         ipv6cnts[1].Del(spm6);
         spm=0;
-    }  
-        
- }    
- else  
-#endif     
+    }
+
+ }
+ else
+#endif
      if((spm=ipcnts[1].Find( IPv4addr(&sa_c) )) ) //sa_c.sin_addr. S_ADDR)))
  {if( (! ltime[1] ) || (time(0) - spm->first)<ltime[1] ){spm->cnt++; goto erSnd; }
   ipcnts[1].Del(spm);
   spm=0;
  }
 
- 
- 
- 
- 
+
+
+
+
 
  if(smtp_ltime && ((!us_ip) || !(s_flgs[1]&FL1_NOLUS))  )
  {++chkl;

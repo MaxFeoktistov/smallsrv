@@ -153,6 +153,8 @@ struct Req
 #define F_ERROUTED 0x4000
 #define F_FCGI     0x8000
 
+ #define F_JUSTPOOL  0x8000000
+
 
 #define F_VPNTUN     0x1000000
 #define F_VPNTAP     0x2000000
@@ -194,6 +196,7 @@ struct Req
  char *KeepAlive;
  int Tin,Tout;
  ulong bSpd;
+ int   event;
  union { void *gz; int  pass_port; };
  host_dir *vhdir;
  char inf[96];
@@ -684,6 +687,7 @@ extern char *ext[22],*mime,*dns_file,**dns_nm,*primary_dns,*secondary_dns,
 extern char *realm;
 extern char *charset;
 extern char *vpn_name;
+extern char *vpncln_name;
 
 extern ulong  s_flgs[5],count_dns,cgi_timeout;
 extern u32 ip_cach[];

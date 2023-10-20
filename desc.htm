@@ -44,7 +44,7 @@ function E(s,a,b,c)
 
 
 </head><body bgcolor=#ffffff text=#000000>
-<!--#include virtual="menue.htm" -->       
+<!--#include virtual="menue.htm" -->
 
 <center><h1>Small HTTP server</h1>(Description for Windows version)</center>
 
@@ -70,6 +70,7 @@ function E(s,a,b,c)
 <li><a href=#P>POP3 server & proxy</a>
 <li><a href=#F>FTP server & proxy</a>
 <li><a href=#T>TLS/SSL server</a>
+<li><a href=#VPN>HTTP TLS VPN server and client</a>
 <li><a href=#L>Conclusion.</a>
 </ul></td><td><ul><ul><ul>&nbsp; </ul></ul></ul></td>
 <td align=left bgcolor=#e0fff0 width=20%><center><h4>If server works it's available:</h4></center>
@@ -201,7 +202,7 @@ system resources necessary for a quick data transfer.
 <p><a href=#C>Contents</a><hr><center><a name=h></a><br><h2>How to...?</h2></center>
  Well, it is fairly easy - setup it by running shttp3.exe. Select target
 folder, check "Update entry in main menu", enter user name and password for
-administration. Press "Install." After installation, run "Small HTTP server", double click on the window, then, in Setttings, you may enable Web administration and then  
+administration. Press "Install." After installation, run "Small HTTP server", double click on the window, then, in Setttings, you may enable Web administration and then
 go to <A href=http://127.0.0.1/$_admin_$conf>Setting / Current state</a> to option your server.
 <br> You can go to your web server from local PC use <a href=http://127.0.0.1/>http://127.0.0.1/</a>.
  If you don't have DNS name, that's not a big problem. Any user can go to
@@ -344,6 +345,12 @@ This restriction includes all TCP connections (HTTP,FTP,POP,SMTP,Proxy)</td><td>
 <tr><td><b>Number of HTTP requests working simultaneous.</b>
 Approcsimately 20Kb of memory is reserved for each thread. Usually 12 connections are enought for 3-8 visitors per minute.</td><td>
 <b>max=##</b></td></tr>
+
+<tr><td><b>Limit on the number of idle keep-alive connections waiting</b></td><td><b>keep_alive_max=value</b></td></tr>
+<tr><td><b>Timeout in seconds for idle keep-alive connection</b></td><td><b>keep_alive_timeout=value</b></td></tr>
+<tr><td><b>Check live in seconds for idle keep-alive connection.</b> 0 - use system default. (Supported from Linux 2.4, from Windows 10 v1709)</td><td><b>keep_alive_idle=value</b></td></tr>
+
+
 <tr><td><b>Default file name.</b> Name when requested URL finished by "/".
 (Wildcards are accepted, such as index.* to allow any index file in folder)</td><td><b>def=<i>name.ext</i></b></td></tr>
 <tr><td><b>Error file.</b> Full path to file or script that will be returned if requested file is not found. For CGI or SSI  PATH_INFO variable will contents the name of requested file.</b></td><td><b>error=<i>path\name.ext</i></b></td></tr>
@@ -496,6 +503,7 @@ In any case, if user press "Reload" button files download again.</td><td><b>igno
 <tr><td><b>Limit per IP (Kb)</b></td><td><b>ftpo_ip_limit=value</b></td></tr>
 <tr><td><b>Limit per network (Kb)</b></td><td><b>ftpo_net_limit=value</b></td></tr>
 <tr><td><b>Total limit for server (Kb)</b></td><td><b>ftpo_limit=value</b></td></tr>
+<tr><td><b>Always ask for a password, even for users without a password</b></td><td><b>ftp_always_pass</b></td></tr>
 
 
 
@@ -663,6 +671,53 @@ For GnuTLS, see the string format <a href="https://gnutls.org/manual/html_node/P
 
 
 
+
+<tr align=center bgcolor=#c0fff8><td colspan=2><b>HTTP TLS VPN server setting</b></td></tr>
+
+<tr><td><b>Disable TLS VPN</b></td><td><b>notlsvpn</b></td></tr>
+<tr><td><b>Maximum number of TLS VPN connections working simultaneous.</b></td><td><b>tlsvpn_max=value</b></td></tr>
+<tr><td><b>TLS VPN URL name (direct only local part of URL e.</b>g. "/$_vpn_$"). HTTPS requests to this URL will be redirected to VPN </td><td><b>vpn_url=value</b></td></tr>
+<tr><td><b>Enable TLS VPN on Tun device</b></td><td><b>vpntun</b></td></tr>
+<tr><td><b>Enable TLS VPN on Tap device</b></td><td><b>vpntap</b></td></tr>
+<tr><td><b>Tun device number</b></td><td><b>vpn_tun_number=value</b></td></tr>
+<tr><td><b>Tap device number</b></td><td><b>vpn_tap_number=value</b></td></tr>
+<tr><td><b>TLS VPN MTU for tun.</b></td><td><b>vpn_tun_mtu=value</b></td></tr>
+<tr><td><b>TLS VPN MTU for tap.</b></td><td><b>vpn_tap_mtu=value</b></td></tr>
+<tr><td><b>Tun device pathname</b></td><td><b>tundev=value</b></td></tr>
+<tr><td><b>Public access without password.</b> (Otherwise only users with Proxy access can use this service) </td><td><b>vpnpub</b></td></tr>
+<tr><td><b>Set Tun interface IP address</b></td><td><b>tun_ip=value</b></td></tr>
+<tr><td><b>Set Tun interface netmask</b></td><td><b>tun_nmask=value</b></td></tr>
+<tr><td><b>Set Tap interface IP address</b></td><td><b>tap_ip=value</b></td></tr>
+<tr><td><b>Set Tap interface netmask</b></td><td><b>tap_nmask=value</b></td></tr>
+<tr><td><b>Run init script for Tun device</b></td><td><b>tun_script_up=path</b></td></tr>
+<tr><td><b>Run init script for Tap device</b></td><td><b>tap_script_up=path</b></td></tr>
+<tr><td><b>First IP address to allocate for remote client that connected to Tun.</b> (Optional)</td><td><b>tun_remote_ip=value</b></td></tr>
+<tr><td><b>Total IP addresses to allocate for remote client that connected to Tun.</b> (Optional. Set to 0 to use external DHCP server, or another methods)</td><td><b>tun_remote_max=value</b></td></tr>
+<tr><td><b>DNS servers that will be offered to the TUN client.</b></td><td><b>tun_remote_dns=value</b></td></tr>
+<tr><td><b>First IP address to allocate for remote client that connected to Tap.</b> (Optional)</td><td><b>tap_remote_ip=value</b></td></tr>
+<tr><td><b>Total IP addresses to allocate for remote client that connected to Tap.</b> (Optional. Set to 0 to use external DHCP server, or another methods)</td><td><b>tap_remote_max=value</b></td></tr>
+<tr><td><b>DNS servers that will be offered to the TAP client.</b> (Optional) </td><td><b>tap_remote_dns=value</b></td></tr>
+
+<tr align=center bgcolor=#c0fff8><td colspan=2><b>HTTP TLS VPN client setting</b></td></tr>
+
+<tr><td><b>Enable to connect to TLS VPN remote host</b></td><td><b>vpnclient</b></td></tr>
+<tr><td><b>Host to connect to remote TLS VPN server</b></td><td><b>vpn_remote_host=value</b></td></tr>
+<tr><td><b>TLS VPN remote port.</b> (Usually 443)</td><td><b>vpn_client_port=value</b></td></tr>
+<tr><td><b>TLS VPN URL name (direct only local part of URL e.</b>g. "/$_vpn_$"). Must be the same as directed on the remote server</td><td><b>vpn_client_url=value</b></td></tr>
+<tr><td><b>TLS VPN User name</b></td><td><b>vpn_remote_user=value</b></td></tr>
+<tr><td><b>TLS VPN Password</b></td><td><b>vpn_remote_passw=value</b></td></tr>
+<tr><td><b>VPN client to Tap.</b> (Otherwise Tun)</td><td><b>vpncln_tap</b></td></tr>
+<tr><td><b>TLS VPN client Tun/Tap device number</b></td><td><b>vpn_tuntap_number=value</b></td></tr>
+<tr><td><b>TLS VPN MTU for client.</b></td><td><b>vpn_client_mtu=value</b></td></tr>
+<tr><td><b>Set client VPN interface IP address</b></td><td><b>tuntap_ip=value</b></td></tr>
+<tr><td><b>Set  client VPN interface netmask</b></td><td><b>tuntap_nmask=value</b></td></tr>
+<tr><td><b>Run init script when VPN connection estabilished</b></td><td><b>vpncln_script_up=path</b></td></tr>
+<tr><td><b>Run deinit script when VPN connection closed</b></td><td><b>vpncln_script_down=path</b></td></tr>
+<tr><td><b>Validate remote TLS sertificate, check host name</b></td><td><b>vpncln_chktls</b></td></tr>
+<tr><td><b>Don't check remote sertificate time.</b> Ignore expired. (GNUTLS only)</td><td><b>vpncln_tlsigntime</b></td></tr>
+<tr><td><b>Accept self signed sertificate.</b> (GNUTLS only)</td><td><b>vpncln_tlsssign</b></td></tr>
+<tr><td><b>SSH style of sertificate validate.</b> (GNUTLS only. Public keys of new untracted remote will be stored in ~/.gnutls/known_hosts)</td><td><b>vpncln_tlssshstyle</b></td></tr>
+
 <tr><td colspan=2><center><b>Users</b></center>
 To give FTP, Mail, Administration access you must add users.
 <div align=right><b>user="<i>name;password;home_dir;type_of_access_flags</i>"</b>
@@ -816,11 +871,11 @@ Runs the script like with "include" tag, from  /<i>cgi_ident</i>/ subdirectory
  <tr><td><b>H</b></td><td>24-hour format of an hour with leading zeros </td><td>00 through 23</td></tr>
  <tr><td><b>i</b></td><td>Minutes with leading zeros </td><td>00 to 59</td></tr>
  <tr><td><b>s</b></td><td>Seconds with leading zeros </td><td>00 through 59</td></tr>
- 
+
  </table>
  </center>
- 
- 
+
+
  <p><b>echo </b><br>
 &lt;!--#echo var="var" --&gt;<br>
  Prints variable value.
@@ -955,7 +1010,7 @@ Also next function available:
 
 The program can show statistic by countries and server may add
 REMOTE_COUNTRY variably with country name to SSI/CGI enviroment.
-<a href="http://smallsrv.com/ipbase.zip" >IP-contry database</a> need for these features. 
+<a href="http://smallsrv.com/ipbase.zip" >IP-contry database</a> need for these features.
 Download and unzip it. Then in server's options direct where is it.
 Fast search will not delay SSI and CGI execution. The program does not garanted valid country
 detection for evry time, but in many cases it will be. For IP addresses
@@ -1052,7 +1107,7 @@ for original name MUST present in this file.
 <li> MX <i>&lt;preference&gt;</i> <i>&lt;full-name&gt;</i> - mail exchange. <i>&lt;preference&gt;</i> is numbre
 from 1 to 255.  Lower values are preferred.
 <li> PTR <i>&lt;full-name&gt;</i> - a name. Host at left side must be #.#.#.#.in-addr.arpa
-<LI> TXT text 
+<LI> TXT text
 <LI> SPF text
 <LI> CAA 0 [issue|issuewild] server
 <LI> TYPE<i>number  \\# length hex hex hex...</i>  - for new, unknow types.
@@ -1164,7 +1219,7 @@ $hello, $control variables.
   <li>$hello --  self identification from remote server.
   <li>$control -- full identification line in flowing format:<br>
   <tt>"From sender (remote_hello [IP]) date and time For receptors\r\n"</tt>
- 
+
  </ul>
  <li>?? List of DNSBL servers
 </ul>
@@ -1344,13 +1399,52 @@ The server doesn't content real buildin TLS/SSL cryptographic functions,
 but includes interface to connect external TLS/SSL library. You may
 connect <a href=http://www.OpenSSL.org>OpenSSL</a> or
 <a href=http://www.gnutls.org>GNU TLS</a> to the server. Foe Windows version simple
-DLL based on OpenSSL 1.0.2t avilable here:
-<a href=http://smallsrv.com/seclib102t.zip >seclib102t.zip</a> (OpenSSL included) <br>
+DLL based on OpenSSL 1.1.1 avilable here:
+<a href=http://smallsrv.com/seclib111.zip >seclib111.zip</a> (OpenSSL included) <br>
 DLL based on GnuTLS avilable here:
 <a href=http://smallsrv.com/seclibgnutls.zip >seclibgnutls.zip</a> (GNU TLS required) <br>
 
-
-
+<hr><a name=VPN></a><center><br><h2>HTTP TLS VPN server and client</h2></center><p>
+Now this program can create a VPN channel inside an HTTPS connection.
+<li> <b>How does it work?</b> <br>
+On the host where the HTTP server is used, you can enable the VPN server in the settings.
+On other hosts you can install the program and enable the VPN client (only the VPN client is possible). Clients access the server using the HTTPS protocol,
+request a URL like this: <i>https://hostname.etc/$_vpn_$/</i>. You can choose any URL name by which the server will determine that this is a VPN request. When the HTTP server detects a VPN request, it passes the connection to the built-in VPN server.<br>
+<li> <b>TAP and TUN</b> <br>
+The server supports both VPN types, and both VPNs can run simultaneously, but each type must be on its own subnet. The client can choose only one type, TUN or TAP, and it reports the required type to the server when connecting.<br>
+What is the difference? On a TAP connection, each packet also includes a 14-byte Ethernet header. This gives some advanced features, e.g. The TAP interface can be included in the bridge, and any type of packet can be broadcast through TAP. The TUN connection only supports IPv4 and IPv6 packets.
+<li> <b>Link between clients</b> <br>
+In this version, the server does not filter anything. Communication between clients will work and may be filtered by an external firewall.<br>
+<li> <b>Link to Linux and Windows</b> <br>
+Linux and Windows VPN use the same protocols and can be connected to each other.<br>
+<li> <b>Tap driver for Windows.</b> <br>
+Windows does not have a built-in TUN/TAP driver. This means an external driver is required. This program can work with the free and open source TAP-windows driver from the <a href="https://openvpn.net/" >OpenVPN</A> project. Available <a href="https://build.openvpn.net/downloads/releases/" >here</a>. (Select Tap-Windows-9.24.7 for your system). If you want to set up the server on a Windows PC and use both TUN and TAP adapters, add two adapters after installing the driver. If you are already using OpenVPN and would like to use this server as well, add new adapters for it. In the server settings, you can specify the TAP adapter index starting with zero, or the name of the network connection. A simple way to specify an index is to leave the connection name empty, the server will fill it in itself.
+<b>To access the driver, the server MUST be started with administrator rights for the first time.</b> Perhaps this is a feature of the Tap-windows adapter, or it is a feature of my test environment, or I did not understand something, but a good way To configure the IP address when using Tun mode, an external .bat script is used. The server can start it automatically. Also in this script you can change routing and other network parameters, such as DNS servers.
+<li> <b>Scripts.</b> <br>
+The VPN server and client run scripts in three cases: <br>
+<ul>
+    <li>When the server initializes the TUN/TAP adapter. In this case, the arguments are: <tt>Interface_name IP_address Subnet_mask Gateway</tt> In this case, the gateway is the same as IP.
+    <li> When the client connects to the server and the connection is established. In this case the arguments are:
+    <tt>Interface_name Interface_name IP_address Net_mask Gateway DNS_servers IP_address of remote_vpn_server</tt>
+    <li> When the client connection is closed. In this case the arguments are:
+    <tt>Interface_name Interface_name IP_address Remote_disconnected_vpn_server IP_address</tt>
+</ul>
+<SUP>*</SUP>)Interface_name is the same as the connection name in Windows.<br>
+<li> <b>Authorized access.</b> <br>
+You can select the option to make the HTTP TLS VPN server publicly accessible to anyone who knows the URL. Otherwise, the server will require HTTP-style authentication. In the server settings you need to add a user with "Proxy" access, and in the client settings specify this username and password.<br>
+<li> <b>Security library.</b> <br>
+External libraries seclib111 and seclibgnutls have been updated. Older versions will not work with VPN as they lack the necessary functions.
+If you were using an older version of the server and want to use a VPN, please update the library.
+<li> <b>Verifying the server certificate.</b> <br>
+If you want to enable server certificate verification, then in the TLS/SSL parameters you need to specify the directory with trusted certificates. You can put your remote server's certificate or root certificates there. If you are using OpenSSL, you will need to create hashes for your certificates. Run:
+<pre>
+openssl rehash -compat -v path_to_this_directory
+</pre>
+If you are using GnuTLS there are a few additional options, e.g. you can disable certificate time checking and enable SSH style verification. In this case, the host's certificate will be accepted as valid the first time, and the public key will be stored for the host. The next time the public key will be verified.
+<li> <b>MTU</b> <br>
+In the Linux version, you can specify the MTU for each interface. In the Windows version, the same can be done using external tools for “Network connection”.
+It's probably best to choose an MTU smaller than your actual MTU (typically 1500) for header sizes (14-byte Ethernet header for TAP, TLS header, and the server adds 2 bytes for each packet) to run faster. But I think the best way is to set a large MTU. For example 9000 or even 15000. In this case TLS will receive large packets, encrypt them, and when they are transmitted, at the upper TCP layer they will be divided into packets according to your real Ethernet MTU. But on the other hand, when several clients are connected, a large MTU may give priority to the transfer of large files, to the detriment of those who do not transfer large files.
+<br>
 
 
 <p><a href=#C>Contents</a><hr><a name=L><p></a><center><br><h2>Conclusion</h2></center>

@@ -227,7 +227,7 @@ int SetFixExept(Req *preq)
       execl(__argv[0],__argv[0],0);
     exit(0);
   }
-  debug("Try to recovery after exception (%u)\n", preq->flsrv[1]);
+  debug("Try to recovery after exception (%u)\n", preq->flsrv[1]& MAX_SERV_MASK);
   return -1;
 }
 #endif
@@ -600,7 +600,7 @@ int Req::HttpReturnError(char *err,int errcode)
 {char out_buf[2124];
  int l;
 #ifdef SEPLOG
-  l=flsrv[1];
+  l=flsrv[1] & MAX_SERV_MASK;
   if(l>=N_LOG)l=0;
   sepLog[l]->LAddToLog(err,s,FmtShortErr);
 #else
@@ -707,7 +707,10 @@ int JustSnd(Req *th,const void *b,int l)
 };
 int JustRcv(Req *th,void *b,int l)
 {int r;
- if(RESelect(th->timout,0,1,th->s)<=0){
+
+ if(th->fl & F_JUSTPOOL) th->fl &= ~F_JUSTPOOL;
+ else if(RESelect(th->timout,0,1,th->s)<=0)
+ {
    DBGLA("Timeout %lX s=%d timout=%d l=%d", (long)th, th->s, th->timout,l)
    return -1;
  }

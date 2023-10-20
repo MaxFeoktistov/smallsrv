@@ -2,7 +2,7 @@
  * Copyright (C) 1999-2021 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
- * Author: Maksim Feoktistov 
+ * Author: Maksim Feoktistov
  *
  *
  * Small HTTP server is free software: you can redistribute it and/or modify it
@@ -15,17 +15,17 @@
  * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see https://www.gnu.org/licenses/ 
+ * along with this program.  If not, see https://www.gnu.org/licenses/
  *
  * Contact addresses for Email:  support@smallsrv.com
  *
- * 
+ *
  */
 
 
-#define pprot  lpprot 
+#define pprot  lpprot
 #define f_prot lf_prot
-//#define pcnt   lpcnt  
+//#define pcnt   lpcnt
 #define b_prot lb_prot
 
 
@@ -99,7 +99,7 @@ void TLog::LAddToLog(char *t,int s,const char *fmt,...)
       va_start(v,fmt);
       pprot+=mvsprintfchk(pprot,aabfr+256,fmt+1,v)-2;
       va_end(v);
-#else  
+#else
       pprot+=mvsprintfchk(pprot,aabfr+256,fmt+1,(
 #ifdef _BSD_VA_LIST_
  _BSD_VA_LIST_
@@ -109,7 +109,7 @@ void TLog::LAddToLog(char *t,int s,const char *fmt,...)
    ) (void *) ((&fmt)+1)
  )-2;
 #endif
-   }    
+   }
    if(trim_log_lines)pprot=TrimLogLines(x)-2;
    if(FL1_DELPAS&s_flgs[1])
    {for(l=0;DLST[l];++l)if((y=stristr(x,DLST[l])))
@@ -133,17 +133,17 @@ void InitSepLog()
             (TLog *) malloc(sizeof(TLog));
         sepLog[6]->Init(6); //SrvNameSufix[6]);
     }
-        
+
     return ;
-  }    
+  }
   for(i=0;i<ARRAY_SIZE(sepLog);i++) sepLog[i]=&gLog;
-  
+
   if( FL2_SEPARATELOG & s_flgs[2]     )
   {
     //sepLog[0]=&gLog;
     //sepLog[5]=&gLog;
    // p=new TLog[];
-    
+
     for(i=1;i<6;i++)
     {
      if(max_srv[i])
@@ -157,7 +157,7 @@ void InitSepLog()
        sepLog[i]=&gLog;
      }
     }
-    
+
     if(dns_file)
     {
       sepLog[SDNS_IND]=sepLog[SDNS_IND+1]= //new TLog;
@@ -180,14 +180,14 @@ void InitSepLog()
     }
 #endif
   }
-  
+
   if(max_srv[0] && ((FL2_NOERROUT|FL2_DUBSTDERR) & s_flgs[2]) )
   {
        sepLog[CGI_ERR_LOG]=//new TLog;
          (TLog *) malloc(sizeof(TLog));
        sepLog[CGI_ERR_LOG]->Init(6); //SrvNameSufix[6]);
   }
-      
+
 };
 void DoneSepLog()
 {
@@ -205,20 +205,20 @@ void UDoneSepLog()
 void TLog::MkFileName(char *t,int n)
 {
    char *p;
- //  sprintf(t,(n)?"%.240s%s%4.4u":"%.250s%s",flog,suffix,n); 
-    sprintf(t,"%.250s%s",flog,suffix); 
+ //  sprintf(t,(n)?"%.240s%s%4.4u":"%.250s%s",flog,suffix,n);
+    sprintf(t,"%.250s%s",flog,suffix);
     if(n)
     {
-      p=strrchr(flog,'.');  
+      p=strrchr(flog,'.');
       if(p)
       {
-       sprintf(t+(p-flog),"%4.4u%s",n,suffix); 
+       sprintf(t+(p-flog),"%4.4u%s",n,suffix);
       }
       else
       {
-        sprintf(t,"%.240s%4.4u%s",flog,n,suffix); 
-      }    
-    }    
+        sprintf(t,"%.240s%4.4u%s",flog,n,suffix);
+      }
+    }
     dprint("log filename: '%s'\n",t);
 }
 
@@ -226,10 +226,10 @@ void TLog::GetProt(){
     int dead_lock_chk=512;
     while(mutex_pcnt && --dead_lock_chk>0)
 #ifdef USE_FUTEX
-      futex((int *)&mutex_pcnt,FUTEX_WAIT,mutex_pcnt,&timeout_50ms,0,0);  
-#else      
-      Sleep(50); 
-#endif         
+      futex((int *)&mutex_pcnt,FUTEX_WAIT,mutex_pcnt,&timeout_50ms,0,0);
+#else
+      Sleep(50);
+#endif
      MyLock(lpcnt);
      pcnt|=msk;
 #ifdef SYSUNIX
@@ -259,12 +259,12 @@ void TLog::RelProt(SYSTEMTIME *stime)
   {
     if( stat(flogname,&stt)>=0)
     {
-       llastday= (localtime((time_t *) & (stt.st_ctime))->tm_mday);  
-    }    
-  }    
+       llastday= (localtime((time_t *) & (stt.st_ctime))->tm_mday);
+    }
+  }
   if(puid!=geteuid()){
 //printf("\nkill %d %d\n",puid,geteuid());
-  logsigmsk|=msk;    
+  logsigmsk|=msk;
   kill(ppid,SIGUSR1); return;}
 
   if((ll=open(flogname,O_APPEND|O_WRONLY))>0)
@@ -280,7 +280,7 @@ void TLog::RelProt(SYSTEMTIME *stime)
     FileTimeToSystemTime(&CrTime,&lTime);
 #else
     memcpy(&lTime,localtime((const time_t *) &CrTime1),sizeof(lTime));
-    
+
 #endif
 //  printf("stime->wDay %u == lTime.wDay %u ;stime->wHour =%u, lTime.wHour=%u ",stime->wDay,lTime.wDay,stime->wHour, lTime.wHour );
     if( (stime->wDay!=lTime.wDay)
@@ -307,11 +307,11 @@ void TLog::RelProt(SYSTEMTIME *stime)
        ttm=localtime(&stt.st_ctime);
        if(tt)
        {
-         *tt=0;  
+         *tt=0;
          sprintf(ddir,"%.255s/%u",flogname,ttm->tm_year+1900);
          mkdir(ddir,0700);
          sprintf(ddir,"%.255s/%u/%.20s",flogname,ttm->tm_year+1900,tt+1);
-         *tt='/';  
+         *tt='/';
        }
        else
        {
@@ -325,7 +325,7 @@ void TLog::RelProt(SYSTEMTIME *stime)
            if(!(s_flg&FL_NOICON))printf("Can't move '%s' to '%s'. %d %s\n",flogname,ddir,errno,strerror(errno));
            lpprot+=sprintf(lpprot,"Can't move '%s' to '%s'. %d %s\n",flogname,ddir,errno,strerror(errno));
        //    if(t)*t='.';
-           
+
            goto lbRenErr;
        }
     }
@@ -345,18 +345,18 @@ void TLog::RelProt(SYSTEMTIME *stime)
       hh2=FindFirstFile(flogname,&fdt);
       if(hh2!=INVALID_HANDLE_VALUE)
       {
-         FindClose(hh2);     
+         FindClose(hh2);
          FileTimeToSystemTime(&fdt.ftCreationTime,&sTim2);
-         
-         
+
+
        tt=strrchr(flogname,'/');
        if(tt)
        {
-         *tt=0;  
+         *tt=0;
          sprintf(ddir,"%.255s/%u",flogname,sTim2.wYear);
          CreateDirectory(ddir,&secat);
          sprintf(ddir,"%.255s/%u/%.20s",flogname,sTim2.wYear,tt+1);
-         *tt='/';  
+         *tt='/';
        }
        else
        {
@@ -370,26 +370,26 @@ void TLog::RelProt(SYSTEMTIME *stime)
            goto lbRenErr;
        }
       }
-     }         
+     }
 #endif
    //  if(t)*t='.';
-        
-  //   sprintf(ddir,"%.250s%s",flog,suffix); 
+
+  //   sprintf(ddir,"%.250s%s",flog,suffix);
      MkFileName(ddir,0);
 
      MoveFile(ddir,flogname);
 #ifndef SYSUNIX
      if( (ll=_lcreat(ddir,0))>0)
      {
-  lbOkOpenW:   
-     
+  lbOkOpenW:
+
       _hwrite(ll,f_prot,l);
       GetSystemTimeAsFileTime(&CrTime);
       SetFileTime((HANDLE)ll,&CrTime,&CrTime,&CrTime);
 #else
      if( (ll=creat(ddir,0600))>0)
      {
-  lbOkOpenL:  
+  lbOkOpenL:
        _hwrite(ll,f_prot,l);
 #endif
       _lclose(ll);
@@ -400,13 +400,13 @@ void TLog::RelProt(SYSTEMTIME *stime)
   else
   {
 #ifdef SYSUNIX
-    struct stat stt;  
-    if(!(s_flg&FL_NOICON))printf("Can't open '%s'. %d %s\n",flogname,errno,strerror(errno));  
+    struct stat stt;
+    if(!(s_flg&FL_NOICON))printf("Can't open '%s'. %d %s\n",flogname,errno,strerror(errno));
     if( stat(flogname,&stt)<0)
     {
       if( (ll=creat(flogname,0600))>0)
          goto lbOkOpenL;
-    }    
+    }
 
 #else
     if(GetFileAttributes(flogname)==INVALID_FILE_ATTRIBUTES )
@@ -414,12 +414,12 @@ void TLog::RelProt(SYSTEMTIME *stime)
       if( (ll=_lcreat(flogname,0))>0)
          goto lbOkOpenW;
     }
-     
-#endif    
-      
-  }    
-  
-lbRenErr:;  
+
+#endif
+
+  }
+
+lbRenErr:;
   f_prot=pprot;
  };
 #endif
@@ -432,7 +432,7 @@ lbRenErr:;
  pval++;
  pcnt&=~msk;
  MyUnlock(lpcnt);
-      
+
 };
 void TLog::RelProt()
 {SYSTEMTIME stime;
@@ -450,8 +450,8 @@ extern "C" void TLog::Ldebug(const char *a,...)
  va_start(v,a);
  Lvdebug(a,v);
  va_end(v);
-#else  
- Lvdebug(a,( 
+#else
+ Lvdebug(a,(
 #ifdef _BSD_VA_LIST_
  _BSD_VA_LIST_
 #else
@@ -470,8 +470,8 @@ extern "C" void TLog::Lvdebug(const char *a,mva_list v)
 //  t=pprot;
 #endif
  pprot+=
- 
-/* 
+
+/*
 #ifndef SYSUNIX
  wvsprintf
 #else
@@ -479,12 +479,12 @@ extern "C" void TLog::Lvdebug(const char *a,mva_list v)
 #endif
  (pprot+=2,a,v);
 */
- mvsprintfchk(pprot+=2,aabfr+256,a,v); 
+ mvsprintfchk(pprot+=2,aabfr+256,a,v);
  DWORD_PTR(*pprot)=0x0A0D;
  pprot+=2;
 #ifdef SYSUNIX
 // printf("%s",t);
-#endif 
+#endif
  RelProt();
 }
 /* Unused function
@@ -496,8 +496,8 @@ extern "C" void edebug(const char *a,...)
  va_start(v,a);
  gLog.Lvdebug(a,v);
  va_end(v);
-#else  
- gLog.Lvdebug(a,( 
+#else
+ gLog.Lvdebug(a,(
 #ifdef _BSD_VA_LIST_
  _BSD_VA_LIST_
 #else
@@ -517,8 +517,8 @@ extern "C" void tlsdebug(const char *a,...)
  va_start(v,a);
  sepLog[5]->Lvdebug(a,v);
  va_end(v);
-#else  
- sepLog[5]->Lvdebug(a,( 
+#else
+ sepLog[5]->Lvdebug(a,(
 #ifdef _BSD_VA_LIST_
  _BSD_VA_LIST_
 #else
@@ -531,33 +531,33 @@ extern "C" void tlsdebug(const char *a,...)
 
 TLog *GetLogS(int s)
 {
-union{    
+union{
   TSOCKADDR  sa;
   sockaddr_in sa4;
 };
   int i,l=sizeof(sa);
-  getsockname(s,(sockaddr *) &sa,&l);  
+  getsockname(s,(sockaddr *) &sa,&l);
   for(i=0;i<N_LOG; i++)
   {
-   if(sa4.sin_port == soc_port[i] )return sepLog[i];    
-  } 
+   if(sa4.sin_port == soc_port[i] )return sepLog[i];
+  }
   return &gLog;
 }
 
 TLog *GetLogR(Req *r,int def)
 {
-  int l=def;   
+  int l=def;
     if(r)
     {
-      l=r->flsrv[1];
+      l=r->flsrv[1] & MAX_SERV_MASK;
       if(l>=N_LOG)l=def;
-    }    
-    return sepLog[l];       
+    }
+    return sepLog[l];
 };
 
 
-#undef pprot  
-#undef f_prot 
-#undef pcnt   
+#undef pprot
+#undef f_prot
+#undef pcnt
 #undef b_prot
 

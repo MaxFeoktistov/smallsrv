@@ -447,6 +447,7 @@ long CALLBACK DefProc(HWND hwnd, UINT msg,UINT wparam, LONG lparam)
      case 367:
      case 368:
      case 369:
+     case 370:
        // DBGLINE
         if((uint)(i-=360)<10)
         {
@@ -527,7 +528,7 @@ ulong WINAPI ASyncIOThread(void *)
       r -= WAIT_OBJECT_0;
       if(r<countASyncIO)  ASyncIOHelper[r].cb( ASyncIOHelper[r].par);
     }
-    while(++r<countASyncIO)
+    while((++r) < countASyncIO)
     {
       if( WaitForSingleObject(ASyncIOhevent[r],0) == WAIT_OBJECT_0) ASyncIOHelper[r].cb( ASyncIOHelper[r].par);
     }

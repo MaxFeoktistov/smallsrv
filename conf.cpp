@@ -880,7 +880,7 @@ int LoadLangCfg(char *fname)
          goto  ExLP2;
        }
      }
-     debug("Lang element '%.12s' not found\n",a);
+     debug("Lang element '%.20s' not found\n",a);
 
   ExLP2:
      p=strstr(b,"\n\n");
