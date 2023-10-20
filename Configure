@@ -4,7 +4,7 @@
 # Copyright (C) 1999-2023 Maksim Feoktistov.
 #
 # This file is part of Small HTTP server project.
-# Author: Maksim Feoktistov 
+# Author: Maksim Feoktistov
 #
 #
 # Small HTTP server is free software: you can redistribute it and/or modify it
@@ -17,23 +17,24 @@
 # General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with this program.  If not, see https://www.gnu.org/licenses/ 
+# along with this program.  If not, see https://www.gnu.org/licenses/
 #
 # Contact addresses for Email:  support@smallsrv.com
 #
-# 
+#
 #
 
 
 
  $mf="\n";
  $all='';
- 
+ $withoutfakelibs = 1;
+
  $sec=' libgnutls.so libssl.so';
  $sec64=' libgnutls.so libssl.so';
- 
+
  $adv='';
- 
+
  if($#ARGV >=0 )
  {
  L1:
@@ -43,9 +44,9 @@
      {
        print  '
    Configure Makefile  to build Small HTTP server.
-   
+
    keys:
-   
+
    --target="i32 i64 win arm"   -- select one or more target throught space.
    --gcc="gcc -m32"  -- select compiler for i32
    --gcc64="gcc -m64"  -- select compiler for i64
@@ -63,9 +64,10 @@
    --withoutIPv6    --  IPv4 only
    --withoutFUTEX    -- do not use futex (Linux specifed feature)
    --withoutPOOL    -- use select instead pool
-   --withoutMD5    -- without MD5 
-   --commonLog    -- without separate log 
+   --withoutMD5    -- without MD5
+   --commonLog    -- without separate log
    --withoutfakelibs    -- without fakelibs  (with fakelibs the program can run in another Linux systems)
+   --withfakelibs    -- with fakelibs  (with fakelibs the program can run in another Linux systems)
 ';
       exit 0;
      }
@@ -203,13 +205,19 @@
        $commonLog = 1;
        next L1;
      }
-     
+
      if(/--withoutfakelibs/)
      {
        $withoutfakelibs = 1;
        next L1;
      }
-     
+
+     if(/--withfakelibs/)
+     {
+       $withoutfakelibs = 0;
+       next L1;
+     }
+
      print  "Unknow key $_\n";
      exit -1;
    }
@@ -221,14 +229,14 @@
    {
       $all = 'i32';
    }
- 
+
    if( stat('/usr/lib/x86_64-linux-gnu') )
    {
      $all .= ' i64';
    }
 
-   
-   
+
+
    if(!$winegcc)
    {
 
@@ -256,9 +264,9 @@
 #        $all .= ' win';
 #      }
 #     }
-   } 
+   }
    else
-   { 
+   {
      $all .= ' win';
    }
  }
@@ -270,11 +278,11 @@
     {
       print STDERR "MinGW GCC not found.  Use --winegcc key to build version for Windows\n";
     }
-   
+
    }
- 
+
  }
- 
+
  $i32gnutls30 = 0;
  $i64gnutls30 = 0;
  if($all =~ /i32/   )
@@ -285,14 +293,14 @@
       $woseclib32=1;
       $sec =~ s/libssl.so//;
    }
-   
-   if(stat('/usr/lib/i386-linux-gnu/libgnutls.so') ) 
+
+   if(stat('/usr/lib/i386-linux-gnu/libgnutls.so') )
    {
      $i32gnutls30 = 3;
-   } 
+   }
    elsif(stat('/usr/lib/i386-linux-gnu/libgnutls.so.30') )
    {
-     $i32gnutls30 = 1;     
+     $i32gnutls30 = 1;
    }
    elsif(stat('/usr/lib/i386-linux-gnu/libgnutls.a') )
    {
@@ -305,7 +313,7 @@
       $sec =~ s/libgnutls.so//;
    }
  }
- 
+
  if($all =~ /i64/   )
  {
    if( (!stat('/usr/lib/x86_64-linux-gnu/libssl.so') ) || !stat('/usr/include/openssl') )
@@ -315,14 +323,14 @@
       $sec64 =~ s/libssl.so//;
    }
 
-  
-   if(stat('/usr/lib/x86_64-linux-gnu/libgnutls.so') ) 
+
+   if(stat('/usr/lib/x86_64-linux-gnu/libgnutls.so') )
    {
      $i64gnutls30 = 3;
-   } 
+   }
    elsif(stat('/usr/lib/x86_64-linux-gnu/libgnutls.so.30') )
    {
-     $i64gnutls30 = 1;     
+     $i64gnutls30 = 1;
    }
    elsif(stat('/usr/lib/x86_64-linux-gnu/libgnutls.a') )
    {
@@ -335,9 +343,9 @@
       $wolibgnutls64=1;
       $sec64 =~ s/libgnutls.so//;
    }
- 
+
  }
- 
+
  if($all =~ /i64|i32/)
  {
    $warn=`gcc --help=warnings`;
@@ -347,28 +355,28 @@
    if($warn =~ /-Wattributes/) {
      $adv .= ' -Wno-attributes'
    }
- } 
- 
+ }
+
   open(FILE, "<makefile.in") || die("Can\'t open makefile.in\n");
-  if( stat('makefile') ) 
+  if( stat('makefile') )
   {
     rename('makefile', 'makefile.orig');
   }
   open(OFILE, ">Makefile") || die("Can\'t open Makefile\n");
-  
+
   if(!$withoutfakelibs)
   {
     $mf .= sprintf('
-    
+
 FLIBS=libc.so libdl.so libpthread.so %s
 FAKELIBS=$(addprefix fakelibs/,$(FLIBS))
 FLIBS64=libc.so libdl.so libpthread.so %s
 FAKELIBS64=$(addprefix fakelibs64/,$(FLIBS64))
 LIBDIR32=-Lfakelibs/
 LIBDIR64=-Lfakelibs64/
-    
+
     ',$sec,$sec64);
-  
+
     if( $all =~ /i32/)
     {
       $all = '$(FAKELIBS) ' . $all;
@@ -378,7 +386,7 @@ LIBDIR64=-Lfakelibs64/
       $all = '$(FAKELIBS64) ' . $all;
     }
   }
-  
+
   if($adv ne '' )
   {
     $mf .= "\nADVOPT=$adv\n";
@@ -386,8 +394,8 @@ LIBDIR64=-Lfakelibs64/
 
   print OFILE $mf;
   print OFILE "\nall: /dev/shm/shttps/o/1.x o/1.x $all\n\n";
-  
- L2: 
+
+ L2:
   while(<FILE>)
   {
     if(/^([A-Z0-9]+=)/)
@@ -418,19 +426,19 @@ LIBDIR64=-Lfakelibs64/
     {
       s/-DSEPLOG//g;
     }
-    
+
     if($withoutfakelibs)
     {
       s/-Lfakelibs[0-9]*//g;
     }
-    else 
+    else
     {
       if( stat('/lib/x86_64-linux-gnu/libc.so.6') )
       {
         s/\/usr\/lib\/x86_64-linux-gnu\/libc.so.6/\/lib\/x86_64-linux-gnu\/libc.so.6/ ;
       }
     }
-    
+
     if($woseclib32)
     {
       s/^i32\:(.*)o\/libsec111.so(.*)/i32: $1 $2/g;
@@ -440,7 +448,7 @@ LIBDIR64=-Lfakelibs64/
     {
       s/^i32\:(.*)o\/libsecgnutls.so(.*)/i32: $1 $2/g;
     }
-    
+
     if($woseclib64)
     {
       s/^i64:(.*)o64\/libsec.so(.*)/i64: $1 $2/g;
@@ -466,15 +474,15 @@ LIBDIR64=-Lfakelibs64/
     {
       s/LIBDIR64\) \-l\:libgnutls\.so /LIBDIR64\) -lgnutls /
     }
-    
+
     print OFILE $_;
   }
-  
+
   close OFILE;
   close FILE;
-  
-  
-  
+
+
+
 sub chkmingw64
 {
  my ($mingw) = @_;
@@ -500,20 +508,20 @@ sub chkmingw64
         {
           $MINGWVERDIR=$_;
         }
-      
+
       }
       closedir DIR;
    }
-  
-   
+
+
    $mf .= "WININC= -I/usr/$mingw/include -I/usr/lib/gcc/$mingw/$MINGWVERDIR/include\n";
 
-    
+
    return 1;
   }
 
   return 0;
- 
+
 
 
 }

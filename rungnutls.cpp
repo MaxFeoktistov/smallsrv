@@ -867,7 +867,11 @@ int SecConnect(struct OpenSSLConnection *s, int anon, char *verfyhost)
   {
     gnutls_server_name_set(s->session, GNUTLS_NAME_DNS,
 				     verfyhost, strlen(verfyhost));
+#ifdef GNUTLS_VERIFY_IGNORE_UNKNOWN_CRIT_EXTENSIONS
     r = GNUTLS_VERIFY_IGNORE_UNKNOWN_CRIT_EXTENSIONS;
+#else
+    r = 0;
+#endif
     if(anon & tbtDontVerfyTyme) r = GNUTLS_VERIFY_DISABLE_TIME_CHECKS ;
     if(anon & tbtDontVerfySigner) r |= GNUTLS_VERIFY_DISABLE_CA_SIGN;
     gnutls_session_set_verify_cert(s->session, verfyhost, r);
