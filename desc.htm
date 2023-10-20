@@ -1429,7 +1429,7 @@ The VPN server and client run scripts in three cases: <br>
     <li> When the client connection is closed. In this case the arguments are:
     <tt>Interface_name Interface_name IP_address Remote_disconnected_vpn_server IP_address</tt>
 </ul>
-<SUP>*</SUP>)Interface_name is the same as the connection name in Windows.<br>
+<SUP>*</SUP>)In the Windows Interface_name is the same as the connection name in Windows.<br>
 <li> <b>Authorized access.</b> <br>
 You can select the option to make the HTTP TLS VPN server publicly accessible to anyone who knows the URL. Otherwise, the server will require HTTP-style authentication. In the server settings you need to add a user with "Proxy" access, and in the client settings specify this username and password.<br>
 <li> <b>Security library.</b> <br>
@@ -1442,7 +1442,7 @@ openssl rehash -compat -v path_to_this_directory
 </pre>
 If you are using GnuTLS there are a few additional options, e.g. you can disable certificate time checking and enable SSH style verification. In this case, the host's certificate will be accepted as valid the first time, and the public key will be stored for the host. The next time the public key will be verified.
 <li> <b>MTU</b> <br>
-In the Linux version, you can specify the MTU for each interface. In the Windows version, the same can be done using external tools for “Network connection”.
+In the Linux version, you can specify the MTU for each interface. In the Windows version, the same can be done using external tools for "Network connection".
 It's probably best to choose an MTU smaller than your actual MTU (typically 1500) for header sizes (14-byte Ethernet header for TAP, TLS header, and the server adds 2 bytes for each packet) to run faster. But I think the best way is to set a large MTU. For example 9000 or even 15000. In this case TLS will receive large packets, encrypt them, and when they are transmitted, at the upper TCP layer they will be divided into packets according to your real Ethernet MTU. But on the other hand, when several clients are connected, a large MTU may give priority to the transfer of large files, to the detriment of those who do not transfer large files.
 <br>
 
