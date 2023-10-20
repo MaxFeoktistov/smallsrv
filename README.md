@@ -51,7 +51,7 @@
  ```
  without any keys, it tries to create a Makefile for all available targets.  
 
- If you plan to copy the binary executable to another PC with a different Linux, do not use the --withoutfakelibs key.
+ If you plan to copy the binary executable to another PC with a different Linux, use the --withfakelibs key.
 
 
   Build Linux version for ARM CPU:
