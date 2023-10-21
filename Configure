@@ -50,6 +50,7 @@
    --target="i32 i64 win arm"   -- select one or more target throught space.
    --gcc="gcc -m32"  -- select compiler for i32
    --gcc64="gcc -m64"  -- select compiler for i64
+   --openssl="/path/to/openssl1.1.1/source/dir"  -- direct the source of OpenSSL 1.1.1 for Linux.
    --wingcc="wine c:\\\\MINGW\\\\bin\\\\gcc.exe" -- direct compiler for win version
    --windir="c:\\\\MINGW" -- direct base dir for windows headers and libraries
    --wininc=" -Ic:\\\\MINGW\\\\include" -- direct include flags for windows headers
@@ -218,6 +219,12 @@
        next L1;
      }
 
+     if(/--openssl=(.*)/)
+     {
+       $openssl_path = $1;
+       next L1;
+     }
+
      print  "Unknow key $_\n";
      exit -1;
    }
@@ -287,7 +294,7 @@
  $i64gnutls30 = 0;
  if($all =~ /i32/   )
  {
-   if( (!stat('/usr/lib/i386-linux-gnu/libssl.so') ) || !stat('/usr/include/openssl') )
+   if( (!$openssl_path) &&  ((!stat('/usr/lib/i386-linux-gnu/libssl.so') ) || !stat('/usr/include/openssl') ) )
    {
       print STDERR "i32: Not found OpenSSL library or OpenSSL header files.  Build without seclib.so\n";
       $woseclib32=1;
@@ -474,6 +481,10 @@ LIBDIR64=-Lfakelibs64/
     elsif($i64gnutls30 == 2)
     {
       s/LIBDIR64\) \-l\:libgnutls\.so /LIBDIR64\) -lgnutls /
+    }
+    if($openssl_path)
+    {
+      s/\/usr\/src\/openssl-1.1.1m/$openssl_path/g;
     }
 
     print OFILE $_;
