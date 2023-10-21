@@ -360,6 +360,7 @@
   open(FILE, "<makefile.in") || die("Can\'t open makefile.in\n");
   if( stat('makefile') )
   {
+    unlink('makefile.orig');
     rename('makefile', 'makefile.orig');
   }
   open(OFILE, ">Makefile") || die("Can\'t open Makefile\n");
