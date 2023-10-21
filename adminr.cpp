@@ -483,8 +483,8 @@ if(0){
         tuser=(User *) malloc( sizeof(User )+i+strlen(t)+strlen(u)+3 );
         tuser->name=(char *)(tuser+1);
         tuser->ddr=tuser->name+sprintf(tuser->name,"%s",u)+1;
-        tuser->pwd=tuser->ddr+sprintf(tuser->ddr,"%s",t)+1;
-        sprintf(tuser->pwd,"%s",p)+1;
+        tuser->pwd=tuser->ddr+sprintf(tuser->ddr,"%s",p)+1;
+        sprintf(tuser->pwd,"%s",t);
 #else
         tuser=(User *) new char[sizeof(User )+i+strlen(t)+strlen(u)+3 ];
         t1+=sprintf(t1=tuser->name,"%s",u)+1;

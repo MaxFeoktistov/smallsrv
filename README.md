@@ -86,13 +86,13 @@
               --winsslinclude="/usr/src/openssl/include" --winssllib="/usr/src/openssl/lib" \
               --wingnutlsinclude="/usr/src/gnutls/include" --wingnutlslib="/usr/src/gnutls/lib"
   make
-  make wo/libsec111.so
-  make wo/libsecgnutls.so
+  make wo/libsec111.dll
+  make wo/libsecgnutls.dll
   ```
 
  Direct your pathes to Windows libraries instead /usr/src/...  
- libsec.so -- for OpenSSL  
- libsecgnutls.so -- for GnuTLS  
+ libsec111.dll -- for OpenSSL  
+ libsecgnutls.dll -- for GnuTLS  
  required one of them.  
 
  Build Windows version under Windows or withhelp Wine:
@@ -107,8 +107,8 @@
                  --winsslinclude="c:\\openssl\\include"  --winssllib="c:\\openssl\\lib" \
                  --wingnutlsinclude="c:\\gnutls\\include" --wingnutlslib="c:\\gnutls\\lib"
   make
-  make wo/libsec111.so
-  make wo/libsecgnutls.so
+  make wo/libsec111.dll
+  make wo/libsecgnutls.dll
   ```
  Direct your pathes instead c:\\...
 

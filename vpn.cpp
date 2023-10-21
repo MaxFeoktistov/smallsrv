@@ -1635,7 +1635,7 @@ agayn1:
     memset(dgtvars, 0, sizeof(dgtvars));
     dgtvars[digtVar_username] = vpn_user;
     dgtvars[digtVar_nonce   ] = vpn_notice;
-    dgtvars[digtVar_uri     ] = vpn_name;
+    dgtvars[digtVar_uri     ] = vpncln_name;
     dgtvars[digtVar_opaque  ] = vpn_opaque;
     ChkEmpty(vpn_notice);
     ChkEmpty(vpn_opaque);
@@ -1666,7 +1666,7 @@ agayn1:
     "Authorization: %s\r\n"
     "Host: %s\r\n"
     "%s: %X %llX\r\n"
-    "Connection: keep-alive\r\n\r\n", vpn_name,
+    "Connection: keep-alive\r\n\r\n", vpncln_name,
     //vpn_user, r, bfr+1124,
     bfr+1024, vpn_remote_host,
     TUNTAPNames[tun_index], vpn_client_ip, vpn_mac[tun_index]
