@@ -2,7 +2,7 @@
  * Copyright (C) 1999-2021 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
- * Author: Maksim Feoktistov 
+ * Author: Maksim Feoktistov
  *
  *
  * Small HTTP server is free software: you can redistribute it and/or modify it
@@ -15,11 +15,11 @@
  * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see https://www.gnu.org/licenses/ 
+ * along with this program.  If not, see https://www.gnu.org/licenses/
  *
  * Contact addresses for Email:  support@smallsrv.com
  *
- * 
+ *
  */
 
 
@@ -99,14 +99,14 @@ int MLChk::RunForward(char *mbx)
 
  if( (h=_lopen(pth2,0))>0 )
  {
-  debug("Forward file %s",pth2);   
+  debug("Forward file %s",pth2);
   memcpy(vars,FwdVars,sizeof(FwdVars));
   rv.Init(vars,0,0);
-  
+
   sprintf(vsz,"%u",(l+1023)/1024);
-  
+
   dprint("vsz=%s\n",vsz);
-  
+
   vars[1]=vsz;
   vars[3]=verr;
   vars[5]=t1;
@@ -155,14 +155,14 @@ int MLChk::RunForward(char *mbx)
      *t6='#';
     // dprint(" LogAn '%.128s' \n",t5+4);
      if( rv.LogAn(t5+4) )
-     { 
+     {
       //   dprint(" LogAn '%.64s' return true\n",t5+4);
          if(t7)memset(t7,' ',t6-t7);
      }else
      {
 
      //  dprint(" LogAn '%.64s' return false\n",t5+4);
-  
+
        t4=t6;
  // ! temporary
  // debug("%.80s.. false",t5+4);
@@ -215,7 +215,7 @@ int MLChk::RunForward(char *mbx)
         if(nm[2][-1-s]=='2')
         {
          nm[2][-1-s]=0;
-         xchg(nm[2],nm[4]);
+         xchgp(nm[2],nm[4]);
          s<<=1;
          if(nm[2] && nm[2][-1]=='>'){nm[2][-1]=0; s|=1; }
         }
@@ -272,11 +272,11 @@ int MLChk::RunForward(char *mbx)
 	vfork()
 #else
 	fork()
-#endif	
+#endif
       )>0 )
       {x=ttl_avr;
        do{do{
-          //sleep(1); 
+          //sleep(1);
           SrvEventWait(&pid_to_wait,1000);
           if( waitpid(s,(int *)&rez,WNOHANG))goto exFork;}while(--x>0);
           pid_to_wait = 0;
@@ -322,9 +322,9 @@ exFork:;
   }
   else _lclose(h);
  }
- /* 
+ /*
  else  // ! Temporary!!!
- { 
+ {
    debug("Can't open '%s' %d",pth2?pth2:"",h);
 
  }
@@ -545,7 +545,7 @@ if(n)
 
        if((x=GetCMD(s,pth2,0))!=220)goto lerrmsg;
        esmtp=
-#ifdef x86_64 
+#ifdef x86_64
       NULL !=
 #else
    (int)

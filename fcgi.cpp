@@ -407,6 +407,7 @@ int Req::DoFCGI(FCGI_task *fcgi)
    };
 
   fcgi->AppWrite(this, FCGI_BEGIN_REQUEST, sizeof(def_brr.body),(void *)&def_brr.body);
+
   fcgi->Param(this, "REQUEST_METHOD", ((fl&F_POST)?"POST":"GET"));
   fcgi->Param(this, "REMOTE_HOST", (char *) (http_var+MAX_HTTP_VARS+2));
   fcgi->Param(this, "SCRIPT_FILENAME", loc);
@@ -442,6 +443,7 @@ int Req::DoFCGI(FCGI_task *fcgi)
         return 0;
       }
     } while( 1 );
+
   }
   fcgi->AppWrite(this, FCGI_STDIN, 0, "");
   //fcgi->state |= fcgistWAIT_RECV;
@@ -460,7 +462,7 @@ int Req::DoFCGI(FCGI_task *fcgi)
   fcgi->n_wait --;
   fcgi->reqs[ntsk>>ARH_SHIFT] &= ~ (ARH_ONE << (ntsk & ARH_MASK) ) ;
   fl &= ~F_FCGI;
-  KeepAlive = 0;
+  //KeepAlive = 0;
 
   FCGIDEBUG("End request %s\r\n", fcgi->app_name)
 
@@ -553,7 +555,7 @@ int Req::DoFCGI(FCGI_task *fcgi)
   fcgi->n_wait --;
   //fcgi->reqs[ntsk>>ARH_SHIFT] &= ~ (ARH_ONE << (ntsk & ARH_MASK) ) ;
   fl &= ~F_FCGI;
-  KeepAlive = 0;
+  //KeepAlive = 0;
   CloseSocket(f_req.s);
 
   free(bfr);
@@ -688,7 +690,13 @@ int FCGI_req::FCGIDoInput(char *bfr)
       switch(type)
       {
         case  FCGI_STDERR:
+          req->fl |= F_STDERRSEL;
+          if(0) {
         case  FCGI_STDOUT:
+          req->fl &= ~F_STDERRSEL;
+
+          }
+
 
           FCGIDEBUG("FCGI_STDOUT %X %d %d |%.32s|\r\n", type,l,j,data)
           if(j > l)
@@ -700,9 +708,20 @@ int FCGI_req::FCGIDoInput(char *bfr)
             j = l;
           }
           if(j>0) {
-            if( (!req->Tout) && !(req->fl&F_SKIPHEAD) )
+            if( (!(state & fcgistHDR_SEND)) && !(req->fl&F_SKIPHEAD) )
             {
-              if(req->SendChk( HTTP_HEAD_BEGIN , sizeof(HTTP_HEAD_BEGIN) - 1 ) <=0 ) goto lb_disconnect;
+              const char *tt = HTTP_HEAD_BEGIN;
+              int ltt = sizeof(HTTP_HEAD_BEGIN) - 1;
+              state |= fcgistHDR_SEND;
+
+              if( (s_flgs[2]&FL2_CHUNKED) && //Snd!=&TLSSend &&
+                req->KeepAlive && ! (req->fl&F_HTTP10) )
+              {
+                tt = ChunkedHead;
+                ltt = ChunkedHeadSize;
+                req->fl |= F_UPCHUNKED;
+              }
+              if(req->SendChk( tt, ltt ) <=0 ) goto lb_disconnect;
             }
             if( req->SendChk(data, j) <= 0 )
             {

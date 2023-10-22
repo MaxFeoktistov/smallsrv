@@ -2,7 +2,7 @@
  * Copyright (C) 1999-2020 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
- * Author: Maksim Feoktistov 
+ * Author: Maksim Feoktistov
  *
  *
  * Small HTTP server is free software: you can redistribute it and/or modify it
@@ -15,13 +15,13 @@
  * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see https://www.gnu.org/licenses/ 
+ * along with this program.  If not, see https://www.gnu.org/licenses/
  *
  * Contact addresses for Email:  support@smallsrv.com
  *
- * 
+ *
  */
-#ifdef  DJGPP 
+#ifdef  DJGPP
 #include "dgpp_quote.h"
 #else
 #define DJGPP_QUOTE
@@ -47,11 +47,19 @@ inline void XCHG_s(char *a, char *b,int l )
 #else
   asm volatile(
   " jecxz 2f \n"
+#if defined(x86_64)
+   " subll %%rdi,%%rdx\n"
+   " cld\n"
+   "1:  \n"
+   " movb  (%%rdi),%%al\n"
+   " xchgb %%al,(%%rdi,%%rdx,1)\n"
+#else
    " subl %%edi,%%edx\n"
    " cld\n"
    "1:  \n"
    " movb  (%%edi),%%al\n"
    " xchgb %%al,(%%edi,%%edx,1)\n"
+#endif
    " stosb\n"
    " loop 1b\n"
    " 2:\n"

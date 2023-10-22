@@ -2,7 +2,7 @@
  * Copyright (C) 1999-2021 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
- * Author: Maksim Feoktistov 
+ * Author: Maksim Feoktistov
  *
  *
  * Small HTTP server is free software: you can redistribute it and/or modify it
@@ -15,11 +15,11 @@
  * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see https://www.gnu.org/licenses/ 
+ * along with this program.  If not, see https://www.gnu.org/licenses/
  *
  * Contact addresses for Email:  support@smallsrv.com
  *
- * 
+ *
  */
 
 
@@ -31,7 +31,7 @@
 #define send(a,b,c,d)  SendChk(b,c)
 #define recv(a,b,c,d)  Recv(b,c)
 
-#define DBG() 
+#define DBG()
 //DBGL("")
 // debug("D %d", __LINE__ )
 #if defined(ANDROID) || defined(AT_ARM)
@@ -39,16 +39,30 @@
 #endif
 
 #undef DBG
-#define DBG() 
+#define DBG()
  //sprintf(einf, " %d", __LINE__ );
-#define PDBG(a,b...) 
+#define PDBG(a,b...)
 //printf(" %d " a "\n", __LINE__ ,b);
  //sprintf(einf, " %d " a , __LINE__ ,b);
-//#define DBGL(a...) debug(a) 
+//#define DBGL(a...) debug(a)
 
 const char ChunkedHead[] = "HTTP/1.1 200 \r\n"
                            "Connection: Keep-Alive\r\n"
                            "Transfer-Encoding: chunked\r\n";
+
+const int ChunkedHeadSize = sizeof(ChunkedHead) - 1;
+
+char *memfind(const char *s, const char *patern, int l, int l2)
+{
+  char *s1;
+  while( l>=l2 && (s1 = memchr(s,patern[0], l - l2 + 1) ) )
+  {
+    if(! memcmp(s1, patern, l2) ) return s1;
+    l -= (s1 - s) + 1;
+    s = s1 + 1;
+  }
+  return 0;
+}
 
 int Req::SendChk(const char *b,int l)
 {
@@ -74,35 +88,73 @@ int Req::SendChk(const char *b,int l)
    return 1;
   }
  }
- PDBG("SendChk %d %d fl=%X",l,Tout,fl);
+ DBGLA("SendChk %d %d fl=%X",l,Tout,fl);
 
-           if(fl&F_STDERRSEL)
-           {
-             if(! (fl&F_NAMEOUTED) )
-             {    
-#ifdef SEPLOG
-//               sepLog[CGI_ERR_LOG]->LAddToLog(loc,s,FmtShortErr);
-               sepLog[CGI_ERR_LOG]->LAddToLog(0,s,">>%.256s ; %.512s\r\n",loc,req?req:"");
-#else
-               AddToLog(loc,s,FmtShortErr);
-#endif        
-               fl|=F_NAMEOUTED;
-             }
-             
-             if(!(fl&F_ERROUTED))
-             {    
-//               b[l]=0;  
-#ifdef SEPLOG
-//             sepLog[CGI_ERR_LOG]->Ldebug("%X:%.128s%s\r\n",fl,b, (l>128)?"...":"" );
-               sepLog[CGI_ERR_LOG]->Ldebug("%.128s%s\r\n",b, (l>128)?"...":"" );
-#else
-               debug("%.128s%s\r\n",b, (l>128)?"...":"" );
-#endif        
-               if(l>16 || Tout>128 )
-                 fl|=F_ERROUTED ;
-             }  
-              if( (s_flgs[2]&FL2_NOERROUT) ) return 1; 
-           }
+ if(fl&F_STDERRSEL)
+ {
+   if(! (fl&F_NAMEOUTED) )
+   {
+     #ifdef SEPLOG
+     //               sepLog[CGI_ERR_LOG]->LAddToLog(loc,s,FmtShortErr);
+     sepLog[CGI_ERR_LOG]->LAddToLog(0,s,">>%.256s ; %.512s\r\n",loc,req?req:"");
+     #else
+     AddToLog(loc,s,FmtShortErr);
+     #endif
+     fl|=F_NAMEOUTED;
+   }
+
+   if(!(fl&F_ERROUTED))
+   {
+     //               b[l]=0;
+     #ifdef SEPLOG
+     //             sepLog[CGI_ERR_LOG]->Ldebug("%X:%.128s%s\r\n",fl,b, (l>128)?"...":"" );
+     sepLog[CGI_ERR_LOG]->Ldebug("%.128s%s\r\n",b, (l>128)?"...":"" );
+     #else
+     debug("%.128s%s\r\n",b, (l>128)?"...":"" );
+     #endif
+     if(l>64 ) // || Tout>128 )
+       fl|=F_ERROUTED ;
+   }
+   if( (s_flgs[2]&FL2_NOERROUT) ) return 1;
+ }
+
+ if(fl&F_UPCHUNKED)
+ {
+   int dl;
+   char *pp;
+   int ret;
+   if(fl & F_LASTLF)
+   {
+     dl = 2;
+     if(*b == '\r' || *b == '\n')
+     {
+       if(*b == '\n') dl=1;
+       if((ret = Send(b,dl)) <=0 ) return ret;
+       fl = (fl& ~(F_UPCHUNKED | F_LASTLF)) | F_CHUNKED;
+       if( (l -= dl) <= 0 ) return ret;
+       b += dl;
+       goto lbSnd;
+     }
+   }
+
+   dl = 4;
+   pp = memfind(b,"\r\n\r\n",l,4);
+   if(!pp)
+   {
+     pp = memfind(b,"\n\n",l,2);
+     dl = 2;
+   }
+   if(pp)
+   {
+     dl += (pp - b);
+     if( (ret = Send(b, dl) ) <=0 ) return ret;
+     fl = (fl& ~(F_UPCHUNKED | F_LASTLF)) | F_CHUNKED;
+     if( (l-=dl) <= 0 ) return ret;
+     b += dl;
+   }
+   else if(b[l-1] == '\n') fl |= F_LASTLF;
+ }
+lbSnd:
  return Send(b,l);
 };
 
@@ -132,7 +184,7 @@ char * Req::CheckAuth(char *&p)
  {z=y=p;
 //  debug("|%s|",t);
   if( strin(t,"Basic") )
-  {    
+  {
     t+=6;
     while((i=D64X(*t))<64)
     {t++;
@@ -163,11 +215,11 @@ char * Req::CheckAuth(char *&p)
         if((y=strchr(z,'"')))
         {
             p=y;
-        }   
+        }
         else p="";
         */
       }
-  }    
+  }
  }
  return 0;
 }
@@ -175,14 +227,14 @@ char * Req::CheckAuth(char *&p)
 #ifndef SYSUNIX
 int MyCreateProcess(char *p,void *env,char *loc, STARTUPINFO *cb,PROCESS_INFORMATION *pi)
 {
- union{   
+ union{
    ushort ut[512];
-   uchar uc[2048];   
+   uchar uc[2048];
  };
   ushort ut2[512];
-  if(utf2unicode((uchar *)p,ut)>0) 
+  if(utf2unicode((uchar *)p,ut)>0)
   {
-     utf2unicode((uchar *)loc,ut2);  
+     utf2unicode((uchar *)loc,ut2);
      return   CreateProcessW(0,(WCHAR *) ut,&secat,&secat,1,NORMAL_PRIORITY_CLASS,env,(WCHAR *)ut2,(STARTUPINFOW *)cb,pi);
   }
   else return
@@ -199,7 +251,7 @@ int Req::MakeEnv(char *env, char *ee)
    //z=inet_ntoa(sa.sin_addr);
 #define msprintf(a,b...) msprintfchk(a,ee,b)
    //debug("MakeEnv %X %X %X",(http_var+MAX_HTTP_VARS+2),loc, dir);
-   
+
    t=penv=env+
       msprintf(env,
      "GATEWAY_INTERFACE=CGI/1.1\nREQUEST_METHOD=%s\n"
@@ -223,9 +275,9 @@ int Req::MakeEnv(char *env, char *ee)
    BYTE_PTR(sa_c.sin_addr.s_addr,2),BYTE_PTR(sa_c.sin_addr.s_addr,3)
 #endif
 */
-     ,loc,loc, dir  //(vhdir)?vhdir->d : 
+     ,loc,loc, dir  //(vhdir)?vhdir->d :
    );
-   penv+=(vhdir && vhdir->h[0]=='/')? 
+   penv+=(vhdir && vhdir->h[0]=='/')?
         msprintf(penv,"SCRIPT_NAME=%s%s\n",vhdir->h,loc+dirlen+1):
           msprintf(penv,"SCRIPT_NAME=%s\n",loc+dirlen);
    if( trn )penv+=msprintf(penv,"PATH_INFO=/%s\n",trn);
@@ -233,22 +285,22 @@ int Req::MakeEnv(char *env, char *ee)
    //t=env+0x2400+Tin*2;
    t=ee-12;
    for(tt=http_var;(*tt) && (tt[1]);tt+=2)
-   { 
-     /*  
-     if(strstr(*tt,"QUERY_STRING"))   
+   {
+     /*
+     if(strstr(*tt,"QUERY_STRING"))
      {
          if( (penv+=sprintf(penv,"%.64s=%.8192s\n",*tt,tt[1],*tt,tt[1]))>t) break;
          //if( (penv+=sprintf(penv,"HTTP_%.64s=%.8192s\n",*tt,tt[1],*tt,tt[1]))>t) break;
      }
      else
-     */    
+     */
      /*
        if( (penv+=sprintf(penv,"%.64s=%.8000s\n",*tt,tt[1]))>=ee) break;
        if( (penv+=sprintf(penv,"HTTP_%.64s=%.8000s\n",*tt,tt[1],*tt,tt[1]))>=ee) break;
      */
      if( (penv+=l=msprintfchk(penv,ee,"%.64s=%.8000s\nHTTP_%.64s=%.8000s\n",*tt,tt[1],*tt,tt[1])) >t || !l )break;
-   }    
-     
+   }
+
    l=( ( t=GetVar(http_var,"CONTENT_LENGTH") )?atoui(t):0) ;
 
 //   if( (z=CheckAuth(t=penv+200) ) )
@@ -256,7 +308,7 @@ int Req::MakeEnv(char *env, char *ee)
    for(t=env;*t;t++)if(*t=='\n')*t=0;
    memcpy(t,eenv,leenv);
    return l;
-#undef msprintf  
+#undef msprintf
 };
 
 //-----
@@ -288,12 +340,12 @@ hwr,hwre
  long ll,ec,pl=0,cl=0,l,i;
  char *env,*penv,z[300];
  ulong timeout=cgi_timeout+time(0);
- 
+
  z[0]=0;
  e=z;
 // hs=(void *)s;
  if((stristr(loc,".pl") ) )
- {fl|=F_PERL;
+ {//fl|=F_PERL;
   if(perl)
   { e=perl; goto llgs1; }
   goto llgs2;
@@ -318,22 +370,22 @@ hwr,hwre
  if((p=new char[0x14900+leenv+i*2]))
  {pp=p;
   // *p++='\n';
-  env=p+0x10800;   
+  env=p+0x10800;
   cl=MakeEnv(env,env+0x4000+leenv+i*2);
   memset(&cb,0,sizeof(cb));
   cb.cb=sizeof(cb);
   cb.dwFlags=STARTF_USESTDHANDLES | STARTF_USESHOWWINDOW | STARTF_FORCEOFFFEEDBACK;
   cb.wShowWindow=SW_HIDE;
   if( (fl&F_POST) && pst && cl)
-  {if(cl>post_limit /*0x30000*/) 
-   { /* dbg("Very big post...");*/ 
+  {if(cl>post_limit /*0x30000*/)
+   { /* dbg("Very big post...");*/
 
        debug("Size of method POST %u exceeds maximum %u",cl,post_limit);
        HttpReturnError("Size of method POST exceeds maximum");
 
-//       goto ern; 
-       goto ex2; 
-       
+//       goto ern;
+       goto ex2;
+
    };
    if(!CreatePipe(&hrdp,&hwrp,&secat,cl+256))
    {HttpReturnError("Error. Can\'t run script");
@@ -396,7 +448,7 @@ hwr,hwre
   if( ll )
   { ll=0; ec=STILL_ACTIVE; goto lb1;
     do{
-       
+
        if(!l)
        {PeekNamedPipe(hrde,0,0,0,(ulong *)&l,0);
         if(l)
@@ -408,16 +460,16 @@ hwr,hwre
            PeekNamedPipe(hrd,0,0,0,(ulong *)&i,0);
            if(i){l=i ; goto lbrd;}
          }
-         
+
          if( !(s_flgs[2]&FL2_NOERROUT) )
-         {    
+         {
             if(!ll){HttpReturnError("Error in script:\r\n"); ll=1;}
-            else 
+            else
             {
-                if( send(s,"\r\n\r\n<hr>",8,0) <=0) goto tp; 
-            } 
-         }   
-         xchg(hrde,hrd);
+                if( send(s,"\r\n\r\n<hr>",8,0) <=0) goto tp;
+            }
+         }
+         xchgp(hrde,hrd);
          if( (s_flgs[2]&(FL2_NOERROUT|FL2_DUBSTDERR)) ) fl ^= F_STDERRSEL;
          goto lbrd;
         }
@@ -441,26 +493,27 @@ hwr,hwre
             t=(char *)"HTTP/1.0 200 \r\n";
             t1=strstr(p,"\r\n\r\n");
             if(!t1) t1=strstr(p,"\n\n");
-            
+
             if(loc==error_file) t=(char *)"HTTP/1.0 404 \r\n";
-            else if( (!(fl&F_SKIPHEAD)) && 
-              (!stristr(p,"Content-Length")) && 
+            else if( (!(fl&F_SKIPHEAD)) &&
+              (!stristr(p,"Content-Length")) &&
               (stristr(p,"Content-type: text")) && t1
             )
             {
-              if( (fl&F_GZ) 
-                && Snd != GZSnd 
+              if( (fl&F_GZ)
+                && Snd != GZSnd
               )
               {
                 DBG();
                 IGZP();
                 DBG();
               }
-              else if( (s_flgs[2]&FL2_CHUNKED) && //Snd!=&TLSSend && 
-                KeepAlive && ! (fl&F_HTTP10) )  
+              else if( (s_flgs[2]&FL2_CHUNKED) && //Snd!=&TLSSend &&
+                KeepAlive && ! (fl&F_HTTP10) )
               {
                 t = (char *) ChunkedHead;
                 ll = sizeof(ChunkedHead) - 1;
+                fl |= F_UPCHUNKED;
               }
             }
           }
@@ -473,24 +526,26 @@ hwr,hwre
             else l=0;
             Snd= GZSnd;
           }
-          else if( t == ChunkedHead ) 
+          /* !
+          else if( t == ChunkedHead )
           {
             send(s,p,i=t1-p+((t1[0]=='\n')?2:4), 0);
             if(i<l)memcpy(p, p+i, l-=i);
             else l=0;
             fl |= F_CHUNKED;
           }
+          */
         }
-        
+
           if(l)
-          {    
+          {
             p[l]=0;
             if( send(s,p,l,0) <0)
             {tp:
               if(s_flgs[1]&FL1_NBRK)
               {
                 do{
-                  
+
                   if(PeekNamedPipe(hrd,0,0,0,(ulong *)&l,0) && l)
                   { ReadFile(hrd,p,0x4000,(ulong *)&l,0); }
                   if(timeout<time(0))goto tp2;
@@ -502,7 +557,7 @@ hwr,hwre
               debug("Connection aborted %d..",GetLastError()); goto ex2;
             };
             ll+=l;
-          }     
+          }
         }
         lb1:
      //  Sleep(100);
@@ -593,7 +648,7 @@ int Req::MakeEnv(char *env, char *tend,char ***new_env)
  int l;
 
 #define msprintf(a,b...) msprintfchk(a,tend,b)
- 
+
  //=sizeof(sockaddr_in);
  //getpeername(s,(sockaddr *)&sa,(uint *) &l);
 // tend=env+0x3000+Tin;
@@ -655,7 +710,7 @@ int Req::MakeEnv(char *env, char *tend,char ***new_env)
    *new_env=tt=(char **) ((u_long)(penv+7)&0xFFFFfffc);
 #else
    *new_env=tt=(char **) ((u_long)(penv+15)& ~7ul);
-#endif   
+#endif
    for(*tt=t=env;t<penv;t++)
    {
 
@@ -672,7 +727,7 @@ int Req::MakeEnv(char *env, char *tend,char ***new_env)
    //for(tt=*new_env;*tt;++tt)debug("%s",*tt);
    *tt=0;
    return l;
-#undef msprintf   
+#undef msprintf
 };
 
 //----------------------
@@ -703,17 +758,17 @@ int Req::ExecCGIEx()
  i=strlen(inf);
  if(i>64)i=64;
  einf=inf+i;
- 
- 
+
+
 /// //////////*/
 //#define PDBG(a,b...)
- 
+
 //! Test
 
   setsockopt(s,SOL_SOCKET, SO_SNDTIMEO,&socktimeout,sizeof(socktimeout));
 
-/// ////////// 
- 
+/// //////////
+
 DBG();
 // z[0]=0;
 // e=z;
@@ -730,26 +785,26 @@ DBG();
 DBG();
  if(pst && loc) i = pst-loc;
  else i=Tin;
- 
+
  if(((uint)i)>8192)i=8192;
-  
+
  if( (p=(char * )malloc(0x14800+i)/* new char[0x14100]*/ )  )
  { pp=p;
 //debug("******** p=0x%X",p);
-   env=p+0x10800;  
+   env=p+0x10800;
    cl=MakeEnv(env,env+0x3C00+i,&new_env);
 DBG();
-   
-   if(cl>post_limit) 
-   {  
-       /*dbg("Very big post...");*/ 
-       
+
+   if(cl>post_limit)
+   {
+       /*dbg("Very big post...");*/
+
 //       debug("Post size excetpt maximum")
        debug("Size of method POST %u exceeds maximum %u",cl,post_limit);
        HttpReturnError("Size of method POST exceeds maximum");
-       //goto ern; 
-       goto ex; 
-       
+       //goto ern;
+       goto ex;
+
    };
 
    DBGLA("run %s", loc)
@@ -841,43 +896,43 @@ DBG();
       {
 	l=0;
 //        debug("Script loop %d\n",child_pid);
-        
+
 DBG();
-        
+
 //        if(RESelect(0,4096,1,hrde)>0 )
         if( (i=RESelect2(0,0x10000,hrd,hrde)) == hrde )
         {
 DBG();
-            
+
         lberr:
       //  debug("error in script %u %u",ll,Tout);
          if(RESelect(0,0x10000,1,hrd)) goto lbrd;
-         if(! (s_flgs[2]&FL2_NOERROUT) )        
+         if(! (s_flgs[2]&FL2_NOERROUT) )
             if(!ll)
             {
-              HttpReturnError("Error in script:\r\n"); 
+              HttpReturnError("Error in script:\r\n");
               ll=1;
             }
-            else 
+            else
             {
-                if( send(s,"\r\n\r\n<hr>",8,0) <=0) goto tp; 
-            }    
+                if( send(s,"\r\n\r\n<hr>",8,0) <=0) goto tp;
+            }
 
-            
+
          if( (s_flgs[2]&(FL2_NOERROUT|FL2_DUBSTDERR)) ) fl ^= F_STDERRSEL;
-    
+
          xchg(hrde,hrd);
-         
+
 
 DBG();
-         
+
          goto lbrd;
         }
         else
         {
           if(i==hrd) goto lbrd;
         }
-        
+
         if(RESelect(0,0x10000,1,hrd)>0 )
         {
      lbrd:
@@ -885,7 +940,7 @@ DBG();
         l=0;
         p=pp;
 PDBG("read %d %d hrd=%d fl=%X",ll,ec,hrd,fl);
-        
+
         do{
          i=read(hrd,p+l,0x4000-l);
 	 if(i<=0)break;
@@ -894,47 +949,48 @@ PDBG("read %d %d hrd=%d fl=%X",ll,ec,hrd,fl);
 	       && (!(i&0x1FF)) // i==PIPE_BUF
 	       && RESelect(0,8192,1,hrd)>0);
     DBG();
-	 
+
     if(l>0)
     {
       DBG();
-      
+
       if( !ll )
       {
         DBG();
-        
+
         ll=sizeof("HTTP/1.0 200 \r\n")-1;
-        if(strinnc(p,(char *)"Status:")){p=SkipSpace(p+7); l-=ll=p-pp; t="HTTP/1.0 ";  
-          //DBGL("Status %.20s\r\n",p); 
+        if(strinnc(p,(char *)"Status:")){p=SkipSpace(p+7); l-=ll=p-pp; t="HTTP/1.0 ";
+          //DBGL("Status %.20s\r\n",p);
         }
         //           else t=( (stristr(p-1,(char *)"\nLocation:"))?(char *)"HTTP/1.0 301\r\n"
         else if(StrVar(p,"Location"))
-        {  
-          t=(char *)"HTTP/1.0 301 \r\n"; //ll=sizeof("HTTP/1.0 301 \r\n")-1; 
+        {
+          t=(char *)"HTTP/1.0 301 \r\n"; //ll=sizeof("HTTP/1.0 301 \r\n")-1;
         }
         else
         {
           t=(char *)"HTTP/1.0 200 \r\n";
-          t1=strstr(p,"\r\n\r\n"); 
-          
-          if( (!(fl&F_SKIPHEAD)) && 
-            (!stristr(p,"Content-Length")) && 
+          t1=strstr(p,"\r\n\r\n");
+
+          if( (!(fl&F_SKIPHEAD)) &&
+            (!stristr(p,"Content-Length")) &&
             (stristr(p,"Content-type: text")) && t1
           )
-          {  
-            if( (fl&F_GZ) 
+          {
+            if( (fl&F_GZ)
                 && Snd != GZSnd )
             {
               DBG();
               IGZP();
               DBG();
             }
-            else if( 
-                     (s_flgs[2]&FL2_CHUNKED) && //Snd!=&TLSSend && 
-                     KeepAlive && ! (fl&F_HTTP10) ) 
+            else if(
+                     (s_flgs[2]&FL2_CHUNKED) && //Snd!=&TLSSend &&
+                     KeepAlive && ! (fl&F_HTTP10) )
             {
               t = (char *) ChunkedHead;
               ll = sizeof(ChunkedHead) - 1;
+              fl |= F_UPCHUNKED;
             }
           }
         }
@@ -955,15 +1011,17 @@ PDBG("read %d %d hrd=%d fl=%X",ll,ec,hrd,fl);
           else l=0;
           Snd= GZSnd;
         }
+     /*
         else if( t == ChunkedHead ) {
           send(s,p,i=t1-p+4,0);
           if(i<l)memcpy(p,p+i,l-=i);
           else l=0;
           fl |= F_CHUNKED;
         }
+      */
         //  printf("=|%.82s|= %u",p,l);
       }
-      
+
 PDBG("%d %d %d hrd=%d fl=%X",ll,l,ec,hrd,fl);
           if(l>0)
           {
@@ -973,7 +1031,7 @@ PDBG("%d %d %d hrd=%d fl=%X",ll,l,ec,hrd,fl);
     DBG();
                 if(s_flgs[1]&FL1_NBRK)
                 {
-                  DBG();	      
+                  DBG();
                   do{
                     if(timeout<time(0))goto tp2;
                     if(RESelect(10,50000,1,hrd)>0)
@@ -984,17 +1042,17 @@ PDBG("%d %d %d hrd=%d fl=%X",ll,l,ec,hrd,fl);
                 }
                 else if( ec>=0 && ec!=child_pid)
                 {
-                  tp2: 
+                  tp2:
                   pid_to_wait = 0;
                   kill(child_pid,9);
                   DBG();
                   //sleep(1);
                   SrvEventWait(&pid_to_wait,1000);
-                  DBG();		
+                  DBG();
                   ec=waitpid(child_pid,(int *)&status,WNOHANG);
                 }
                 while( ec>0 && ec!=child_pid)
-                {  
+                {
                   DBG();
                   ec=waitpid(child_pid,(int *)&status,WNOHANG);
                 }
@@ -1002,9 +1060,9 @@ PDBG("%d %d %d hrd=%d fl=%X",ll,l,ec,hrd,fl);
                 dbg("Connection aborted..\r\n ");
                 goto ex;
              };
-            
+
              ll+=l;
-          }   
+          }
          }
        lb1:;
         // ioctl(hrd,FIONREAD,(ulong *)&l);
@@ -1014,7 +1072,7 @@ PDBG("%d %d %d hrd=%d fl=%X",ll,l,ec,hrd,fl);
         if(l<=0)
         {
 DBG();
-	  
+
           if( (!ll) && RESelect(0,1024,1,hrde)>0 ) goto lberr ;
 DBG();
          if( ec>=0 && ec!=child_pid)  ec=waitpid(child_pid,(int *)&status,WNOHANG);
@@ -1029,14 +1087,14 @@ DBG();
         }
 
 DBG();
-        
+
         if(RESelect(0,1024,1,s) )
         {
 DBG();
 
             if( Recv(p,0x8000)<=0 ) goto tp;
-        }   
-          
+        }
+
     }while(!ec);
 DBG();
      if(ll==0)
@@ -1055,8 +1113,8 @@ DBG();
   free(pp); //delete p;
 DBG();
  }else
- { 
-     dbg("No Memory"); 
+ {
+     dbg("No Memory");
    //  debug("i=%u %s %d",i,loc,errno);
  }
  close(hwrp);

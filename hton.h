@@ -2,7 +2,7 @@
  * Copyright (C) 1999-2020 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
- * Author: Maksim Feoktistov 
+ * Author: Maksim Feoktistov
  *
  *
  * Small HTTP server is free software: you can redistribute it and/or modify it
@@ -15,27 +15,35 @@
  * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see https://www.gnu.org/licenses/ 
+ * along with this program.  If not, see https://www.gnu.org/licenses/
  *
  * Contact addresses for Email:  support@smallsrv.com
  *
- * 
+ *
  */
 
 
 
 
-#ifdef NOTINTEL
+#if defined(NOTINTEL) && ! defined(x86_64)
 
 
 inline void XCHG(void *a,void *b)
 {
- long c;
- c=*(long *)a;
- *(long *)a=*(long *)b;
- *(long *)b=c;
+ int c;
+ c=*(int *)a;
+ *(int *)a=*(int *)b;
+ *(int *)b=c;
+}
+inline void XCHGP(void **a,void **b)
+{
+ void *c;
+ c=*a;
+ *a=*b;
+ *b=c;
 }
 #define xchg(a,b)  XCHG(&(a),&(b))
+#define xchgp(a,b)  XCHGP(&(a),&(b))
 
 inline int MULDIV(uint a,uint b,uint c)
 {
@@ -59,7 +67,7 @@ inline ulong ror(ulong a,int b){
 }
 
 
-#ifdef __cplusplus                      
+#ifdef __cplusplus
 
 inline ulong DIVMODLL(ulong a,ulong b,ulong d,
                       ulong &m)
@@ -72,7 +80,7 @@ inline ulong DIVMODLL(ulong a,ulong b,ulong d,
   m= ll%d;
   return ll/d;
 }
-#endif                      
+#endif
 
 
 #else
@@ -96,6 +104,35 @@ inline int intel32(int a)
   return a;
 }
 
+#if defined(x86_64)
+
+inline void XCHGP(void *a,void *b)
+{
+  asm volatile( "movq  (%%rax),%%rcx\n"
+"                xchgq (%%rdx),%%rcx\n"
+"                movq  %%rcx, (%%rax)\n"
+"               ":"=&a" (a),"=&d" (b)
+                :"0" (a),"1" (b)
+                :"%rcx"
+              );
+};
+
+inline void XCHG(void *a,void *b)
+{
+  asm volatile("movl  (%%rax),%%ecx\n"
+"               xchgl (%%rdx),%%ecx\n"
+"               movl  %%ecx, (%%rax)\n"
+"              ":"=&a" (a),"=&d" (b)
+                :"0" (a),"1" (b)
+                :"%rcx"
+              );
+};
+
+#define xchg(a,b)  XCHG(&a,&b)
+#define xchgp(a,b)  XCHGP(&a,&b)
+
+#else
+
 inline void XCHG(void *a,void *b)
 {
   asm volatile("movl  (%%eax),%%ecx\n"
@@ -106,6 +143,12 @@ inline void XCHG(void *a,void *b)
                 :"%ecx"
               );
 };
+
+#define xchg(a,b)  XCHG(&a,&b)
+#define xchgp(a,b)  XCHG(&a,&b)
+
+
+#endif
 
 inline int MULDIV(uint a,uint b,uint c)
 {
@@ -129,7 +172,6 @@ inline int IMULDIV(int a,int b,int c)
       );
   return a;
 };
-#define xchg(a,b)  XCHG(&a,&b)
 #undef htonl
 #undef htons
 #define htonl intel32
@@ -154,9 +196,6 @@ inline ulong ror(ulong a,int b){
 
 #ifdef __cplusplus
 inline ulong DIVMODLL(ulong a,ulong b,ulong d,ulong &m)
-#else
-inline ulong DIVMODLL(ulong a,ulong b,ulong d,ulong *m)
-#endif
 { asm volatile("\n"
 "     divl %%ecx\n"
 "   ":"=&a" (a), "=&d" (m) , "=&c" (d)
@@ -164,5 +203,15 @@ inline ulong DIVMODLL(ulong a,ulong b,ulong d,ulong *m)
    );
  return a;
 }
+#else
+inline ulong DIVMODLL(ulong a,ulong b,ulong d,ulong *m)
+{ asm volatile("\n"
+"     divl %%ecx\n"
+"   ":"=&a" (a), "=&d" (*m) , "=&c" (d)
+    :"0" (a), "1"(b), "2"(d)
+   );
+ return a;
+}
+#endif
 
 #endif

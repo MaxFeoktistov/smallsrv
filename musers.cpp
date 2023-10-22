@@ -2,7 +2,7 @@
  * Copyright (C) 1999-2022 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
- * Author: Maksim Feoktistov 
+ * Author: Maksim Feoktistov
  *
  *
  * Small HTTP server is free software: you can redistribute it and/or modify it
@@ -15,11 +15,11 @@
  * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see https://www.gnu.org/licenses/ 
+ * along with this program.  If not, see https://www.gnu.org/licenses/
  *
  * Contact addresses for Email:  support@smallsrv.com
  *
- * 
+ *
  */
 
 
@@ -33,7 +33,7 @@
 char *User::dir(char *ps)
 {
  if(*ps==1)return ps+19;
- else if(*ps==2)return ps+36;   
+ else if(*ps==2)return ps+36;
  return memchr(ps,0,256)+1;
 };
 #endif
@@ -57,7 +57,7 @@ ulong Rnd()
 
  gettimeofday(&tv,0);
 
- 
+
   v1=tv.tv_usec^(u_long)&r;
   v2=tv.tv_usec*tv.tv_sec;
   r=rol( (OldRnd^tv.tv_usec)
@@ -80,7 +80,7 @@ void MD5UpdateL(MD5_CTX *c, char *u)
   else
   {
     debug("MD5UL required variable is abcent");
-  
+
   }
 
 };
@@ -98,24 +98,24 @@ void ConvPwdMD5L4(uint *t4,char *u,char *pas, char *realmm)
   MD5UpdateL (&context, realmm);
   MD5Update(&context,(uchar *) ":", 1);
   MD5UpdateL (&context, pas);
-  MD5Final ((uchar *)t4, &context);     
+  MD5Final ((uchar *)t4, &context);
 }
 
 char* ConvPwdMD5(char *t,char *u,char *pas)
 {
   uint dgt[6]      ;
   ConvPwdMD5L4(dgt,u,pas);
-  return t+=sprintf(t,"~%8.8X.%8.8X.%8.8X.%8.8X",dgt[0],dgt[1],dgt[2],dgt[3]);  
+  return t+=sprintf(t,"~%8.8X.%8.8X.%8.8X.%8.8X",dgt[0],dgt[1],dgt[2],dgt[3]);
 }
 
 int IsPwdMD5C(char *p, char *pas,char *u)
-{  
+{
   uint dgt[6]      ;
   int i;
   ConvPwdMD5L4(dgt,u,pas);
   p++;
   for(i=0;i<4;i++)
-    if(DWORD_PTR(p[i<<2]) != dgt[i] ) return 0;  
+    if(DWORD_PTR(p[i<<2]) != dgt[i] ) return 0;
   return 1;
 }
 
@@ -146,16 +146,16 @@ const char *digetvars[]=
 void CvtHex(uint  *cd, char * Hex    )
 {
  sprintf(Hex,"%8.8x%8.8x%8.8x%8.8x",
-#if __BYTE_ORDER__  ==  __ORDER_LITTLE_ENDIAN__ 
-#ifdef x86_64         
+#if __BYTE_ORDER__  ==  __ORDER_LITTLE_ENDIAN__
+#ifdef x86_64
    (uint) htonl(cd[0]),(uint) htonl(cd[1]),(uint) htonl(cd[2]),(uint) htonl(cd[3])
-#else   
+#else
    htonl(cd[0]),htonl(cd[1]),htonl(cd[2]),htonl(cd[3])
-#endif   
-   
-#else   
+#endif
+
+#else
    cd[0],cd[1],cd[2],cd[3]
-#endif   
+#endif
    );
 }
 
@@ -168,6 +168,7 @@ void GenAPOP_dgst(char *pas,char *dgst,char *s,int ssize)
   MD5Update (&context, (uchar *)s, ssize);
   MD5UpdateL (&context, pas);
   MD5Final ((uchar *)dgt, &context);
+  CvtHex(dgt,dgst);
 }
 
 int IsPwdAPOP(char *pas,char *dgst,char *s,int ssize)
@@ -193,12 +194,12 @@ void CalkPwdMD5D(char **dgv, uint *HA1,char *method, char *HA2Hex)
   MD5Init (&context);
   MD5UpdateL (&context, method);
   MD5Update(&context,(uchar *) ":", 1);
-  
+
   MD5UpdateL (&context, dgv[digtVar_uri]);
   MD5Final((uchar *)HA2, &context);
   CvtHex(HA2, HA2Hex);
 
-  
+
   MD5Init (&context);
 
   MD5Update(&context,(uchar *) HA1Hex, 32);
@@ -215,20 +216,20 @@ void CalkPwdMD5D(char **dgv, uint *HA1,char *method, char *HA2Hex)
           MD5Update(&context, (uchar *)":", 1);
   }
   MD5Update(&context,(uchar *) HA2Hex, 32);
-  MD5Final ((uchar *)rt2, &context);     
+  MD5Final ((uchar *)rt2, &context);
   CvtHex(rt2, rez);
-  
+
 }
 
 int IsPwdMD5D(char **dgv, uint *HA1,char *method)
 {
   char HA2Hex[40];
   CalkPwdMD5D(dgv, HA1, method, HA2Hex);
-  
+
 //  debug("MD5 cmp:%s<>%s|  %s",rez,dgv[digtVar_response],HA1Hex);
   return !strcmp(HA2Hex,dgv[digtVar_response]) ;
-#undef rez  
-#undef rt2  
+#undef rez
+#undef rt2
 }
 /*
 void CalkHA1(char *u,char *pwd, uchar *HA1)
@@ -279,13 +280,13 @@ void UpdPwdCrypt(char *p)
 #ifdef WITHMD5
  else  if(*p=='~' && p[9]=='.' && strlen(p)==36 )
  {
-   char *t;  
+   char *t;
    uint d[4];
     t=p;
     for(a=0; a<4; a++)
-    {    
+    {
       b=strtoul(t+1,&t,16);
-      if( (*t!='.' && a!=3) )//|| (! (b&0xFF) ) || (! (b&0xFF00) ) || (! (b&0xFF0000) ) || (! (b&0xFF000000) )) 
+      if( (*t!='.' && a!=3) )//|| (! (b&0xFF) ) || (! (b&0xFF00) ) || (! (b&0xFF0000) ) || (! (b&0xFF000000) ))
           goto exLp2;
       d[a]=b;
     }
@@ -293,9 +294,9 @@ void UpdPwdCrypt(char *p)
     *p++ =2;
     memcpy(p,d,16);
 
-  exLp2: ;  
- }    
-#endif 
+  exLp2: ;
+ }
+#endif
 }
 //inline
 int IsPwd(ulong a,ulong b, char *pas)
@@ -307,7 +308,7 @@ int IsPwd(ulong a,ulong b, char *pas)
  return ((a^x)==~(b-x));
 }
 int IsPwdC(char *p, char *pas)
-{  
+{
  if(*p==1)return IsPwd(DWORD_PTR(p[1]),DWORD_PTR(p[5]), pas);
  return !strcmp(p,pas);
 }
@@ -383,13 +384,13 @@ int User::Parse(char *x)
   }
   return Parse();
 
-  
+
 };
 
 #endif
 int User::Parse()
 {
-  
+
 //user=name;password;home_dir;PSHF_flags
  char *t;
 // char *n;
@@ -429,11 +430,11 @@ int User::Parse()
          state|=UserPARSED;
 #ifdef x86_64
         pwd=pasw;ddr=dir ;
-#endif         
+#endif
          MkDir();
 	// debug("user=%.15s pass=%.15s dir=%.20s ; %u\n",name,pasw,dir,offset(User,name));
          UpdPwdCrypt(pasw);
-         
+
          return 1;
         }
      }
@@ -466,19 +467,19 @@ int IsSame(char *tt,char *pp)
 
 void Req::AddHack(ulong t,int v)
 {
-     
-#ifdef USE_IPV6 
+
+#ifdef USE_IPV6
   union{
      LimitCntr *lip;
      LimitCntrIPv6 *lip6;
-      
-      
-   }; 
-   if(IsIPv6(&sa_c)) //sa_c.sin_family==AF_INET6)    
+
+
+   };
+   if(IsIPv6(&sa_c)) //sa_c.sin_family==AF_INET6)
    {
      if(!(lip6=hack6.Find(sa_c6.sin6_addr)))
      {
-      lip6=hack6.Push(); 
+      lip6=hack6.Push();
       lip6->Set(sa_c6.sin6_addr);
       /*
       lip6->ip.ip.s6_addr32[0] =  sa_c6.sin6_addr.s6_addr32[0];
@@ -487,14 +488,14 @@ void Req::AddHack(ulong t,int v)
       lip6->ip.ip.s6_addr32[3] =  sa_c6.sin6_addr.s6_addr32[3];
       */
      }
-       
-       
+
+
    }
    else
-   {    
+   {
 #else
      LimitCntr *lip;
-#endif 
+#endif
      ulong ip4;
      ip4=IPv4addr(&sa_c);
      if(!(lip=hack.Find(ip4))) // sa_c.sin_addr. S_ADDR)))
@@ -502,8 +503,8 @@ void Req::AddHack(ulong t,int v)
          lip=hack.Push(); lip->ip=ip4; // sa_c.sin_addr. S_ADDR;
      }
 #ifdef USE_IPV6
-   } 
-#endif   
+   }
+#endif
    lip->first=t;
    lip->cnt+=v;
 }
@@ -522,17 +523,17 @@ User   *FindUser(char *bfr,int typ,char *pwd /*=0*/,Req *r) //=0)
  int md5pwd=typ&FindUserMD5digest;
 // ulong dgt[4];
  char *dgtvars[10];
- 
+
 // ConvPwdMD5L4(dgt,bfr,pwd);
 // typ&=0x7F;
- 
+
  if( (typ != (UserPOP3|FindUserMD5digest)) && pwd && ( strin(pwd,"Digest") ||md5pwd ) )
  {
 
-     
+
    for(cc=0;digetvars[cc];cc++)
    {
-     if((dgtvars[cc]=  PrFinVar(pwd,digetvars[cc])) ) 
+     if((dgtvars[cc]=  PrFinVar(pwd,digetvars[cc])) )
         md5pwd|=1<<cc;
    }
 //debug("TTT digest %X %s %X",md5pwd,bfr,typ);
@@ -540,19 +541,19 @@ User   *FindUser(char *bfr,int typ,char *pwd /*=0*/,Req *r) //=0)
    {
      debug("Absent DIGEST_MIN_REQUIRED %X %X",md5pwd&0xFFFF,DIGT_MIN_REQUIRED);
      md5pwd=0;
-   }  
-   else 
+   }
+   else
    {
     for(cc=0;digetvars[cc];cc++)
     {
-     if(dgtvars[cc] && (t=strpbrk(dgtvars[cc],"\t\r\n \",")) )*t=0;  
+     if(dgtvars[cc] && (t=strpbrk(dgtvars[cc],"\t\r\n \",")) )*t=0;
     }
     bfr=dgtvars[digtVar_username];
     if( (!r)  || ! (r->CheckNonce(dgtvars[digtVar_nonce],dgtvars[digtVar_opaque])) ) return 0;
    }
- } 
+ }
  //typ&=~FindUserMD5digest;
-#endif 
+#endif
 //debug("TTT %s %X %X",bfr,typ,userList);
  cc=0;
  for(tuser=userList;tuser;tuser=tuser->next)
@@ -571,12 +572,12 @@ User   *FindUser(char *bfr,int typ,char *pwd /*=0*/,Req *r) //=0)
 
    if(pwd)
    {
-#ifndef WITHMD5   
+#ifndef WITHMD5
     if( *(t=tuser->pasw()) && ! IsPwdC(t,pwd)  )goto lbBad;
 #else
     if( *(t=tuser->pasw())  )
     {
-   //   debug("%s %s %X %X",tuser->name,t,tuser->state,typ);  
+   //   debug("%s %s %X %X",tuser->name,t,tuser->state,typ);
      if(*t==1 && md5pwd)
      {
        r->fl|=F_DIGET_UNAVILABLE;
@@ -585,8 +586,8 @@ User   *FindUser(char *bfr,int typ,char *pwd /*=0*/,Req *r) //=0)
      }
      if(typ == (UserPOP3|FindUserMD5digest))
      {
-        if(! IsPwdAPOP(t,pwd,r->pst,r->postsize)) goto lbBad;    
-      
+        if(! IsPwdAPOP(t,pwd,r->pst,r->postsize)) goto lbBad;
+
      }
      else
      {
@@ -599,18 +600,18 @@ User   *FindUser(char *bfr,int typ,char *pwd /*=0*/,Req *r) //=0)
             (
               (*t==2)?
                     IsPwdMD5D(dgtvars,(uint *)(t+1),t1) :
-                    IsPwdMD5DD(dgtvars,tuser->name,t,t1) 
-                    
+                    IsPwdMD5DD(dgtvars,tuser->name,t,t1)
+
             )
         :
-        (*t==2)? 
+        (*t==2)?
         IsPwdMD5C(t,pwd,tuser->name)
-        : 
+        :
         IsPwdC(t,pwd)  //strcmp(t,pwd)
         ) )goto lbBad;
-     } 
-    }   
-#endif      
+     }
+    }
+#endif
     r->dir=tuser->dir(t);
 
 //    if( (pip=memchr4(lastbadip, r->sa_c.sin_addr. S_ADDR ,8)))//saddr[r->ntsk],8)) )
@@ -621,9 +622,9 @@ User   *FindUser(char *bfr,int typ,char *pwd /*=0*/,Req *r) //=0)
   {
      if( (lip6=hack6.Find(r->sa_c6.sin6_addr ) ) )
      { if(!(lip6->cnt&=~ ((0x501*cc)<<5))) hack6.Del(lip6); }
-  }   
+  }
   else
-#endif  
+#endif
     if( (lip=hack.Find( IPv4addr(& r->sa_c ) ) ) ) //r->sa_c.sin_addr. S_ADDR)))
     { if(!(lip->cnt&=~((0x501*cc)<<5)))hack.Del(lip); }
 
@@ -678,18 +679,18 @@ User   *FindUser(char *bfr,int typ,char *pwd /*=0*/,Req *r) //=0)
     if(IsIPv6(&r->sa_c) )//sa_client.sin_family==AF_INET6)
     {
         if( (lip6=hack6.Find( r->sa_c6.sin6_addr ) ) ) goto lbHF;
-        lip6=hack6.Push(); lip6->Set( r->sa_c6.sin6_addr );  // r->sa_c.sin_addr. S_ADDR; 
-    }   
+        lip6=hack6.Push(); lip6->Set( r->sa_c6.sin6_addr );  // r->sa_c.sin_addr. S_ADDR;
+    }
     else
-#endif  
+#endif
     if( (lip=hack.Find(IPv4addr(& r->sa_c ) ) ) ) //r->sa_c.sin_addr. S_ADDR)))
-    { 
-     lbHF:   
-        if(pwd &&  lip->first !=(ip=MkName(pwd)) ){lip->cnt++; lip->first=ip;}
-    }else 
     {
-        lip=hack.Push(); lip->ip=IPv4addr(& r->sa_c );  // r->sa_c.sin_addr. S_ADDR; 
-        
+     lbHF:
+        if(pwd &&  lip->first !=(ip=MkName(pwd)) ){lip->cnt++; lip->first=ip;}
+    }else
+    {
+        lip=hack.Push(); lip->ip=IPv4addr(& r->sa_c );  // r->sa_c.sin_addr. S_ADDR;
+
     }
     if(tuser)
     {lip->cnt|=(0x501*cc)<<5;  }

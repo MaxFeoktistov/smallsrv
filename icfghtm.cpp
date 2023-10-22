@@ -326,10 +326,23 @@ int sOutLine::OutConnLine(Req *r, char *alt_text)
   contry[0]=0;
   if(cntr_dat)
   {
-    if( (cc=FindCntr(htonl(r->sa_c.sin_addr.s_addr) ) ) )
+    uint ipv4 = r->sa_c.sin_addr.s_addr;
+    #ifdef USE_IPV6
+    if(r->sa_c6.sin6_family == AF_INET6)
+    {
+      if(
+        r->sa_c6.sin6_addr.s6_addr32[0]==0 &&
+        r->sa_c6.sin6_addr.s6_addr32[1]==0 &&
+        r->sa_c6.sin6_addr.s6_addr32[2]==0xFFFF0000
+      ) ipv4 = r->sa_c6.s6_addr32[3];
+      else goto lbIPv6;
+    }
+    #endif
+    if( (cc=FindCntr(htonl(ipv4) ) ) )
     {
       sprintf(contry," (%2.2s)",cc->nm);
     }
+    lbIPv6:;
   }
   // Dont_fix_var
   j+=sprintf(bfr+j,"<tr valign=center><td><font size=2 class=f2>%u) <b>"

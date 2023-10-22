@@ -34,7 +34,7 @@ void dbgf(char *er,int s);
 void xdie(char *);
 #define die(e) {xdie(e); return -1;}
 
-//#define DEBUG_VERSION 1
+#define DEBUG_VERSION 1
 #ifdef DEBUG_VERSION
 
 #define DBGLS(a)  debug("%s:%u:%s %s\r\n",__FILE__ , __LINE__, __func__, a);
@@ -139,7 +139,8 @@ struct Req
 #define F_POST 1
 #define F_KEEP_ALIVE  2
 #define F_PHP 4
-#define F_PERL 0x40
+//#define F_PERL 0x40
+#define F_UPCHUNKED 0x40
 #define F_EXE 0x20
 #define F_SKIPHEAD 0x10
 #define F_LASTLF 0x80
@@ -152,6 +153,8 @@ struct Req
 #define F_NAMEOUTED 0x2000
 #define F_ERROUTED 0x4000
 #define F_FCGI     0x8000
+
+#define F_SERV_MASK 0xF0000
 
  #define F_JUSTPOOL  0x8000000
 
@@ -783,6 +786,17 @@ extern char  *bind_a[MAX_SERV];
 #define  SRV_SDNST     8
 #define  SRV_DHCPD     9
 
+#define  F_SERV_HTTP      (SRV_HTTP  <<16)
+#define  F_SERV_PROXY     (SRV_PROXY <<16)
+#define  F_SERV_FTP       (SRV_FTP   <<16)
+#define  F_SERV_SMTP      (SRV_SMTP  <<16)
+#define  F_SERV_POP       (SRV_POP   <<16)
+#define  F_SERV_SSL       (SRV_SSL   <<16)
+#define  F_SERV_TEL       (SRV_TEL   <<16)
+#define  F_SERV_SDNS      (SRV_SDNS  <<16)
+#define  F_SERV_SDNST     (SRV_SDNST <<16)
+#define  F_SERV_DHCPD     (SRV_DHCPD <<16)
+
 #define   SRV_HTTP_MSK      (1<<SRV_HTTP )
 #define   SRV_PROXY_MSK      (1<<SRV_PROXY)
 #define   SRV_FTP_MSK      (1<<SRV_FTP  )
@@ -986,6 +1000,8 @@ extern int   pid_to_wait;
 #endif
 
 #define  HTTP_HEAD_BEGIN "HTTP/1.1 200 Ok\r\nConnection: close\r\n"
+extern const char ChunkedHead[];
+extern const int ChunkedHeadSize;
 
 #ifdef SEPLOG
 
@@ -1088,6 +1104,7 @@ struct FCGI_req
 #define fcgistPART_HEAD   0x10
 #define fcgistPART_BODY   0x20
 #define fcgistSKIP_PADD   0x40
+#define fcgistHDR_SEND    0x80
 
   int  recv_len_left;
   int  padd;

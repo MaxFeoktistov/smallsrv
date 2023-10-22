@@ -295,7 +295,7 @@ do{
  }while(1);
  postsize=l-(pst-in_buf)-4;
  KeepAlive=stristr(in_buf,"Connection: Keep-Alive");
- if(KeepAlive)DBGL("KeepAlive required");  //!*********
+ //if(KeepAlive)DBGL("KeepAlive required");  //!*********
 
  if( (s_flgs[1]&FL1_GZ) &&
     zlibstate>0 && (t=StrVar(in_buf,"Accept-Encoding")) && stristr(t,"gzip") )
@@ -326,7 +326,7 @@ lbxx:
  if( (tp1=strchr(tp1,' ')  ) )*tp1=0;
 
 #if V_FULL
- if( proxy_flg /*   (fl&0xF0000)==F_PROXY */){rq=in_buf; dirlen=l; ProxyReq(); goto ex1;};
+ if( proxy_flg /*   (fl&F_SERV_MASK)==F_SRV_PROXY */){rq=in_buf; dirlen=l; ProxyReq(); goto ex1;};
 #endif
  tp1=0;
  if((tp=strchr(in_buf,'\r'))){*tp=0;
@@ -681,6 +681,7 @@ lcgi:
   // debug("CGI: %X %X h=%X\n", (fl&F_PHP), (s_flgs[3] & FL3_FCGI_PHP), h);
    if((fl&F_PHP) && (s_flgs[3] & FL3_FCGI_PHP) && phtml_dir)
    {
+      DBGLA("Tout=%u",Tout)
       CallFCGI(phtml_dir);
    }
    else if(
@@ -708,7 +709,7 @@ lcgi:
    {
 #define NOT_MODIFID_REPLY     "HTTP/1.0 304 \r\nContent-Length: 0\r\nConnection: Keep-Alive\r\n\r\n"
      send(s,NOT_MODIFID_REPLY,sizeof(NOT_MODIFID_REPLY)-1,0);
-     DBGLA("Not modified %X\r\n", (int) (long) KeepAlive ); // ******
+   //  DBGLA("Not modified %X\r\n", (int) (long) KeepAlive ); // ******
      goto ex1;
 //    goto ex2a;
    }

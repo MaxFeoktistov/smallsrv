@@ -2,7 +2,7 @@
  * Copyright (C) 1999-2022 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
- * Author: Maksim Feoktistov 
+ * Author: Maksim Feoktistov
  *
  *
  * Small HTTP server is free software: you can redistribute it and/or modify it
@@ -15,11 +15,11 @@
  * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see https://www.gnu.org/licenses/ 
+ * along with this program.  If not, see https://www.gnu.org/licenses/
  *
  * Contact addresses for Email:  support@smallsrv.com
  *
- * 
+ *
  */
 
 
@@ -329,8 +329,8 @@ void Req::p2p(int ss,char *in_buf)
 
  i=s;
  h=ss;
- 
-#if ! (defined(SYSUNIX) || defined(SELECT1) )  
+
+#if ! (defined(SYSUNIX) || defined(SELECT1) )
  while(RESelect(timout,0,2,i,h) >0 )
  {if(RESelect(0,0,1,h))xchg(i,h);
 #else
@@ -344,15 +344,15 @@ void Req::p2p(int ss,char *in_buf)
   }
   else
   {
-    if((l=Recv(in_buf,0x8000))<=0)break;  
+    if((l=Recv(in_buf,0x8000))<=0)break;
     if(BSend(ss,in_buf,l)<=0)break;
-  }    
-/*     
+  }
+/*
   if((l=recv(i,in_buf,0x8000,0))<=0)break;
   if(BSend(h,in_buf,l)<=0)break;
   ((h==ss)?Tin:Tout)+=l;
   DBG_WRITE(in_buf,l,h==ss);
-*/  
+*/
  }
 
 
@@ -736,10 +736,10 @@ struct{
 #ifdef x86_64
    DDWORD_PTR(ibf[1024]) =(u_long) "Authorization";
    DDWORD_PTR(ibf[1032])=(u_long) (t+sizeof("\nProxy-Authorization:"));
-#else      
+#else
    DWORD_PTR(ibf[1024]) =(ulong) "Authorization";
    DWORD_PTR(ibf[1028])=(ulong) (t+sizeof("\nProxy-Authorization:"));
-#endif   
+#endif
    if((t1=CheckAuth(p=ibf+1048))) puser=FindUser(t1,UserHTTP,p,this);
    /*
    if((p=strchr(t+12,'\n')))
@@ -752,11 +752,11 @@ struct{
   if( (s_flg&FL_PRXUSER) && !puser)
   {KeepAlive=0;
 #define STRAVTPR "HTTP/1.1 407 deny\r\nProxy-Authenticate: Basic realm=\"Proxy\"\r\nContent-Type: text/plain\r\n\r\nAccess denyed"
-   return 
+   return
 #ifdef WITHMD5
       (  ( (s_flgs[2] & FL2_MD5PASS) || ! (s_flgs[1]&FL1_CRYPTPWD) )  &&  (s_flgs[2] & FL2_USEMD5D) && !(fl&F_DIGET_UNAVILABLE) )?
-      SendDigestAuthReq(in_buf): 
-#endif   
+      SendDigestAuthReq(in_buf):
+#endif
       Send(STRAVTPR,sizeof(STRAVTPR)-1);
   }
 
@@ -778,7 +778,7 @@ struct{
     ++no_close_req;
     for(i=0;i<max_tsk;++i)
       if( ((u_long)(r=rreq[i]))>1 &&
-          (r->fl&0xF0000)==1 &&
+          (r->fl & F_SERV_MASK)== F_SERV_PROXY &&
           r->sa_c.sin_addr.s_addr==sa_c.sin_addr.s_addr &&
           DWORD_PTR(r->dir)==xu
         ) ++h;
@@ -837,9 +837,9 @@ if(!up_prox)
     lpag:
       if((fs=_lopen(ibf,0)) >=0)
       {if( GetFileSize(
-#ifndef x86_64          
+#ifndef x86_64
           (HANDLE)
-#endif          
+#endif
           fs,0) )
        {goto oklxx;}
        _lclose(fs);
@@ -934,10 +934,10 @@ if(!up_prox)
 #ifdef x86_64
    DDWORD_PTR(ibf[1024]) =(u_long) "Authorization";
    DDWORD_PTR(ibf[1032])=(u_long) auth;
-#else      
+#else
      DWORD_PTR(ibf[1024]) =(ulong) "Authorization";
      DWORD_PTR(ibf[1028])=(ulong)auth;
-#endif     
+#endif
      t3=CheckAuth(t4=ibf+1048);
     }
     //do{

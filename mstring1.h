@@ -33,7 +33,7 @@
 #define stristr strcasestr
 #define stricmp strcasecmp
 
-inline char *memchrc(void *a,int b,int c){return (char *) memchr(a,b,c); }
+inline char *memchrc(const void *a,int b,int c){return (char *) memchr(a,b,c); }
 #define memchr memchrc
 
 inline int strin(char *a, char *b)

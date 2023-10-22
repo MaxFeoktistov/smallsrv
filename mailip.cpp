@@ -2,7 +2,7 @@
  * Copyright (C) 1999-2020 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
- * Author: Maksim Feoktistov 
+ * Author: Maksim Feoktistov
  *
  *
  * Small HTTP server is free software: you can redistribute it and/or modify it
@@ -15,11 +15,11 @@
  * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see https://www.gnu.org/licenses/ 
+ * along with this program.  If not, see https://www.gnu.org/licenses/
  *
  * Contact addresses for Email:  support@smallsrv.com
  *
- * 
+ *
  */
 
 
@@ -93,7 +93,7 @@ void  MHinfo::InitHst(uchar *t1)
  for(k=0; k<i; ++k)
    for(j=k+1;j<i;++j)
     if(tl[j]<tl[k])
-    {xchg(ta[k],ta[j]);
+    {xchgp(ta[k],ta[j]);
      xchg(tl[k],tl[j]);
     }
 
@@ -214,7 +214,7 @@ char* GetMailHost(char *adr, d_msg  *dmm,int jchk)
 
  do{
   if( (i=sendto(dns_s,(char *)&dm,t-(char *)&dm+4,0,(sockaddr *)&sa ,sizeof(sockaddr) )) <=0)
-  { 
+  {
     //dbg("SMTP DNS error...");
     return 0;
   }

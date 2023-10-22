@@ -728,7 +728,7 @@ int Req::IsProxyRange(int a)
  ++no_close_req;
  for(i=0;i<max_tsk;++i)
  {
-  if( ((u_long)(r=rreq[i]))>1 && (r->fl&0xF0000)==F_PROXY &&
+  if( ((u_long)(r=rreq[i]))>1 && (r->fl&F_SERV_MASK)==F_SERV_PROXY &&
      r->trn &&
 #ifdef x86_64
      ((ulong)(u_long)(r->req_var))== IPv4addr(&sa_c) && //sa_c.sin_addr. S_ADDR &&

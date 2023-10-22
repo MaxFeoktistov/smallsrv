@@ -2,7 +2,7 @@
  * Copyright (C) 1999-2022 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
- * Author: Maksim Feoktistov 
+ * Author: Maksim Feoktistov
  *
  *
  * Small HTTP server is free software: you can redistribute it and/or modify it
@@ -15,11 +15,11 @@
  * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see https://www.gnu.org/licenses/ 
+ * along with this program.  If not, see https://www.gnu.org/licenses/
  *
  * Contact addresses for Email:  support@smallsrv.com
  *
- * 
+ *
  */
 
 #ifndef SRV_H
@@ -28,11 +28,11 @@
 //#include <sys/fsuid.h>
 
 #ifdef SYSUNIX
-        
+
 #include <utime.h>
 #define DBG_MSG(a...)
 #else
-#define DBG_MSG(a...)  
+#define DBG_MSG(a...)
 //debug(a)
 #endif
 
@@ -58,13 +58,13 @@ struct LPath
 {User *puser;
  char *SrcPath;
  int  mode;
-#define  MODE_UNICODE 0x10000 
+#define  MODE_UNICODE 0x10000
  char cpath[258];
  int SrcDirLen;
  int BSrcDirLen;
 // #ifndef SYSUNIX
-//   ushort ut[512]; 
-// #endif  
+//   ushort ut[512];
+// #endif
  int MkFName(char *t,const char *p,uint vh=FL_FTPVDIR);
 };
 
@@ -134,11 +134,11 @@ lbVH:
 // #ifndef SYSUNIX
 //   if(utf2unicode(t,ut)>0)
 //   {
-//     mode|= MODE_UNICODE; 
+//     mode|= MODE_UNICODE;
 //   };
-// 
-// #endif 
- 
+//
+// #endif
+
  return i;
 };
 
@@ -150,106 +150,106 @@ const char atrib[5]={'-','x','w',' ','r'};
 #else
 
 int WINAPI lopen_UTF (char *f,ulong t)
-{ 
- ushort ut[512];   
-   if(utf2unicode((uchar *)f,ut)>0) 
+{
+ ushort ut[512];
+   if(utf2unicode((uchar *)f,ut)>0)
    {
      return (int)CreateFileW((WCHAR *)ut,(0xB0000000ul<<t)&0xC0000000,FILE_SHARE_READ,&secat,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,0);
-   } 
+   }
    return (int)CreateFile(f,(0xB0000000ul<<t)&0xC0000000,FILE_SHARE_READ,&secat,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,0);
 }
 /////////////////////
 int WINAPI lcreat2_UTF(char *f)
 {
- ushort ut[512];   
-   if(utf2unicode((uchar *)f,ut)>0) 
+ ushort ut[512];
+   if(utf2unicode((uchar *)f,ut)>0)
    {
      return  (int) CreateFileW((WCHAR *)ut,GENERIC_WRITE,FILE_SHARE_READ,&secat,CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL,0);
-   } 
+   }
    return (int) CreateFile(f,GENERIC_WRITE,FILE_SHARE_READ,&secat,CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL,0);
 }
 ////////////////////////////////
 int MoveFile_UTF(char *a,char *b)
 {
- ushort ut[512];   
- ushort ut2[512];   
-   if(utf2unicode((uchar *)a,ut)>0 && utf2unicode((uchar *)b,ut2)>0 ) 
+ ushort ut[512];
+ ushort ut2[512];
+   if(utf2unicode((uchar *)a,ut)>0 && utf2unicode((uchar *)b,ut2)>0 )
    {
      return  MoveFileW((WCHAR *)ut,(WCHAR *)ut2);
-   } 
+   }
    return  MoveFile(a,b);
 }
 ///////////////////////////////
 int CreateDirectory_UTF(char *a,SECURITY_ATTRIBUTES *sa)
 {
-   ushort ut[512];   
-   if(utf2unicode((uchar *)a,ut)>0) 
+   ushort ut[512];
+   if(utf2unicode((uchar *)a,ut)>0)
    {
      return  CreateDirectoryW((WCHAR *)ut,sa);
-   } 
+   }
    return CreateDirectory(a,sa);
 
 }
 /////////////////////////////////////
 int RemoveDirectory_UTF(char *a)
 {
-   ushort ut[512];   
-   if(utf2unicode((uchar *)a,ut)>0) 
+   ushort ut[512];
+   if(utf2unicode((uchar *)a,ut)>0)
    {
      return  RemoveDirectoryW((WCHAR *)ut);
-   } 
+   }
    return RemoveDirectory(a);
 }
 //////////////////////////////////
 int DeleteFile_UTF(char *a)
 {
-   ushort ut[512];   
-   if(utf2unicode((uchar *)a,ut)>0) 
+   ushort ut[512];
+   if(utf2unicode((uchar *)a,ut)>0)
    {
      return  DeleteFileW((WCHAR *)ut);
-   } 
+   }
    return DeleteFile(a);
 }
 //////////////////////////////////
 int GetFileAttributes_UTF(char *a)
 {
-   ushort ut[512];   
-   if(utf2unicode((uchar *)a,ut)>0) 
+   ushort ut[512];
+   if(utf2unicode((uchar *)a,ut)>0)
    {
      return  GetFileAttributesW((WCHAR *)ut);
-   } 
+   }
    return GetFileAttributes(a);
 }
 /////////////////////////////
 int SetFileAttributes_UTF(char *a,int i)
 {
-   ushort ut[512];   
-   if(utf2unicode((uchar *)a,ut)>0) 
+   ushort ut[512];
+   if(utf2unicode((uchar *)a,ut)>0)
    {
      return  SetFileAttributesW((WCHAR *)ut,i);
-   } 
+   }
    return SetFileAttributes(a,i);
 }
 uchar *   unicode2utf(uchar *utf8_buf,ushort *ucs4_buf, int l)
 {
-  uchar *e=utf8_buf+l-1;  
+  uchar *e=utf8_buf+l-1;
   uint a;
   do{
      if(utf8_buf>=e)
      {
        *utf8_buf=0;
        break;
-     } 
+     }
      a = *ucs4_buf++ ;
 #define UNI_SUR_HIGH_START  0xD800
 #define UNI_SUR_HIGH_END    0xDBFF
 #define UNI_SUR_LOW_START   0xDC00
 #define UNI_SUR_LOW_END     0xDFFF
-     
+
      if(a>=UNI_SUR_HIGH_START && a<=UNI_SUR_HIGH_END)
      {
        a=((a&0x3FF)<<10)|(*ucs4_buf++&0x3FF);
-     }    
+     }
      if ( (a) <= 0x7F)    // ASCII chars no conversion needed
      {
       *utf8_buf++ = a;
@@ -281,7 +281,7 @@ uchar *   unicode2utf(uchar *utf8_buf,ushort *ucs4_buf, int l)
           *utf8_buf++= (unsigned char) (0x80 + (a&0x3F));
 
      }
-/*     
+/*
      else if ( a <= 0x03FFFFFF )//In the 5 byte utf-8 range
      {
       *utf8_buf++= (unsigned char) (0xF8 +
@@ -310,24 +310,24 @@ uchar *   unicode2utf(uchar *utf8_buf,ushort *ucs4_buf, int l)
        *utf8_buf++= (unsigned char) (0x80 +
                       (a&0x3F));
      }
-*/      
+*/
   }while( a );
-  
+
 //  debug("unicode2utf %u: %s",l,e-l+1);
-  
-  return utf8_buf;  
+
+  return utf8_buf;
 };
 
 HANDLE FindFirstFile_UTF(char  *   a, LPWIN32_FIND_DATA lpFindFileData)
 {
- union{   
+ union{
    ushort ut[512];
-   uchar uc[2048];   
+   uchar uc[2048];
  };
  uchar dbg[256];
    HANDLE r;
    int err;
-   if(utf2unicode((uchar *)a,ut)>=0) 
+   if(utf2unicode((uchar *)a,ut)>=0)
    {
 //     unicode2utf(dbg,ut,256);
     // debug("FindFirstFileW(%s)  %s %s %s %X %X %X",a,ut,ut+1,ut+2,ut[0],ut[1],ut[2]);
@@ -344,19 +344,19 @@ HANDLE FindFirstFile_UTF(char  *   a, LPWIN32_FIND_DATA lpFindFileData)
      }
      else r=FindFirstFile(a,lpFindFileData);
      return  r;
-   } 
+   }
 //   else debug("utf2unicode < 0");
    return FindFirstFile(a,lpFindFileData);
-    
-    
+
+
 };
 
 int FindNextFile_UTF(HANDLE a, LPWIN32_FIND_DATA lpFindFileData)
 {
    int r;
-   uchar uc[2048];   
+   uchar uc[2048];
 
-     r=FindNextFileW(a,(LPWIN32_FIND_DATAW) lpFindFileData);  
+     r=FindNextFileW(a,(LPWIN32_FIND_DATAW) lpFindFileData);
      if(r)
      {
        unicode2utf(uc,(ushort *)lpFindFileData->cFileName,2048);
@@ -368,25 +368,25 @@ int FindNextFile_UTF(HANDLE a, LPWIN32_FIND_DATA lpFindFileData)
 };
 
 
-#undef   _lopen            
-#undef   _lcreat2          
-#undef   MoveFile         
-#undef   CreateDirectory  
-#undef   RemoveDirectory  
-#undef   DeleteFile       
+#undef   _lopen
+#undef   _lcreat2
+#undef   MoveFile
+#undef   CreateDirectory
+#undef   RemoveDirectory
+#undef   DeleteFile
 #undef   GetFileAttributes
 #undef   SetFileAttributes
-#undef   FindNextFile     
-#undef   FindFirstFile    
+#undef   FindNextFile
+#undef   FindFirstFile
 
 
 
-#define   _lopen               lopen_UTF           
+#define   _lopen               lopen_UTF
 #define   _lcreat2(a,b)       lcreat2_UTF(a)
-#define   MoveFile            MoveFile_UTF        
-#define   CreateDirectory     CreateDirectory_UTF 
-#define   RemoveDirectory     RemoveDirectory_UTF 
-#define   DeleteFile          DeleteFile_UTF      
+#define   MoveFile            MoveFile_UTF
+#define   CreateDirectory     CreateDirectory_UTF
+#define   RemoveDirectory     RemoveDirectory_UTF
+#define   DeleteFile          DeleteFile_UTF
 #define   GetFileAttributes   GetFileAttributes_UTF
 #define   SetFileAttributes   SetFileAttributes_UTF
 #define   FindNextFile        FindNextFile_UTF
@@ -411,9 +411,9 @@ int FTPPortMtx;
 /*
 struct FTPSecCon
 {
- int ss2;   
+ int ss2;
  int sec_state=0;
- OpenSSLConnection m_con,d_con; 
+ OpenSSLConnection m_con,d_con;
  tfSnd oSnd;
  tfRcv oRcv;
 };
@@ -427,16 +427,16 @@ int Req::ChkFTPSec(FTPSecCon *th2)
            th2->oRcv=Rcv;
            if(th2->sec_state&4)
            {
-               adv=&d_con;  
+               adv=&d_con;
                Snd=(tfSnd) &TLSSend;
                Rcv=(tfRcv) &TLSRecv;
            }
            else if(!TLSBegin(&th2->d_con))
            {
-               adv=&th2->m_con;  
+               adv=&th2->m_con;
                Snd=th2->oSnd;
                Rcv=th2->oRcv;
-               
+
                SendConstCMD( "421 security connection failed\r\n");
 
                xchg(s,th2->s2);
@@ -444,12 +444,12 @@ int Req::ChkFTPSec(FTPSecCon *th2)
                shutdown(th2->s2,2);
                closesocket(th2->s2);
                th2->s2=0;
-               
+
              //  goto  lbEndTransfer;
                return 0;
            }
            sec_state|=4;
-       }   
+       }
   return 1;
 };
 
@@ -459,16 +459,16 @@ int IsUnlogCmd(ulong cmd)
 {
   switch(cmd)
   {
-      case 0x74636361:    //acct 
+      case 0x74636361:    //acct
       case 0x72657375:    //user
       case 0x73736170 :   //pass
       case 0x74616566 :   //feat
-      case 0x68747561 x4CHAR("auth"):   
+      case 0x68747561 x4CHAR("auth"):
       case 0x746F7270 x4CHAR("prot"):
       case 0x7A736270 x4CHAR("pbsz"):
-      return 1;  
-  }    
-  return 0;  
+      return 1;
+  }
+  return 0;
 }
 int Req::FTPReq()
 {int status;
@@ -489,13 +489,13 @@ int Req::FTPReq()
 // Req rseq;
 // FTPSecCon  fsc;
   int sec_state=0;
-  OpenSSLConnection m_con,d_con; 
+  OpenSSLConnection m_con,d_con;
   tfSnd oSnd;
   tfRcv oRcv;
 
- 
+
  if(  ( FndLimit(3,&lip,&lnet,&sa_c)+
-        FndLimit(4,&lipo,&lneto,&sa_c ) 
+        FndLimit(4,&lipo,&lneto,&sa_c )
       ) == 2
  )
  {
@@ -535,9 +535,9 @@ ex2a:
   sockaddr_in6 sa6;
   char bfr[520];
   WIN32_FIND_DATA fnds;
-#ifndef SYSUNIX  
+#ifndef SYSUNIX
   WIN32_FIND_DATAW fndsw;
-#endif  
+#endif
  };
 union{
  SYSTEMTIME tm;
@@ -550,17 +550,17 @@ union{
  struct group  *grp;
  int gid,uid=-1;
  char *uname;
-  
-  
+
+
  uname=getenv("LC_ALL");
  if( (!uname) || ! stristr(uname,".UTF-8") )
- {    
+ {
    setlocale(LC_ALL,"en_US.UTF-8");
  }
 
- 
+
 #else
- int isFindUTF; 
+ int isFindUTF;
 #endif
 // Tin=0; Tout=0;
  prti.sin_port=0;
@@ -579,71 +579,71 @@ union{
  timout=FTPTimeout;
 // memcpy(&rseq,this,sizeof(rseq));
 // s2=0;
- 
- 
+
+
  goto lbNop;
  do{
  lbLp:
-  
+
   if(rcodeLen)
-  {    
-     if( 
+  {
+     if(
        //send(s,rcode,rcodeLen,0)
       Send(rcode,rcodeLen)
       <0)
    { dbg("Can\'t send.."); goto ex1;};
    if(s_flg&FL_FULLLOG)AddToLog(rcode,s,FmtShrt);
-  }  
+  }
 #undef SendCMD
 #undef SendConstCMD
 #define SendCMD(xxb,xxl) rcode=xxb; rcodeLen=xxl;
 #define SendConstCMD(b) rcode=b; rcodeLen=sizeof(b)-1;
-#define SendPrint(xxb...) rcodeLen=sprintf(rcode=bb,xxb); 
+#define SendPrint(xxb...) rcodeLen=sprintf(rcode=bb,xxb);
   if((oldcmd=cmd)==0x74697571 x4CHAR("quit"))break;
 //  if((cmd=GetCMD(s,bfr,FTPTimeout))<0)goto ex1;
   if((cmd=RGetCMD(bfr))<0) goto ex1;
-  if((!(status&1)) && //cmd!=0x74636361 && cmd!=0x72657375 && cmd!=0x73736170 && cmd!=0x74616566 && cmd!= 0x68747561 x4CHAR("auth") 
+  if((!(status&1)) && //cmd!=0x74636361 && cmd!=0x72657375 && cmd!=0x73736170 && cmd!=0x74616566 && cmd!= 0x68747561 x4CHAR("auth")
       !IsUnlogCmd(cmd)
   ){SendConstCMD("530 not logged in\r\n");}
   else  switch(cmd)
   {
    case 0x68747561 x4CHAR("auth"):
-     if((s_flgs[2]&FL2_FTPTLS)  && PSecAccept /*&&  0x00534C54 x4CHAR("TLS") == (DWORD_PTR(bfr[5])&0xDFDfDF)*/ )  
+     if((s_flgs[2]&FL2_FTPTLS)  && PSecAccept /*&&  0x00534C54 x4CHAR("TLS") == (DWORD_PTR(bfr[5])&0xDFDfDF)*/ )
      {
        Send("234 Init TLS\r\n",sizeof("234 Init TLS\r\n")-1 );
        if(s_flg&FL_FULLLOG)AddToLog("234 Init TLS\r\n",s,FmtShrt);
        if(TLSBegin(&m_con))
        {
-         sec_state|=3;    
+         sec_state|=3;
          rcodeLen=0;
        }
        else SendConstCMD( "334 TLS error\r\n");
-           
-         
+
+
      }
      else SendConstCMD( "334 unsupported\r\n");
-         
-     
+
+
      break;
    case  0x746F7270 x4CHAR("prot"):
         //if('P' == bfr[5])
-            sec_state|=2;  
+            sec_state|=2;
    case  0x7A736270 x4CHAR("pbsz"):
      SendConstCMD("200 Ok\r\n");
      break;
-     
+
    case 0x20636363  x4CHAR("ccc ") :
        if(sec_state&1)
        {
            Send("200 Ok\r\n",sizeof("200 Ok\r\n") -1 );
-           SecClose(&m_con);  
+           SecClose(&m_con);
            Snd=(tfSnd) &JustSnd;
            Rcv=(tfRcv) &JustRcv;
            sec_state=0;
            rcodeLen=0;
        }
        else SendConstCMD("200 Ok\r\n" );
-       break; 
+       break;
    case 0x74636361 x4CHAR("acct")://
    case 0x72657375 x4CHAR("user")://
     status&=~1;
@@ -652,13 +652,13 @@ union{
     {
       if( (t=puser->pasw()) && !*t)
       {
-        // SendConstCMD( "232 Login Ok\r\n");  
-         dir=puser->dir(t); 
-         goto LoginOk;       
- //       break;     
+        // SendConstCMD( "232 Login Ok\r\n");
+         dir=puser->dir(t);
+         goto LoginOk;
+ //       break;
       }
       puser=0;
-        
+
     }
     SendConstCMD( "331 Password request\r\n");
     break;
@@ -670,7 +670,7 @@ union{
      cmd=0x74697571;
      break;
     }
- LoginOk:   
+ LoginOk:
     status|=1;
     if(first_pass_port)
     {
@@ -678,7 +678,7 @@ union{
       ++no_close_req;
       MyLock(FTPPortMtx);
       for(i=0;i<max_tsk;i++)
-      { if( ((u_long)rreq[i])>1 &&  rreq[i]->pass_port == pass_port && (rreq[i]->fl&0xF0000)== F_FTP) pass_port++;
+      { if( ((u_long)rreq[i])>1 &&  rreq[i]->pass_port == pass_port && (rreq[i]->fl& F_SERV_MASK)== F_SERV_FTP) pass_port++;
       }
       MyUnlock(FTPPortMtx);
       --no_close_req;
@@ -686,7 +686,7 @@ union{
     if(fl&F_PRX)
     {status|=4;
      if((w=CallUp(puser))<0)goto ex3;
-#if ! (defined(SYSUNIX) || defined(SELECT1) )  
+#if ! (defined(SYSUNIX) || defined(SELECT1) )
      while(RESelect(FTPTimeout,0,2,s,w) >0 )
      {if(RESelect(0,0,1,w))
       {
@@ -815,15 +815,15 @@ lbPRX2:
 
      goto ex1;
     }
-    
+
     if(0x72657375 x4CHAR("user") == cmd)
     {
         SendConstCMD("232 Logged in successfully\r\n");
-    }    
-    else 
-    {    
+    }
+    else
+    {
         SendConstCMD("230 Logged in successfully\r\n");
-    }    
+    }
     DWORD_PTR(cpath[pth.BSrcDirLen=sprintf(cpath,"%.254s",SrcPath=dir)//+1
     ])=0;
 //    if(cpath[pth.BSrcDirLen-1]==FSLUSH )cpath[--pth.BSrcDirLen]=0;
@@ -925,20 +925,20 @@ lbCon:
        )goto lerr550;
        if( (!CheckBadName(bb)) )goto lerr501;
       CheckAccess(bb,2);
-       
+
 #ifdef SYSUNIX
       tm.ttm.tm_sec=  VResumePos[0]%100;
       tm.ttm.tm_min= (VResumePos[0]/100)%100;
       tm.ttm.tm_hour=(VResumePos[0]/10000)%100;
       tm.ttm.tm_mday=(VResumePos[0]/1000000)%100;
       tm.ttm.tm_mon= ((VResumePos[0]/100000000)%100) -1;
-         
-      bfr[5+4]=0;      
+
+      bfr[5+4]=0;
       tm.ttm.tm_year=atoui(bfr+5)-1900;
       VResumePos[0]=VResumePos[1]=mktime(&tm.ttm);
       if(!utime(bb,(struct utimbuf *) VResumePos ))
       {
-         //213 Modify=20020717210715; 
+         //213 Modify=20020717210715;
          goto lbOkModify;
       };
       goto lerr501;
@@ -950,37 +950,37 @@ lbCon:
       tm.wDay    =(VResumePos[0]/1000000)%100;
       tm.wMonth = ((VResumePos[0]/100000000)%100);
 
-      bfr[5+4]=0;       
+      bfr[5+4]=0;
       tm.wYear=atoui(bfr+5) ;
-      
+
       i=_lopen(bb,1) ;
       if(i==(int)INVALID_HANDLE_VALUE)  goto lerr501;
-      SystemTimeToFileTime(&tm,&ftm); 
+      SystemTimeToFileTime(&tm,&ftm);
       l= SetFileTime(
           (HANDLE) i, //         hFile,
           0,//const FILETIME *lpCreationTime,
           0,//const FILETIME *lpLastAccessTime,
-          &ftm//const FILETIME *lpLastWriteTime 
-         ); 
+          &ftm//const FILETIME *lpLastWriteTime
+         );
       _lclose(i);
       if(l)  goto lbOkModify;
       goto lerr501;
-#endif       
-         
+#endif
+
      }
      else
      {
-       goto lbSize;  
-     } 
-     break;   
+       goto lbSize;
+     }
+     break;
    case 0x74736572 x4CHAR("rest")://18:
     HResumePos=atoll(bfr+5);
     if(0){
    case 0x72666E72 x4CHAR("rnfr")://19:
     if((puser->state&UserFTP)!=UserFTP){cmd=0x6F746E72 x4CHAR("rnto"); goto lerr550;}
    case 0x657A6973 x4CHAR("size")://28:
-       
-  lbSize:  
+
+  lbSize:
     l=pth.MkFName(bb,bfr+5);
     if( //(l<=SrcDirLen) ||
       (!CheckBadName(bb)) )goto lerr501;
@@ -989,13 +989,13 @@ lbCon:
      FindClose(hdl);
      if( cmd == 0x6D74646D x4CHAR("mdtm") )
      {
-       FileTimeToSystemTime(&fnds.ftLastWriteTime,&tm);  
-   lbOkModify:    
+       FileTimeToSystemTime(&fnds.ftLastWriteTime,&tm);
+   lbOkModify:
        printSendCMD(bb+256,"213 %4.4u%2.2u%2.2u%2.2u%2.2u%2.2u\r\n",
-        tm.wYear, tm.wMonth,tm.wDay,tm.wHour,tm.wMinute,tm.wSecond );  
+        tm.wYear, tm.wMonth,tm.wDay,tm.wHour,tm.wMinute,tm.wSecond );
      }
      else
-     {    
+     {
       OutLL(fnds.nFileSizeLow,fnds.nFileSizeHigh,bb+290);
       printSendCMD(bb+256,"213 %s\r\n",bb+290);  //(ulong) fnds.nFileSizeLow);
      }
@@ -1212,28 +1212,28 @@ lbCONECT:
      }
     }
     if(status&4)goto lbPRX2;
-    if( ( 
-         //  send(s,"150 Ok\r\n",sizeof("150 Ok\r\n")-1,0) 
+    if( (
+         //  send(s,"150 Ok\r\n",sizeof("150 Ok\r\n")-1,0)
          Send("150 Ok\r\n",sizeof("150 Ok\r\n")-1)
         ) < 0)
     { dbg("Can\'t send..");goto ex1;  };
     if(s_flg&FL_FULLLOG)AddToLog("150 Ok\r\n",s,FmtShrt);
 
-    
+
        xchg(s,s2);
        timout=FTPTimeout;
 
        if(sec_state&2)
        {
-         //  debug("FTP Setup TLS data connection\r\n"); 
+         //  debug("FTP Setup TLS data connection\r\n");
            oSnd=Snd;
            oRcv=Rcv;
            if(!TLSBegin(&d_con))
            {
-               Adv=&m_con;  
+               Adv=&m_con;
                Snd=oSnd;
                Rcv=oRcv;
-               
+
                SendConstCMD( "421 security connection failed\r\n");
 
                xchg(s,s2);
@@ -1241,15 +1241,15 @@ lbCONECT:
                s2=0;
                sec_state&=~4;
 
-               
+
                goto  exLp5;
            }
            sec_state|=4;
        }
 //        else
 //        {
-//            debug("FTP without TLS\r\n"); 
-//              
+//            debug("FTP without TLS\r\n");
+//
 //        }
 
     switch(cmd)
@@ -1287,7 +1287,7 @@ lbCONECT:
          adv=&m_con;
          Snd=oSnd;
          Rcv=oRcv;
-       }  
+       }
        */
 
        sprintf(t,"FTP: download %.255s\tfor %s %d\r\n",bb,puser->name,x);
@@ -1334,7 +1334,7 @@ lbCONECT:
       {lbSTOR:
        t=bb+1024;
        x=0;
- 
+
        do{l= Recv(t,BBSIZE);
           //XRecv(s2,t,BBSIZE,0,FTPTimeout);
 
@@ -1360,7 +1360,7 @@ lbCONECT:
          adv=&m_con;
          Snd=oSnd;
          Rcv=oRcv;
-       } 
+       }
        */
 
        sprintf(t,"FTP: upload %.255s\tfrom %s %u\r\n",bb,puser->name,x);
@@ -1376,8 +1376,8 @@ lbCONECT:
       break;
      case 0x74736C6E x4CHAR("nlst")://27:
      case 0x7473696C x4CHAR("list")://26:
-         
-         
+
+
     GetSystemTimeAsFileTime(&ftm);
     if(GetFileAttributes(bb)&FILE_ATTRIBUTE_DIRECTORY )
 //    DWORD_PTR(bb[l]) =
@@ -1400,8 +1400,8 @@ lbCONECT:
 DBG_MSG("LIST2: %.64s %u",bb,l);
 
     bb[l]=0;
-    
-    
+
+
     if(s_flg&FL_FTPVDIR && !strcmp(bb,SrcPath) )
     {host_dir *a;
      for(a=hsdr.next;a;a=a->next)
@@ -1438,7 +1438,7 @@ DBG_MSG("LIST4.1: %s %u",fnds.cFileName,l);
         bb+0x87C0//fnds.nFileSizeLow
 
         ,month[tm.wMonth-1],tm.wDay);
-#ifdef MINGW        
+#ifdef MINGW
       t+=        ( (ftm.dwHighDateTime-fnds.ftLastWriteTime.dwHighDateTime)<67306)?
   sprintf(t,        "%2.2u:%2.2u %.256s\r\n",tm.wHour,tm.wMinute,( (s_flg&FL_FTWOSPACE) && (int) strchr(fnds.cFileName,' ') )?fnds.cAlternateFileName:fnds.cFileName
       ):
@@ -1446,14 +1446,14 @@ DBG_MSG("LIST4.1: %s %u",fnds.cFileName,l);
       );
 
 
-#else        
+#else
       t+=sprintf(t,
         ( (ftm.dwHighDateTime-fnds.ftLastWriteTime.dwHighDateTime)<67306)?
         "%2.2u:%2.2u%0.0c %.256s\r\n":"%0.0c%0.0c %4.4u %.256s\r\n"
         ,tm.wHour,tm.wMinute,tm.wYear
         ,( (s_flg&FL_FTWOSPACE) && (int) strchr(fnds.cFileName,' ') )?fnds.cAlternateFileName:fnds.cFileName
       );
-#endif        
+#endif
 #else
       pwd=getpwuid(fnds.st.st_uid);
       grp=getgrgid(fnds.st.st_gid);
@@ -1504,7 +1504,7 @@ DBG_MSG("LIST4.12: %.64s %u",fnds.cFileName,l);
       {
           (--t)[-1]=0;
           DBG_MSG("LIST4.15: STREAM E");
-      }    
+      }
       if( (i=t-bb)>=0x8000 )
       {
 DBG_MSG("LIST4.2: %.64s %u",fnds.cFileName,l);
@@ -1543,8 +1543,8 @@ DBG_MSG("LIST4: %.64s %u",bb,l);
    {
      if(sec_state&4)
      {
-    //   debug("FTP: Close TLS data connection\r\n");  
-       SecClose(&d_con);  
+    //   debug("FTP: Close TLS data connection\r\n");
+       SecClose(&d_con);
        sec_state &= ~4 ;
      }
      Adv=&m_con;
@@ -1638,18 +1638,18 @@ lbPORT:
     }
  case 0x74616566 x4CHAR("feat") :
      SendPrint( "211-Extensions supported:\r\n"
-                   " UTF8\r\n"     
-                   " MDTM\r\n"     
-//                   " UTF-8\r\n"     
-                   " SIZE\r\n%s"     
+                   " UTF8\r\n"
+                   " MDTM\r\n"
+//                   " UTF-8\r\n"
+                   " SIZE\r\n%s"
                    "211 end\r\n",( (s_flgs[2]&FL2_FTPTLS)  && PSecAccept ) ?
                    " AUTH TLS\r\n"
                    " PBSZ\r\n"
                    " PROT\r\n"
-                   : ""    
+                   : ""
      );
      break;
-      
+
     default:
     er502:
       SendConstCMD("502 Command not implemented\r\n");
@@ -1675,8 +1675,8 @@ lbPORT:
 #endif
  if(sec_state&1)
  {
-  SecClose(&m_con);  
- }    
+  SecClose(&m_con);
+ }
  return 0;
 
 #undef SrcDirLen
@@ -1684,9 +1684,9 @@ lbPORT:
 #undef SrcPath
 #undef puser
 #undef send
- 
- 
- 
+
+
+
 
 
 
@@ -1699,23 +1699,23 @@ lbPORT:
 
 #undef  s2
 
-#undef   _lopen            
-#undef   _lcreat2          
-#undef   MoveFile         
-#undef   CreateDirectory  
-#undef   RemoveDirectory  
-#undef   DeleteFile       
+#undef   _lopen
+#undef   _lcreat2
+#undef   MoveFile
+#undef   CreateDirectory
+#undef   RemoveDirectory
+#undef   DeleteFile
 #undef   GetFileAttributes
 #undef   SetFileAttributes
-#undef   FindNextFile     
-#undef   FindFirstFile    
+#undef   FindNextFile
+#undef   FindFirstFile
 
- #define   _lopen              lopen           
+ #define   _lopen              lopen
 #define   _lcreat2(a,b) lcreat2(a)
-#define   MoveFile            MoveFileA        
-#define   CreateDirectory     CreateDirectoryA 
-#define   RemoveDirectory     RemoveDirectoryA 
-#define   DeleteFile          DeleteFileA      
+#define   MoveFile            MoveFileA
+#define   CreateDirectory     CreateDirectoryA
+#define   RemoveDirectory     RemoveDirectoryA
+#define   DeleteFile          DeleteFileA
 #define   GetFileAttributes   GetFileAttributesA
 #define   SetFileAttributes   SetFileAttributesA
 #define   FindNextFile        FindNextFileA
