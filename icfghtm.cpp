@@ -334,7 +334,7 @@ int sOutLine::OutConnLine(Req *r, char *alt_text)
         r->sa_c6.sin6_addr.s6_addr32[0]==0 &&
         r->sa_c6.sin6_addr.s6_addr32[1]==0 &&
         r->sa_c6.sin6_addr.s6_addr32[2]==0xFFFF0000
-      ) ipv4 = r->sa_c6.s6_addr32[3];
+      ) ipv4 = r->sa_c6.sin6_addr.s6_addr32[3];
       else goto lbIPv6;
     }
     #endif

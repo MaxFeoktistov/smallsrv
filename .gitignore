@@ -1,3 +1,5 @@
 depend.cpp
 makefile.orig
 Makefile
+*.hh
+t2icfghtm.cpp
