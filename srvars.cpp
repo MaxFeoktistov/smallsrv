@@ -361,7 +361,12 @@ char *pprot=b_prot,*f_prot=b_prot;
 
 FCGI_task * fcgi_list;
 //int FCGI_thread_runed;
-char *fcgi_upath = "/dev/shm";
+char *fcgi_upath =
+#ifdef CONFIG_TMP
+  CONFIG_TMP ;
+#else
+  "/dev/shm";
+#endif
 uint fcgi_group;
 
 maxFdSet maxKeepAliveSet;

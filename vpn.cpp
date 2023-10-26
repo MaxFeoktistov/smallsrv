@@ -393,7 +393,11 @@ int tun_alloc(int index)
         debug("VPN: can't get hw address interface %s: %d %d %s\r\n", ifr.ifr_flags, ifr.ifr_name, r, errno, strerror(errno) );
       else
       {
+#ifdef ARM
+        memcpy(vpn_mac+index, ifr.ifr_hwaddr.sa_data, 6);
+#else
         vpn_mac[index] = DDWORD_PTR(ifr.ifr_hwaddr.sa_data[0]) & 0xFFFFffffFFLL;
+#endif
         DBGLA("Tap MAC: %llX", vpn_mac[index])
       }
     }
@@ -873,10 +877,18 @@ void print_pkt(int index, uchar *pktl)
   if(IS_TAP(index))
   {
 #define ppkt ((VPN_TAPPacket *) pktl)
+#ifdef ARM
+//     debug("%X:%08X%02X > %08X%02X: ", ppkt->eth.ether_type,
+//           DWORD_PTR(ppkt->eth.ether_shost[0]) , WORD_PTR(ppkt->eth.ether_shost[4])
+//           DWORD_PTR(ppkt->eth.ether_dhost[0]) , WORD_PTR(ppkt->eth.ether_dhost[4])
+//          );
+
+#else
     debug("%X:%llX > %llX: ", ppkt->eth.ether_type,
-          DDWORD_PTR(ppkt->eth.ether_shost) & 0xFFffffFFFF,
-          DDWORD_PTR(ppkt->eth.ether_dhost) & 0xFFffffFFFF
+          DDWORD_PTR(ppkt->eth.ether_shost[0]) & 0xFFffffFFFF,
+          DDWORD_PTR(ppkt->eth.ether_dhost[0]) & 0xFFffffFFFF
          );
+#endif
     iph=&ppkt->ip4;
 #undef ppkt
   }
@@ -1594,11 +1606,13 @@ int VPNclient::ClientConnect(OpenSSLConnection *x)
 
   vpn_cln_connected = 0;
   if(!vpn_remote_host) return -5;
+#ifndef  TLSWODLL
   if( (!PSecConnect) || PSecConnect == SecConnectAbcent)
   {
     debug("Your version of 'seclib' library doesn't support functions required for VPN client. Please update it...\r\n");
     return -4;
   }
+#endif
   timout = 60;
  // DBGL("")
 

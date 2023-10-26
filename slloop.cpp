@@ -320,7 +320,10 @@ fd_set er_set;
            printf("%s\n", sSMALL_HTT);
            exit(0);
        case  0x003F2D2D x4CHAR("--?"):
-         LoadLangCfg("shs_lang.cfg" );
+#if defined(CONFIG_CONFIG) && ! defined(CONFIG_CURRENT_DIR)
+        if( LoadLangCfg(CONFIG_CONFIG "shs_lang.cfg" ) < 0 )
+#endif
+         LoadLangCfg( "shs_lang.cfg" );
 
        case  0x00682D2D x4CHAR("--h"):
        case 0x65682D2D x4CHAR("--he"):
@@ -361,20 +364,32 @@ fd_set er_set;
  else
    */
 
- if( (p=stristr(t=argv[0],".ex") ) )
- {if(*t=='\"')++t;
-  ll=DWORD_PTR(p[1]);
-  DWORD_PTR(p[1])=0x676663 x4CHAR("cfg");
-  if(PrepCfg(t))
-     if(PrepCfg("httpd.cfg") )
-        if( ! PrepCfg("/etc/shttp/httpd.cfg") )
-        {
+
+#if defined(CONFIG_CONFIG) && ! defined(CONFIG_CURRENT_DIR)
+  if(! PrepCfg( CONFIG_CONFIG "httpd.cfg"))
+  {
+    chdir(CONFIG_CONFIG);
+  }
+  else
+#endif
+    if( (p=stristr(t=argv[0],".ex") ) )
+    {
+      if(*t=='\"')++t;
+      ll=DWORD_PTR(p[1]);
+      DWORD_PTR(p[1])=0x676663 x4CHAR("cfg");
+      if(PrepCfg(t))
+        if(PrepCfg("httpd.cfg") )
+          if( ! PrepCfg("/etc/shttp/httpd.cfg") )
+          {
             chdir("/etc/shttp");
-        };
-  DWORD_PTR(p[1])=ll;
- }
-lbSkipCfg:
+          };
+        DWORD_PTR(p[1])=ll;
+    }
+ lbSkipCfg:
  InitParam( (char*)argv );
+#if defined(CONFIG_CONFIG) && ! defined(CONFIG_CURRENT_DIR)
+ if( LoadLangCfg(CONFIG_CONFIG "shs_lang.cfg" ) < 0 )
+#endif
  LoadLangCfg("shs_lang.cfg" );
 
 #ifndef CD_VER

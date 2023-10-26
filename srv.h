@@ -55,6 +55,8 @@ void xdie(char *);
 #undef BIG_ENDIAN
 #endif
 
+#include "config.h"
+
 #ifndef SYSUNIX
 
 #include "to_win.h"

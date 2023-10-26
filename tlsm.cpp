@@ -50,14 +50,16 @@ char *CApath,
      *CAfile,
      *s_cert_file="server.pem",
      *s_key_file //="s1024key.pem"
-     ,*TLSLibrary=
-#ifdef SYSUNIX
-"./libsec.so"
-#else
-"seclib.dll"
-#endif
 ;
+char *TLSLibrary=
+#ifdef SYSUNIX
+          "./libsec111.so";
+#else
+          "seclib111.dll";
+#endif
+
 #ifndef  TLSWODLL
+
 int (*PInitLib)( TFprintf prnt,TFtransfer fsend,TFtransfer frecv,
   char *CApath,char *CAfile, char * s_cert_file,char * s_key_file);
 int (*PSecAccept)(OpenSSLConnection *s);

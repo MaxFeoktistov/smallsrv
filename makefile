@@ -22,6 +22,12 @@
 #
 #
 
+CONFIG_BASE="/usr/local/"
+CONFIG_APPDIR="$(CONFIG_BASE)lib/smallsrv/"
+CONFIG_SHARE="$(CONFIG_BASE)share/smallsrv/"
+CONFIG_CONFIG="/etc/smallsrv/"
+CONFIG_LOG="/var/log/smallsrv/"
+CONFIG_DATA="/var"
 
 G=  -g  -Os
 
@@ -40,6 +46,8 @@ OPT= -pipe  \
  -DUSE_IPV6 -DUSE_FUTEX -DUSE_POOL -fno-exceptions  -Wno-deprecated -Wno-address-of-packed-member -fno-bounds-check -fno-tree-bit-ccp -fno-builtin -mno-red-zone -DFREEVER  -DWITHMD5 -DFIX_EXCEPT -DPF_LONG_LONG \
   -DUSEVALIST -DSEPLOG $(ADVOPT) -DVPN_LINUX -DTLSVPN
 
+OPTTLS= $(OPT) -DTLSWODLL
+
 #-fdelete-null-pointer-checks  -fdelayed-branch  -fdelete-dead-exceptions
 # -fnobounds-check
 #-mcpu=i486  -march=i486
@@ -47,6 +55,7 @@ OPT= -pipe  \
 
 
 OPT64=  -Dx86_64 -DNOTINTEL $(OPT)
+OPT64TLS= $(OPT64) -DTLSWODLL
 
 GPP=gcc -m32
 GCC=gcc -m32
@@ -163,12 +172,12 @@ LIB64u=  -ldl -lpthread  -lc -lgcc -lc_nonshared
 #LIB64= -lpthread -ldl -lc -lc_nonshared
 
 
-COBJS= o/to_linux.o o/bvprintfv.o o/vpn.o
-COBJS64= o64/to_linux.o o64/vpn.o
+COBJS= o/to_linux.o o/bvprintfv.o
+COBJS64= o64/to_linux.o
 
-AOBJS=mstring1.o srv0a.o srv_ssi.o srv_cgi.o req.o accept.o tools.o adminr.o restart.o proxy.o musers.o conf.o t2icfg.o stat.o icfgjs.o ftpd.o smptps.o smtpcl.o mailip.o dnsd.o tlsm.o gz.o dhcpd.o wmbx.o md5.o msprintfchk.o fcgi.o
+AOBJS=mstring1.o srv0a.o srv_ssi.o srv_cgi.o req.o accept.o tools.o adminr.o restart.o proxy.o musers.o conf.o t2icfg.o stat.o icfgjs.o ftpd.o smptps.o smtpcl.o mailip.o dnsd.o tlsm.o gz.o dhcpd.o wmbx.o md5.o msprintfchk.o fcgi.o vpn.o
 
-AOBJS64=srv0a.o srv_ssi.o srv_cgi.o req.o accept.o tools.o adminr.o restart.o proxy.o musers.o conf.o t2icfg.o stat.o icfgjs.o ftpd.o smptps.o smtpcl.o mailip.o dnsd.o tlsm.o gz.o dhcpd.o wmbx.o bvprintfv.o md5.o msprintfchk.o fcgi.o
+AOBJS64=srv0a.o srv_ssi.o srv_cgi.o req.o accept.o tools.o adminr.o restart.o proxy.o musers.o conf.o t2icfg.o stat.o icfgjs.o ftpd.o smptps.o smtpcl.o mailip.o dnsd.o tlsm.o gz.o dhcpd.o wmbx.o bvprintfv.o md5.o msprintfchk.o fcgi.o vpn.o
 
 POBJS=$(AOBJS)
 # telnet.o
@@ -180,19 +189,23 @@ OOBJS=$(COBJS) $(addprefix o/,$(POBJS))
 
 OOBJS64=$(COBJS64) $(addprefix o64/,$(AOBJS64))
 
-WINOOBJS= wo/fwnd.o $(addprefix wo/,$(AOBJS)) wo/bvprintf.o wo/srvdat.o wo/isapi.o wo/qsort.o wo/vpn.o wo/updr.res
+WINOOBJS= wo/fwnd.o $(addprefix wo/,$(AOBJS)) wo/bvprintf.o wo/srvdat.o wo/isapi.o wo/qsort.o wo/updr.res
 
 GENERATED=S2_lf.hh lS2_lf.cfg g4strc.h S3_lf.hh lS3_lf.cfg g4strcwm.h t2icfg.cpp S1_lf.hh lS1_lf.cfg g4s1.hh o/s1.hh
+
+OOBJS_TLS=$(COBJS) $(addprefix o/tls_,$(POBJS))
+
+OOBJS64_TLS=$(COBJS64) $(addprefix o64/tls_,$(AOBJS64))
 
 
 
 #FLIBS=libc.so libdl.so libpthread.so libgnutls.so libssl.so
-FLIBS=libc.so libpthread.so libdl.so libgnutls.so libssl.so
+FLIBS=libc.so libpthread.so libdl.so libgnutls.so libssl.so libcrypto.so libgnutls.so.30
 FAKELIBS=$(addprefix fakelibs/,$(FLIBS))
 #FLIBS64=libc.so libdl.so libpthread.so libgnutls.so libssl.so
 FAKELIBS64=$(addprefix fakelibs64/,$(FLIBS))
 
-FLIBSARM= libgnutls.so libssl.so
+FLIBSARM= libgnutls.so libssl.so libcrypto.so libgnutls.so.30
 FAKELIBSARM=$(addprefix fakelibsarm/,$(FLIBSARM))
 
 
@@ -218,21 +231,21 @@ all: /dev/shm/shttps/o/1.x o/1.x getstr i32 i64 i32f i64f win arm
 
 # i32: o/httpd.exe
 
-i32: o/httpd.exe o/libsec111.so o/libsecgnutls.so
+i32: o/httpd.exe o/libsec111.so o/libsecgnutls.so o/sndmsg
 
 #o/libsecgnutls.so o/libsec.so o/libsec111.so
 
-i64: o64/httpd.exe o64/libsecgnutls.so o64/libsec111.so
+i64: o64/httpd.exe o64/libsecgnutls.so o64/libsec111.so o64/sndmsg
 
-i32f: $(FAKELIBS) o/of/httpd.exe o/of/libsec111.so o/of/libsecgnutls.so
+i32f: $(FAKELIBS) o/of/httpd.exe o/of/libsec111.so o/of/libsecgnutls.so o/of/httpd.exgnutls o/of/httpd.exopenssl o/of/sndmsg
 
 #o/libsecgnutls.so o/libsec.so o/libsec111.so
 
-i64f: $(FAKELIBS64) o64/of/httpd.exe o64/of/libsecgnutls.so o64/of/libsec111.so
+i64f: $(FAKELIBS64) o64/of/httpd.exe o64/of/libsecgnutls.so o64/of/libsec111.so o64/of/httpd.exgnutls o64/of/httpd.exopenssl o64/of/sndmsg
 
 #o64/httpdu.exe o64/libsecgnutls.so o64/libsec.so o64/libsec111.so o64/libsec.so
 
-arm: at/atobjdir at/httpd.exe at/libsec111.so at/libsecgnutls.so
+arm: at/atobjdir at/httpd.exe at/libsec111.so at/libsecgnutls.so at/httpd.exopenssl at/httpd.exgnutls
 
 win:  wo/http.exe wo/httpg.exe bin2s wo/shttps_mg.exe wo/shttpsr_mg.exe wo/shttps_mgi.exe wo/shttpsr_mgi.exe wo/libsecgnutls.dll
 
@@ -240,9 +253,14 @@ win:  wo/http.exe wo/httpg.exe bin2s wo/shttps_mg.exe wo/shttpsr_mg.exe wo/shttp
 o/%.o :  %.cpp
 	   $(GPP) -c -DSYSUNIX -DV_FULL=1 $(G) $(OPT)  $< -o $@
 
+o/tls_%.o :  %.cpp
+	   $(GPP) -c -DSYSUNIX -DV_FULL=1 $(G) $(OPTTLS)  $< -o $@
 
 o/%.o :  %.c
 	   $(GCC) -c -DSYSUNIX -DV_FULL=1 $(G) $(OPT)  $< -o $@
+
+o/tls_%.o :  %.c
+	   $(GCC) -c -DSYSUNIX -DV_FULL=1 $(G) $(OPTTLS)  $< -o $@
 
 
 o64/%.o :  %.cpp
@@ -251,6 +269,14 @@ o64/%.o :  %.cpp
 
 o64/%.o :  %.c
 	   $(GCC64) -c -Dx86_64 -DNOTINTEL -DSYSUNIX -DV_FULL=1 $(G) $(OPT)  $< -o $@
+
+
+o64/tls_%.o :  %.cpp
+	   $(GPP64) -c -Dx86_64 -DNOTINTEL -DSYSUNIX -DV_FULL=1 $(G) $(OPTTLS)  $< -o $@
+
+
+o64/tls_%.o :  %.c
+	   $(GCC64) -c -Dx86_64 -DNOTINTEL -DSYSUNIX -DV_FULL=1 $(G) $(OPTTLS)  $< -o $@
 
 
 r/%.o :  %.cpp
@@ -314,6 +340,9 @@ fakelibs64/%.so: /usr/lib/x86_64-linux-gnu/%.so
 fakelibsarm/%.so: /usr/lib/i386-linux-gnu/%.so
 	./mkfakelib_arm.pl $< fakelibsarm/ -c
 
+%/libgnutls.so.30: %/libgnutls.so
+	ln -s libgnutls.so $@
+
 .cpp.S:
 	   $(GPP) -S -DSYSUNIX -DV_FULL=1 $(G) $(OPT)  $<
 
@@ -322,12 +351,10 @@ fakelibsarm/%.so: /usr/lib/i386-linux-gnu/%.so
 
 LIBDIR32F=-Lfakelibs/
 LIBDIR64F=-Lfakelibs64/
+LIBDIRARMF=-Lfakelibsarm/
 
 LIBF= $(LIBDIR32F) -lpthread  $(LIBDIR32F) -ldl $(LIBDIR32F) -lc $(LIBDIR32F) -lgcc -lc_nonshared
 LIB64F= $(LIBDIR64F) -lpthread  $(LIBDIR64F) -ldl $(LIBDIR64F) -lc $(LIBDIR64F) -lgcc -lc_nonshared
-
-cleanobj:
-	rm $(OOBJS) $(OOBJS64)
 
 getstr: getstr.cpp
 	g++ -m32 -pipe -fpack-struct -fconserve-space -O2 -s getstr.cpp -o getstr
@@ -354,8 +381,23 @@ o/httpd.exe: $(OOBJS)
 o/of/httpd.exe: $(OOBJS)
 	$(GCC)  $(G)  $(OOBJS) -o $@  $(LOPT) $(LIBF)
 
+
+o/httpd.exopenssl: $(OOBJS_TLS) o/runssl111.o
+	$(GCC)  $(G)  $^ -o $@  $(LOPT) $(LIB) $(LIBDIR32) -lssl -lcrypto
+
+o/of/httpd.exopenssl: $(OOBJS_TLS) o/runssl111.o
+	$(GCC)  $(G)  $^ -o $@  $(LOPT) $(LIBF) $(LIBDIR32F) -lssl  $(LIBDIR32F) -lcrypto
+
+
+o/httpd.exgnutls: $(OOBJS_TLS) o/rungnutls.o
+	$(GCC)  $(G)  $^ -o $@  $(LOPT) $(LIB) $(LIBDIR32) -lgnutls
+
+o/of/httpd.exgnutls: $(OOBJS_TLS) o/rungnutls.o
+	$(GCC)  $(G)  $^ -o $@  $(LOPT) $(LIBF)  $(LIBDIR32F) -l:libgnutls.so.30
+
+
 tclean:
-	rm $(OOBJS)
+	rm $(OOBJS) $(OOBJS_TLS)
 
 
 o64/httpd.exe: $(OOBJS64)
@@ -364,14 +406,42 @@ o64/httpd.exe: $(OOBJS64)
 o64/of/httpd.exe: $(OOBJS64)
 	$(GCC64)  $(G)  $(OOBJS64) -o $@  $(LOPT64) $(LIB64F)
 
-o64/httpdu.exe: $(OOBJS64)
-	$(GCC64)  $(G)  $(OOBJS64) -o $@  $(LOPT64) $(LIB64u)
+
+o64/httpd.exopenssl: $(OOBJS64_TLS) o64/runssl111.o
+	$(GCC64)  $(G)  $^ -o $@  $(LOPT64) $(LIB64) $(LIBDIR64) -lssl $(LIBDIR64F) -lcrypto
+
+o64/of/httpd.exopenssl: $(OOBJS64_TLS) o64/runssl111.o
+	$(GCC64)  $(G)  $^ -o $@  $(LOPT64) $(LIB64F) $(LIBDIR64F) -lssl $(LIBDIR64F) -lcrypto
+
+
+o64/httpd.exgnutls: $(OOBJS64_TLS) o64/rungnutls.o
+	$(GCC64)  $(G)  $^ -o $@  $(LOPT64) $(LIB64) $(LIBDIR64) -lgnutls
+
+o64/of/httpd.exgnutls: $(OOBJS64_TLS) o64/rungnutls.o
+	$(GCC64)  $(G)  $^ -o $@  $(LOPT64) $(LIB64F) $(LIBDIR64F) -l:libgnutls.so.30
+
+
 
 wo/http.exe: $(WINOOBJS)
 	$(WINEGCC) -s  $(WINOOBJS) -o $@ $(WINELFLG)
 
 wo/httpg.exe: $(WINOOBJS)
 	$(WINEGCC) -g  $(WINOOBJS) -o $@ $(WINELFLG)
+
+o/sndmsg: o/sndmsg.o o/mstring1.o
+	$(GCC)  $(G)  $^ -o $@  $(LOPT) $(LIB)
+
+o/of/sndmsg: o/sndmsg.o o/mstring1.o
+	$(GCC) $(G) $^ -o $@  $(LOPT) $(LIBF)
+
+o64/sndmsg: o64/sndmsg.o
+	$(GCC64)  $(G)  $(OOBJS64) -o $@  $(LOPT64) $(LIB64)
+
+o64/of/sndmsg: o64/sndmsg.o
+	$(GCC64)  $(G)  $(OOBJS64) -o $@  $(LOPT64) $(LIB64F)
+
+
+
 
 #   -nostartfiles	 -Telfi386.x  -nodefaultlibs
 
@@ -590,56 +660,71 @@ en/shs_lang.cfg : lS1_lf.cfg
 ru/shs_lang.cfg : lS1_lf.cfg
 	./add_to_langcfg.pl lS1_lf.cfg $@
 
-# dist:   o/dist/libsec.so o/dist/libsec111.so o/dist/license06.txt o/adist/license06.txt o/dist/libsecgnutls.so o/dist/langpacks/ru/shs_lang.cfg o/dist/langpacks/en/shs_lang.cfg o/dist/descu.htm o/adist/
 
-SCRIPTS=vpn_if_client_down.sh vpn_if_client_up.sh vpn_if_up.sh descu.htm httpd.cfg  lang_notes.txt libsec111.so license.ssl sndmsg notes.ssl libsecgnutls.so  license06.txt notes.ssl
+install: all
+	mkdir -p $(CONFIG_APPDIR) $(CONFIG_SHARE) $(CONFIG_CONFIG) $(CONFIG_LOG)
+	for i in httpd.exe httpd_openssl httpd_gnutls libsecgnutls.so libsec111.so sndmsg ; do  if [ -e $$i ] ; cp $$ii $(CONFIG_APPDIR) ; fi; done
+	if [ ! -e $(CONFIG_CONFIG)/httpd.cfg ] ; then if [ "/var" = "$(CONFIG_DATA)" -a "$(CONFIG_LOG)" = "/var/log/smallsrv/" ] ; cp httpd.cfg $(CONFIG_CONFIG) ; else perl -e ' while(<STDIN>){  s/\/var\/log\/smallsrv\/$$ARGV[0]/ || s/\/var/$$ARGV[1]/ ; print $_;  } ' $(CONFIG_LOG) $(CONFIG_DATA) < httpd.cfg > $(CONFIG_CONFIG)/httpd.cfg ;  fi
+	for i in vpn_if_client_down.sh vpn_if_client_up.sh vpn_if_up.sh ; do if [ ! -e $(CONFIG_CONFIG)/$$ii ] ; then cp $$ii $(CONFIG_CONFIG) ; fi ; done
+	for i in httpd.exe httpd.exopenssl httpd.exgnutls sndmsg ; do  if [ -e $$i ] ; ln -sf $(CONFIG_APPDIR)/$$i $(CONFIG_BASE)/bin/ ; done
+	for i in ru en ; do mkdir -p $(CONFIG_SHARE)/$$i ; cp $$i/shs_lang.cfg $(CONFIG_SHARE)/$$i/ ; done
+	for i in license.ssl notes.ssl license06.txt notes.ssl ; descu.htm ; do cp $$i $(CONFIG_SHARE) ; done
+
+
+SCRIPTS=vpn_if_client_down.sh vpn_if_client_up.sh vpn_if_up.sh descu.htm httpd.cfg  lang_notes.txt libsec111.so license.ssl sndmsg notes.ssl libsecgnutls.so  license06.txt langpacks/ru/shs_lang.cfg langpacks/en/shs_lang.cfg
 OSCRIPTS=$(addprefix o/dist/,$(SCRIPTS))
 OUSCRIPTS=$(addprefix o/distu/,$(SCRIPTS))
 ASCRIPTS=$(addprefix o/adist/,$(SCRIPTS))
 O64SCRIPTS=$(addprefix o64/dist/,$(SCRIPTS))
 O64USCRIPTS=$(addprefix o64/distu/,$(SCRIPTS))
 
-dist:   o/dist/license06.txt o/adist/license06.txt o/dist/langpacks/ru/shs_lang.cfg o/dist/langpacks/en/shs_lang.cfg $(OSCRIPTS) $(OUSCRIPTS) $(ASCRIPTS) dist64
-	cp o/of/httpd.exe o/dist/
-	cd o/dist/ ; strip httpd.exe ; chmod -R go-w,u+rw,a+X * ; chmod  0755 httpd.exe *.so  sndmsg ; chmod  0600 httpd.cfg ;  rm -f shttplnx.tgz ; tar --owner=root --group=root -czf shttplnx.tgz * ; chmod 0644 shttplnx.tgz
-	cp at/httpd.exe o/adist/
-	cd o/adist/ ; arm-linux-gnueabi-strip httpd.exe ; chmod -R go-w *  ; chmod -R a+X * ; chmod  0755 httpd.exe *.so  sndmsg ; chmod  0600 httpd.cfg ;  rm -f shttparmlnx.tgz ; tar --owner=root --group=root -czf shttparmlnx.tgz * ; chmod 0644 shttparmlnx.tgz
+CURRENT_DIR := $(dir $(abspath $(firstword $(MAKEFILE_LIST))))
+DIST_DIR=$(CURRENT_DIR)o/alldist/
+
+$(DIST_DIR):
+	mkdir -p $(DIST_DIR)
+
+# dist:   o/dist/libsec.so o/dist/libsec111.so o/dist/license06.txt o/adist/license06.txt o/dist/libsecgnutls.so o/dist/langpacks/ru/shs_lang.cfg o/dist/langpacks/en/shs_lang.cfg o/dist/descu.htm o/adist/
+
+dist:   $(DIST_DIR) o/dist/license06.txt o/adist/license06.txt $(OSCRIPTS) $(OUSCRIPTS) $(ASCRIPTS) dist64
+	cp o/of/httpd.ex* o/dist/
+	cd o/dist/ ; strip httpd.ex* ; chmod -R go-w,u+rw,a+X * ; chmod  0755 httpd.ex* *.so  sndmsg ; chmod  0600 httpd.cfg ;  rm -f $(DIST_DIR)shttplnx.tgz ; tar --owner=root --group=root -czf $(DIST_DIR)shttplnx.tgz * ; chmod 0644 $(DIST_DIR)shttplnx.tgz
+	cp at/httpd.ex* o/adist/
+	cd o/adist/ ; arm-linux-gnueabi-strip httpd.ex* ; chmod -R go-w *  ; chmod -R a+X * ; chmod  0755 httpd.ex* *.so  sndmsg ; chmod  0600 httpd.cfg ;  rm -f $(DIST_DIR)shttparmlnx.tgz ; tar --owner=root --group=root -czf $(DIST_DIR)shttparmlnx.tgz * ; chmod 0644 $(DIST_DIR)shttparmlnx.tgz
 	cp o/httpd.exe o/distu/
-	cd o/distu/ ; strip httpd.exe ; chmod -R go-w,u+rw,a+X * ; chmod  0755 httpd.exe *.so sndmsg ; chmod  0600 httpd.cfg ;  rm -f shttplnxu.tgz ; tar --owner=root --group=root -czf shttplnxu.tgz * ; chmod 0644 shttplnxu.tgz
+	cd o/distu/ ; strip httpd.exe ; chmod -R go-w,u+rw,a+X * ; chmod  0755 httpd.exe *.so sndmsg ; chmod  0600 httpd.cfg ;  rm -f $(DIST_DIR)shttplnxu.tgz ; tar --owner=root --group=root -czf $(DIST_DIR)shttplnxu.tgz * ; chmod 0644 $(DIST_DIR)shttplnxu.tgz
 
 #dist64: o64/dist/libsec.so o64/dist/libsec111.so o64/dist/libsecgnutls.so o64/distu/libsec.so o64/distu/libsecgnutls.so o64/dist/langpacks/ru/shs_lang.cfg o64/dist/langpacks/en/shs_lang.cfg
 
 
-dist64: o64/dist/langpacks/ru/shs_lang.cfg o64/dist/langpacks/en/shs_lang.cfg o64/dist/libsec111.so o64/dist/libsecgnutls.so o64/distu/langpacks/ru/shs_lang.cfg o64/distu/langpacks/en/shs_lang.cfg o64/distu/libsec111.so o64/distu/libsecgnutls.so $(O64SCRIPTS) $(O64USCRIPTS)
-	cp o64/of/httpd.exe o64/dist/
-	cd o64/dist/ ; strip httpd.exe ; chmod -R go-w,u+rw,a+X * ; chmod  0755 httpd.exe *.so  sndmsg ; chmod  0600 httpd.cfg ;  rm -f shttplnx64.tgz ; tar --owner=root --group=root -czf shttplnx64.tgz * ; chmod a+rw shttplnx64.tgz
+dist64: o64/dist/libsec111.so o64/dist/libsecgnutls.so o64/distu/libsec111.so o64/distu/libsecgnutls.so $(O64SCRIPTS) $(O64USCRIPTS)
+	cp o64/of/httpd.ex* o64/dist/
+	cd o64/dist/ ; strip httpd.ex* ; chmod -R go-w,u+rw,a+X * ; chmod  0755 httpd.ex* *.so  sndmsg ; chmod  0600 httpd.cfg ;  rm -f $(DIST_DIR)shttplnx64.tgz ; tar --owner=root --group=root -czf $(DIST_DIR)shttplnx64.tgz * ; chmod a+rw $(DIST_DIR)shttplnx64.tgz
 	cp o64/httpd.exe o64/distu/httpd.exe
-	cd o64/distu/ ; strip httpd.exe ; chmod -R go-w,u+rw,a+X * ; chmod  0755 httpd.exe *.so  sndmsg ; chmod  0600 httpd.cfg ;  rm -f shttplnx64u.tgz ; tar --owner=root --group=root -czf shttplnx64u.tgz * ; chmod 0644 shttplnx64u.tgz
+	cd o64/distu/ ; strip httpd.exe ; chmod -R go-w,u+rw,a+X * ; chmod  0755 httpd.exe *.so  sndmsg ; chmod  0600 httpd.cfg ;  rm -f $(DIST_DIR)shttplnx64u.tgz ; tar --owner=root --group=root -czf $(DIST_DIR)shttplnx64u.tgz * ; chmod 0644 $(DIST_DIR)shttplnx64u.tgz
 
 
 #  o64/dist/descu.htm o64/distu/descu.htm  o64/dist/license06.txt o64/distu/license06.txt o64/distu/langpacks/ru/shs_lang.cfg o64/distu/langpacks/en/shs_lang.cfg
 # 	cp o64/httpdu.exe o64/distu/httpd.exe
-# 	cd o64/distu/ ; strip httpd.exe ;    chmod -R 0444 *  ; chmod -R a+X * ; chmod  0755 httpd.exe *.so  sndmsg ; chmod  0600 httpd.cfg ;  rm -f shttplnx64u.tgz ; tar --owner=root --group=root -czf shttplnx64u.tgz * ; chmod a+rw shttplnx64u.tgz
+# 	cd o64/distu/ ; strip httpd.exe ;    chmod -R 0444 *  ; chmod -R a+X * ; chmod  0755 httpd.exe *.so  sndmsg ; chmod  0600 httpd.cfg ;  rm -f $(DIST_DIR)shttplnx64u.tgz ; tar --owner=root --group=root -czf $(DIST_DIR)shttplnx64u.tgz * ; chmod a+rw $(DIST_DIR)shttplnx64u.tgz
 
 
-sinst:  o/dist/httpd.exe o/dist/shttplnx.tgz o/distu/shttplnxu.tgz o/adist/shttparmlnx.tgz o64/dist/shttplnx64.tgz  o64/distu/shttplnx64u.tgz
+sinst:  o/dist/httpd.exe $(DIST_DIR)shttplnx.tgz $(DIST_DIR)shttplnxu.tgz $(DIST_DIR)shttparmlnx.tgz $(DIST_DIR)shttplnx64.tgz  $(DIST_DIR)shttplnx64u.tgz
 	chmod 0666 wo/shttps*.exe
-	for i in wo/shttps_mg.exe wo/shttpsr_mg.exe o/dist/shttplnx.tgz o/distu/shttplnxu.tgz o/adist/shttparmlnx.tgz o64/dist/shttplnx64.tgz o64/distu/shttplnx64u.tgz ; do cp $$i /mnt/d/var/www/pre/ ; done
+	for i in wo/shttps_mg.exe wo/shttpsr_mg.exe $(DIST_DIR)shttplnx.tgz $(DIST_DIR)shttplnxu.tgz $(DIST_DIR)shttparmlnx.tgz $(DIST_DIR)shttplnx64.tgz $(DIST_DIR)shttplnx64u.tgz ; do cp $$i /mnt/d/var/www/pre/ ; done
 
 # 	mv /mnt/d/shttps/httpd.exe /mnt/d/shttps/oldhttpd_$(shell date "+%F_%R").exe
 # 	cp o/distu/httpd.exe /mnt/d/shttps/
 
-sinste:  o/dist/httpd.exe o/dist/shttplnx.tgz o64/dist/shttplnx64.tgz
+sinste:  o/dist/httpd.exe $(DIST_DIR)shttplnx.tgz $(DIST_DIR)shttplnx64.tgz
 	chmod 0666 wo/shttps*.exe
-	for i in wo/shttps_mg.exe wo/shttpsr_mg.exe o/dist/shttplnx.tgz o64/dist/shttplnx64.tgz ; do cp $$i /mnt/d/var/www/pre/ ; done
+	for i in wo/shttps_mg.exe wo/shttpsr_mg.exe $(DIST_DIR)shttplnx.tgz $(DIST_DIR)shttplnx64.tgz ; do cp $$i /mnt/d/var/www/pre/ ; done
 	mv /mnt/d/shttps/httpd.exe /mnt/d/shttps/oldhttpd.exe
 	cp o/dist/httpd.exe /mnt/d/shttps/
 
-sinstcpy:  o/dist/httpd.exe o/dist/shttplnx.tgz o/distu/shttplnxu.tgz o/adist/shttparmlnx.tgz o64/dist/shttplnx64.tgz  o64/distu/shttplnx64u.tgz
+sinstcpy:  o/dist/httpd.exe $(DIST_DIR)shttplnx.tgz $(DIST_DIR)shttplnxu.tgz $(DIST_DIR)shttparmlnx.tgz $(DIST_DIR)shttplnx64.tgz  $(DIST_DIR)shttplnx64u.tgz
 	chmod 0666 wo/shttps*.exe
-	for i in wo/shttps_mg.exe wo/shttpsr_mg.exe o/dist/shttplnx.tgz o/distu/shttplnxu.tgz o/adist/shttparmlnx.tgz o64/dist/shttplnx64.tgz o64/distu/shttplnx64u.tgz ; do cp $$i ./lastbin ; done
-
-
+	for i in wo/shttps_mg.exe wo/shttpsr_mg.exe $(DIST_DIR)shttplnx.tgz $(DIST_DIR)shttplnxu.tgz $(DIST_DIR)shttparmlnx.tgz $(DIST_DIR)shttplnx64.tgz $(DIST_DIR)shttplnx64u.tgz ; do cp $$i ./lastbin ; done
 
 sinsta: sinst wo/shttps_mgi.exe wo/shttpsr_mgi.exe
 	chmod 0666 wo/shttps_mgi.exe wo/shttpsr_mgi.exe
@@ -650,30 +735,23 @@ sinstw: wo/shttps_mg.exe wo/shttpsr_mg.exe
 	for i in wo/shttps_mg.exe wo/shttpsr_mg.exe ; do cp $$i /mnt/d1/var/www/pre/ ; done
 
 
-sinstf:  o/dist/httpd.exe o/dist/shttplnx.tgz o/adist/shttparmlnx.tgz o64/dist/shttplnx64.tgz  o64/distu/shttplnx64u.tgz
+sinstf:  o/dist/httpd.exe $(DIST_DIR)shttplnx.tgz $(DIST_DIR)shttparmlnx.tgz $(DIST_DIR)shttplnx64.tgz  $(DIST_DIR)shttplnx64u.tgz
 	chmod 0666 wo/shttps*.exe
-	for i in wo/shttps_mg.exe wo/shttpsr_mg.exe wo/shttps_mgi.exe wo/shttpsr_mgi.exe o/dist/shttplnx.tgz o/adist/shttparmlnx.tgz o64/dist/shttplnx64.tgz o64/distu/shttplnx64u.tgz o/distu/shttplnx64u.tgz shttp_src.tgz ; do cp $$i /mnt/d/var/www/pre/ ; done
+	for i in wo/shttps_mg.exe wo/shttpsr_mg.exe wo/shttps_mgi.exe wo/shttpsr_mgi.exe $(DIST_DIR)shttplnx.tgz $(DIST_DIR)shttparmlnx.tgz $(DIST_DIR)shttplnx64.tgz $(DIST_DIR)shttplnx64u.tgz $(DIST_DIR)shttplnx64u.tgz shttp_src.tgz ; do cp $$i /mnt/d/var/www/pre/ ; done
 	mv /mnt/d/shttps/httpd.exe /mnt/d/shttps/oldhttpd.exe
 	cp o/distu/httpd.exe /mnt/d/shttps/
 	for i in indexr.htm index.htm shttp3e.xml shttp3.xml ; do cp $$i /mnt/d/var/www/ ; done
 
+%/langpacks/en:
+	mkdir -p $@
 
-o/dist/langpacks/en/shs_lang.cfg: en/shs_lang.cfg
+%/langpacks/ru:
+	mkdir -p $@
+
+%/langpacks/en/shs_lang.cfg: en/shs_lang.cfg %/langpacks/en
 	cp -f $< $@
 
-o/dist/langpacks/ru/shs_lang.cfg: ru/shs_lang.cfg
-	cp -f $< $@
-
-o64/dist/langpacks/en/shs_lang.cfg: en/shs_lang.cfg
-	cp -f $< $@
-
-o64/dist/langpacks/ru/shs_lang.cfg: ru/shs_lang.cfg
-	cp -f $< $@
-
-o64/distu/langpacks/en/shs_lang.cfg: en/shs_lang.cfg
-	cp -f $< $@
-
-o64/distu/langpacks/ru/shs_lang.cfg: ru/shs_lang.cfg
+%/langpacks/ru/shs_lang.cfg: ru/shs_lang.cfg %/langpacks/ru
 	cp -f $< $@
 
 o%/license.ssl: lbins/license.ssl
@@ -717,10 +795,10 @@ o64/libsec.so: runssl.cpp
 	 $(GCC64) -s -o $@  -fPIC  $(OPT64) -shared -O2  $<  -nodefaultlibs $(LIBDIR64) -lssl  $(LIBDIR64) -lc
 
 o/libsecgnutls.so: rungnutls.cpp
-	 $(GCC) -s -o $@  -fPIC  $(OPT) -shared -O2  $<  -nodefaultlibs $(LIBDIR32) -l:libgnutls.so  $(LIBDIR32) -lc
+	 $(GCC) -s -o $@  -fPIC  $(OPT) -shared -O2  $<  -nodefaultlibs $(LIBDIR32) -l:libgnutls.so.30  $(LIBDIR32) -lc
 
 o64/libsecgnutls.so: rungnutls.cpp
-	 $(GCC64) -s -o $@   -fPIC $(OPT64) -shared -O2  $<  -nodefaultlibs $(LIBDIR64) -l:libgnutls.so  $(LIBDIR64) -lc
+	 $(GCC64) -s -o $@   -fPIC $(OPT64) -shared -O2  $<  -nodefaultlibs $(LIBDIR64) -l:libgnutls.so.30  $(LIBDIR64) -lc
 
 o/libsec111.so: runssl111.cpp
 	 $(GCC) -s -o $@  -fPIC  $(OPT) -shared -O2  $< $(LIBDIR32) -lssl -DOSSL111 -I/usr/src/openssl-1.1.1m/include
@@ -735,10 +813,10 @@ o64/of/libsec.so: runssl.cpp
 	 $(GCC64) -s -o $@  -fPIC  $(OPT64) -shared -O2  $<  -nodefaultlibs $(LIBDIR64F) -lssl  $(LIBDIR64F) -lc
 
 o/of/libsecgnutls.so: rungnutls.cpp
-	 $(GCC) -s -o $@  -fPIC  $(OPT) -shared -O2  $<  -nodefaultlibs $(LIBDIR32F) -l:libgnutls.so  $(LIBDIR32F) -lc
+	 $(GCC) -s -o $@  -fPIC  $(OPT) -shared -O2  $<  -nodefaultlibs $(LIBDIR32F) -l:libgnutls.so.30  $(LIBDIR32F) -lc
 
 o64/of/libsecgnutls.so: rungnutls.cpp
-	 $(GCC64) -s -o $@   -fPIC $(OPT64) -shared -O2  $<  -nodefaultlibs $(LIBDIR64F) -l:libgnutls.so  $(LIBDIR64F) -lc
+	 $(GCC64) -s -o $@   -fPIC $(OPT64) -shared -O2  $<  -nodefaultlibs $(LIBDIR64F) -l:libgnutls.so.30  $(LIBDIR64F) -lc
 
 o/of/libsec111.so: runssl111.cpp
 	 $(GCC) -s -o $@  -fPIC  $(OPT) -shared -O2  $< $(LIBDIR32F) -lssl -DOSSL111 -I/usr/src/openssl-1.1.1m/include
@@ -746,11 +824,14 @@ o/of/libsec111.so: runssl111.cpp
 o64/of/libsec111.so: runssl111.cpp
 	 $(GCC64) -s -o $@  -fPIC  $(OPT64) -shared -O2  $<  -nodefaultlibs $(LIBDIR64F) -lssl  $(LIBDIR64F) -lc -DOSSL111 -I/usr/src/openssl-1.1.1m/include
 
+at/runssl111.o: runssl111.cpp
+	 $(ATGPP) -c -s -o $@  -DOSSL111 -I/usr/src/openssl-1.1.1m/include $(ATFLAGS) -O2  $<
+
 at/libsec111.so: runssl111.cpp
 	 $(ATGPP) -s -o $@  -DOSSL111 -I/usr/src/openssl-1.1.1m/include -fPIC $(ATFLAGS) -shared -O2  $<  -nodefaultlibs  -L$(ATLIB)/ -lc -L./fakelibsarm -lssl
 
 at/libsecgnutls.so: rungnutls.cpp
-	 $(ATGPP) -s -o $@   -fPIC $(ATFLAGS) -shared -O2  $<  -nodefaultlibs  -L$(ATLIB)/ -lc -L./fakelibsarm -l:libgnutls.so
+	 $(ATGPP) -s -o $@   -fPIC $(ATFLAGS) -shared -O2  $<  -nodefaultlibs  -L$(ATLIB)/ -lc -L./fakelibsarm -l:libgnutls.so.30
 
 at/libsec111.so at/libsecgnutls.so: $(FAKELIBSARM)
 
@@ -794,9 +875,13 @@ GNUTSLLIBDIR=/usr/src/gnutls-3.6.0-w32/lib
 wo/libsecgnutls.dll: wo/libsecgnutls.o
 	$(WINEGCC)  -s  $< -o $@  -shared  -nodefaultlibs -nostartfiles -L$(GNUTSLLIBDIR) -l:libgnutls.dll.a -L$(MGDIR)/lib -luser32 -lkernel32 -lws2_32 -lgdi32 -lshell32 -lcomdlg32  -ladvapi32 -Wl,--entry=_DllMainCRTStartup  -Wl,--heap -Wl,0x20000000 -Wl,--stack -Wl,0x800000 -Wl,-Map -Wl,wo/dllmap -Wl,--subsystem,windows
 
+SECOBJ=runssl111.o rungnutls.o
+
+cleanobj:
+	rm $(OOBJS) $(OOBJS64) $(OOBJS64_TLS) $(OOBJS_TLS) $(ATOBJS) $(ATOBJS_TLS) $(addprefix o/,$(SECOBJ)) $(addprefix o64/,$(SECOBJ)) $(addprefix at/,$(SECOBJ))
 
 clean:
-	rm -f $(OOBJS) $(OOBJS64) $(ROBJS) $(MIPSOBJ) $(WINOOBJS)  $(ATOBJS) $(ARMOBJ) wo/libsecgnutls.o wo/libsec111.o
+	rm -f $(OOBJS) $(OOBJS64) $(ROBJS) $(MIPSOBJ) $(WINOOBJS)  $(ATOBJS) $(ARMOBJ) wo/libsecgnutls.o wo/libsec111.o $(OOBJS64_TLS) $(OOBJS_TLS)  $(ATOBJS_TLS) $(addprefix o/,$(SECOBJ)) $(addprefix o64/,$(SECOBJ)) $(addprefix at/,$(SECOBJ)) $(WINOOBJS)
 
 cleangen:
 	rm -f $(GENERATED)
@@ -903,21 +988,28 @@ ATINCLUDE3=/usr/src/musl-1.2.3/arch/arm
 ATINCLUDE4=/usr/src/musl-1.2.3/obj/include
 ATINCLUDE5=/usr/src/musl-1.2.3/arch/generic
 
-ATFLAGS= -mlittle-endian -marm  -mcpu=arm926ej-s -mthumb-interwork  -msoft-float -Uarm  -nostdinc -I$(ATINCLUDE) -I$(ATINCLUDE3) -I$(ATINCLUDE4) -I$(ATINCLUDE5) -I$(ATSYSINCLUDE)  -Wno-deprecated-declarations -Wno-conversion  -Wno-write-strings  -fno-access-control  -fno-nonansi-builtins -fno-elide-constructors -fno-enforce-eh-specs   -fno-rtti  -fno-weak -nostdinc++  -Wnoexcept   -fno-exceptions -Wno-format -fpermissive -DARM -DLINUX  -DSYSUNIX -DNOTINTEL -DAT_ARM -DFREEVER -DTELNET -DUSE_IPV6 -DV_FULL=1 -DUSE_FUTEX -DUSE_POOL -DWITHMD5 -DFIX_EXCEPT -DUSEVALIST
+ATFLAGS= -mlittle-endian -marm  -mcpu=arm926ej-s -mthumb-interwork  -msoft-float -Uarm  -nostdinc -I$(ATINCLUDE) -I$(ATINCLUDE3) -I$(ATINCLUDE4) -I$(ATINCLUDE5) -I$(ATSYSINCLUDE)  -Wno-deprecated-declarations -Wno-conversion  -Wno-write-strings  -fno-access-control  -fno-nonansi-builtins -fno-elide-constructors -fno-enforce-eh-specs   -fno-rtti  -fno-weak -nostdinc++  -Wnoexcept   -fno-exceptions -Wno-format -fpermissive -DARM -DLINUX  -DSYSUNIX -DNOTINTEL -DAT_ARM -DFREEVER -DTELNET -DUSE_IPV6 -DV_FULL=1 -DUSE_FUTEX -DUSE_POOL -DWITHMD5 -DFIX_EXCEPT -DUSEVALIST -DVPN_LINUX -DTLSVPN
 
 #   -fno-implicit-templates -fno-implicit-inline-templates  -fno-for-scope-fnothrow-opt  -fno-pretty-templates
 
 
-ATOBJS0=to_linux.o srv0a.o srv_ssi.o srv_cgi.o req.o accept.o tools.o adminr.o restart.o proxy.o musers.o conf.o t2icfg.o stat.o icfgjs.o ftpd.o smptps.o smtpcl.o mailip.o dnsd.o tlsm.o gz.o dhcpd.o wmbx.o bvprintfv.o telnet.o md5.o msprintfchk.o fcgi.o
+ATOBJS0=to_linux.o srv0a.o srv_ssi.o srv_cgi.o req.o accept.o tools.o adminr.o restart.o proxy.o musers.o conf.o t2icfg.o stat.o icfgjs.o ftpd.o smptps.o smtpcl.o mailip.o dnsd.o tlsm.o gz.o dhcpd.o wmbx.o bvprintfv.o telnet.o md5.o msprintfchk.o fcgi.o vpn.o
 
 ATOBJS=$(addprefix at/,$(ATOBJS0))
+ATOBJS_TLS=$(addprefix at/tls_,$(ATOBJS0))
+
 
 at/%.o : %.cpp
 	  $(ATGPP) -c $(S) $(ATFLAGS) -o $@  $<
 
+at/tls_%.o : %.cpp
+	  $(ATGPP) -c $(S) $(ATFLAGS) -DTLSWODLL -o $@  $<
 
 at/%.o : %.c
 	  $(ATGPP) -c $(S) $(ATFLAGS) -o $@  $<
+
+at/tls_%.o : %.c
+	  $(ATGPP) -c $(S) $(ATFLAGS) -DTLSWODLL -o $@  $<
 
 
 at/atobjdir:
@@ -929,8 +1021,11 @@ at/atobjdir:
 at/httpd.exe: $(ATOBJS)
 	$(ATGPP)  $(S) -o $@ $^  -mlittle-endian  -msoft-float -march=armv5te -mtune=arm9tdmi -L$(ATLIB)/  -L$(ATSYSLIB)  -nostartfiles  $(ATLIB)/crt1.o $(ATLIB)/crti.o $(ATLIB)/crtn.o -static -lc -lutil -lpthread
 
+at/httpd.exopenssl: $(ATOBJS_TLS) at/runssl111.o
+	$(ATGPP)  $(S) -o $@ $^  -mlittle-endian  -msoft-float -march=armv5te -mtune=arm9tdmi -L$(ATLIB)/  -L$(ATSYSLIB)  -nostartfiles  $(ATLIB)/crt1.o $(ATLIB)/crti.o $(ATLIB)/crtn.o -static -lc -lutil -lpthread -Wl,-Bdynamic $(LIBDIRARMF) -lssl  $(LIBDIRARMF) -lcrypto
 
-
+at/httpd.exgnutls: $(ATOBJS_TLS) at/rungnutls.o
+	$(ATGPP)  $(S) -o $@ $^  -mlittle-endian  -msoft-float -march=armv5te -mtune=arm9tdmi -L$(ATLIB)/  -L$(ATSYSLIB)  -nostartfiles  $(ATLIB)/crt1.o $(ATLIB)/crti.o $(ATLIB)/crtn.o -static -lc -lutil -lpthread -Wl,-Bdynamic $(LIBDIRARMF) -l:libgnutls.so.30
 
 ANDRARMDIR=/usr/local/android-ndk-r4/build/platforms/android-4/arch-arm/usr/
 ANDRARMPATH=/usr/local/android-ndk-r4/build/prebuilt/linux-x86/arm-eabi-4.4.0/bin:$(PATH)

@@ -4,7 +4,7 @@
 
   Copyright (C) 1999-2023 Maksim Feoktistov.  
 
-  It is not only a web server, it is also Mail servers, DNS, FTP, Proxy, DHCP ... All in one!  
+  It is not only a web server, it is also Mail servers, DNS, FTP, Proxy, DHCP, VPN ... All in one!  
   Detail description: [descu.htm](descu.htm)  
   Detail description of version for Windows: [desc.htm](desc.htm)  
 
@@ -23,15 +23,29 @@
   libc6-dev-i386 required to build 32-bit version under 64-bit system  
   For OpenSSL 1.1.1 required openssl-1.1.1-dev  
 
-  32-bit:
+  
+  Now you need to run the `./Configure` script with the required parameters. You can disable some features. For example, to exclude the TLS VPN server, use the --withoutvpn switch.  
+  If you plan to install the program, pay attention to the CONFIG_BASE variable. The default value is "/usr/local/", the program will be installed in /usr/local/lib/smallsrv/ and links will be created in /usr/local/bin/.  
+  Use `./Configure --help` for all options.  
+  
+  32-bit:  
   ```
   ./Configure --target=i32  --withoutfakelibs
   make
   make o/libsec111.so
   make o/libsecgnutls.so
   ```
-  Result will be o/httpd.exe o/libsec111.so o/libsecgnutls.so  
-
+  Result will be o/httpd.exe o/libsec111.so o/libsecgnutls.so o/sndmsg  
+  In the httpd.exe configuration you can select the security library. You can also build binaries with a pre-selected security library:
+  ```
+  make o/httpd.exopenssl
+  make o/httpd.exgnutls
+  ```
+  To install the program use:  
+  ```
+  make install
+  ```
+  
   64-bit:
   ```
   ./Configure --target=i64  --withoutfakelibs
@@ -39,19 +53,28 @@
   make o64/libsec111.so
   make o64/libsecgnutls.so
   ```
-  Result will be o64/httpd.exe o64/libsec111.so o64/libsecgnutls.so  
-
+ Result will be o64/httpd.exe o64/libsec111.so o64/libsecgnutls.so o64/sndmsg  
  libsec111.so -- for OpenSSL 1.1.1  
  libsecgnutls.so -- for GnuTLS  
  required one of them.  
+ You can also build binaries with a pre-selected security library:
+  ```
+  make o64/httpd.exopenssl
+  make o64/httpd.exgnutls
+  ```
+  To install the program use:  
+  ```
+  make install
+  ```
+  
 
- If you just run
+ If you just run  
  ```
   ./Configure
  ```
  without any keys, it tries to create a Makefile for all available targets.  
 
- If you plan to copy the binary executable to another PC with a different Linux, use the --withfakelibs key.
+ If you plan to copy the binary executable to another PC with a different Linux, use the --withfakelibs key.  
 
 
   Build Linux version for ARM CPU:
@@ -70,7 +93,7 @@
   ----------------------------------
 
   Required i686-w64-mingw32 or x86_64-w64-mingw32
-  For Debian style distribution you may prepare the system with the command:
+  For Debian style distribution you may prepare the system with the command:  
   ```
   apt install i686-w64-mingw32
   ```

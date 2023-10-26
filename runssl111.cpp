@@ -21,7 +21,9 @@
  *
  *
  */
-
+#if (! defined(OSSL111)) && (! defined(OSSL100))
+#define OSSL111 1
+#endif
 
 
 #ifdef  MINGW

@@ -3,3 +3,13 @@ makefile.orig
 Makefile
 *.hh
 t2icfghtm.cpp
+o
+o64
+wo
+arm
+fakelibs64
+fakelibs
+config.h.default
+index.htm
+indexr.htm
+t2icfg.cpp

@@ -615,6 +615,9 @@ extern "C" int RMain(void *)
 //    LoadLangCfg("shs_lang.cfg" );
    }
    if(p)*p=ll;
+#if defined(CONFIG_CONFIG) && ! defined(CONFIG_CURRENT_DIR)
+   if( LoadLangCfg(CONFIG_CONFIG "shs_lang.cfg" ) < 0 )
+#endif
    LoadLangCfg("shs_lang.cfg" );
  }
  else if( (p=stristr(t=cmdline,".exe") ) )
@@ -622,6 +625,9 @@ extern "C" int RMain(void *)
   ll=DWORD_PTR(p[1]);
   DWORD_PTR(p[1])=0x676663 x4CHAR("cfg");
   PrepCfg(t);
+#if defined(CONFIG_CONFIG) && ! defined(CONFIG_CURRENT_DIR)
+  if( LoadLangCfg(CONFIG_CONFIG "shs_lang.cfg" ) < 0 )
+#endif
   LoadLangCfg("shs_lang.cfg" );
   DWORD_PTR(p[1])=ll;
  }

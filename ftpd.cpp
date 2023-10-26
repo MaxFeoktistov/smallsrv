@@ -608,7 +608,12 @@ union{
   else  switch(cmd)
   {
    case 0x68747561 x4CHAR("auth"):
-     if((s_flgs[2]&FL2_FTPTLS)  && PSecAccept /*&&  0x00534C54 x4CHAR("TLS") == (DWORD_PTR(bfr[5])&0xDFDfDF)*/ )
+     if((s_flgs[2]&FL2_FTPTLS)
+#ifndef TLSWODLL
+       && PSecAccept
+#endif
+       /*&&  0x00534C54 x4CHAR("TLS") == (DWORD_PTR(bfr[5])&0xDFDfDF)*/
+     )
      {
        Send("234 Init TLS\r\n",sizeof("234 Init TLS\r\n")-1 );
        if(s_flg&FL_FULLLOG)AddToLog("234 Init TLS\r\n",s,FmtShrt);
@@ -1642,7 +1647,11 @@ lbPORT:
                    " MDTM\r\n"
 //                   " UTF-8\r\n"
                    " SIZE\r\n%s"
-                   "211 end\r\n",( (s_flgs[2]&FL2_FTPTLS)  && PSecAccept ) ?
+                   "211 end\r\n",( (s_flgs[2]&FL2_FTPTLS)
+#ifndef TLSWODLL
+                   && PSecAccept
+#endif
+                  ) ?
                    " AUTH TLS\r\n"
                    " PBSZ\r\n"
                    " PROT\r\n"

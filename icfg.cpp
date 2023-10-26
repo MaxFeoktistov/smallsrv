@@ -464,7 +464,14 @@ SPD(5,tls)
 {"smtp_tls",1,FL1_SMTPTLS,(uint *)0, CS("Enable TLS for POP3/SMTP" )},
 {"ftp_tls",2,FL2_FTPTLS,(uint *)0, CS("Enable TLS for FTP" )},
 
-{"tls_lib"  ,256,0,(uint *)&TLSLibrary, CS(sTLS__LIB )},
+
+{"tls_lib"  ,256,0,(uint *)&TLSLibrary,
+#ifndef  TLSWODLL
+  CS(sTLS__LIB )
+#else
+  0
+#endif
+},
 
 {"tls_cert_file" ,256,0,(uint *)&s_cert_file, CS(sTLS__SERT )},
 {"tls_key_file" ,256,0,(uint *)&s_key_file, CS(sTLS__KEYF )},

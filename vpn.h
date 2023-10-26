@@ -31,7 +31,11 @@
 #include <netinet/ip6.h>
 #include <net/ethernet.h>
 #include <net/route.h>
+// #ifdef ARM
+// #include <net/if.h>
+// #else
 #include <linux/if.h>
+// #endif
 #include <linux/if_tun.h>
 #include "srv.h"
 
