@@ -2,7 +2,7 @@
  * Copyright (C) 1999-2020 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
- * Author: Maksim Feoktistov 
+ * Author: Maksim Feoktistov
  *
  *
  * Small HTTP server is free software: you can redistribute it and/or modify it
@@ -15,11 +15,11 @@
  * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see https://www.gnu.org/licenses/ 
+ * along with this program.  If not, see https://www.gnu.org/licenses/
  *
  * Contact addresses for Email:  support@smallsrv.com
  *
- * 
+ *
  */
 
 //tt eww
@@ -63,7 +63,7 @@ char * NoGZSuf=".gif,.jpg,.jpeg,.gz,.zip,.rar,.arj,.jar";
 uint  GZSizeLow=512;
 #ifndef MINGW
 #define HINSTANCE void *
-//typedef  void *HINSTANCE; 
+//typedef  void *HINSTANCE;
 #endif
 
 HINSTANCE  hZlib;
@@ -248,10 +248,10 @@ int GZObj::InitPack(transfunc tff,void *pp)
 #ifdef MINGW
  z.zalloc =(typealloc) alloc_f;
  z.zfree = (typefree) free_f;
-#else 
+#else
  z.zalloc = alloc_f;
  z.zfree =  free_f;
- 
+
 #endif
 #endif
  //z.opaque = 0;
@@ -277,7 +277,7 @@ int GZObj::InitUnpack(transfunc tff,void *pp)
 #ifdef MINGW
  z.zalloc =(typealloc) alloc_f;
  z.zfree = (typefree) free_f;
-#else 
+#else
  z.zalloc = alloc_f;
  z.zfree =  free_f;
 #endif
@@ -445,11 +445,11 @@ int GZSndSkip(Req *th,uchar *b,int l)
    p[-1]=0;
    if((pp=stristr((char *)b,"Content-Encoding:")) )
    {defl=
-#ifdef x86_64 
+#ifdef A_64
       NULL !=
 #else
        (int)
-#endif       
+#endif
        stristr(pp," deflate");
     i=DelStr(pp,(char *)b,i);
    }
@@ -597,7 +597,7 @@ void Req::GZEnd()
 {
  if(gz)
  {
-  DBGL("") 
+  DBGL("")
   ((GZObj *)gz)->End();
   free(gz);
   gz=0;

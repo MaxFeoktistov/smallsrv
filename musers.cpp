@@ -29,7 +29,7 @@
 #endif
 
 
-#ifndef x86_64
+#ifndef A_64
 char *User::dir(char *ps)
 {
  if(*ps==1)return ps+19;
@@ -147,7 +147,7 @@ void CvtHex(uint  *cd, char * Hex    )
 {
  sprintf(Hex,"%8.8x%8.8x%8.8x%8.8x",
 #if __BYTE_ORDER__  ==  __ORDER_LITTLE_ENDIAN__
-#ifdef x86_64
+#ifdef A_64
    (uint) htonl(cd[0]),(uint) htonl(cd[1]),(uint) htonl(cd[2]),(uint) htonl(cd[3])
 #else
    htonl(cd[0]),htonl(cd[1]),htonl(cd[2]),htonl(cd[3])
@@ -428,7 +428,7 @@ int User::Parse()
           }while(1);
         l1:;
          state|=UserPARSED;
-#ifdef x86_64
+#ifdef A_64
         pwd=pasw;ddr=dir ;
 #endif
          MkDir();

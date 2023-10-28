@@ -113,7 +113,6 @@ int InitSecDLL()
 #ifdef x86_64
    dlerror();
    hSecDLL=dlopen(TLSLibrary
-      // "/dev/shm/o/o64/libsec.so"
        , //RTLD_LAZY|RTLD_GLOBAL
          RTLD_NOW|RTLD_LOCAL
    );

@@ -42,12 +42,12 @@ inline void XCHGP(void **a,void **b)
  *a=*b;
  *b=c;
 }
-#define xchg(a,b)  XCHG(&(a),&(b))
-#define xchgp(a,b)  XCHGP(&(a),&(b))
+#define xchg(a,b)   XCHG(&(a),&(b))
+#define xchgp(a,b)  XCHGP( (void **) &(a), (void **) &(b))
 
 inline int MULDIV(uint a,uint b,uint c)
 {
-  return  (long long )a * (long long) b / c ;
+  return  (unsigned long long )a * (unsigned long long) b / c ;
 }
 
 inline int IMULDIV(int a,int b,int c)

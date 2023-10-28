@@ -733,7 +733,7 @@ struct{
 
   if( (t=stristr(in_buf,"\nProxy-Authorization:") )  )
   {
-#ifdef x86_64
+#ifdef A_64
    DDWORD_PTR(ibf[1024]) =(u_long) "Authorization";
    DDWORD_PTR(ibf[1032])=(u_long) (t+sizeof("\nProxy-Authorization:"));
 #else
@@ -837,7 +837,7 @@ if(!up_prox)
     lpag:
       if((fs=_lopen(ibf,0)) >=0)
       {if( GetFileSize(
-#ifndef x86_64
+#ifndef A_64
           (HANDLE)
 #endif
           fs,0) )
@@ -931,7 +931,7 @@ if(!up_prox)
     else {t3="anonymous";  t4=def_pwd; u=in_buf+10; }
     if(auth)
     {
-#ifdef x86_64
+#ifdef A_64
    DDWORD_PTR(ibf[1024]) =(u_long) "Authorization";
    DDWORD_PTR(ibf[1032])=(u_long) auth;
 #else

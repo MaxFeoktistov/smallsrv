@@ -392,7 +392,7 @@ void InitParam(char *cln)
  char bfr[64],*t,*p,*pext=0;
  union{
  char *tt;
-#ifndef x86_64
+#ifndef A_64
  char **ttuser;
 #endif
  User *ptuser;
@@ -448,7 +448,7 @@ void InitParam(char *cln)
  tt=(char *) malloc(sizeof(User) * (i+8) );
  t=cln;
 
-#ifdef x86_64
+#ifdef A_64
  for(i=0; (ptuser[i].name = t=strstr(t+1," user=") ); ++i)ptuser[i].name+=6;
 #else
  for(i=0; ttuser[i]=t=strstr(t+1," user="); ++i);
@@ -456,7 +456,7 @@ void InitParam(char *cln)
  a=&hsdr;t=cln;
  while( t=strstr(t,"hostpath=") )
  {if(t[9]==';'){++t; continue;}
-#ifdef x86_64
+#ifdef A_64
   a=(a->next = (host_dir *) malloc(sizeof(host_dir) ) ) ;
   a->h = t+9;
   a->next = 0;
@@ -479,7 +479,7 @@ void InitParam(char *cln)
   }
  };
  for(i=0;
-#ifdef x86_64
+#ifdef A_64
      ptuser[i].name
 #else
      ttuser[i]
@@ -496,7 +496,7 @@ void InitParam(char *cln)
 #else
 
   puser=(puser)?
-#ifdef x86_64
+#ifdef A_64
     puser->next= ptuser+i : userList=ptuser;
 #else
   (puser->next=(User *)(ttuser[i]+1) ) : userList=puser=(User *)(ttuser[i]+1);
@@ -508,7 +508,7 @@ void InitParam(char *cln)
  };
 #endif
 
-#ifndef x86_64
+#ifndef A_64
  free(tt);
 // delete tt;
 #endif

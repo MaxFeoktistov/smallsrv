@@ -2,7 +2,7 @@
  * Copyright (C) 1999-2022 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
- * Author: Maksim Feoktistov 
+ * Author: Maksim Feoktistov
  *
  *
  * Small HTTP server is free software: you can redistribute it and/or modify it
@@ -15,11 +15,11 @@
  * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see https://www.gnu.org/licenses/ 
+ * along with this program.  If not, see https://www.gnu.org/licenses/
  *
  * Contact addresses for Email:  support@smallsrv.com
  *
- * 
+ *
  */
 
 
@@ -41,7 +41,7 @@
 
 #endif
 
-#if defined(SYSUNIX) && (! defined(ARM) ) 
+#if defined(SYSUNIX) && (! defined(ARM) )
 #include <netinet/ip.h>
 
 #endif
@@ -49,7 +49,7 @@
 #if (! defined(SYSUNIX)) && ! defined(IP_TTL)
 
 #define IP_TOS 3
-#define IP_TTL 4 
+#define IP_TTL 4
 
 #endif
 
@@ -102,12 +102,12 @@ Heap *dnsheap;
 #ifdef  DEBUG_DNS_MEM
 struct DBGMem
 {
- uint l;   
+ uint l;
  uint where;
 };
 void *DNS_ALLOC(uint a)
 {
-  union{  
+  union{
   void *r;
   DBGMem *d;
   uchar *us;
@@ -116,27 +116,27 @@ void *DNS_ALLOC(uint a)
   {
    DWORD_PTR(us[a+sizeof(DBGMem)])= 0x5A5A55AA;
    d->l = a;
-#ifndef x86_64   
+#ifndef A_64
    d->where = (&a)[-1];
 #endif
-    d++;    
+    d++;
   }
   return r;
-    
+
 }
 void DNS_FREE(void *a)
 {
-  union{  
+  union{
    DBGMem *d;
    uchar *us;
   };
-  
+
   d=(DBGMem *)a;
   d--;
-  if(DWORD_PTR(us[d->l+sizeof(DBGMem)]) != 0x5A5A55AA ) 
-    debug("memory error: %X %u %X %X",a,d->l,d->where,us[d->l+sizeof(DBGMem)]);  
+  if(DWORD_PTR(us[d->l+sizeof(DBGMem)]) != 0x5A5A55AA )
+    debug("memory error: %X %u %X %X",a,d->l,d->where,us[d->l+sizeof(DBGMem)]);
   dnsheap->Free(d);
-    
+
 }
 
 #else
@@ -267,10 +267,10 @@ struct Secondary
   time_t next_chk;
   ulong lastserial;
   ulong refresh;
-  char host[64];  
+  char host[64];
   sockaddr_in sa;
   char fname[512];
-  
+
   int CheckSecondary();
   void LoadSecondary();
   void LoadFile();
@@ -312,8 +312,8 @@ inline ulong ADDR4(sockaddr_in6 *sa_ct)
 //     (sa_ct->sin6_family==AF_INET)?
 //   ((sockaddr_in *)sa_ct)->sin_addr. S_ADDR :
 //    sa_ct->sin6_addr.s6_addr32[3];
-// 
-    
+//
+
 }
 
 
@@ -489,7 +489,7 @@ int NSRecord::isRecord(char * nm)
  {
    NSRecord  *last;
    char *t;
-       
+
 //   DDEBUG("")
 
    if(!thi) return 0;
@@ -525,16 +525,16 @@ int NSRecord::isRecord(char * nm)
     //if(nm[0]=='.' && first->type==rtypeNS && first->dt[0]=='.' )
     //  debug("root NS %X: %X %X |%s| |%s|",thi, hash,first->hash,nm,first->dt );
         //*
-           
+
         if( (first->ttl<last_time) && first->ttl > (86400*60) )
         {
 
          DDEBUG("")
 
          thi->DelHash(first->hash);
-         
+
          DDEBUG("")
-         
+
          first->FreeRR();
 
          DDEBUG("")
@@ -781,7 +781,7 @@ ulong DNS_TTL=86400;
 
 
 const char REQURSION_CALL[]="(recursion)";
-char NSTypes[]={1,2,5,6,12,15,16,28,-4,-1,99};
+char NSTypes[]={1,2,5,6,12,15,16,28,(char)-4,(char)-1,99};
 char *NSTypesTXT[]={"A","NS","CNAME","SOA","PTR","MX","TXT","AAAA","AXFR","ANY","SPF"};
 
 struct CheckPoint;
@@ -805,7 +805,7 @@ struct DNSLogRepeat
  };
  time_t first,last;
  int cnt;
- 
+
  int cmp(const char *t,TSOCKADDR  *sa);
  void set(const char *t,TSOCKADDR  *sa);
  void out();
@@ -819,7 +819,7 @@ int log_flash_pos;
 
 int DNSLogRepeat::cmp(const char *t,TSOCKADDR  *psa){
  if(!cnt)return -1;
- 
+
 //  dprint("cmp |%s| |%s|\r\n",t,name);
 #ifdef USE_IPV6
  //if(psa->sin6_port != sa.sin6_port) return -1;
@@ -835,10 +835,10 @@ int DNSLogRepeat::cmp(const char *t,TSOCKADDR  *psa){
  //if( psa->sin_port != sa.sin_port ) return -1;
  if( psa->sin_addr.s_addr != sa.sin_addr.s_addr  ) return -1;
 #endif
- 
- 
+
+
  return stricmp(name,t);
-    
+
 };
 
 void DNSLogRepeat::set(const char *t,TSOCKADDR  *psa)
@@ -860,17 +860,17 @@ void DNSLogRepeat::out()
   {
    DBGLINE
    sprintf(bt,"repeated %u times in the %us (:%2.2u:%2.2u - %2.2u:%2.2u)",cnt,last-first, (first/60)%60,first%60,(last/60)%60,last%60 );
-   AddToLogDNS(name,-3,&sa,bt); 
-  } 
+   AddToLogDNS(name,-3,&sa,bt);
+  }
   cnt=0;
 }
 
 
 #ifdef SEPLOG
 
-#define pprot  lpprot 
+#define pprot  lpprot
 #define f_prot lf_prot
-#define pcnt   lpcnt  
+#define pcnt   lpcnt
 #define b_prot lb_prot
 
 void TLog::LAddToLogDNS(const char *t,int n,TSOCKADDR  *sa,char *ad)
@@ -880,11 +880,11 @@ void AddToLogDNS(const char *t,int n,TSOCKADDR *sa ,char *ad) //="")
 {
  int ll,l,p1,p2,ltbr,i;
  char *ttt;
- char tbfr[128]; 
+ char tbfr[128];
  SYSTEMTIME stime;
- 
- 
-  if(n==257) ttt="CAA"; 
+
+
+  if(n==257) ttt="CAA";
  else if((ttt=memchr(NSTypes,n,sizeof(NSTypes))))
   ttt=NSTypesTXT[ttt-NSTypes];
  else ttt="";
@@ -902,7 +902,7 @@ void AddToLogDNS(const char *t,int n,TSOCKADDR *sa ,char *ad) //="")
  }
  else
  {
- 
+
   ltbr=sprintf(tbfr,"%c%s %s(%d)%.64s",l,t,ttt,n,ad);
 
   if(t!=REQURSION_CALL)
@@ -914,7 +914,7 @@ void AddToLogDNS(const char *t,int n,TSOCKADDR *sa ,char *ad) //="")
      return;
    }
  }
- 
+
 #ifdef USE_IPV6
  char addr6[64];
  IP2S(addr6,(sockaddr_in *)sa);
@@ -922,7 +922,7 @@ void AddToLogDNS(const char *t,int n,TSOCKADDR *sa ,char *ad) //="")
 #else
  p1=htons((ushort)sa->sin_port);
 #endif
- 
+
 
  GetLocalTime(&stime);
  GetProt();
@@ -972,7 +972,7 @@ void AddToLogDNS(const char *t,int n,TSOCKADDR *sa ,char *ad) //="")
          i=l;
          logrepeat[i].out();
        }
-    lbFoundFree:   
+    lbFoundFree:
    // dprint("Set %u %s\n",i,tbfr);
        logrepeat[i].set(tbfr,sa);
      }
@@ -988,7 +988,7 @@ void FlashRepeatLog()
    {
     if( logrepeat[i].cnt )
     {
-     if(logrepeat[i].last<dtime ||logrepeat[i].first < mindtime  )  
+     if(logrepeat[i].last<dtime ||logrepeat[i].first < mindtime  )
      {
        if(logrepeat[i].cnt>1)
        {
@@ -998,9 +998,9 @@ void FlashRepeatLog()
      }
      else
        if(logrepeat[i].cnt>1)log_flash_time=cur_time+20;
-    } 
+    }
    }
-   
+
 }
 
 inline void ChkFlashRepeatLog(){if(log_flash_time && log_flash_time<cur_time)FlashRepeatLog(); }
@@ -1085,11 +1085,11 @@ struct DNSReq
  ushort in_id[6];
  Req *doh_ptra[5];
 #define doh_ptr doh_ptra[0]
- 
+
  ulong  hsh;
  AList alist;
  AList repled;
- 
+
  uchar cur,ttcnt,rcnt,lnk,aa,a2,a3;
  int  typ;
  int  l;
@@ -1190,8 +1190,8 @@ const uchar edns_record[]=
   0,
   0, 0x29,
   0x2, 0,
-  0, 0, 0, 0, 
-  0, 0                                                                                                       
+  0, 0, 0, 0,
+  0, 0
 };
 
 void DNSReq::SendReply(d_msg  *pdm)
@@ -1206,11 +1206,11 @@ void DNSReq::SendReply(d_msg  *pdm)
       l+=sizeof(edns_record);
       pdm->arcount++;
       state&=~dnsstEDNS;
-    }    
+    }
     do{
       t=(char *)pdm;
       s=s_in[j];
-      if(ll)  
+      if(ll)
       {t-=2;
        //debug("DNS TCP reply %d %d %X",s,ssudp,th.l);
        WORD_PTR(*t)=htons(l);
@@ -1223,15 +1223,15 @@ void DNSReq::SendReply(d_msg  *pdm)
         memcpy(doh_ptra[j]->pst,t,l);
         doh_ptra[j]->dirlen=l;
 #ifdef USE_FUTEX
-     futex((int *)&doh_ptra[j]->dirlen,FUTEX_WAKE,1,0,0,0);  
-#endif          
+     futex((int *)&doh_ptra[j]->dirlen,FUTEX_WAKE,1,0,0,0);
+#endif
         doh_ptra[j]=0;
 //        debug("DoH send %d",l);
-        
 
-      }    
-      else    
-      {    
+
+      }
+      else
+      {
 #ifdef _BSD_VA_LIST_
       if(ll) //s==stcp) // !=ssudp) // sdns)
         BSend(s,t,l);  else
@@ -1304,7 +1304,7 @@ int IsNotMeta(char *t)
 
 char *GetWorld(char * &s)
 {register char *t=s;
- int dq=0;    
+ int dq=0;
  while(*t==' '|| *t=='\t' ) ++t;
  s=strpbrk(t," \t;,#\r\n");
  while(s && (*s==';' || *s=='#' ) && !IsNotMeta(s)){ s=strpbrk(s+1," \t;,#\r\n"); dq++; }
@@ -1320,15 +1320,15 @@ char *GetWorld(char * &s)
      {
        t++;
      }
-   //  else if( t[1]!=';' && t[1]!='#' )  
+   //  else if( t[1]!=';' && t[1]!='#' )
    //  {
        *p++=*t;
    //  }
      t++;
-   }    
-        
-   return r;    
- }    
+   }
+
+   return r;
+ }
  return t;
 }
 
@@ -1412,11 +1412,11 @@ DDEBUG("")
 
  DWORD_PTR(*t)=0x1000000;  //class IN
  t[1]= type;
- t[0]= type>>8;  
+ t[0]= type>>8;
  tt=ttl;
  if(tt>(86400*60) ) tt-=last_time;
  if(tt>(86400*60) ) tt=60;
- DWORD_PTR(t[4])=htonl(tt); 
+ DWORD_PTR(t[4])=htonl(tt);
  WORD_PTR(t[8]) =0x400;  // size
 
  p=t+9;
@@ -1441,7 +1441,7 @@ DDEBUG("")
   return t+14;
  }
 
-   
+
  t+=10;
  z=Data();
  if(type==rtypeMX)
@@ -1469,7 +1469,7 @@ DDEBUG("")
  else
  {
    memcpy(t,z,l2);
-   if(type==rtypeAAAA && DWORD_PTR(t[l2-8])==0xFFFF0000 )     //!  Little indian 
+   if(type==rtypeAAAA && DWORD_PTR(t[l2-8])==0xFFFF0000 )     //!  Little indian
    {
     for(cp=DRList; cp && cp->check ; cp++ )
       if( (cp->type & 0x80)  &&
@@ -1573,11 +1573,11 @@ ulong CheckRemoteDown(void * )
           struct linger dnschklng;
            dnschklng.l_onoff=1;
            dnschklng.l_linger=1;
-          */ 
+          */
           setsockopt(s,SOL_SOCKET,SO_LINGER,
 #ifndef SYSUNIX
           (char *)
-#endif                     
+#endif
                      &dnschklng,sizeof(dnschklng));
           r=shutdown(s,2);
           closesocket(s);
@@ -1719,9 +1719,9 @@ char *NSRecordLst::Put(d_msg  *pdm,char *t,char *et)
    {
     if( w>=0 && hst[j]->dt[0] =='*'  )
     {
-      if(k) continue;   
+      if(k) continue;
       w++;
-      continue;      
+      continue;
     }
     t=hst[j]->AddRR(pdm,lt=t,ww);
     if(t>=et)
@@ -1790,7 +1790,7 @@ void NSRecordLst::UpdateNS(char *tt,int fst)
  }
 // else if((s_flg&FL_DNSUPLVL)) debug("Up NS %u %u %s",n,fst,tt);
 
- 
+
  do{
 
    hash=MkName(tt);
@@ -1802,7 +1802,7 @@ void NSRecordLst::UpdateNS(char *tt,int fst)
        if(f->type==rtypeNS && stricmp(tt,f->Data() ) )
        {
          Add(f);
-// !temp         
+// !temp
 //         debug("Found NS %s %u",f->Data(),n);
          if(n>=MAX_REPL_HST)return ;
        }
@@ -1868,7 +1868,7 @@ char*  FndRec::AddFound(NSRecordArray *a,d_msg  *pdm,char *t,char *et)
     edns=pdm->arcount;
     if(edns==1)
     {
-      et-= sizeof(edns_record); 
+      et-= sizeof(edns_record);
     }
     pdm->ancount=0;
     pdm->nscount=0;
@@ -1883,13 +1883,13 @@ char*  FndRec::AddFound(NSRecordArray *a,d_msg  *pdm,char *t,char *et)
     //t= cname.PutAdv(a,pdm,t,et);
 //    return ns.PutAdv(a,pdm,t,et);
     r=ns.PutAdv(a,pdm,t,et);
-  /*  
+  /*
     if(edns==1)
     {
       memcpy(r,edns_record,sizeof(edns_record))  ;
       r+=sizeof(edns_record);
       pdm->arcount++;
-      
+
     }
     */
     return r;
@@ -1948,7 +1948,7 @@ int DNSReq::FindNSResend(int rs, NSRecordLst *ns,char *bfx,int min)
 
 void DNSReq::FreeDNSReq()
 {
-  int i;  
+  int i;
   if(state)
   {
  //   debug("Free req %u",cdreq);
@@ -1957,7 +1957,7 @@ void DNSReq::FreeDNSReq()
     for(i=0; i<cnt ; i++ )
       if(doh_ptra[i])
       {
-         doh_ptra[i]->dirlen=-1;  
+         doh_ptra[i]->dirlen=-1;
          doh_ptra[i]=0;
       }
 
@@ -2140,7 +2140,7 @@ int DNSReq::ReReq(int rs,char *name,int rtyp)
      {
 
 //       nxt->rcnt++;
-       rcnt++;   
+       rcnt++;
        nxt->rcnt=rcnt;
        nxt->lnk=this - dreq;
        //debug("DNS Reqursion get %s %u link=%u %X %X",name,rcnt,nxt->lnk, nxt,this);
@@ -2188,49 +2188,49 @@ int CheckBadDNSName(char *b)
 
 int CheckDNSDoS(sockaddr_in * sa_c)
 {
-  union{   
+  union{
     LimitCntr *lip;
     LimitCntrIPv6 *lip6;
   };
   uint ip;
-#ifdef USE_IPV6  
+#ifdef USE_IPV6
    if(IsIPv6(sa_c)) //sa_c->sin_family == AF_INET6  )
    {
        if(!(lip6=dns6DoS.Find( ( (sockaddr_in6 *)  sa_c)->sin6_addr) ) )
        {
-          lip6=dns6DoS.Push(); lip6->Set( ( (sockaddr_in6 *)  sa_c)->sin6_addr); 
+          lip6=dns6DoS.Push(); lip6->Set( ( (sockaddr_in6 *)  sa_c)->sin6_addr);
           lip6->first=last_time+180;
     //   debug("DNS ANY");
-       }   
-       
+       }
+
    }
    else
-#endif       
+#endif
    if(!(lip=dnsDoS.Find( ip=IPv4addr(sa_c) )) ) //sa_c->sin_addr. S_ADDR)))
    {
-     lip=dnsDoS.Push(); lip->ip=ip ; //IPv4addr(sa_c); // sa_c->sin_addr. S_ADDR; 
+     lip=dnsDoS.Push(); lip->ip=ip ; //IPv4addr(sa_c); // sa_c->sin_addr. S_ADDR;
      lip->first=last_time+180;
   //   debug("DNS ANY");
    }
-   
+
    if(lip->cnt++ > dns_dos_limit)return 1;
-       
+
    if(lip->first<last_time)
    {
-     lip->cnt=0;  
+     lip->cnt=0;
      lip->first=last_time+180;
    }
-   else 
-     lip->first++;  
+   else
+     lip->first++;
 
-   return 0; 
+   return 0;
 }
 
 void  PrepareDefAReply(char *t)
 {
     WORD_PTR(*t)    =0xCC0; //
     DWORD_PTR(t[2]) =DWORD_PTR(t[-4]);  // PTR
-    DWORD_PTR(t[6]) =DNS_TTL;  
+    DWORD_PTR(t[6]) =DNS_TTL;
     WORD_PTR(t[10]) =0x400; // size
 }
 ulong WINAPI SetDNSServ(void * fwrk)
@@ -2241,12 +2241,12 @@ ulong WINAPI SetDNSServ(void * fwrk)
 // ssudp=soc_srv[6 + 9*(((int)fwrk)/9 )] ;
      //sdns;
  //if(((int)fwrk)&1)
- ss=soc_srv[6 + ( 
-#ifdef x86_64 
+ ss=soc_srv[6 + (
+#ifdef A_64
  *(uchar *) &fwrk
 #else
   0xFF &(uint)fwrk
-#endif  
+#endif
 ) ] ;  //sdnst;
 #ifdef USE_IPV6
 union{
@@ -2303,11 +2303,11 @@ union{
  int isTCP;
 
  isTCP=(
-#ifdef x86_64 
+#ifdef A_64
  *(uint *) &fwrk
 #else
   (uint)fwrk
-#endif  
+#endif
          )%9;
 #define mxnsoff ((uchar *)tp)
 #define mxnsnip nm1
@@ -2345,7 +2345,7 @@ union{
  j=0;
  pdm= &dmm;
 
-  
+
  if( isTCP )
  {
   i=sizeof(sa_client);
@@ -2357,20 +2357,20 @@ union{
      if(!is_no_exit)return 0;
      Sleep(500);
      ReinitDNSSocket( (
-#ifdef x86_64 
+#ifdef A_64
  *(uchar *) &fwrk
 #else
   0xFF &(uint)fwrk
-#endif  
+#endif
     )/9,1);
-     ss=soc_srv[6 + 
-#ifdef x86_64 
+     ss=soc_srv[6 +
+#ifdef A_64
   *(uchar *) &fwrk
 #else
   (0xFF &(uint)fwrk)
-#endif  
-      ] ; 
-     
+#endif
+      ] ;
+
    }
    s=stcp;
 
@@ -2407,9 +2407,9 @@ union{
   else --soik;
   if(s_flgs[2]&FL2_DOH)
   {
-    FD_SET(doh_r,&set);   
+    FD_SET(doh_r,&set);
     if(j<doh_r)j=doh_r;
-  }    
+  }
 
  }
  th.s_in[0]=s;
@@ -2435,12 +2435,12 @@ union{
             ,
 #ifdef MINGW
 #undef fd_set
-        (fd_set *)    
+        (fd_set *)
 #endif
                 &set,0,0 //&er_set
                ,&tval))  >0
    )
- {    
+ {
  for(soi=0; soi<=soik  ; soi++ )
  {
 
@@ -2454,15 +2454,15 @@ union{
     debug("DNS socket error %u(%u) %d %u",soi,soik,i,s);
     Sleep(300);
   }
-  else*/ 
-      if( 
+  else*/
+      if(
 #ifdef MINGW
-          
-          FD_ISSET(s, (fd_set *) &set) 
-#else          
-          FD_ISSET(s,  &set) 
 
-#endif         
+          FD_ISSET(s, (fd_set *) &set)
+#else
+          FD_ISSET(s,  &set)
+
+#endif
       )
   {
 
@@ -2487,17 +2487,17 @@ lb_tcpudp:
   if( (th.l=recvfrom(s,dmmc,600,0,(sockaddr *)&sa_client,&i) ) > 0 )
   {
     th.doh_ptr=0;
- lbDOH:   
- 
+ lbDOH:
+
 //   DDEBUG("DD")
 
- 
+
    DWORD_PTR(dmmc[th.l])=0;
-// DEBUG:   
- 
+// DEBUG:
+
 //   DWORD_PTR(dmmc[th.l+4])=DWORD_PTR(dmmc[th.l-6]);
-   
-   
+
+
 //   dbg3("d 2");
 //   tolog="";
    th.state=dnsstWAIT_REPLY;
@@ -2505,7 +2505,7 @@ lb_tcpudp:
    xhst=MkName(bfx);
 
  //debug("3 %d %d %s",s,th.l,bfx);
-   
+
   // last_time=time(0);
    gettimeofday(&tvlast_time,0);
    MyLock(nsmut);
@@ -2518,28 +2518,28 @@ lb_tcpudp:
     th.in_id[0]=dmm.id;
     if(dmm.qdcount>1)
     {
-      debug("dmm.qdcount = %u",dmm.qdcount);  
+      debug("dmm.qdcount = %u",dmm.qdcount);
     }
     if(dmm.arcount)th.state|=dnsstEDNS;
-    
+
     if(DNS_DoS_hosts[0] && bfx[0] && stristr(DNS_DoS_hosts,bfx))
     {
-      AddToLogDNS(bfx,i,&sa_client,"DoS detected" );  
+      AddToLogDNS(bfx,i,&sa_client,"DoS detected" );
       continue;
     }
 //     else
 //     {
 //       debug("Debug DoS: \"%s\" \"%s\"\r\n",bfx,DNS_DoS_hosts)  ;
-//     }    
-    
-    if(    dns_dos_limit && 
+//     }
+
+    if(    dns_dos_limit &&
         //  (th.typ==rtypeANY || th.typ==rtypeAXFR)
            (! memchr((void *)DNSSupportedTYpes,th.typ,sizeof(DNSSupportedTYpes)  ) )
            && CheckDNSDoS((sockaddr_in *) &sa_client) )
     {
-      AddToLogDNS("DoS detected",i,&sa_client,(char *) ((isTCP)?" TCP":(th.doh_ptr)?"DoH":"") );  
+      AddToLogDNS("DoS detected",i,&sa_client,(char *) ((isTCP)?" TCP":(th.doh_ptr)?"DoH":"") );
       continue;
-    }    
+    }
     AddToLogDNS(bfx,i,&sa_client,(char *) ((isTCP)?" TCP":(th.doh_ptr)?"DoH":"") );
     th.hsh=xhst; //=MkName(bfx);
     l1=strlen(bfx);
@@ -2555,17 +2555,17 @@ lb_tcpudp:
       continue;
     }
     DDEBUG("")
-  /*  
+  /*
     WORD_PTR(*t)    =0xCC0; //
     DWORD_PTR(t[2]) =DWORD_PTR(t[-4]);  // PTR
-    DWORD_PTR(t[6]) =DNS_TTL;  
+    DWORD_PTR(t[6]) =DNS_TTL;
     WORD_PTR(t[10]) =0x400; // size
 */
 
 
     if( dnsblname && dnsblname[0] && i==1 &&  (t1=stristr(bfx,dnsblname)) && ! t1[strlen(dnsblname) ] )
     {
-      PrepareDefAReply(t);  
+      PrepareDefAReply(t);
       if(!ipcnts[1].Find( htonl(ConvertIP(t1=bfx)) ))
       {
        dmm.flags = 0x0385;
@@ -2586,7 +2586,7 @@ lb_tcpudp:
      if(*t1=='.' )
      {if(i==1)
       {
-       PrepareDefAReply(t);  
+       PrepareDefAReply(t);
        DWORD_PTR(t[12]) = z ; // DWORD_PTR(bfx[270]);
        t+=16;
        ++dmm.ancount;
@@ -2602,7 +2602,7 @@ lb_tcpudp:
 
     if(! bfx[0] )
     {
-      PrepareDefAReply(t);  
+      PrepareDefAReply(t);
       DWORD_PTR(bfx[0])='.';
       th.hsh=xhst=ROOTSERVERHASH;
  //     debug("root NS request %u %X %X %s",th.typ,xhst,ROOTSERVERHASH,bfx);
@@ -2616,7 +2616,7 @@ lb_tcpudp:
     et=((char *)dmmc)+512;
     if( fnd.Find(host_rr,bfx,xhst,th.typ) )
     {
-      PrepareDefAReply(t);  
+      PrepareDefAReply(t);
 
       switch(th.typ)
       {
@@ -2683,11 +2683,11 @@ lb_tcpudp:
 
 
       DDEBUG("Redirect")
-      
-      
+
+
 lbRedirect:
 
-      
+
      if( (!dns_cach_size) || (! (dmm.flags&0x1) ) || ( (s_flgs[2]&FL2_DNSNO6) && th.typ == 28) ||
          (isTCP) ||
          (
@@ -2754,7 +2754,7 @@ lbRedirect:
         #ifdef SYSUNIX
         fcntl(sudp2, F_SETFD, fcntl(sudp2, F_GETFD) | FD_CLOEXEC);
         #endif
-        
+
       //  i=512;
       //  setsockopt(sudp2,SOL_SOCKET,SO_RCVBUF,(char *)&i,4 );
          (*(sockaddr_in *) (th.sa_cl+1)).sin_addr.s_addr=0;
@@ -2766,13 +2766,13 @@ lbRedirect:
 #ifdef IP_TTL
      i=240;
      setsockopt(sudp2,IPPROTO_IP,IP_TTL,(char *)&i,4 );
-#ifdef SYSUNIX      
+#ifdef SYSUNIX
      i=IPTOS_DNS;
      setsockopt(sudp2,IPPROTO_IP,IP_TOS,(char *)&i,4 );
-#endif     
+#endif
 #else
-#warning  IP_TTL not defined     
-#endif     
+#warning  IP_TTL not defined
+#endif
        }
 
 
@@ -2804,7 +2804,7 @@ lbRedirect:
          pdreq->ReReq(s,t1,pdreq->typ);
        }
      }
-  /*   
+  /*
      else if(fnd.cname.n)
      {
          pdreq->state|=dnsstWAIT_CNAME;
@@ -2813,34 +2813,34 @@ lbRedirect:
          t1=fnd.cname.hst[fnd.cname.n-1]->Data();
          if(pdreq==&th)if( !(pdreq=GetFreeReq(&th,hshx)) ) continue;
          pdreq->ReReq(s,t1,pdreq->typ);
-        
+
      } */
-     else  
+     else
      {
-       
+
          /*
         if(pdreq->typ != rtypeCNAME && pdreq->typ != rtypeA && fnd.Find(cash_rr,bfx,xhst,) )
         {
-            
-        }  
+
+        }
         */
-        
+
   //    debug("Not found in cashe: %u %u %u",fnd.rp.n, fnd.cname.n,fnd.ns.n);
        pdreq->state|=dnsstWAIT_REPLY;
        if(pdreq==&th)if(!(pdreq=GetFreeReq(&th,th.hsh)))continue;
        /*
        if(fnd.cname.n)
        {
-           
+
          fnd.ns.n=0;
 //         if(! pdreq->FindNSResend(s,& fnd.ns,fnd.cname.hst[fnd.cname.n-1]->Data()) )goto lbErrSend;
          sprintf(bfx,"%.64s",fnd.cname.hst[fnd.cname.n-1]->Data());
        }
        else
            */
-       {    
+       {
          if(s_flg&FL_DNSUPLVL && ! (pdreq->state&dnsstUSOA) )fnd.ns.n=0;
-       }  
+       }
        if(! pdreq->FindNSResend(s,& fnd.ns,bfx) )goto lbErrSend;
        //pdreq->NextSend(s);
      }
@@ -2990,7 +2990,7 @@ lbRedirect:
    }
 
 
-  
+
 
   } // recvfrom
   else
@@ -3005,7 +3005,7 @@ lbRedirect:
     else
     {
      Sleep(300);
-    
+
 
      j=4;
      getsockopt(s,SOL_SOCKET,SO_ERROR,(char *) &i,(socklen_t*)&j);
@@ -3023,25 +3023,25 @@ lbRedirect:
 
 
   }
-  
+
   } // IS_SET
  } // for Select
 
    if( (s_flgs[2]&FL2_DOH) && FD_ISSET(doh_r, (fd_set *) &set)   )
    {
       s =soc_srv[SDNS_IND];
-#ifdef   SYSUNIX    
-      FD_CLR(doh_r,(fd_set *) &set); 
-#else      
-      for(int iji=0; iji<set.fd_count ; iji++ ) if(set.fd_array[iji]==doh_r){set.fd_array[iji]=0; break;  } ; 
-#endif      
+#ifdef   SYSUNIX
+      FD_CLR(doh_r,(fd_set *) &set);
+#else
+      for(int iji=0; iji<set.fd_count ; iji++ ) if(set.fd_array[iji]==doh_r){set.fd_array[iji]=0; break;  } ;
+#endif
       _hread(doh_r,(char *) &th.doh_ptr,sizeof(th.doh_ptr) );
       th.l=th.doh_ptr->postsize;
       memcpy(dmmc,th.doh_ptr->pst,th.l);
       memcpy(&sa_client,& (th.doh_ptr->sa_c),sizeof(sa_client) );
      // i=sizeof(sa_client);
      // getpeername(th.doh_ptr->s,(sockaddr*) &sa_client,&i);
-      
+
       goto lbDOH;
    }
 
@@ -3119,12 +3119,12 @@ lbRedirect:
 
 inline int IsEndOfLine(char t)
 {
- return 
-#ifdef x86_64 
+ return
+#ifdef A_64
       NULL !=
 #else
  (int)
-#endif 
+#endif
     strchr("\r\n;#",t);
 }
 
@@ -3146,9 +3146,9 @@ int NSRecordArray::FillDomain(char *mem,char *dt,CheckPoint *cp)
   if(arr)
   { mem=(char *) & (arr->d[arr->cnt]) ;   }
   */
-  
+
   if(mem)smem=mem;
-    
+
    for(t=dt;t && *t;)
    {
 
@@ -3214,7 +3214,7 @@ int NSRecordArray::FillDomain(char *mem,char *dt,CheckPoint *cp)
         t3=GetWorld(t+=sizeof("SLAVE "));
         if( *t>'\n')
         {
-         
+
           if(mem)
           {
             *t++=0;
@@ -3232,16 +3232,16 @@ int NSRecordArray::FillDomain(char *mem,char *dt,CheckPoint *cp)
               *t++=0;
               strncpy(sec->fname,t1,sizeof(sec->fname)-1);
             }
-            
+
             // Remove the domain with the same hostname from the list (if exist)
-            for(Secondary **tsecond=&seconds; *tsecond ; tsecond=& ((*tsecond)->next) ) 
+            for(Secondary **tsecond=&seconds; *tsecond ; tsecond=& ((*tsecond)->next) )
                 if(*tsecond!=sec && ! stricmp((*tsecond)->host,sec->host) )
                 {
-                  *tsecond=(*tsecond)->next;  
+                  *tsecond=(*tsecond)->next;
                   break;
                 }
 
-        
+
           }
           mmi+=sizeof(Secondary) ;
          }
@@ -3253,12 +3253,12 @@ int NSRecordArray::FillDomain(char *mem,char *dt,CheckPoint *cp)
        }
 
 
-      
+
 
     case ';':
-    case '#': 
-              if( IsNotMeta(t) )  
-              {     
+    case '#':
+              if( IsNotMeta(t) )
+              {
                if(!(t=strchr(t,'\n')))
                {
                  goto exLD;
@@ -3278,11 +3278,11 @@ int NSRecordArray::FillDomain(char *mem,char *dt,CheckPoint *cp)
     //  debug("Before %.63s %s j=%X\r\n",t1,old_name,j);
 
       j=
-#ifdef x86_64 
+#ifdef A_64
       NULL !=
 #else
       (int)
-#endif      
+#endif
       strchr(t1,'.');
       if(t[-2]=='.' && t1<(t-3) )t[-1]=0;
 
@@ -3448,7 +3448,7 @@ int NSRecordArray::FillDomain(char *mem,char *dt,CheckPoint *cp)
         }
         t=t4+1;
        }
-       else if((x|0x202020)==0x00616163 x4CHAR("caa")  )           
+       else if((x|0x202020)==0x00616163 x4CHAR("caa")  )
        {
            typ=  rtypeCAA;
            t2=GetWorld(t);
@@ -3457,11 +3457,11 @@ int NSRecordArray::FillDomain(char *mem,char *dt,CheckPoint *cp)
             {
              x=atoui(t2);
              t2=GetWorld(t);
-                          
+
             }
             if(!t)
-            { 
-           lbErrCAA:     
+            {
+           lbErrCAA:
               debug("Error in hosts file in CAA %s",old_name);
               goto exLD;
             }
@@ -3469,7 +3469,7 @@ int NSRecordArray::FillDomain(char *mem,char *dt,CheckPoint *cp)
             *t++=0;
             t3=SkipSpace(t);
             if(!(t=strchr_meta(t3,'\n'))) goto lbErrCAA;
-            t4=t;   
+            t4=t;
             if(t[-1]=='\r')
             {
                 t[-1]=0;
@@ -3477,7 +3477,7 @@ int NSRecordArray::FillDomain(char *mem,char *dt,CheckPoint *cp)
             }
 
             if(*t3=='\"')
-            {  
+            {
                 t3++;
                 t4=strchr_meta(t,'\"');
                 if(!t4)
@@ -3485,8 +3485,8 @@ int NSRecordArray::FillDomain(char *mem,char *dt,CheckPoint *cp)
                   t4=t;
                   if(!t4[-1])t4--;
                 }
-            }    
-            
+            }
+
             *t++=0;
             k=(t4-t3);
             if(k<=0)goto lbErrCAA;
@@ -3497,7 +3497,7 @@ int NSRecordArray::FillDomain(char *mem,char *dt,CheckPoint *cp)
              prr->dr[1]=j;
              memcpy(prr->dr+2,t2,j);
              memcpy(prr->dr+2+j,t3,k);
-           } 
+           }
        }
        else if((x|0x20202020)== 0x45505954 x4CHAR("TYPE")  )
        {
@@ -3510,11 +3510,11 @@ int NSRecordArray::FillDomain(char *mem,char *dt,CheckPoint *cp)
               x='\n';
               for(j=0;j<k;j++)
               {
-                
+
                 if(*t=='\r')t++;
                 if(*t==x)break;
                 if(*t=='\n')t++;
-                  
+
                 t4=GetWorld(t);
                 if(*t4=='\r')t4++;
                 if(*t4==x)break;
@@ -3522,27 +3522,27 @@ int NSRecordArray::FillDomain(char *mem,char *dt,CheckPoint *cp)
                 {
                   t++;
                 }
-                
+
                 if(*t4 == '(')
                 {
-                  x=')'; 
+                  x=')';
                   t4=GetWorld(t);
                 }
                 if(*t4 == '\n')
-                
+
                 if(mem)
                 {
                   prr->dr[j]=atouix(t4);
                 }
-           
-              }
-           
 
-         
+              }
+
+
+
          }
-         else 
+         else
            debug("DNS: Bad RR %u %.32s...\r\n",typ, t1);
-       
+
        }
        else
        {
@@ -3714,17 +3714,17 @@ int LoadDomain(char *file)
 
    if(ProviderNS[0])debug("Provder's DNS: %s %s", ProviderNS[0]->dr,ProviderNS[1]?ProviderNS[1]->dr:"");
    else debug("No providers servers...");
-   
-   
+
+
    Secondary *sec;
    i=0;
    for(sec=seconds ; sec ; sec=sec->next)
-   { 
+   {
     // debug("DNS:%u) Secondary %s\r\n",++i,sec->host);
      sec->LoadFile();
    }
 
- 
+
    return 1;
  }
 // DDEBUG("I.")
@@ -3740,7 +3740,7 @@ void LoadDomainM()
    if(LoadDomain(dns_file))
    {
      debug("DNS: Load host definetion file. %u hosts now are loaded",count_dns );
-     
+
      if((DRList || seconds) && !ChkThread)
        CreateThread(&secat,0x8000,(TskSrv)CheckRemoteDown,(void *)0,0,(ulong *)&i);
    }
@@ -3796,9 +3796,9 @@ int ReinitDNSSocket(int k,int tcp)
     #ifdef SYSUNIX
     fcntl(s, F_SETFD, fcntl(s, F_GETFD) | FD_CLOEXEC);
     #endif
-    
+
     setsockopt(s,SOL_SOCKET,SO_REUSEADDR,(char *)&one,sizeof(one));
-try_bind_again:   
+try_bind_again:
     if(
      bind(s,(struct sockaddr *) & dns_bindaddr[k].sa_server,
 #ifdef USE_IPV6
@@ -3812,24 +3812,24 @@ try_bind_again:
      debug("Error. Could not bind socket. (%d)" SER ,WSAGetLastError() Xstrerror(errno));
 
      if(ChkWaitBind())goto try_bind_again;
-     
+
      closesocket( (int) s);
      return -2;
    }
 #ifdef IP_TTL
-    
+
     if(!tcp)
     {
-     int i;      
+     int i;
      i=240;
      setsockopt(s,IPPROTO_IP,IP_TTL,(char *)&i,4 );
-#ifdef SYSUNIX      
-     
+#ifdef SYSUNIX
+
      i=IPTOS_DNS;
      setsockopt(s,IPPROTO_IP,IP_TOS,(char *)&i,4 );
-#endif  
-    }    
-#endif    
+#endif
+    }
+#endif
    if(tcp)
    {
      listen(s,3);
@@ -3916,7 +3916,7 @@ union{
    {
        debug("Heap allocate error. Using default heap");
        wdnsheap=GetProcessHeap();
-   }    
+   }
 
 #endif
 
@@ -3940,13 +3940,13 @@ union{
   */
 
  }
- if(s_flgs[2]&FL2_DOH) 
+ if(s_flgs[2]&FL2_DOH)
  {
-#ifdef SYSUNIX      
-   pipe(doh_pipe);  
+#ifdef SYSUNIX
+   pipe(doh_pipe);
 #else
   CreatePipe((HANDLE *)&doh_r,(HANDLE *)&doh_w,&secat,0x100*sizeof(void *));
-#endif   
+#endif
  }
 
  do{
@@ -3967,7 +3967,7 @@ union{
   if( bind_a[SDNS_IND]? sa_server6.sin6_family==AF_INET6 :is_ip6 )// s_flgs[2]&(1<<6))
   {
    debug("Try to bind IPv6...  " );
-      
+
    if((sdn=socket(AF_INET6,SOCK_DGRAM,IPPROTO_UDP))<0)
    {
     debug("IPv6 socket error %d " SER ,WSAGetLastError() Xstrerror(errno));
@@ -3989,7 +3989,7 @@ union{
 #endif
   {
   lip4:
-   debug("Try to bind IPv4...  " ); 
+   debug("Try to bind IPv4...  " );
    if( (sdn = socket(AF_INET,SOCK_DGRAM,IPPROTO_UDP)) == -1 )
    {   dbg4("could not get socket"); return 0;}
   }
@@ -4004,10 +4004,10 @@ union{
    i=512;
    setsockopt(sdns,SOL_SOCKET,SO_SNDBUF,(char *)&i,4 );
 */
-     
+
    //sa_server.sin_addr.s_addr=0;  //htonl(INADDR_ANY);
    sa_server.sin_port=0x3500;  //htons(53);
-try_bind_again:   
+try_bind_again:
    if(
      bind(sdn,(struct sockaddr *) &sa_server,
 #ifdef USE_IPV6
@@ -4030,33 +4030,33 @@ try_bind_again:
      //shutdown( sdnt, 2 );
      //closesocket( (int) sdnt);
      soc_srv[6+k*9]=0;
-     if(pbnd) continue; 
+     if(pbnd) continue;
      if(k)break;
      if(sdnt) CloseSocket(sdnt);
 
 
      count_dns=0;
      return 0;
-      
+
    }
 
 #ifdef IP_TTL
 
      i=240;
      setsockopt(sdn,IPPROTO_IP,IP_TTL,(char *)&i,4 );
-#ifdef SYSUNIX      
-     
+#ifdef SYSUNIX
+
      i=IPTOS_DNS;
      setsockopt(sdn,IPPROTO_IP,IP_TOS,(char *)&i,4 );
-#endif     
-#endif     
+#endif
+#endif
 
   soc_srv[6+k*9]=sdn;
    memcpy(dns_bindaddr+k,&sa_server,sizeof(sa_server6));
 
 
   kk++;
-  
+
 
 //  CreateThread(&secat,0x8000,(TskSrv)SetDNSServ,(void *)(k*9),0,(ulong *)&i);
 // DDEBUG("-")
@@ -4082,7 +4082,7 @@ try_bind_again:
     sdnt = socket(AF_INET,SOCK_STREAM,IPPROTO_TCP);
    }
    setsockopt(sdnt,SOL_SOCKET,SO_REUSEADDR,(char *)&one,sizeof(one));
-try_bind_again2:   
+try_bind_again2:
    if(bind(sdnt,(struct sockaddr *) &sa_server,
 #ifdef USE_IPV6
    (sa_server.sin_family==AF_INET)?sizeof(sa_server):sizeof(sa_server6)
@@ -4090,10 +4090,10 @@ try_bind_again2:
    sizeof(sa_server)
 #endif
    ))
-   {    
+   {
        if(ChkWaitBind())goto try_bind_again2;
        goto err;
-   }    
+   }
    listen(sdnt,3);
 
    soc_srv[7+k*9]=sdnt;
@@ -4134,10 +4134,10 @@ int Secondary::CheckSecondary()
   d_msg dbb;
  };
  char bfr[68];
- 
-   if(next_chk>cur_time)return 0; 
-   if( //(!next_chk) || 
-       (!parr)  || !lastserial )return 1; 
+
+   if(next_chk>cur_time)return 0;
+   if( //(!next_chk) ||
+       (!parr)  || !lastserial )return 1;
    if(sock_secondary<=0)
    {
      sock_secondary=socket(AF_INET,SOCK_DGRAM,IPPROTO_UDP)  ;
@@ -4148,7 +4148,7 @@ int Secondary::CheckSecondary()
      SOAreq.flags=1;
      SOAreq.qdcount=1;
 
-   } 
+   }
 
    next_chk=cur_time+30;
    SOAreq.id++;
@@ -4163,7 +4163,7 @@ int Secondary::CheckSecondary()
     return 0;
    }
    do{
-    dbb.id=0;   
+    dbb.id=0;
     if( RESelect(5,300000,1,sock_secondary)<=0  || (i=recvfrom(sock_secondary,(char *)bb,512,0,(sockaddr *)&lsa ,(socklen_t *) (void *) &(i=sizeof(sockaddr)) ))<=0 )
     {
       debug("DNS: Error check primary DNS server for %s (cant recv reply) %d %s",host,errno,strerror(errno));
@@ -4171,35 +4171,35 @@ int Secondary::CheckSecondary()
       sock_secondary=0;
       return 0;
     }
-   }while(SOAreq.id != dbb.id ); 
+   }while(SOAreq.id != dbb.id );
    bb[i]=0;
-   
+
    next_chk=cur_time+refresh;
-   
-   
+
+
    p=DecodeName(bfr,dbb.buf,(char *)bb );
    ep=(char *)bb+i;
    p+=4;
    for(i=0;i<dbb.ancount && p<ep ;i++){
      p=DecodeName(bfr,p,(char *)bb );
      if(p>ep)break;
-     
+
      if(p[1]==6)
-     {    
+     {
       p=DecodeName(bfr,p+10,(char *)bb );
       p=DecodeName(bfr,p,(char *)bb );
-    
+
 
       debug("DNS: Check primary DNS server for %s Ok serial:%u",host,htonl(DWORD_PTR(*p)) );
-   
+
       if(lastserial!=DWORD_PTR(*p) ) return 1;
       return 0;
-     } 
+     }
      p+=10+p[9] ;  //((rrpart *)p)
    }
 
    debug("DNS: Error check primary DNS server for %s (bad reply)",host );
-      
+
    return 0;
 };
 
@@ -4213,9 +4213,9 @@ void Secondary::LoadSecondary()
       char *bb;
       d_msg *dbb;
  };
- 
+
  char bfr[68];
- 
+
 
    next_chk=cur_time+60;
 
@@ -4232,7 +4232,7 @@ void Secondary::LoadSecondary()
        , htons( (ushort)sa.sin_port )
    );
 #endif
- 
+
    if(
        (s=socket(AF_INET,SOCK_STREAM,IPPROTO_TCP)) < 0){
      //    strcpy(prot,"call to socket failed");
@@ -4242,7 +4242,7 @@ void Secondary::LoadSecondary()
    #ifdef SYSUNIX
    fcntl(s, F_SETFD, fcntl(s, F_GETFD) | FD_CLOEXEC);
    #endif
-   
+
    if(connect(s,(struct sockaddr *)&sa,sizeof(sa)) < 0) {
          debug("DNS: Cant connect %d %s",errno,strerror(errno));
         // shutdown(s, 2);
@@ -4254,7 +4254,7 @@ void Secondary::LoadSecondary()
    {
          debug("No enought memory %d %s",errno,strerror(errno));
          return ;
-   }    
+   }
    bb=m+2;
    memcpy(bb,&SOAreq,16);
    strcpy(dbb->buf+1,host);
@@ -4267,8 +4267,8 @@ void Secondary::LoadSecondary()
     debug("DNS: Error load zone for %s (cant send request) %d %s",host,errno,strerror(errno));
     goto  err_exit;
    }
-   
-   
+
+
    p=m;
    j=0;
    ep=p+0x10000;
@@ -4281,22 +4281,22 @@ void Secondary::LoadSecondary()
     p+=i;
     j+=i;
    }while( p<ep && j<htons(WORD_PTR(*m) ) );
-   
+
    *p=0;
    if(dbb->ancount <= 2)
    {
-   err_reply2:    
+   err_reply2:
       debug("DNS: Error load zone for %s (bad reply ancount:%u)",host,dbb->ancount);
       goto err_exit;
-   }    
-   
+   }
+
    p=DecodeName(bfr,dbb->buf,(char *)bb );
    p+=4;
    t=DecodeName(bfr,p,(char *)bb );
    if(t[1]!=6)//SOA
        goto err_reply2;
-   
-   
+
+
    t=DecodeName(bfr,p+10,(char *)bb );
    t=DecodeName(bfr,t,(char *)bb );
    lastserial=DWORD_PTR(t[0]);
@@ -4305,9 +4305,9 @@ void Secondary::LoadSecondary()
    next_chk=cur_time+refresh;
 
    debug("DNS: Load primary DNS server for %s Ok.  %u records. Serial:%u. Refresh set to %u\r\n",host,dbb->ancount,lastserial, refresh);
-   
-   
-   rr = (NSRecordArray *) DMALLOC( i=(dbb->ancount + 3) *  sizeof(NSRecord) + sizeof(NSRecordArray)  //+ 1028*6 
+
+
+   rr = (NSRecordArray *) DMALLOC( i=(dbb->ancount + 3) *  sizeof(NSRecord) + sizeof(NSRecordArray)  //+ 1028*6
         );
    memset(rr,0,i);
    /*
@@ -4317,7 +4317,7 @@ void Secondary::LoadSecondary()
    rr->cnt=dbb->ancount;
    rr->Rehash();
    */
-   
+
    rr->cnt=dbb->ancount+1;
 
    rr->AddRRfromReply(dbb,p,ep ,0 );
@@ -4325,9 +4325,9 @@ void Secondary::LoadSecondary()
    rr->next=0;
    if(!parr)
    {
-     for(rr1=host_rr; rr1->next ; rr1 = rr1->next) ;   
-   }    
-   else 
+     for(rr1=host_rr; rr1->next ; rr1 = rr1->next) ;
+   }
+   else
    {
      for(rr1=host_rr; rr1->next  ; rr1 = rr1->next)
      {
@@ -4339,18 +4339,18 @@ void Secondary::LoadSecondary()
          if(parr->smem)free(parr->smem);
          free(parr);
          parr=rr;
-         break;  
-       }    
-     }      
+         break;
+       }
+     }
    }
    rr1->next = rr;
    if(fname[0])rr->Save(fname);
 
-   
 
 
-   
- err_exit:   
+
+
+ err_exit:
     delete m;
     shutdown(s,2);
     closesocket(s);
@@ -4370,7 +4370,7 @@ void Secondary::LoadSecondary()
 
   if(m)
   {
-   
+
    t=m;
    *t++='\n';
    for(i=0; i<cnt ; ++i )if(d[i].type)
@@ -4378,13 +4378,13 @@ void Secondary::LoadSecondary()
      if((x=t-m)>0x7000)
      {
       _hwrite(h,m,x);
-      t=m;  
+      t=m;
      }
      if( (!old) || stricmp(old,d[i].dt)   )
      {
        t+=sprintf(t,"\n %s %u IN ",d[i].dt,d[i].ttl);
        old=d[i].dt;
-            
+
      }
      else
       t+=sprintf(t,"\n   %u IN ",d[i].ttl);
@@ -4406,8 +4406,8 @@ void Secondary::LoadSecondary()
    case 2: t3="NS";    if(0){ //NS
    case 5: t3="CNAME"; if(0){ //CNAME
    case 12:t3="PTR";   if(0){ //PTR
-   case 16: t3="TXT";   if(0){ 
-   case 99:t3="SPF";          
+   case 16: t3="TXT";   if(0){
+   case 99:t3="SPF";
    }}}}}
         t+=sprintf(t,"%s %.255s",t3,d[i].dr);
         break;
@@ -4441,10 +4441,10 @@ void Secondary::LoadSecondary()
           t+=sprintf(t," TYPE%u  \\# %u ",d[i].type,y=d[i].l2);
           t3=d[i].dr;
           for(x=0;x<y;x++) t+=sprintf(t," %x",((uchar *)t3)[x]  );
-       
+
      }
    }
-   
+
   *t++='\n';
    _hwrite(h,m,t-m);
    free(m);
@@ -4473,7 +4473,7 @@ void Secondary::LoadFile()
     return ;
   }
    j=FileSize(s); //_llseek(s,0,2); _llseek(s,0,0);
-   
+
    if(! (hostfile= (char *)DMALLOC(j*2+40) ) )goto er1;
    _hread(s,hostfile,j);
    _lclose(s);
@@ -4485,7 +4485,7 @@ void Secondary::LoadFile()
    for(t=hostfile;*t;++t)if(*t=='\n') ++i;
   // Cur_hsts=xhsts=new HSTRecord *[i+10];
    arr=(NSRecordArray *) DMALLOC(sizeof(NSRecordArray) +  (i+3)* sizeof(NSRecord)   );
-   if(!arr) 
+   if(!arr)
    {
      debug("DNS: No enought memory to load %s\r\n",fname);
      return ;
@@ -4498,7 +4498,7 @@ void Secondary::LoadFile()
    //if(ProviderNS[0])   Find
 
    //printf("Load2 %u bytes need arr->cnt = %u\n",i,arr->cnt);
- 
+
    free(hostfile);
    if( arr->d[0].type == 6 ) //SOA
    {
@@ -4512,7 +4512,7 @@ void Secondary::LoadFile()
      if(refresh>86400)refresh=86400;
      parr = arr;
      debug("DNS: domain %s loaded from file %s refresh set to %u\r\n",host,fname,refresh);
-   } 
+   }
    else
    {
      if(arr->smem)free(arr->smem);
@@ -4521,13 +4521,13 @@ void Secondary::LoadFile()
    }
  //  debug("...\r\n");
   }
- 
+
 };
 
 #undef MkName
 
-#undef pprot 
+#undef pprot
 #undef f_prot
-#undef pcnt  
+#undef pcnt
 #undef b_prot
 

@@ -28,26 +28,75 @@
 
  $mf="\n";
  $all='';
- $withoutfakelibs = 1;
+ $without{'fakelibs'} = 1;
+ $crosspref='';
 
- $sec=' libgnutls.so libssl.so';
- $sec64=' libgnutls.so libssl.so';
+ $sec=' libgnutls.so libssl.so libcrypto.so';
+ $sec64=' libgnutls.so libssl.so libcrypto.so';
 
  $adv='';
 
- if($#ARGV >=0 )
+ %var = (
+ 'CONFIG_BASE' => '/usr/local/',
+ 'CONFIG_CONFIG'  => '/etc/smallsrv/',
+ 'CONFIG_LOG' => '/var/log/smallsrv/',
+ 'CONFIG_DATA' => '/var',
+ 'CONFIG_APPDIR' => '$(CONFIG_BASE)lib/smallsrv/',
+ 'CONFIG_SHARE' =>'$(CONFIG_BASE)share/smallsrv/',
+ 'WIN_CONFIG_BASE' => 'c:\\shttps\\'
+ );
+
+ %tdirs = (
+   'i32' => 'o',
+   'i64' => 'o64/',
+   'arm' => 'at/',
+   'arm64' => 'at/',
+   'win' => 'wo/',
+
+   'x86' => 'o',
+   'i386' => 'o',
+   'i686' => 'o',
+   'x86_64' => 'o64/',
+   'amd64' => 'o64/',
+   'arm' => 'at/',
+   'armv5te' => 'at/',
+   'arm64' => 'oo/',
+   'aarch64' => 'oo/',
+   'n_all' => 'oo/',
+ );
+
+ %ttargets = (
+   'x86' => 'i32',
+   'i386' => 'i32',
+   'i686' => 'i32',
+   'x86_64' => 'i64',
+   'amd64' => 'i64',
+   'arm' => 'arm',
+   'armv5te' => 'arm',
+   'arm64' => 'arm64',
+   'aarch64' => 'arm64'
+ );
+
+ if($ENV['ARCH'] && $ttargets[$ENV['ARCH']] )
  {
- L1:
-   foreach $_ (@ARGV)
-   {
-     if(/help/ || /--\?/)
-     {
-       print  '
+   $all=$ttargets[$ENV['ARCH']];
+   $target=1;
+ }
+
+ if( $ENV['CROSS_COMPILE'] )
+ {
+   $cross = 1;
+   $crosspref=$ENV['CROSS_COMPILE'];
+   $all='n_all';
+   $target=1;
+ }
+
+ $help = '
    Configure Makefile  to build Small HTTP server.
 
    keys:
 
-   --target="i32 i64 win arm"   -- select one or more target throught space.
+   --target="i32 i64 win arm arm64"   -- select one or more target throught space.
    --gcc="gcc -m32"  -- select compiler for i32
    --gcc64="gcc -m64"  -- select compiler for i64
    --openssl="/path/to/openssl1.1.1/source/dir"  -- direct the source of OpenSSL 1.1.1 for Linux.
@@ -66,10 +115,37 @@
    --withoutFUTEX    -- do not use futex (Linux specifed feature)
    --withoutPOOL    -- use select instead pool
    --withoutMD5    -- without MD5
+   --withoutvpn    -- without VPN
+   --withouTelnet  -- without Telnet
    --commonLog    -- without separate log
    --withoutfakelibs    -- without fakelibs  (with fakelibs the program can run in another Linux systems)
    --withfakelibs    -- with fakelibs  (with fakelibs the program can run in another Linux systems)
+   <VAR>=<value>
+
+   VARS:
 ';
+
+ if($#ARGV >=0 )
+ {
+ L1:
+   foreach $_ (@ARGV)
+   {
+     if(/help/ || /--\?/)
+     {
+       print  $help;
+       foreach $_ ( keys %var )
+       {
+         print "$_=$var{$_}\n"
+       }
+
+       printf '
+  This script and Makefile also understands the ARCH and CROSS_COMPILE environment variables. An example other way to build commands for Arm64:
+export ARCH=arm64
+export CROSS_COMPILE=aarch64-linux-gnu-
+%s
+make
+  ',$0 ;
+
       exit 0;
      }
      if(/--target=(.*)/)
@@ -138,14 +214,14 @@
      {
        $a = $1;
        $winissl=1;
-       $mf .=  "SSLIDIR=$a\n";
+       $mf .=  "SSLIDIR=$a\nSSLIDIR111=$a\n";
        next L1;
      }
      if(/--winssllib=(.*)/)
      {
        $a = $1;
        $winlssl=1;
-       $mf .=  "SSLLIBDIR=$a\n";
+       $mf .=  "SSLLIBDIR=$a\nSSLLIBDIR111=$a\n";
        next L1;
      }
      if(/--wingnutlsinclude=(.*)/)
@@ -181,41 +257,23 @@
        $mf .=  "ATLIB=$a\n";
        next L1;
      }
-     if(/--withoutIPv6/)
+     if(/--without(.*)/)
      {
-       $withoutIPv6 = 1;
-       next L1;
-     }
-     if(/--withoutPOOL/)
-     {
-       $withoutPOOL = 1;
-       next L1;
-     }
-     if(/--withoutFUTEX/)
-     {
-       $withoutFUTEX = 1;
-       next L1;
-     }
-     if(/--withoutMD5/)
-     {
-       $withoutMD5 = 1;
-       next L1;
+       $a = $1;
+       if($help =~ /without$a/m )
+       {
+         $without{$a} = 1;
+         next L1;
+       }
      }
      if(/--commonLog/)
      {
        $commonLog = 1;
        next L1;
      }
-
-     if(/--withoutfakelibs/)
-     {
-       $withoutfakelibs = 1;
-       next L1;
-     }
-
      if(/--withfakelibs/)
      {
-       $withoutfakelibs = 0;
+       $without{'fakelibs'} = 0;
        next L1;
      }
 
@@ -225,56 +283,107 @@
        next L1;
      }
 
+     foreach $x ( keys %var )
+     {
+       if(/$x=(.*)/)
+       {
+         $var{$x} = $1;
+         next L1;
+       }
+     }
+
      print  "Unknow key $_\n";
      exit -1;
    }
  }
 
+ if($cross)
+ {
+   $INSTALLFROM='oo';
+   $mf .= "N_DEP := oo/fakelibs $(N_FAKELIBS)\nN_LFAKELIBS=-Loo/fakelibs\n" if(! $without{'fakelibs'} );
+ }
+ elsif( $all =~ /[^ ][ ]+[^ ]/)
+ {
+   $a = `uname -m`;
+   $a =~ s/[ \r\n\t]+//g;
+   $INSTALLFROM = $tdirs{$a} if($tdirs{$a});
+ }
+ else
+ {
+   $all =~ s/[ ]+//g;
+   $INSTALLFROM = $tdirs{$all} if($tdirs{$all});
+ }
+
+
+
+ $WIN_CONFIG_BASE = $var{'WIN_CONFIG_BASE'};
+ delete($var{'WIN_CONFIG_BASE'});
+
+ foreach $_ ( keys %var )
+ {
+   $var{$_} =~ s/\$\(CONFIG_BASE\)/$var{'CONFIG_BASE'}/;
+ }
+
+
  if(! $target )
  {
-   if( stat('/usr/lib/i386-linux-gnu') )
+   if($ENV['ARCH'])
    {
-      $all = 'i32';
+     print STDERR "Unknown ARCH: $ENV['ARCH'].\n";
    }
+   $a = `uname -m`;
+   $a =~ s/[ \r\n\t]+//g;
 
-   if( stat('/usr/lib/x86_64-linux-gnu') )
+   if($ttargets{$a})
    {
-     $all .= ' i64';
-   }
-
-
-
-   if(!$winegcc)
-   {
-
-    if( chkmingw64('i686-w64-mingw32') || chkmingw64('x86_64-w64-mingw32') || chkwinemingw() )
-    {
-         $all .= ' win';
-    }
-#     elsif( stat('/usr/bin/wine')    )
-#     {
-#      $home=$ENV{'HOME'} ;
-#      if( stat("$home/.wine/drive_c/MINGW") )
-#      {
-#        $a='wine C:\\\\MINGW\\\\bin\\\\gcc.exe';
-#        $b='wine C:\\\\MINGW\\\\bin\\\\as.exe';
-#        $c='wine C:\\\\MINGW\\\\bin\\\\windres.exe';
-#        $mf .=  "WINEGPP=$a\nWINEGCC=$a\nWINEAS=$b\nWINERES=$c\nMGDIR=C:\\\\MINGW\n";
-#        $all .= ' win';
-#      }
-#      elsif( stat("$home/.wine/drive_c/MinGW") )
-#      {
-#        $a='wine C:\\\\MinGW\\\\bin\\\\gcc.exe';
-#        $b='wine C:\\\\MinGW\\\\bin\\\\as.exe';
-#        $c='wine C:\\\\MinGW\\\\bin\\\\windres.exe';
-#        $mf .=  "WINEGPP=$a\nWINEGCC=$a\nWINEAS=$b\nWINERES=$c\nMGDIR=C:\\\\MinGW\n";
-#        $all .= ' win';
-#      }
-#     }
+       $all = $ttargets{$a};
+       $INSTALLFROM = $tdirs{$all} if($tdirs{$all});
    }
    else
    {
-     $all .= ' win';
+     print STDERR "Unknown ARCH:$a.\n";
+     if( stat('/usr/lib/i386-linux-gnu') )
+     {
+       $all = 'i32';
+       $INSTALLFROM = $tdirs{$all};
+     }
+
+     if( stat('/usr/lib/x86_64-linux-gnu') )
+     {
+       $all .= ' i64';
+       $INSTALLFROM = $tdirs{'i64'};
+     }
+
+
+
+     if(!$winegcc)
+     {
+
+       if( chkmingw64('i686-w64-mingw32') || chkmingw64('x86_64-w64-mingw32') || chkwinemingw() )
+       {
+         $all .= ' win';
+       }
+       #     elsif( stat('/usr/bin/wine')    )
+       #     {
+       #      $home=$ENV{'HOME'} ;
+       #      if( stat("$home/.wine/drive_c/MINGW") )
+       #      {
+       #        $a='wine C:\\\\MINGW\\\\bin\\\\gcc.exe';
+       #        $b='wine C:\\\\MINGW\\\\bin\\\\as.exe';
+       #        $c='wine C:\\\\MINGW\\\\bin\\\\windres.exe';
+       #        $mf .=  "WINEGPP=$a\nWINEGCC=$a\nWINEAS=$b\nWINERES=$c\nMGDIR=C:\\\\MINGW\n";
+       #        $all .= ' win';
+       #      }
+       #      elsif( stat("$home/.wine/drive_c/MinGW") )
+       #      {
+       #        $a='wine C:\\\\MinGW\\\\bin\\\\gcc.exe';
+       #        $b='wine C:\\\\MinGW\\\\bin\\\\as.exe';
+       #        $c='wine C:\\\\MinGW\\\\bin\\\\windres.exe';
+       #        $mf .=  "WINEGPP=$a\nWINEGCC=$a\nWINEAS=$b\nWINERES=$c\nMGDIR=C:\\\\MinGW\n";
+       #        $all .= ' win';
+       #      }
+       #     }
+     }
    }
  }
  else
@@ -289,6 +398,8 @@
    }
 
  }
+
+ $mf .= "INSTALLFROM=$INSTALLFROM\n";
 
  $i32gnutls30 = 0;
  $i64gnutls30 = 0;
@@ -325,7 +436,7 @@
  {
    if( (!stat('/usr/lib/x86_64-linux-gnu/libssl.so') ) || !stat('/usr/include/openssl') )
    {
-      print STDERR "i64: Not found OpenSSL library or OpenSSL header files.  Build without seclib.so\n";
+      print STDERR "i64: Not found OpenSSL library or OpenSSL header files.  Build without seclib111.so\n";
       $woseclib64=1;
       $sec64 =~ s/libssl.so//;
    }
@@ -372,7 +483,7 @@
   }
   open(OFILE, ">Makefile") || die("Can\'t open Makefile\n");
 
-  if(!$withoutfakelibs)
+  if(!$without{'fakelibs'})
   {
     $mf .= sprintf('
 
@@ -382,6 +493,8 @@ FLIBS64=libc.so libdl.so libpthread.so %s
 FAKELIBS64=$(addprefix fakelibs64/,$(FLIBS64))
 LIBDIR32=-Lfakelibs/
 LIBDIR64=-Lfakelibs64/
+N_LFAKELIBS=-Loo/fakelibs/
+N_DEP := $(N_FAKELIBS)
 
     ',$sec,$sec64);
 
@@ -401,7 +514,8 @@ LIBDIR64=-Lfakelibs64/
   }
 
   print OFILE $mf;
-  print OFILE "\nall: /dev/shm/shttps/o/1.x o/1.x $all\n\n";
+#  print OFILE "\nall: /dev/shm/shttps/o/1.x o/1.x $all\n\n";
+  print OFILE "\nall: $all\n\n";
 
  L2:
   while(<FILE>)
@@ -414,28 +528,39 @@ LIBDIR64=-Lfakelibs64/
         next L2;
       }
     }
-    if($withoutPOOL)
+    if($without{'POOL'})
     {
       s/-DUSE_POOL//g;
     }
-    if($withoutIPv6)
+    if($without{'IPv6'})
     {
       s/-DUSE_IPV6//g;
     }
-    if($withoutFUTEX)
+    if($without{'FUTEX'})
     {
       s/-DUSE_FUTEX//g;
     }
-    if($withoutMD5)
+    if($without{'MD5'})
     {
       s/-DWITHMD5//g;
+    }
+    if($without{'vpn'})
+    {
+      s/-DVPN[A-Z_]+//g;
+      s/-DTLSVPN//g;
+      s/ vpn.o//g;
+    }
+    if($without{'Telnet'})
+    {
+      s/-DTELNET//g;
+      s/ telnet.o//g;
     }
     if($commonLog)
     {
       s/-DSEPLOG//g;
     }
 
-    if($withoutfakelibs)
+    if($without{'fakelibs'})
     {
       s/-Lfakelibs[0-9]*//g;
     }
@@ -487,11 +612,72 @@ LIBDIR64=-Lfakelibs64/
       s/\/usr\/src\/openssl-1.1.1m/$openssl_path/g;
     }
 
+    foreach $x ( keys %var )
+    {
+      s/^[ \t]*$x=.*/$x=$var{$x}/;
+    }
+
     print OFILE $_;
   }
 
   close OFILE;
   close FILE;
+
+
+  if( ! stat('config.h.default') )
+  {
+    rename('config.h', 'config.h.default');
+  }
+
+  open(OFILE, ">config.h") || die("Can\'t open config.h\n");
+
+  $WIN_CONFIG_BASE =~ s/[\\]/\\\\/g;
+  printf OFILE '
+#ifndef CONFIG_H
+#define CONFIG_H
+
+#ifdef CONFIG_CURRENT_DIR
+
+#define CONFIG_BASE   ""
+#define CONFIG_APPDIR ""
+#define CONFIG_LANG   ""
+#define CONFIG_DATA   ""
+#define CONFIG_CONFIG ""
+#define CONFIG_LOG    ""
+#define CONFIG_TMP    ""
+
+#elif ! defined(SYSUNIX)
+// Windows definetion
+
+#define CONFIG_BASE   "%s"
+#define CONFIG_APPDIR CONFIG_BASE
+#define CONFIG_SHARE  CONFIG_BASE
+#define CONFIG_DATA   CONFIG_BASE
+#define CONFIG_CONFIG CONFIG_BASE
+#define CONFIG_LOG    CONFIG_BASE
+#define CONFIG_TMP    CONFIG_BASE
+
+#else
+
+', $WIN_CONFIG_BASE;
+
+
+  foreach $x ( keys %var )
+  {
+    print OFILE "#define $x $var{$x}\n";
+  }
+
+  print OFILE '
+#endif
+
+#endif
+';
+  close OFILE;
+
+  print "Done
+  Target:        $all
+  INSTALLFROM:   $INSTALLFROM
+  ";
 
 
 

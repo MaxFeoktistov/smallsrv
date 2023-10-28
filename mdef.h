@@ -2,7 +2,7 @@
  * Copyright (C) 1999-2023 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
- * Author: Maksim Feoktistov 
+ * Author: Maksim Feoktistov
  *
  *
  * Small HTTP server is free software: you can redistribute it and/or modify it
@@ -15,30 +15,39 @@
  * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see https://www.gnu.org/licenses/ 
+ * along with this program.  If not, see https://www.gnu.org/licenses/
  *
  * Contact addresses for Email:  support@smallsrv.com
  *
- * 
+ *
  */
 
 #ifndef MSTR_H
 #define MSTR_H
 
-#undef uint  
+#if __SIZEOF_INT__ == 4 &&  __SIZEOF_POINTER__ == 8
+
+#ifndef A_64
+#define A_64 1
+#endif
+
+#endif
+
+
+#undef uint
 #undef ushort
-#undef uchar 
+#undef uchar
 #undef ulong
 #undef u_int
 #undef u_short
-#undef u_char 
-#undef u_long 
+#undef u_char
+#undef u_long
 
 #define uint   unsigned int
 #define ushort unsigned short
 #define uchar  unsigned char
 
-#ifdef x86_64
+#ifdef A_64
 #define ulong unsigned int
 #else
 #define ulong unsigned long
@@ -69,14 +78,13 @@ typedef long long i64;
 #define MAKE_DWORD1(a,b) (((ulong)(a)<<16)|((b)&0xFFFF))
 
 #if __SIZEOF_INT__ == 4 &&  __SIZEOF_POINTER__ == 8
-//sizeof(int) == 4
 
 #define LODWORD(a) ((uint) ((ulong long) (a)) )
 #define HIDWORD(a) ((uint) (((ulong long)(a))>>32) )
 
 #endif
 
-#ifdef x86_64
+#ifdef A_64
 //#define PACKED __attribute__((packed, aligned(1)))
 //#define PACKED __attribute__((__packed__))
 #define PACKED __attribute__((packed))
@@ -86,7 +94,7 @@ typedef long long i64;
 
 #endif
 
-#if defined(AT_ARM) 
+#if defined(AT_ARM)
 
 #ifdef __cplusplus
 
@@ -118,7 +126,7 @@ struct OffsetBugD
  OffsetBugD(void *c){t=(uchar *) c;}
  OffsetBugD & operator=(int c)
  {
-/*   
+/*
    *t=*(uchar *)(&c);
   t[1]=((uchar *)(&c))[1];
   t[2]=((uchar *)(&c))[2];
@@ -177,8 +185,8 @@ inline ushort fWORD_PTR(uchar *t)
        (((uint)(t[0]))      ) |
        (((uint)(t[1])) <<8  ) ;
 }
-#define WORD_PTR(a)  fWORD_PTR((uchar *)  & (a))  
-#define DWORD_PTR(a) fDWORD_PTR((uchar *) & (a)) 
+#define WORD_PTR(a)  fWORD_PTR((uchar *)  & (a))
+#define DWORD_PTR(a) fDWORD_PTR((uchar *) & (a))
 
 #endif  // __cplusplus
 
@@ -215,7 +223,7 @@ inline ushort fWORD_PTR(uchar *t)
 #endif
 
 #ifndef ARRAY_SIZE
-#define ARRAY_SIZE(a)  (sizeof(a)/sizeof(a[0]) )     
+#define ARRAY_SIZE(a)  (sizeof(a)/sizeof(a[0]) )
 #endif
 
-                                            
+

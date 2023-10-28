@@ -2,7 +2,7 @@
  * Copyright (C) 1999-2020 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
- * Author: Maksim Feoktistov 
+ * Author: Maksim Feoktistov
  *
  *
  * Small HTTP server is free software: you can redistribute it and/or modify it
@@ -15,11 +15,11 @@
  * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see https://www.gnu.org/licenses/ 
+ * along with this program.  If not, see https://www.gnu.org/licenses/
  *
  * Contact addresses for Email:  support@smallsrv.com
  *
- * 
+ *
  */
 
 #ifndef STRING_CONST_H
@@ -57,18 +57,18 @@ StatLog *ParseFile(char *log,char *b) //=0)
  if( (p=strstr(log,"\r\n!->") ) )
  {for(t1=t=p;t;)
   { ++n;
-#ifdef x86_64
+#ifdef A_64
 //   DDWORD_PTR(*t1)=(u_long) (t=strstr((t1=t)+1,"\r\n!->"));
-   t=strstr((t1=t)+1,"\r\n!->");  
+   t=strstr((t1=t)+1,"\r\n!->");
 //   DWORD_PTR(*t1)=t? (ulong) (t-log):0;
    DWORD_PTR(*t1)=t? (ulong) (t-t1):0;
-#else   
+#else
    DWORD_PTR(*t1)=(ulong) (t=strstr((t1=t)+1,"\r\n!->"));
-#endif   
+#endif
   }
   if(b)sprintf(b,"%14.14s -- %14.14s ; %u",p+5,t1+5,n);
   for(tsl=(StatLog *)p;tsl;
-#ifdef x86_64
+#ifdef A_64
         tsl=//tsl->next=
             tsl->nexto(log)
 #else
@@ -331,7 +331,7 @@ p+=sprintf(p,"<br><br><input type=submit value=Show> <input type=reset></form><h
   ip=ConvertIP(t=nm);
   fpFnc=StatFppFnc[typ];
   strs=StatFppStr[typ];
-  
+
 //  dt=new ulong[12*32*4];
   p=bfr+sprintf(bfr,"<table bgcolor=#f8f8ff border=1><tr><td>Date</td>");
   k=0xC0C0E0;
@@ -376,17 +376,17 @@ p+=sprintf(p,"<br><br><input type=submit value=Show> <input type=reset></form><h
      for(;tsl;tsl=tsl->Next())
      {for(i=0;fpFnc[i];++i)
       {
-       
+
        if((k=(fpFnc[i])(tsl,bfr)))
        {
         if( (!funcType[i]) )k=1;
        };
-       
+
        //if( (k=(fpFnc[i])(tsl,bfr))&0x80000000) k&=0x7FFFFFFF;
        //else if(k)k=1;
        if( ( (!typ)? (ip==tsl->ip):(typ==3)?
-#ifdef x86_64 
-           NULL !=      
+#ifdef A_64
+           NULL !=
 #else
           (int)
 #endif
@@ -396,7 +396,7 @@ p+=sprintf(p,"<br><br><input type=submit value=Show> <input type=reset></form><h
       }
      }
      LL2Lc(pars,42);
-#if defined(LPC_ARM) || defined(AT_ARM) ||  defined(x86_64)
+#if defined(LPC_ARM) || defined(AT_ARM) ||  defined(A_64)
      Send(bfr,vsprintf(bfr,bfr+0x8000,
       vl_pars    ));
 #else
@@ -408,7 +408,7 @@ p+=sprintf(p,"<br><br><input type=submit value=Show> <input type=reset></form><h
 #endif
      pars
     ));
-#endif     
+#endif
      delete t;
     }
     _lclose(h);
@@ -420,7 +420,7 @@ p+=sprintf(p,"<br><br><input type=submit value=Show> <input type=reset></form><h
    }
   }while( mnt1!=mnt2 || day1<=day2);
   LL2Lc(pars+42,40);
-#if defined(LPC_ARM) || defined(AT_ARM) || defined(x86_64)
+#if defined(LPC_ARM) || defined(AT_ARM) || defined(A_64)
   union {
   va_list *pvl;
   ulong long * ppar;

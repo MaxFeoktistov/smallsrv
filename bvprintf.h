@@ -2,7 +2,7 @@
  * Copyright (C) 1999-2021 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
- * Author: Maksim Feoktistov 
+ * Author: Maksim Feoktistov
  *
  *
  * Small HTTP server is free software: you can redistribute it and/or modify it
@@ -15,11 +15,11 @@
  * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see https://www.gnu.org/licenses/ 
+ * along with this program.  If not, see https://www.gnu.org/licenses/
  *
  * Contact addresses for Email:  support@smallsrv.com
  *
- * 
+ *
  */
 
 
@@ -33,11 +33,11 @@ extern "C"
 
 #define BFR_LIM 0x800
 
-#if defined(x86_64) || defined(AT_ARM) || defined(DJGPP)
+#if defined(x86_64) || defined(AT_ARM) || defined(DJGPP) || A_64
 #define V_CDECL
 #else
-#define V_CDECL  __attribute__((cdecl))    
-#endif    
+#define V_CDECL  __attribute__((cdecl))
+#endif
 
 typedef int (*PrintFlush)(void *,char *,ulong);
 
@@ -47,33 +47,33 @@ struct BFILE
  char *bfr,*t;
  PrintFlush Flush;
  void  Init(void *p,PrintFlush f,char *b ){par=p; Flush=f; bfr=t=b;  }
- 
- 
- 
+
+
+
 #ifdef USEVALIST
  int   bvprintf(const char *fmt, va_list v);
 #define mva_list va_list
-#else                
+#else
  int   bvprintf(const char *fmt,  void **v) ;
 #undef  mva_list
-#define mva_list void ** 
-#endif                
+#define mva_list void **
+#endif
 
  int bprintf(const char *fmt,...) V_CDECL
 #ifdef BPRINTF_INLINE
- { 
+ {
 #ifdef USEVALIST
    va_list a;
    int r;
-   
+
    va_start(a, fmt);
    r=bvprintf(fmt,a);
    va_end(a);
    return r;
-#else     
+#else
      return bvprintf(fmt,(void **) ((&fmt)+1 )) ;
-#endif     
-     
+#endif
+
  }
 #endif
  ;
@@ -85,15 +85,15 @@ struct BFILE
    }
    return r;
  }
- 
+
 };
 
 int  mvsprintfchk(char *t,char *et,const char *fmt,
 #ifdef USEVALIST
                 va_list v
-#else                
+#else
                 void **v
-#endif                
+#endif
 );
 int msprintfchk(char *t,char *et,const char *fmt,...);
 /*
@@ -102,16 +102,16 @@ inline int msprintfchk(char *t,char *et,const char *fmt,...)
 #ifdef USEVALIST
    va_list a;
    int r;
-   
+
    va_start(a, fmt);
    r=mvsprintfchk(t,et,fmt,a);
    va_end(a);
    return r;
-#else     
+#else
    return mvsprintfchk(t,et,fmt,(void **) ((&fmt)+1 ) ) ;
-#endif     
-        
-    
+#endif
+
+
 }
 
 */

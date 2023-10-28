@@ -79,8 +79,7 @@ jmp_buf  jmp_env;
 int ext_cntr,ext_cntr2,ext_cntr3,ext_cnt4;
 time_t last_ext_time;
 
-#if  (!defined(ARM))
-//&& !defined(x86_64)
+#if  (!defined(NOTINTEL)) || defined(x86_64)
 void DebugStack(u_long *esp1)
 {
  u_long *esp=esp1;
@@ -155,7 +154,9 @@ void signalSegv(int , siginfo_t* info, ucontext_t* ptr)
 
  unsave_limit=1;
  ll=GetCurrentThreadId();
-#if  (!defined(ARM)) && !defined(x86_64)
+#ifdef x86_64
+ debug("\r\nException at %lX (%lX) pid=%d code: %X thread %d stack:\r\n", (long)info->si_addr, ptr?ptr->uc_mcontext.gregs[REG_RIP]:0l, info->si_pid, info->si_code, ll);
+#elif  (!defined(NOTINTEL))
  debug("\r\nException at %X (%X) pid=%d code: %X thread %d stack:\r\n",info->si_addr,ptr?ptr->uc_mcontext.gregs[REG_EIP]:0,info->si_pid,info->si_code,ll);
 #else
  debug("\r\nException at %X pid=%d code: %X thread %d stack:\r\n",info->si_addr,info->si_pid,info->si_code,ll);
@@ -168,19 +169,16 @@ void signalSegv(int , siginfo_t* info, ucontext_t* ptr)
  for(i=0;i<max_tsk;++i)if( ((u_long)(r=rreq[i]))>1  && r->thread_id == ll )
  {
    debug("Found error thread %u %.96s",i , r->inf );
-#if  (!defined(ARM))
-//   && !defined(x86_64)
-// ulong *esp,*espm;
-#if  !defined(x86_64)
-   if(ptr && ptr->uc_mcontext.gregs[REG_ESP]) DebugStack((u_long *) (ptr->uc_mcontext.gregs[REG_ESP]));
-#else
+#if  defined(x86_64)
    if(ptr && ptr->uc_mcontext.gregs[REG_RSP]) DebugStack((u_long *) (ptr->uc_mcontext.gregs[REG_RSP]));
-#endif
+#elif !defined(NOTINTEL)
+   if(ptr && ptr->uc_mcontext.gregs[REG_ESP]) DebugStack((u_long *) (ptr->uc_mcontext.gregs[REG_ESP]));
 
 //   asm volatile("movl %%ebp, %%eax \n":"=&a" (ll) )  ;
 //   DebugStack((ulong *) ll);
 
 #endif
+
    ext_cntr3--;
    longjmp(r->jmp_env,1);
    return ;
@@ -238,14 +236,10 @@ lbRestart:
 #endif
 
 //  CloseServer();
-//#ifndef ARM
-#if  (!defined(ARM)) && !defined(x86_64)
-
-  if( (!ext_cntr2) && ptr && ptr->uc_mcontext.gregs[REG_ESP]){ext_cntr2++; DebugStack((ulong *) (ptr->uc_mcontext.gregs[REG_ESP])); ext_cntr2=0; }
-//  asm volatile("movl %%ebp, %%eax \n":"=&a" (ll) )  ;
-//  DebugStack((ulong *) ll);
-
-
+#if defined(x86_64)
+  if( (!ext_cntr2) && ptr && ptr->uc_mcontext.gregs[REG_RSP]){ext_cntr2++; DebugStack((u_long *) (ptr->uc_mcontext.gregs[REG_RSP])); ext_cntr2=0; }
+#elif  !defined(NOTINTEL)
+  if( (!ext_cntr2) && ptr && ptr->uc_mcontext.gregs[REG_ESP]){ext_cntr2++; DebugStack((u_long *) (ptr->uc_mcontext.gregs[REG_ESP])); ext_cntr2=0; }
 #endif
  }
  longjmp(jmp_env,1);

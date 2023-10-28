@@ -49,25 +49,6 @@ inline int striin(char *a, char *b)
  return !*b ;
 }
 
-#if (!defined(ANDROID)) && !defined(LPC_ARM) && !defined(AT_ARM) && !defined(x86_64)
-inline void *  memcpy_back(void *s1, void *s2, size_t _n)
-{
-  while(_n--)
-  { * ((char *)s1)--= * ((char *)s2) --;  }
-  return s1;
-}
-
-inline unsigned int * memchr4(const void *_s,int _c,size_t _n)
-{
- while(_n--)
- {
-   if( *( int *)_s ==_c ) return (unsigned int *) _s;
-   ((int *)_s)++;
- }
- return 0;
-}
-#else
-
 
 inline void *  memcpy_back(char *s1, char *s2, size_t _n)
 {
@@ -86,9 +67,6 @@ inline unsigned int * memchr4(const unsigned int *_s,unsigned int _c,size_t _n)
  return 0;
 }
 
-
-
-#endif
 
 #define strinnc striin
 

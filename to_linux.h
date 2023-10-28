@@ -2,7 +2,7 @@
  * Copyright (C) 1999-2022 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
- * Author: Maksim Feoktistov 
+ * Author: Maksim Feoktistov
  *
  *
  * Small HTTP server is free software: you can redistribute it and/or modify it
@@ -15,11 +15,11 @@
  * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see https://www.gnu.org/licenses/ 
+ * along with this program.  If not, see https://www.gnu.org/licenses/
  *
  * Contact addresses for Email:  support@smallsrv.com
  *
- * 
+ *
  */
 
 
@@ -48,7 +48,7 @@
 #endif
 
 #if __USE_FORTIFY_LEVEL != 0
-#error "Bad chk functions will be added to the file"  
+#error "Bad chk functions will be added to the file"
 #undef __USE_FORTIFY_LEVEL
 #define __USE_FORTIFY_LEVEL 0
 #endif
@@ -101,7 +101,7 @@ extern int __REDIRECT (fcntl32, (int __fd, int __cmd, ...), fcntl);
 #endif
 
 #if __USE_FORTIFY_LEVEL != 0
-#error "Bad _chk functions will be added to the file"  
+#error "Bad _chk functions will be added to the file"
 #undef __USE_FORTIFY_LEVEL
 #define __USE_FORTIFY_LEVEL 0
 #endif
@@ -166,7 +166,7 @@ pthread_t MyCreateThread(int StackSize, void * ( *ThreadFunction)(void *), void 
 #define _lcreat2(a,b)  open(a, O_CREAT|O_WRONLY|O_TRUNC|O_CLOEXEC, 0600)
 #define _lclose  close
 #define OF_WRITE  (O_WRONLY|O_APPEND|O_CLOEXEC)
-#ifdef x86_64
+#ifdef A_64
 typedef void * HANDLE;
 #else
 typedef int HANDLE;
@@ -249,12 +249,7 @@ inline void GetLocalTime(SYSTEMTIME *t)
 #define GetSystemTimeAsFileTime(a) *a=time(0)
 
 #define  FILETIME time_t
-#ifdef x86_64
 void GetFileTime(int h,FILETIME *a,FILETIME *b,FILETIME *c);
-#else
-//void GetFileTime(HANDLE h,FILETIME *a,FILETIME *b,FILETIME *c);
-void GetFileTime(int h,FILETIME *a,FILETIME *b,FILETIME *c);
-#endif
 
 #ifdef _BSD_VA_LIST_
 #define FileTimeToLocalFileTime(a,b) (*(b)=*(a))
@@ -382,9 +377,9 @@ extern pthread_t dnstthr;
 #endif
 
 
-#define dprint(a...) 
+#define dprint(a...)
 //printf(a)
-#define DBGLINE   
+#define DBGLINE
 //dprint("%s:%u\r\n",__FILE__,__LINE__);
 
 #define MIN_PTR 0x80000
@@ -395,11 +390,11 @@ extern pthread_t dnstthr;
 #include <sys/syscall.h>
 
 #if  defined(ARM9)  || defined(AT_ARM)
-// #include <linux/futex.h> 
+// #include <linux/futex.h>
 // #define STRING2(x) #x
 // #define STRING(x) STRING2(x)
 // #pragma message "SYS_futex = " STRING(SYS_futex)
-// #pragma message "FUTEX_WAIT = " STRING(FUTEX_WAIT)   
+// #pragma message "FUTEX_WAIT = " STRING(FUTEX_WAIT)
 
 #ifndef SYS_futex
 #define SYS_futex 240

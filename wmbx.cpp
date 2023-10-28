@@ -2,7 +2,7 @@
  * Copyright (C) 1999-2020 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
- * Author: Maksim Feoktistov 
+ * Author: Maksim Feoktistov
  *
  *
  * Small HTTP server is free software: you can redistribute it and/or modify it
@@ -15,11 +15,11 @@
  * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see https://www.gnu.org/licenses/ 
+ * along with this program.  If not, see https://www.gnu.org/licenses/
  *
  * Contact addresses for Email:  support@smallsrv.com
  *
- * 
+ *
  */
 
 #undef LF
@@ -107,7 +107,7 @@ char WM_HEAD[]=
 "  } else { tbl.style.display = \"none\";  if(lnk) lnk.innerHTML='[+]' ; }"
 " };\n"
 "</script>"
-"<title>" "%s" // sWeb_mail 
+"<title>" "%s" // sWeb_mail
 "</title>"
 "</head> <body><center><h1>" "%s" //  sWeb_mail
 "</h1>"
@@ -115,11 +115,11 @@ char WM_HEAD[]=
 "<tr align=center><td>"
 "<b><a href='" SCRIPTNAME "?s=1' >Mailbox</a></b>"
 "</td><td>"
-"<b><a href='" SCRIPTNAME "%s" //  s_S_____NE  
+"<b><a href='" SCRIPTNAME "%s" //  s_S_____NE
 SCRIPTNAME
-"%s" //     s_S_____BL 
+"%s" //     s_S_____BL
 SCRIPTNAME
-"%s" //     s_S_____OP 
+"%s" //     s_S_____OP
 SCRIPTNAME "?s=6&u=%s' >Logout</a></b>"
 "</td></tr>"
 "</table><br>" LF
@@ -301,7 +301,7 @@ char HdForwardEnd[]=
 "</center>" LF
 "</form>" LF
     ; //  */
-    
+
 //#define HdForwardEnd sFORWARD2
 /*
 char ns_lst[]=
@@ -408,7 +408,7 @@ char ns_lst_end[]=
 
 char conf_htm_end[]=
 //"</textarea>" LF
-//"<br>" LF 
+//"<br>" LF
 "</td></tr></table>" LF
 "<center>" LF
 "<input type=submit name=submit value=Submit>" LF
@@ -494,8 +494,8 @@ charset
 #endif
   ,sWeb_mail,sWeb_mail,s_S_____NE,s_S_____BL,s_S_____OP,u
   );
-     
-    
+
+
 }
 
 #define UTFSNDBFRSIZE 0x4000
@@ -584,11 +584,11 @@ int Req::Wmail(User *usr)
 #ifdef WITHMD5
 //    if(  ( (s_flgs[2] & FL2_MD5PASS) || ! (s_flgs[1]&FL1_CRYPTPWD) ) &&  (s_flgs[2] & FL2_USEMD5D) && !(fl&F_DIGET_UNAVILABLE) )
 //    {
-       SendDigestAuthReq(loc); 
+       SendDigestAuthReq(loc);
 //    }
 #else
     Send(AuthErr, strlen(AuthErr)  ) ;//sizeof(AuthErr)-1);
-#endif   
+#endif
     return -1;
    }
 
@@ -649,8 +649,8 @@ int Req::Wmail(User *usr)
 // ""
 // #endif
 //   );
-    
-  WMSendHead(wm,usr->name,utf);  
+
+  WMSendHead(wm,usr->name,utf);
 
   if(* wm->subdir!='/'   || ! (t= strrchr(wm->subdir +1,'/' ))
     ) {   wm->subdir="";  }
@@ -726,8 +726,8 @@ int Req::Wmail(User *usr)
 // #endif
 //           );
 
-         WMSendHead(wm,usr->name,utf);  
-    
+         WMSendHead(wm,usr->name,utf);
+
          wm->S_printf( s_H__BAD_M );
          break;
 
@@ -1056,7 +1056,7 @@ void WMail::OutMbox()
 //        s_TD__FONT  LF
 //       "</table></td></tr>"
       //"<td><font size=2>"
-       s_TD__FONT  
+       s_TD__FONT
       ,d[i+0x2000],d[i+0x2000],subj,
       from,fromemail,fromemail,to,
       dat,d[0x4000+i]);
@@ -1094,7 +1094,7 @@ void WMail::OutMbox()
  S_printf(
  "</table>"
  " <input type=submit  value=\""
-  "%s" //   sDelete 
+  "%s" //   sDelete
   "\""
 
 " ></form><br>",sDelete
@@ -1250,7 +1250,7 @@ errLoc:;
 
 // #ifdef  SYSUNIX
 // extern char  tbl1[];
-// 
+//
 // #else
 char       tbl1[]="áâ÷çäåöúéêëìíîïğòóôõæèãşûıÿùøüàñÁÂ×ÇÄÅÖÚÉÊËÌÍÎÏĞÒÓÔÕÆÈÃŞÛİßÙØÜÀÑ£³\000"
 "ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏĞÑÒÓÔÕÖ×ØÙÚÛÜİŞßàáâãäåæçèéêëìíîïğñòóôõö÷øùúûüışÿ¸¨"
@@ -1637,7 +1637,7 @@ void OMsg::OutMSG()
 // "<form  action=" SCRIPTNAME  s_METHOD_G  SCRIPTNAME  s_METHOD_G1 SCRIPTNAME  s_METHOD_G0
 "<form  "  "%s %s %s" // s_METHOD_G   s_METHOD_G1  s_METHOD_G0
 
-     ,subdir,m,m,m,subj,from,fromemail,dat,m,subj,to,to_email,dat,m 
+     ,subdir,m,m,m,subj,from,fromemail,dat,m,subj,to,to_email,dat,m
      ,sDownload_source,s_METHOD_G,   s_METHOD_G1,  s_METHOD_G0 );
 
   delete bfr;
@@ -2056,11 +2056,11 @@ struct  MCfgParam
  void Default(void *base)
  {
   v=(uint *) (((char *)base)+offs);
-#ifdef x86_64 
+#ifdef A_64
   *vv= def;
-#else  
+#else
   *v=(uint) def;
-#endif  
+#endif
 //  debug("Default: %s = %.8s %.8s",name,def,*v);
  }
 

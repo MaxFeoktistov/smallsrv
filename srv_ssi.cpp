@@ -2,7 +2,7 @@
  * Copyright (C) 1999-2023 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
- * Author: Maksim Feoktistov 
+ * Author: Maksim Feoktistov
  *
  *
  * Small HTTP server is free software: you can redistribute it and/or modify it
@@ -15,11 +15,11 @@
  * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see https://www.gnu.org/licenses/ 
+ * along with this program.  If not, see https://www.gnu.org/licenses/
  *
  * Contact addresses for Email:  support@smallsrv.com
  *
- * 
+ *
  */
 
 
@@ -41,12 +41,12 @@
 
 #ifndef SYSUNIX
 
-#undef FindFirstFile    
-#undef _lopen           
+#undef FindFirstFile
+#undef _lopen
 #undef GetFileAttributes
 
 #define FindFirstFile FindFirstFile_UTF
-#define   _lopen               lopen_UTF 
+#define   _lopen               lopen_UTF
 #define   GetFileAttributes   GetFileAttributes_UTF
 
 #endif
@@ -98,7 +98,7 @@ void Req::prepare_HTTP_var()
  t=rq;
  for(i=0;i<(MAX_HTTP_VARS-22);i+=2)
  {
-  do{   
+  do{
    if( !(t=strchr(t,'\r') ) )goto brk1;  //break;
    if(t[2]!='\t' && t[2]!=' ')break;
    ++t;
@@ -127,10 +127,10 @@ brk1:
  {
    if(strin(rq+8192+256,"Digest ") )
    {
-      http_var[i+15]="Digest"; 
+      http_var[i+15]="Digest";
    }
- }    
- 
+ }
+
  //else {  debug("|%s|%s|",http_var[i+11],http_var[i+13]);}
 #ifndef CD_VER
  if(Snd==&TLSSend)http_var[i+7]=sprt443;
@@ -200,16 +200,16 @@ void Req::prepare_Req_var()
   i=4;
   t=req;
   while(*t)if(*t++=='&')++i;
-#ifdef x86_64 
+#ifdef A_64
 
   if(!(req_var=(char **) Malloc(i*16+(t-req)*sizeof(char *)+128 ) ) )return;
   *req_var = t = ( (char *)(void *)req_var )+i*16;
 
-#else  
+#else
   if(!(req_var=(char **) new char [i*8+(t-req)*sizeof(char *)+64]))return;
   *req_var = t = ( (char *)(void *)req_var )+i*8;
-#endif  
-  
+#endif
+
 
   req_var[1] =0;
   for(tt=req_var+2,l=req;*l;l++,t++)
@@ -253,11 +253,11 @@ int Req::SendSSI()
  //prepare_HTTP_var();
  SendSSIEx();
  if( (req_var!= (char**)  &NullLong))
-#ifdef x86_64
+#ifdef A_64
      free(req_var);
-#else     
+#else
      delete req_var;
-#endif     
+#endif
  return 0;
 };
 //---
@@ -272,24 +272,24 @@ void DelSpace(char *s)
 // Delete space from string to logical analyses
 void DelSpaceRe(char *s)
 {register char  *t;
- char b,c;   
+ char b,c;
  for(t=s;(*t=*s);s++)
  {
      if(*t=='\'' || *t=='\"' || (*t=='/' && t[-1]=='~' ))
      {
-      dprint("Quote skip space %.64s\n",s); 
+      dprint("Quote skip space %.64s\n",s);
        b=*t++;
        do{
-         c=*t++=*++s;           
+         c=*t++=*++s;
          if(!c)return;
        }while( (c!=b || IsSeq(t-1) ));
        //s--;
-       dprint("End Quote skip space %.64s %X %X\n",s,c,b); 
-       
-     }    
-     else 
+       dprint("End Quote skip space %.64s %X %X\n",s,c,b);
+
+     }
+     else
          if(!strchr(" \t\r\n",*t))t++;
- }   
+ }
 };
 
 #if 0
@@ -387,11 +387,11 @@ int Req::SendSSIEx()
    return 1;
   };
  l=FileSize(h);
-#ifdef x86_64
+#ifdef A_64
  p=(char *)Malloc(l+48+MAX_VAR_SIZE*4);
-#else 
+#else
  p=new char[l+24+MAX_VAR_SIZE*4];
-#endif 
+#endif
  if(!p)return HttpReturnError( sERROR__NO );
  bbf1=(bbf=p+l+12)+MAX_VAR_SIZE;
  _hread(h,p,l);
@@ -408,7 +408,7 @@ int Req::SendSSIEx()
    i+=sizeof(gz_head)-2;
   }
   else fl&=~(F_GZ);
-  if( (s_flgs[2]&FL2_CHUNKED) && //Snd!=&TLSSend && 
+  if( (s_flgs[2]&FL2_CHUNKED) && //Snd!=&TLSSend &&
       ! (fl&F_HTTP10) )
   {
      bbf[7]='1';
@@ -418,13 +418,13 @@ int Req::SendSSIEx()
     //debug("HTTP 1.1 %X %X",fl,(fl&F_HTTP10));
   }
   if(send(s,bbf,i,0) < 0 )
-  {er1: 
-#ifdef x86_64
+  {er1:
+#ifdef A_64
      free(p);
-#else     
-     delete p; 
-#endif     
-      
+#else
+     delete p;
+#endif
+
       err_ret("Connection reset by peer...");
   };
   if( (s_flgs[2]&FL2_CHUNKED) && //Snd!=&TLSSend &&
@@ -443,11 +443,11 @@ int Req::SendSSIEx()
   if((!(t=strstr(t1,"-->"))) /* || (t-t1) > */ )
   {
     er2:
-#ifdef x86_64
+#ifdef A_64
      free(p);
-#else     
-     delete p; 
-#endif     
+#else
+     delete p;
+#endif
       err_ret( sUNINSPECT );
   };
   *t=0;
@@ -564,15 +564,15 @@ vdirfnd:
     if(http_var[i])http_var[i+1]=req;
    }else
    {
-       
-#ifndef SYSUNIX 
-union{ 
-#endif    
+
+#ifndef SYSUNIX
+union{
+#endif
  WIN32_FIND_DATA fd;
-#ifndef SYSUNIX 
+#ifndef SYSUNIX
  WIN32_FIND_DATAW fdw;
 };
-#endif    
+#endif
     HANDLE hf;
     if((hf=FindFirstFile(fname,&fd) )!=INVALID_HANDLE_VALUE)
     {FindClose(hf);
@@ -582,7 +582,7 @@ union{
          strstr(t1," Kb")? sprintf(fname,"%uK",(ulong)(fd.nFileSizeLow+512)>>10 ) :
          strstr(t1," Mb")? sprintf(fname,"%uM",(ulong)(fd.nFileSizeLow+0x80000)>>20 ) :
          sprintf(fname,"%u",(ulong)fd.nFileSizeLow);
-     }    
+     }
      else
      {SYSTEMTIME st;
       FileTimeToSystemTime(
@@ -596,34 +596,34 @@ union{
         t3+=sizeof(" format=\"")-1;
         while(i<128 && *t3!='"')
         {
-          t4="%2.2u";   
+          t4="%2.2u";
           switch(*t3)
           {
-              
+
               case 'a':  fname[i++]=(st.wHour<12)?'a':'p' ;  fname[i++]='m'; break;
               case 'A':  fname[i++]=(st.wHour<12)?'A':'P' ;  fname[i++]='M'; break;
 
-                  
+
               case 'j':  t4="%u";
-              case 'd':  h= st.wDay; if(0){ 
-              case 'n':  t4="%u";    
-              case 'm':  h= st.wMonth; if(0){ 
-              case 'Y':    
-              case 'o':  h= st.wYear; if(0){ 
-              case 'y':  h= (st.wYear)%100; if(0){ 
-              case 'g':  t4="%u";    
-              case 'h':  h= (st.wHour<=12)?st.wHour:st.wHour-12; if(0){ 
-              case 'G':  t4="%u";    
-              case 'H':  h= st.wHour; if(0){ 
-              case 'i':  h= st.wMinute; if(0){ 
-              case 's':  h= st.wSecond; 
+              case 'd':  h= st.wDay; if(0){
+              case 'n':  t4="%u";
+              case 'm':  h= st.wMonth; if(0){
+              case 'Y':
+              case 'o':  h= st.wYear; if(0){
+              case 'y':  h= (st.wYear)%100; if(0){
+              case 'g':  t4="%u";
+              case 'h':  h= (st.wHour<=12)?st.wHour:st.wHour-12; if(0){
+              case 'G':  t4="%u";
+              case 'H':  h= st.wHour; if(0){
+              case 'i':  h= st.wMinute; if(0){
+              case 's':  h= st.wSecond;
               }            }}}}}}
               i+=sprintf(fname+i,t4,h); break;
-              
+
               default: fname[i++]=*t3;
           }
           t3++;
-        }    
+        }
       }
       else
         i=sprintf(fname,"%2.2u/%2.2u/%2.2u %2.2u:%2.2u:%2.2u",st.wDay,st.wMonth,st.wYear,
@@ -731,12 +731,12 @@ union{
  }
  if((l=fend-t)>0) send(s,t,l,0);
 exdoc:
-#ifdef x86_64
+#ifdef A_64
      free(p);
-#else     
-     delete p; 
-#endif     
- 
+#else
+     delete p;
+#endif
+
  http_var[loc_var]=0;
  return 1;
 };
@@ -747,11 +747,11 @@ exdoc:
 
 #ifndef SYSUNIX
 
-#undef   _lopen            
+#undef   _lopen
 #undef   GetFileAttributes
-#undef   FindFirstFile    
+#undef   FindFirstFile
 
-#define   _lopen              lopen           
+#define   _lopen              lopen
 #define   GetFileAttributes   GetFileAttributesA
 #define   FindFirstFile       FindFirstFileA
 

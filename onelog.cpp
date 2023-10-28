@@ -2,7 +2,7 @@
  * Copyright (C) 1999-2021 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
- * Author: Maksim Feoktistov 
+ * Author: Maksim Feoktistov
  *
  *
  * Small HTTP server is free software: you can redistribute it and/or modify it
@@ -15,11 +15,11 @@
  * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see https://www.gnu.org/licenses/ 
+ * along with this program.  If not, see https://www.gnu.org/licenses/
  *
  * Contact addresses for Email:  support@smallsrv.com
  *
- * 
+ *
  */
 
 void RelProt(SYSTEMTIME *stime)
@@ -79,11 +79,11 @@ void RelProt(SYSTEMTIME *stime)
        ttm=localtime(&stt.st_ctime);
        if(tt)
        {
-         *tt=0;  
+         *tt=0;
          sprintf(ddir,"%.255s/%u",pprot+16,ttm->tm_year+1900);
          mkdir(ddir,0700);
          sprintf(ddir,"%.255s/%u/%.20s",pprot+16,ttm->tm_year+1900,tt+1);
-         *tt='/';  
+         *tt='/';
        }
        else
        {
@@ -113,18 +113,18 @@ void RelProt(SYSTEMTIME *stime)
       hh2=FindFirstFile(pprot+16,&fdt);
       if(hh2!=INVALID_HANDLE_VALUE)
       {
-         FindClose(hh2);     
+         FindClose(hh2);
          FileTimeToSystemTime(&fdt.ftCreationTime,&sTim2);
-         
-         
+
+
        tt=strrchr(pprot+16,'/');
        if(tt)
        {
-         *tt=0;  
+         *tt=0;
          sprintf(ddir,"%.255s/%u",pprot+16,sTim2.wYear);
          CreateDirectory(ddir,&secat);
          sprintf(ddir,"%.255s/%u/%.20s",pprot+16,sTim2.wYear,tt+1);
-         *tt='/';  
+         *tt='/';
        }
        else
        {
@@ -138,10 +138,10 @@ void RelProt(SYSTEMTIME *stime)
            goto lbRenErr;
        }
       }
-     }         
+     }
 #endif
      if(t)*t='.';
-        
+
      MoveFile(flog,pprot+16);
 #ifndef SYSUNIX
      if( (ll=_lcreat(flog,0))>0)
@@ -157,7 +157,7 @@ void RelProt(SYSTEMTIME *stime)
     }
    }
   }
-lbRenErr:;  
+lbRenErr:;
   f_prot=pprot;
  };
 #endif
@@ -178,9 +178,8 @@ void RelProt()
 
 extern "C" void debug(const char *a,...)
 {
-#if defined(ARM) || defined(x86_64)
-va_list v;
-
+#if defined(USEVALIST)
+ va_list v;
  va_start(v,a);
 #endif
 
@@ -200,24 +199,24 @@ GetProt();
 
  vsprintf
 #endif
- (pprot+=2,a,(
-#if  defined(ARM) || defined(x86_64)
-v)
+ (pprot+=2,a,
+#if defined(USEVALIST)
+v
 #else
 #ifdef _BSD_VA_LIST_
- _BSD_VA_LIST_
+ ( _BSD_VA_LIST_)
 #else
  //void *
- va_list
+ (va_list)
 #endif
- ) ((&a)+1)
+  ((&a)+1)
 #endif
  );
  DWORD_PTR(*pprot)=0x0A0D;
  pprot+=2;
 #ifdef SYSUNIX
 // printf("%s",t);
-#endif 
+#endif
  RelProt();
 }
 
@@ -286,12 +285,11 @@ void AddToLog(char *t,int s,const char *fmt,...)
    else
    {
 #ifdef  USEVALIST
-         //defined(ARM) || defined(x86_64)
       va_list v;
       va_start(v,fmt);
       pprot+=mvsprintfchk(pprot,b_prot+LOG_SIZE,fmt+1,v)-2;
       va_end(v);
-#else  
+#else
       pprot+=mvsprintfchk(pprot,b_prot+LOG_SIZE,fmt+1,(
 #ifdef _BSD_VA_LIST_
  _BSD_VA_LIST_
@@ -301,8 +299,8 @@ void AddToLog(char *t,int s,const char *fmt,...)
    ) (void *) ((&fmt)+1)
  )-2;
 #endif
-       
-   }    
+
+   }
    if(trim_log_lines)pprot=TrimLogLines(x)-2;
    if(FL1_DELPAS&s_flgs[1])
    {for(l=0;DLST[l];++l)if((y=stristr(x,DLST[l])))

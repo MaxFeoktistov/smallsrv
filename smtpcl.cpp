@@ -545,7 +545,7 @@ if(n)
 
        if((x=GetCMD(s,pth2,0))!=220)goto lerrmsg;
        esmtp=
-#ifdef x86_64
+#ifdef A_64
       NULL !=
 #else
    (int)

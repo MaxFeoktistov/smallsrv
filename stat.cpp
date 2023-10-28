@@ -2,7 +2,7 @@
  * Copyright (C) 1999-2022 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
- * Author: Maksim Feoktistov 
+ * Author: Maksim Feoktistov
  *
  *
  * Small HTTP server is free software: you can redistribute it and/or modify it
@@ -15,11 +15,11 @@
  * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see https://www.gnu.org/licenses/ 
+ * along with this program.  If not, see https://www.gnu.org/licenses/
  *
  * Contact addresses for Email:  support@smallsrv.com
  *
- * 
+ *
  */
 
 
@@ -32,7 +32,7 @@
 #endif
 
 
-#ifdef x86_64 
+#ifdef A_64
 static int StatMutex;
 static char *statbasepoint;
 #endif
@@ -48,9 +48,9 @@ static char *statbasepoint;
 
 struct StatLog
 {
-#ifdef x86_64
- // union{  
- // int next_offs;   
+#ifdef A_64
+ // union{
+ // int next_offs;
  // StatLog *next;   //0
  // };
  // StatLog *nexto(char *b){return next_offs?(StatLog *)(b+next_offs):0; };   //0
@@ -61,7 +61,7 @@ struct StatLog
 #else
  StatLog *next;   //0
  StatLog *Next(){return  next;}
-#endif 
+#endif
  ulong time;      //4
  union{ulong ip; uchar cip[4];}; //8
  ulong stt;              //12
@@ -147,7 +147,7 @@ char* fFindSubStr(StatLog *psl,char *bfr,char *s)
 };
 
 //uint IfFindSubStr(StatLog *psl,char *bfr,char *s){return fFindSubStr(psl,bfr,s)&0x7FFFffff ; }
-#ifndef x86_64
+#ifndef A_64
 #define IfFindSubStr (uint) fFindSubStr
 #else
 inline int IfFindSubStr(StatLog *psl,char *bfr,char *s){char *t=fFindSubStr(psl,bfr,s); if(t)return t-statbasepoint; return 0;  }
@@ -169,7 +169,7 @@ char* fFindSubStr2(StatLog *psl,char *bfr,char *s, char *brk)
 
 
 //uint IfFindSubStr2(StatLog *psl,char *bfr,char *s, char *brk){return IfFindSubStr(psl,bfr,s,brk)&0x7FFFffff ; }
-#ifndef x86_64
+#ifndef A_64
 #define IfFindSubStr2 (uint) fFindSubStr2
 #else
 inline int IfFindSubStr2(StatLog *psl,char *bfr,char *s, char *brk){char *t=fFindSubStr2(psl,bfr,s,brk); if(t)return t-statbasepoint; return 0;  }
@@ -341,10 +341,10 @@ uint fFindURL(StatLog *psl,char *bfr)
  if(DWORD_PTR(bfr[3]) == 0x2F2F3A70 x4CHAR("p://") )
  {if(!(p=strchr(bfr+8,'/')))DWORD_PTR(*bfr)='/';
   else strcpy(bfr,p);
- 
+
 }
-return  
-#ifdef x86_64 
+return
+#ifdef A_64
       bfr - statbasepoint;
 #else
    (uint)bfr;
@@ -365,22 +365,22 @@ uint fFindForegRef(StatLog *psl,char *bfr)
 {if( (psl->port==http_port || psl->port==ssl_port ) &&  fFindSubStr(psl,bfr,"\r\nReferer: ") )
  {
   host_dir *a;
-  char *t; 
+  char *t;
   int l;
   for(t=bfr+8; *t && *t!='/' ; t++)
-   if(*t>'9')    
-   {   
+   if(*t>'9')
+   {
     for(a=hsdr.next;a;a=a->next)
      if(a->h[0]!='/')
      {
          l=strlen(a->h);
          if( l>3 && (t=stristr(bfr,a->h)) && t[-3]==':' &&
              ( (! t[l]) || strchr("\r\n \t/",t[l]) )
-         ) return 0; 
+         ) return 0;
      }
     strcpy(bfr+=strlen(bfr)," =&gt; ");
     return fFindURL(psl,bfr+7);
-   } 
+   }
  }
  return 0;
 };
@@ -390,9 +390,9 @@ uint fFindRefHTTPHst(StatLog *psl,char *bfr)
 {char *t;
  if( (psl->port==http_port || psl->port==ssl_port) && fFindSubStr(psl,bfr,"\r\nReferer: ") )
  {if((t=strchr(bfr+8,'/')))*t=0;
-     
-  return 
-#ifdef x86_64 
+
+  return
+#ifdef A_64
       bfr - statbasepoint;
 #else
    (uint)bfr;
@@ -445,13 +445,13 @@ void Req::OutStatTblBody(StatLog *psl,tfFind fnd,  //char *bfr,
  t2=bf->bfr+0x1200;
  char *pfor= GetVar(req_var,"for");
  ulong fip=0;
- 
+
  if(!Name)
  {
    bf->bprintf("\nBad name??? <BR>\n");
-   return ;    
- }    
- 
+   return ;
+ }
+
  if(pfor)
  {
      pfor=SkipSpace(pfor);
@@ -463,8 +463,8 @@ void Req::OutStatTblBody(StatLog *psl,tfFind fnd,  //char *bfr,
  {
    t=SkipSpace(t);
    if(*t)
-     fip=ConvertIP(t);    
- }    
+     fip=ConvertIP(t);
+ }
 
 // Send(bfr,sprintf(bfr,
   bf->bprintf(
@@ -484,8 +484,8 @@ void Req::OutStatTblBody(StatLog *psl,tfFind fnd,  //char *bfr,
  for(tsl=psl;tsl;tsl=tsl->Next())
  {if(!(tsl->stt))
   {
-   if( (fip && fip!=tsl->ip) || (pfor && ! (tsl->find(pfor)))  )continue;   
-   nn=1;   
+   if( (fip && fip!=tsl->ip) || (pfor && ! (tsl->find(pfor)))  )continue;
+   nn=1;
    if((i=(fnd)(tsl,t1))  )
    {
     //if(i&0x80000000) i&=~0x80000000; else i=1;
@@ -495,7 +495,7 @@ void Req::OutStatTblBody(StatLog *psl,tfFind fnd,  //char *bfr,
     {
      if( (!tsl1->stt) && ((!tsl1->hsh) || (tsl1->hsh==hsh)) )
      {
-      // if(pfor && ! (tsl1->find(pfor)) )continue;   
+      // if(pfor && ! (tsl1->find(pfor)) )continue;
       if( ( (!fip) || fip==tsl->ip) && ((!pfor) || tsl1->find(pfor)) && (j=(fnd)(tsl1,t2)) )
       {
        //if(j&0x80000000) j&=~0x80000000; else j=1;
@@ -507,7 +507,7 @@ void Req::OutStatTblBody(StatLog *psl,tfFind fnd,  //char *bfr,
        ++tnn;
       }
       else tsl1->stt=0xFFFF;
-     } 
+     }
     }
     tsl->stt=(*Name=='~')?(nn?(ulong)i/nn:0):i;
     if(i>=0x10000000)tsl->stt=(i>>10)|0x80000000;
@@ -537,7 +537,7 @@ void Req::OutStatTblBody(StatLog *psl,tfFind fnd,  //char *bfr,
       contry[0]=0;
       if( (cc=FindCntr(htonl(tsl->ip))) )
       {
-         sprintf(contry," (%2.2s)",cc->nm);   
+         sprintf(contry," (%2.2s)",cc->nm);
       }
     }
   //  Send(bfr,sprintf(bfr,
@@ -664,7 +664,7 @@ int GetFuncType(tfFind f)
  return 0;
 }
 
-//const 
+//const
 char *anFnd[]=
 {
 #ifdef RUS
@@ -791,34 +791,34 @@ int Req::HTTPOutStatistics(char *bfr,char *log,int tbl,int dt)
  n=0;
  BFILE bfl;
  bfl.Init(this,(PrintFlush)(Snd),bfr);
-#ifdef x86_64 
+#ifdef A_64
   MyLock(StatMutex);
   statbasepoint=log;
 #endif
  char *pfor,*pfort,*pfip;
  uint statdays[12];
-  
+
 
  if((psl=ParseFile(log,bfr+0x4000)))
  {
   if( (pfor=GetVar(req_var,"for")) )
   {
-    pfort=" for ";  
+    pfort=" for ";
   }
   else
   {
-    pfor="";  
-    pfort="";  
+    pfor="";
+    pfort="";
   }
   if( (pfip=GetVar(req_var,"fip")) )
   {
-    pfort=" for ";  
+    pfort=" for ";
   }
   else
   {
-    pfip="";  
+    pfip="";
   }
-  
+
   //t2=bfr+sprintf(bfr,
   bfl.bprintf(
 #ifdef RUS
@@ -884,18 +884,18 @@ int Req::HTTPOutStatistics(char *bfr,char *log,int tbl,int dt)
      ); //,0);
     // */
      if(i){
-         //st1[j++]=i; 
-         //if(j>365) break; 
+         //st1[j++]=i;
+         //if(j>365) break;
          j=i/100;
          j--;
          if((uint)j<12)
          {
            statdays[j]|=1u<<(i%100);
-         }   
+         }
          dprint("i=%u j=%u statdays[j]=%X\n",i,j,statdays[j]);
      }
      else if(! (statdays[0]&1)  )
-     {    
+     {
      // send(s,bfr,sprintf(bfr,
       bfl.bprintf(
        "|<a href=/$_admin_$state?n=0&t=%u>today</a>| &nbsp;" HTML_LN
@@ -916,13 +916,13 @@ int Req::HTTPOutStatistics(char *bfr,char *log,int tbl,int dt)
 //    }
     for(i=0;i<12;++i)
        for(j=1;j<=31;++j)
-         if( statdays[i] & (1<<j) )  
+         if( statdays[i] & (1<<j) )
            bfl.bprintf( "|<a href=/$_admin_$state?n=%u&t=%u>%u/%u</a>| &nbsp;" HTML_LN
-                       ,(i+1)*100+j,tbl,i+1,j );  
+                       ,(i+1)*100+j,tbl,i+1,j );
   };
  }
- 
-#ifdef x86_64 
+
+#ifdef A_64
  MyUnlock(StatMutex);
 #endif
 

@@ -28,13 +28,23 @@
 #endif
 #ifndef SRV_H
 #define SRV_H
+
+#if __SIZEOF_INT__ == 4 &&  __SIZEOF_POINTER__ == 8
+
+#ifndef A_64
+#define A_64 1
+#endif
+
+#endif
+
+
 void dbgf(char *er,int s);
 #define dbg(er) dbgf(er,s)
 #define dbgs(er) dbgf(er,s)
 void xdie(char *);
 #define die(e) {xdie(e); return -1;}
 
-#define DEBUG_VERSION 1
+//#define DEBUG_VERSION 1
 #ifdef DEBUG_VERSION
 
 #define DBGLS(a)  debug("%s:%u:%s %s\r\n",__FILE__ , __LINE__, __func__, a);
@@ -109,7 +119,7 @@ struct WMail;
 struct FTPSecCon;
 struct FCGI_task;
 
-#ifdef x86_64
+#ifdef  x86_64
 typedef unsigned long long arh_ulong;
 #define ARH_MASK  0x3F
 #define ARH_SHIFT 6
@@ -483,7 +493,7 @@ int FndLimit(int lst,LimitBase **ip, LimitBase **net, sockaddr_in *sa );
 struct host_dir{
  host_dir *next;
  char *d;
-#ifdef x86_64
+#ifdef A_64
  char *h;
  int  flg;
 #else
@@ -529,7 +539,7 @@ struct User
 #define UserNOCGI 0x40
 #define UserPARSED 0x80
 #define FindUserMD5digest 0x10000
-#ifdef x86_64
+#ifdef A_64
  char *name;
  char *pwd,*ddr;
  int  state;

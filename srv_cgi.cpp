@@ -706,7 +706,7 @@ int Req::MakeEnv(char *env, char *tend,char ***new_env)
     penv+=sprintf(penv,"AUTH_TYPE=Basic\nREMOTE_USER=%s\nAUTH_PASS=%s\n",z,y);
    }
 */
-#ifndef x86_64
+#ifndef A_64
    *new_env=tt=(char **) ((u_long)(penv+7)&0xFFFFfffc);
 #else
    *new_env=tt=(char **) ((u_long)(penv+15)& ~7ul);

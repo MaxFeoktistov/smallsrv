@@ -479,7 +479,7 @@ if(0){
         p=GetVar(req_var,"d");
         if(ChkValidPth(p,b))goto lbOutUPg;
         if(p[(i=strlen(p))-1]==FSLUSH)p[--i]=0;
-#ifdef x86_64
+#ifdef A_64
         tuser=(User *) malloc( sizeof(User )+i+strlen(t)+strlen(u)+3 );
         tuser->name=(char *)(tuser+1);
         tuser->ddr=tuser->name+sprintf(tuser->name,"%s",u)+1;
@@ -561,7 +561,7 @@ if(0){
         {t1=GetVar(req_var,"n");
          j=strlen(t1);
         }
-#ifdef x86_64
+#ifdef A_64
         a=(host_dir *) Malloc(sizeof(host_dir) + i + j+ strlen(u) +5);
         a->h=(char *)(a+1);
 #else

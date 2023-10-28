@@ -94,7 +94,6 @@ void TLog::LAddToLog(char *t,int s,const char *fmt,...)
    else
    {
 #ifdef  USEVALIST
-         //defined(ARM) || defined(x86_64)
       va_list v;
       va_start(v,fmt);
       pprot+=mvsprintfchk(pprot,aabfr+256,fmt+1,v)-2;
@@ -445,7 +444,6 @@ void TLog::RelProt()
 extern "C" void TLog::Ldebug(const char *a,...)
 {
 #ifdef  USEVALIST
-    //defined(ARM) || defined(x86_64)
  va_list v;
  va_start(v,a);
  Lvdebug(a,v);
@@ -512,7 +510,6 @@ extern "C" void edebug(const char *a,...)
 extern "C" void tlsdebug(const char *a,...)
 {
 #ifdef  USEVALIST
-    //defined(ARM) || defined(x86_64)
  va_list v;
  va_start(v,a);
  sepLog[5]->Lvdebug(a,v);
