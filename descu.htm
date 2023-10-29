@@ -74,7 +74,7 @@ E("Sales","sales","#","&");
 
 <br><hr><a name=W></a><center><br><h2>What's this?</h2></center>
 <p> This very small utility turns your computer into a fully functional
-Web-server, Mail server, DNS server, FTP server, DHCP server. The program itself requires a minimal set of system resources, so
+Web-server, Mail server, DNS server, FTP server, DHCP server and HTTPS VPN server. The program itself requires a minimal set of system resources, so
 the server's functioning doesn't influence your computer's performance. This
 server can function under a LAN networking or even under a Dial-Up
 networking. Webmasters can run this utility on their local computers and
@@ -147,6 +147,7 @@ disk.
 <li> IPv6 support
 <li> SSL/TLS support with an external library.
 <li> GZip compression support with an external Zlib library.
+<li> HTTP TLS VPN server and client.
 </ul>
 
 
@@ -157,14 +158,23 @@ system resources necessary for a quick data transfer.
 
 <p><a href=#C>Contents</a><hr><center><a name=h></a><br><h2>How to...?</h2></center>
  Well, it is fairly easy - unpack archive to the directory.
- Add executable mode attribute to httpd.exe
-E.g use command
-<br><tt>chmod 0500 httpd.exe</tt><br> or  may be
-<br><tt>chmod a+x httpd.exe</tt><br>
-File httpd.cfg is to be in the same directory as httpd.exe  This file
-may content uncripted passwords, therefor  hight recomended to disable reading
+
+ Executable files: httpd.exe, httpd.exopenssl, httpd.exgnutls. With httpd.exe you can select the security library in the configuration. In httpd.exopenssl and httpd.exgnutls, the selected library code is embedded in the executable file.<br>
+If you are building the program from source, you can simply run:
+<pre>
+./configure
+make
+make install
+</pre>
+In this case, the program will be installed in <tt>/usr/local/ ...<tt>. Binaries and libraries will be in /usr/local/lib/smallsrv,
+language files will be in /usr/local/share/smallsrv, symlink to executables will be in /usr/local/bin, etc.
+You can change this is using the keys for the ./configure command. Run
+<tt>./configure --help </tt> to view the keys and review <tt>README.md</tt> for build details.<br>
+
+Configuration files (httpd.cfg and other) can be in /etc/smallsrv/ or can to be in the same directory as httpd.exe  This file
+may content uncripted passwords, therefor hight recomended to disable reading
 this file for other and for group. Use <br><tt>chmod 0600 httpd.cfg</tt><br>
-Now you may run httpd.exe To run it as daimon type <tt>httpd.exe hide</tt>
+Now you may run httpd.exe  To run it as daimon type <tt>httpd.exe hide</tt>
 or you may add <tt>hide</tt> keyword to httpd.cfg.
 In httpd.cfg remote administration is disable, after unpacking and
 to view statistic httpd.cfg contents administrator's acount.
@@ -447,7 +457,7 @@ In any case, if user press "Reload" button files download again.</td><td><b>igno
 <tr><td><b>Limit per IP (Kb)</b></td><td><b>ftpo_ip_limit=value</b></td></tr>
 <tr><td><b>Limit per network (Kb)</b></td><td><b>ftpo_net_limit=value</b></td></tr>
 <tr><td><b>Total limit for server (Kb)</b></td><td><b>ftpo_limit=value</b></td></tr>
- <tr><td><b>Always ask for a password, even for users without a password</b></td><td><b>ftp_always_pass</b></td></tr>
+<tr><td><b>Always ask for a password, even for users without a password</b></td><td><b>ftp_always_pass</b></td></tr>
 
 
 

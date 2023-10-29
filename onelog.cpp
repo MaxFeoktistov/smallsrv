@@ -237,7 +237,7 @@ void AddToLog(char *t,int s,const char *fmt,...)
  char *x,*y;
 
 // printf("s=%d \n",s);
- if(s){
+ if(s>0){
   getpeername(s,(sockaddr*) (xsa),&l);
   getsockname(s,(sockaddr *) (xsa+1),&l);
  }else memset(&sa,0,sizeof(xsa));

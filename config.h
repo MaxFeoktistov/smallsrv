@@ -13,7 +13,7 @@
 #define CONFIG_TMP    ""
 
 #elif ! defined(SYSUNIX)
-// Windows definetion
+// Windows definitions
 
 #define CONFIG_BASE   "c:\\shttps\\"
 #define CONFIG_APPDIR CONFIG_BASE
@@ -25,12 +25,12 @@
 
 #else
 
-#define CONFIG_SHARE "/usr/local/share/smallsrv/"
-#define CONFIG_APPDIR "/usr/local/lib/smallsrv/"
 #define CONFIG_CONFIG "/etc/smallsrv/"
-#define CONFIG_DATA "/var"
-#define CONFIG_LOG "/var/log/smallsrv/"
 #define CONFIG_BASE "/usr/local/"
+#define CONFIG_DATA "/var"
+#define CONFIG_SHARE "/usr/local/share/smallsrv/"
+#define CONFIG_LOG "/var/log/smallsrv/"
+#define CONFIG_APPDIR "/usr/local/lib/smallsrv/"
 
 #endif
 

@@ -180,7 +180,7 @@ int TryToAddKeepAlive(Req *req)
   if(req->s == -1) return 1;
   DBGL("add keep alive required");
   if( !KeepAliveList ) goto lbCanT;
-  debug("KeepAlive connection %d\n", req->s);
+ // debug("KeepAlive connection %d\n", req->s);
   RemoveOldestIfNeed();
   if(req->Snd==&TLSSend)
     l = sizeof(Req) + sizeof(OpenSSLConnection);

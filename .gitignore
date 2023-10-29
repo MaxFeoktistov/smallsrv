@@ -14,3 +14,4 @@ httpd.cfg.default
 index.htm
 indexr.htm
 t2icfg.cpp
+g4strc.h

@@ -206,9 +206,6 @@ OOBJS_TLS=$(COBJS) $(addprefix o/tls_,$(POBJS))
 
 OOBJS64_TLS=$(COBJS64) $(addprefix o64/tls_,$(AOBJS64))
 
-
-$(OOBJS) $(OOBJS64) $(WINOOBJS): $(GENERATED)
-
 #FLIBS=libc.so libdl.so libpthread.so libgnutls.so libssl.so
 FLIBS=libc.so libpthread.so libdl.so libgnutls.so libssl.so libcrypto.so libgnutls.so.30
 FAKELIBS=$(addprefix fakelibs/,$(FLIBS))
@@ -245,6 +242,9 @@ else
 all: /dev/shm/shttps/o/1.x o/1.x getstr i32 i64 i32f i64f win arm arm64
 
 endif
+
+
+$(OOBJS) $(OOBJS64) $(WINOOBJS): $(GENERATED)
 
 # all: win o/httpd.exe
 #wo/libsec111.dll arm
@@ -1029,7 +1029,7 @@ ATOBJS0=to_linux.o srv0a.o srv_ssi.o srv_cgi.o req.o accept.o tools.o adminr.o r
 ATOBJS=$(addprefix at/,$(ATOBJS0))
 ATOBJS_TLS=$(addprefix at/tls_,$(ATOBJS0))
 
-ATOBJS: $(GENERATED)
+$(ATOBJS): $(GENERATED)
 
 at/%.o : %.cpp
 	  $(ATGPP) -c $(S) $(ATFLAGS) -o $@  $<
@@ -1065,7 +1065,7 @@ N_OBJS0=to_linux.o srv0a.o srv_ssi.o srv_cgi.o req.o accept.o tools.o adminr.o r
 N_OBJS=$(addprefix oo/,$(N_OBJS0))
 N_OBJS_TLS=$(addprefix oo/tls_,$(N_OBJS0))
 
-N_OBJS: $(GENERATED)
+$(N_OBJS): $(GENERATED)
 
 n_all: A_GCC=$(CROSS_COMPILE)gcc
 n_all: N_FLAGS = -mlittle-endian -Wno-deprecated-declarations -Wno-conversion  -Wno-write-strings  -fno-access-control  -fno-nonansi-builtins -fno-elide-constructors -fno-enforce-eh-specs   -fno-rtti  -fno-weak -nostdinc++  -Wnoexcept -fno-exceptions -Wno-format -fpermissive -DLINUX -DSYSUNIX -DNOTINTEL -DFREEVER -DTELNET -DUSE_IPV6 -DV_FULL=1 -DUSE_FUTEX -DUSE_POOL -DWITHMD5 -DFIX_EXCEPT -DUSEVALIST -DVPN_LINUX -DTLSVPN $(A_OPT) $(ADVOPT)
@@ -1119,8 +1119,8 @@ clean_n:
 cleanobj:
 	rm -f $(OOBJS) $(OOBJS64) $(OOBJS64_TLS) $(OOBJS_TLS) $(ATOBJS) $(ATOBJS_TLS) $(addprefix o/,$(SECOBJ)) $(addprefix o64/,$(SECOBJ)) $(addprefix at/,$(SECOBJ)) $(N_OBJS_TLS) $(N_OBJS)
 
-clean:
-	rm -f $(OOBJS) $(OOBJS64) $(ROBJS) $(MIPSOBJ) $(WINOOBJS)  $(ATOBJS) $(ARMOBJ) wo/libsecgnutls.o wo/libsec111.o $(OOBJS64_TLS) $(OOBJS_TLS)  $(ATOBJS_TLS) $(addprefix o/,$(SECOBJ)) $(addprefix o64/,$(SECOBJ)) $(addprefix at/,$(SECOBJ)) $(WINOOBJS) clean_n
+clean:  clean_n
+	rm -f $(OOBJS) $(OOBJS64) $(ROBJS) $(MIPSOBJ) $(WINOOBJS)  $(ATOBJS) $(ARMOBJ) wo/libsecgnutls.o wo/libsec111.o $(OOBJS64_TLS) $(OOBJS_TLS)  $(ATOBJS_TLS) $(addprefix o/,$(SECOBJ)) $(addprefix o64/,$(SECOBJ)) $(addprefix at/,$(SECOBJ)) $(WINOOBJS)
 
 cleangen:
 	rm -f $(GENERATED)
