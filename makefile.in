@@ -22,28 +22,24 @@
 #
 #
 
-CONFIG_BASE="/usr/local/"
-CONFIG_APPDIR="$(CONFIG_BASE)lib/smallsrv/"
-CONFIG_SHARE="$(CONFIG_BASE)share/smallsrv/"
-CONFIG_CONFIG="/etc/smallsrv/"
-CONFIG_LOG="/var/log/smallsrv/"
-CONFIG_DATA="/var"
-INSTALLFROM=o/
+CONFIG_BASE   ?= /usr/local/
+CONFIG_APPDIR ?= $(CONFIG_BASE)lib/smallsrv/
+CONFIG_SHARE  ?= $(CONFIG_BASE)share/smallsrv/
+CONFIG_CONFIG ?= /etc/smallsrv/
+CONFIG_LOG    ?= /var/log/smallsrv/
+CONFIG_DATA   ?= /var
 
-G= -s -Os
+ICONFIG_BASE   := $(INSTALL_ROOT)$(CONFIG_BASE)
+ICONFIG_APPDIR := $(INSTALL_ROOT)$(CONFIG_APPDIR)
+ICONFIG_SHARE  := $(INSTALL_ROOT)$(CONFIG_SHARE)
+ICONFIG_CONFIG := $(INSTALL_ROOT)$(CONFIG_CONFIG)
+ICONFIG_LOG    := $(INSTALL_ROOT)$(CONFIG_LOG)
 
+INSTALLFROM ?= oo/
 
+G=  -s  -Os
 
-TMPRAM=/dev/shm/shttps/o/
-
-# OPT= -m32 -pipe -falign-loops=0 -falign-jumps=0 -falign-functions=0 -fno-enforce-eh-specs \
-# -fno-verbose-asm -fno-implicit-templates -mno-align-double \
-# -mno-fancy-math-387 -fwritable-strings -DUSE_IPV6 -DUSE_FUTEX -DUSE_POOL -fno-exceptions -fno-nonansi-builtins  -fno-rtti  -fno-ms-extensions -fno-builtin  -fno-access-control  -Wno-deprecated  -fno-nonansi-builtins  -fno-optional-diags -momit-leaf-frame-pointer  -mno-red-zone -DFREEVER  -fno-pic
-
-# best opt for gcc 3.x
-# OPT= -pipe -falign-loops=0 -falign-jumps=0 -falign-functions=0 -fno-enforce-eh-specs \
-# -fno-verbose-asm -fno-implicit-templates -mno-align-double \
-# -mno-fancy-math-387 -DUSE_IPV6 -DUSE_FUTEX -DUSE_POOL -fno-exceptions -fno-nonansi-builtins  -fno-rtti  -fno-ms-extensions -fno-builtin  -fno-access-control  -Wno-deprecated  -fno-nonansi-builtins  -fno-optional-diags -momit-leaf-frame-pointer  -mno-red-zone -DFREEVER  -fno-pic
+TMPRAM ?= /dev/shm/shttps/o/
 
 OPT= -pipe  \
   -fno-stack-protector -fno-stack-check -fno-verbose-asm -fno-nonansi-builtins -fno-access-control  -fno-optional-diags -momit-leaf-frame-pointer\
@@ -51,11 +47,6 @@ OPT= -pipe  \
   -DUSEVALIST -DSEPLOG $(ADVOPT) -DVPN_LINUX -DTLSVPN
 
 OPTTLS= $(OPT) -DTLSWODLL
-
-#-fdelete-null-pointer-checks  -fdelayed-branch  -fdelete-dead-exceptions
-# -fnobounds-check
-#-mcpu=i486  -march=i486
-# -fno-threadsafe-statics
 
 
 OPT64=  -Dx86_64 -DNOTINTEL -DA_64 $(OPT)
@@ -71,40 +62,7 @@ ULGPP= PATH=/usr/local/arm-2010q1/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/
 
 ULCFLAGS= -mlittle-endian -marm  -mno-thumb-interwork -mthumb -march=armv7 -mfix-cortex-m3-ldrd  -mlong-calls -msoft-float -Uarm  -nostdinc  -I/usr/local/arm-2010q1/arm-uclinuxeabi/libc/usr/include -I/usr/local/arm-2010q1/lib/gcc/arm-uclinuxeabi/4.4.1/include -I/usr/local/arm-2010q1/lib/gcc/arm-uclinuxeabi/4.4.1/include-fixed  -fno-rtti -fno-threadsafe-statics -fno-access-control -fno-nonansi-builtins -fno-elide-constructors -fno-enforce-eh-specs  -Wno-deprecated-declarations -Wno-conversion  -Wno-write-strings  -DUSE_IPV6
 
-# -fno-enforce-eh-specs -fno-nonansi-builtins  -fno-rtti -fno-elide-constructors -fno-ms-extensions -fno-stats -fno-nonansi-builtins  -nostdinc++  -fno-access-control
-# -fconserve-space -O2
-
-
-
 S= -s
-
-#WINEGPP=wine c:\\MINGW2\\bin\\gcc.exe
-#WINEGCC=wine c:\\MINGW2\\bin\\gcc.exe
-#WINEAS=wine  c:\\MINGW2\\bin\\as.exe
-#WINERES=wine c:\\MINGW2\\bin\\windres.exe
-#MGDIR=c:\\MINGW2
-#WININC= -I$(MGDIR)\\include -I$(MGDIR)\\lib\\gcc\\mingw32\\8.2.0\\include
-#WINLIB= -L$(MGDIR)\\lib
-
-# WINEGPP=wine c:/mingw-w64/i686-8.1.0-win32-dwarf-rt_v6-rev0/mingw32/bin/gcc.exe -m32 -DMINGW64
-# WINEGCC=wine c:/mingw-w64/i686-8.1.0-win32-dwarf-rt_v6-rev0/mingw32/bin/gcc.exe -m32 -DMINGW64
-# WINEAS=wine  c:/mingw-w64/i686-8.1.0-win32-dwarf-rt_v6-rev0/mingw32/bin/as.exe
-# WINERES=wine c:/mingw-w64/i686-8.1.0-win32-dwarf-rt_v6-rev0/mingw32/bin/windres.exe
-# MGDIR=c:/mingw-w64/i686-8.1.0-win32-dwarf-rt_v6-rev0/mingw32/i686-w64-mingw32/
-# WININC= -Ic:/mingw-w64/i686-8.1.0-win32-dwarf-rt_v6-rev0/mingw32/include -Ic:/mingw-w64/i686-8.1.0-win32-dwarf-rt_v6-rev0/mingw32/i686-w64-mingw32/include
-# WINLIB= -Lc:/mingw-w64/i686-8.1.0-win32-dwarf-rt_v6-rev0/mingw32/i686-w64-mingw32/lib
-
-
-
-# WINEGPP=wine c:\\MinGW\\bin\\gcc.exe
-# WINEGCC=wine c:\\MinGW\\bin\\gcc.exe
-# WINEAS=wine  c:\\MinGW\\bin\\as.exe
-# WINERES=wine c:\\MinGW\\bin\\windres.exe
-
-# WINEGPP=x86_64-w64-mingw32-gcc -m32
-# WINEGCC=x86_64-w64-mingw32-gcc -m32
-# WINEAS=x86_64-w64-mingw32-as
-# WINERES=x86_64-w64-mingw32-windres
 
 WINEGPP=i686-w64-mingw32-gcc -m32 -DMINGW64
 WINEGCC=i686-w64-mingw32-gcc -m32 -DMINGW64
@@ -121,23 +79,9 @@ WINE=wine
 #WINEBIN2S=wine wo\\bin2s.exe
 WINEBIN2S=./bin2s
 
-#WINECFLG=  -Iwinclude  -I$(MGDIR)\\include -fpack-struct -O2 -fno-verbose-asm -fno-implicit-templates -mno-svr3-shlib -mno-align-double -mno-fancy-math-387 -fconserve-space  -DSERVICE -DFREE_VER  -DFREEVER -DV_FULL=1 -DUSE_IPV6 -DMINGW -DRICON -mrtd
-#  -fno-implicit-templates
-
 WINECFLG= -Os -nostdinc -Iwinclude  $(WININC) -mno-align-double -mno-fancy-math-387 -fconserve-space  -fno-rtti -fno-threadsafe-statics -fno-access-control -fno-nonansi-builtins -fno-elide-constructors -fno-enforce-eh-specs -DSERVICE -DFREE_VER  -DFREEVER -DV_FULL=1 -DUSE_IPV6 -DMINGW -DRICON -mwindows -fno-optional-diags -momit-leaf-frame-pointer -mno-red-zone -fno-exceptions  -fno-stack-protector -no-pie -fno-ms-extensions -fno-stack-check -mno-stack-arg-probe -fmax-errors=10 -DSEPLOG -DSELECT1  -DVPN_WIN -DTLSVPN -DWITHMD5
 
 WINELFLG=  -mwindows $(WINLIB) -luser32 -lkernel32 -lws2_32 -lgdi32 -lshell32 -lcomdlg32  -ladvapi32 -Xlinker --heap  -Xlinker 0x20000000 -Wl,--subsystem,windows  -nostartfiles -nodefaultlibs -Xlinker -Map -Xlinker wo/flxmap  -Xlinker --entry=_start    -fno-optional-diags -momit-leaf-frame-pointer  -mno-red-zone -fno-exceptions  -fno-stack-protector -fno-ms-extensions -no-pie -fno-stack-check -mno-stack-arg-probe
-
-#WINECFLG=  -nostdinc -Iwinclude  -I$(MGDIR)\\include -I$(MGDIR)\\lib\\gcc\\mingw32\\8.2.0\\include -fno-implicit-templates -mno-align-double -mno-fancy-math-387 -fconserve-space  -fno-rtti -fno-threadsafe-statics -fno-access-control -fno-nonansi-builtins -fno-elide-constructors -fno-enforce-eh-specs -DSERVICE -DFREE_VER  -DFREEVER -DV_FULL=1 -DUSE_IPV6 -DMINGW -DRICON -mwindows -fno-optional-diags -momit-leaf-frame-pointer -mno-red-zone -fno-exceptions  -fno-stack-protector -no-pie -fno-ms-extensions -fno-stack-check -mno-stack-arg-probe
-
-#WINELFLG=    -mwindows -L$(MGDIR)\\lib -luser32 -lkernel32 -lws2_32 -lgdi32 -lshell32 -lcomdlg32  -ladvapi32 -Xlinker --heap  -Xlinker 0x20000000 -Wl,--subsystem,windows  -nostartfiles -nodefaultlibs -Xlinker -Map -Xlinker wo/flxmap  -Xlinker --entry=_start    -fno-optional-diags -momit-leaf-frame-pointer  -mno-red-zone -fno-exceptions  -fno-stack-protector -fno-ms-extensions -no-pie -fno-stack-check -mno-stack-arg-probe
-
-#
-# WINECFLG=  -Os -nostdinc -Iwinclude  -I$(MGDIR)/include -I/usr/lib/gcc/i686-w64-mingw32/5.3-win32/include -fno-implicit-templates -mno-align-double -mno-fancy-math-387 -fconserve-space  -fno-rtti -fno-threadsafe-statics -fno-access-control -fno-nonansi-builtins -fno-elide-constructors -fno-enforce-eh-specs -DSERVICE -DFREE_VER  -DFREEVER -DV_FULL=1 -DUSE_IPV6 -DMINGW -DRICON -mwindows -fno-optional-diags -momit-leaf-frame-pointer -mno-red-zone -fno-exceptions  -fno-stack-protector -no-pie -fno-ms-extensions -fno-stack-check -mno-stack-arg-probe
-#
-# WINELFLG=    -mwindows -L$(MGDIR)/lib -luser32 -lkernel32 -lws2_32 -lgdi32 -lshell32 -lcomdlg32  -ladvapi32 -Xlinker --heap  -Xlinker 0x20000000 -Wl,--subsystem,windows  -nostartfiles -nodefaultlibs -Xlinker -Map -Xlinker wo/flxmap  -Xlinker --entry=_start    -fno-optional-diags -momit-leaf-frame-pointer  -mno-red-zone -fno-exceptions  -fno-stack-protector -fno-ms-extensions -no-pie -fno-stack-check -mno-stack-arg-probe
-#
-
 
 WIN64EGPP=x86_64-mingw32-gcc -m64 -DMINGW64
 WIN64EGCC=x86_64-mingw32-gcc -m64 -DMINGW64
@@ -170,10 +114,6 @@ LOPT64=   -dynamic-linker   -Xlinker -Map -Xlinker o64/flxmap  -nodefaultlibs
 LIB= $(LIBDIR32) -lpthread  $(LIBDIR32) -ldl $(LIBDIR32) -lc -lc_nonshared
 LIB64= $(LIBDIR64) -lpthread  $(LIBDIR64) -ldl $(LIBDIR64) -lc -lc_nonshared
 LIB64u=  -ldl -lpthread  -lc -lc_nonshared
-
-
-#LIB= -lpthread -ldl -lc -lc_nonshared
-#LIB64= -lpthread -ldl -lc -lc_nonshared
 
 
 COBJS= o/to_linux.o o/bvprintfv.o
@@ -565,16 +505,6 @@ t2icfgrus.cpp: icfgrus.cpp
 	./def4str.pl S1 o/s1r1 <o/s1r.hh >o/g4s1r1.hh
 
 
-# lang_rus1.cfg:  strcwmr.h
-# 	./def4str.pl G4 o/strcwmr  <strcwmr.h  >lang_rus1.cfg
-
-#cp httpd.exe d/httpd.exe
-
-#
-#	   ./packelf httpd.exe d/httpd.exe
-#	   chmod 0777 d/httpd.exe
-
-
 httpd_.exe: $(OBJS)
 	   $(GCC) $(G)   $(OOBJS) -o $@ $(LIB) $(LOPT) -nostartfiles -Telfi386.x -nodefaultlibs
 	   ./packelf httpd_.exe d/httpd.exe
@@ -653,14 +583,15 @@ ru/shs_lang.cfg : lS1_lf.cfg
 	./add_to_langcfg.pl lS1_lf.cfg $@
 
 
-install: all
-	mkdir -p $(CONFIG_APPDIR) $(CONFIG_SHARE) $(CONFIG_CONFIG) $(CONFIG_LOG)
-	for i in httpd.exe httpd_openssl httpd_gnutls libsecgnutls.so libsec111.so sndmsg ; do  if [ -e $$i ] ; cp $(INSTALLFROM)$$ii $(CONFIG_APPDIR) ; fi; done
-	if [ ! -e $(CONFIG_CONFIG)/httpd.cfg ] ; then if [ "/var" = "$(CONFIG_DATA)" -a "$(CONFIG_LOG)" = "/var/log/smallsrv/" ] ; cp httpd.cfg $(CONFIG_CONFIG) ; else perl -e ' while(<STDIN>){  s/\/var\/log\/smallsrv\/$$ARGV[0]/ || s/\/var/$$ARGV[1]/ ; print $_;  } ' $(CONFIG_LOG) $(CONFIG_DATA) < httpd.cfg > $(CONFIG_CONFIG)/httpd.cfg ;  fi
-	for i in vpn_if_client_down.sh vpn_if_client_up.sh vpn_if_up.sh ; do if [ ! -e $(CONFIG_CONFIG)/$$ii ] ; then cp script_examples/$$ii $(CONFIG_CONFIG) ; fi ; done
-	for i in httpd.exe httpd.exopenssl httpd.exgnutls sndmsg ; do  if [ -e $$i ] ; ln -sf $(CONFIG_APPDIR)/$$i $(CONFIG_BASE)/bin/ ; done
-	for i in ru en ; do mkdir -p $(CONFIG_SHARE)/$$i ; cp $$i/shs_lang.cfg $(CONFIG_SHARE)/$$i/ ; done
-	for i in license.ssl notes.ssl license06.txt notes.ssl ; descu.htm ; do cp $$i $(CONFIG_SHARE) ; done
+BINFILES := httpd.exe httpd.exopenssl httpd.exgnutls sndmsg
+
+install: # all
+	mkdir -p $(ICONFIG_APPDIR) $(ICONFIG_SHARE) $(ICONFIG_CONFIG) $(ICONFIG_LOG)
+	for i in $(BINFILES) libsecgnutls.so libsec111.so ; do  if [ -e $(INSTALLFROM)$$i ] ; then cp $(INSTALLFROM)$$i $(ICONFIG_APPDIR) ; fi; done
+	for i in httpd.cfg script_examples/*.sh ; do [ -e $(ICONFIG_CONFIG)/$$i ] || cp $$i $(ICONFIG_CONFIG) ; done
+	mkdir -p $(ICONFIG_BASE)/bin ; for i in $(BINFILES) ; do  if [ -e $(ICONFIG_APPDIR)/$$i ] ; then  ln -sf $(CONFIG_APPDIR)/$$i $(ICONFIG_BASE)/bin/ ; fi ; done
+	for i in ru en ; do mkdir -p $(ICONFIG_SHARE)/$$i ; cp $$i/shs_lang.cfg $(ICONFIG_SHARE)/$$i/ ; done
+	for i in license.ssl notes.ssl license06.txt notes.ssl descu.htm ; do cp $$i $(ICONFIG_SHARE) ; done
 
 
 DISTFILES=vpn_if_client_down.sh vpn_if_client_up.sh vpn_if_up.sh descu.htm httpd.cfg lang_notes.txt libsec111.so license.ssl notes.ssl libsecgnutls.so  license06.txt langpacks/ru langpacks/ru/shs_lang.cfg langpacks/en langpacks/en/shs_lang.cfg sndmsg
@@ -679,8 +610,6 @@ DIST_DIR=$(CURRENT_DIR)o/alldist/
 $(DIST_DIR):
 	mkdir -p $(DIST_DIR)
 
-# dist:   o/dist/libsec.so o/dist/libsec111.so o/dist/license06.txt o/adist/license06.txt o/dist/libsecgnutls.so o/dist/langpacks/ru/shs_lang.cfg o/dist/langpacks/en/shs_lang.cfg o/dist/descu.htm o/adist/
-
 dist:   $(DIST_DIR) o/dist/license06.txt o/adist/license06.txt $(ODISTFILES) $(OUDISTFILES) $(ADISTFILES) dist64 arm64dist
 	cp o/of/httpd.ex* o/dist/
 	cd o/dist/ ; strip httpd.ex* ; chmod -R go-w,u+rw,a+X * ; chmod  0755 httpd.ex* *.so  sndmsg ; chmod  0600 httpd.cfg ;  rm -f $(DIST_DIR)shttplnx.tgz ; tar --owner=root --group=root -czf $(DIST_DIR)shttplnx.tgz * ; chmod 0644 $(DIST_DIR)shttplnx.tgz
@@ -688,8 +617,6 @@ dist:   $(DIST_DIR) o/dist/license06.txt o/adist/license06.txt $(ODISTFILES) $(O
 	cd o/adist/ ; arm-linux-gnueabi-strip httpd.ex* ; chmod -R go-w *  ; chmod -R a+X * ; chmod  0755 httpd.ex* *.so  sndmsg ; chmod  0600 httpd.cfg ;  rm -f $(DIST_DIR)shttparmlnx.tgz ; tar --owner=root --group=root -czf $(DIST_DIR)shttparmlnx.tgz * ; chmod 0644 $(DIST_DIR)shttparmlnx.tgz
 	cp o/httpd.exe o/distu/
 	cd o/distu/ ; strip httpd.exe ; chmod -R go-w,u+rw,a+X * ; chmod  0755 httpd.exe *.so sndmsg ; chmod  0600 httpd.cfg ;  rm -f $(DIST_DIR)shttplnxu.tgz ; tar --owner=root --group=root -czf $(DIST_DIR)shttplnxu.tgz * ; chmod 0644 $(DIST_DIR)shttplnxu.tgz
-
-#dist64: o64/dist/libsec.so o64/dist/libsec111.so o64/dist/libsecgnutls.so o64/distu/libsec.so o64/distu/libsecgnutls.so o64/dist/langpacks/ru/shs_lang.cfg o64/dist/langpacks/en/shs_lang.cfg
 
 
 dist64: o64/dist/libsec111.so o64/dist/libsecgnutls.so o64/distu/libsec111.so o64/distu/libsecgnutls.so $(O64DISTFILES) $(O64UDISTFILES)
@@ -714,22 +641,6 @@ oo/dist/% : oo/%
 oo/dist: $(TMPRAM)oo
 	mkdir -p $@
 
-sinst:  o/dist/httpd.exe $(DIST_DIR)shttplnx.tgz $(DIST_DIR)shttplnxu.tgz $(DIST_DIR)shttparmlnx.tgz $(DIST_DIR)shttplnx64.tgz  $(DIST_DIR)shttplnx64u.tgz
-	chmod 0666 wo/shttps*.exe
-	for i in wo/shttps_mg.exe wo/shttpsr_mg.exe $(DIST_DIR)shttplnx.tgz $(DIST_DIR)shttplnxu.tgz $(DIST_DIR)shttparmlnx.tgz $(DIST_DIR)shttplnx64.tgz $(DIST_DIR)shttplnx64u.tgz ; do cp $$i /mnt/d/var/www/pre/ ; done
-
-# 	mv /mnt/d/shttps/httpd.exe /mnt/d/shttps/oldhttpd_$(shell date "+%F_%R").exe
-# 	cp o/distu/httpd.exe /mnt/d/shttps/
-
-sinste:  o/dist/httpd.exe $(DIST_DIR)shttplnx.tgz $(DIST_DIR)shttplnx64.tgz
-	chmod 0666 wo/shttps*.exe
-	for i in wo/shttps_mg.exe wo/shttpsr_mg.exe $(DIST_DIR)shttplnx.tgz $(DIST_DIR)shttplnx64.tgz ; do cp $$i /mnt/d/var/www/pre/ ; done
-	mv /mnt/d/shttps/httpd.exe /mnt/d/shttps/oldhttpd.exe
-	cp o/dist/httpd.exe /mnt/d/shttps/
-
-sinsta: sinst wo/shttps_mgi.exe wo/shttpsr_mgi.exe
-	chmod 0666 wo/shttps_mgi.exe wo/shttpsr_mgi.exe
-	for i in wo/shttps_mgi.exe wo/shttpsr_mgi.exe ; do cp $$i /mnt/d/var/www/pre/ ; done
 
 %/langpacks/en:
 	mkdir -p $@
@@ -921,15 +832,10 @@ arm/httpd.exe :  $(ARMOBJ)
 arm/runssl.o :  runssl.cpp
 	export PATH=$(ARMPATH) ; arm-linux-g++ -c -s -DSYSUNIX  -DARM -DNOTINTEL -DV_FULL=1 $(G) $(ARMOPT) $< -o $@ -I/usr/include
 
-#arm/runssl111.o :  runssl111.cpp
-#	export PATH=$(ARMPATH) ; arm-linux-g++ -c -s -DSYSUNIX  -DARM -DNOTINTEL -DV_FULL=1 -DOSSL111 $(G) $(ARMOPT) $< -o $@ -I -I/usr/src/openssl-1.1.1m/include
-
 
 arm/libsec.so:    arm/runssl.o
 	 export PATH=$(ARMPATH) ; arm-linux-gcc $(G) -s $^  -o $@  -shared $(ARMLOPT) $(LIB)
 
-#arm/libsec111.so:    arm/runssl111.o
-#	 export PATH=$(ARMPATH) ; arm-linux-gcc $(G) -s $^  -o $@  -shared $(ARMLOPT) $(LIB)
 
 LIOBJS=to_linux.o srv0a.o srv_ssi.o srv_cgi.o req.o accept.o tools.o adminr.o restart.o proxy.o musers.o conf.o t2icfg.o stat.o icfgjs.o ftpd.o smptps.o smtpcl.o mailip.o dnsd.o tlsm.o gz.o dhcpd.o wmbx.o bvprintf.o telnet.o md5.o msprintfchk.o
 
@@ -959,9 +865,6 @@ ATFLAGS= -mlittle-endian -marm  -mcpu=arm926ej-s -mthumb-interwork  -msoft-float
 ATSYSINCLUDE=/usr/lib/gcc-cross/arm-linux-gnueabi/10/include
 ATSYSLIB=/usr/lib/gcc-cross/arm-linux-gnueabi/10/
 
-# ATLIB=/usr/src/at/musl-1.0.4/lib
-# ATINCLUDE=/usr/src/at/musl-1.0.4/include
-
 ATLIB=/usr/src/musl-1.2.3/lib
 ATINCLUDE=/usr/src/musl-1.2.3/include
 ATINCLUDE3=/usr/src/musl-1.2.3/arch/arm
@@ -969,8 +872,6 @@ ATINCLUDE4=/usr/src/musl-1.2.3/obj/include
 ATINCLUDE5=/usr/src/musl-1.2.3/arch/generic
 
 ATFLAGS= -mlittle-endian -marm  -mcpu=arm926ej-s -mthumb-interwork  -msoft-float -Uarm  -nostdinc -I$(ATINCLUDE) -I$(ATINCLUDE3) -I$(ATINCLUDE4) -I$(ATINCLUDE5) -I$(ATSYSINCLUDE)  -Wno-deprecated-declarations -Wno-conversion  -Wno-write-strings  -fno-access-control  -fno-nonansi-builtins -fno-elide-constructors -fno-enforce-eh-specs   -fno-rtti  -fno-weak -nostdinc++  -Wnoexcept   -fno-exceptions -Wno-format -fpermissive -DARM -DLINUX  -DSYSUNIX -DNOTINTEL -DAT_ARM -DFREEVER -DTELNET -DUSE_IPV6 -DV_FULL=1 -DUSE_FUTEX -DUSE_POOL -DWITHMD5 -DFIX_EXCEPT -DUSEVALIST -DVPN_LINUX -DTLSVPN
-
-#   -fno-implicit-templates -fno-implicit-inline-templates  -fno-for-scope-fnothrow-opt  -fno-pretty-templates
 
 
 ATOBJS0=to_linux.o srv0a.o srv_ssi.o srv_cgi.o req.o accept.o tools.o adminr.o restart.o proxy.o musers.o conf.o t2icfg.o stat.o icfgjs.o ftpd.o smptps.o smtpcl.o mailip.o dnsd.o tlsm.o gz.o dhcpd.o wmbx.o bvprintfv.o telnet.o md5.o msprintfchk.o fcgi.o vpn.o
@@ -1073,4 +974,4 @@ cleangen:
 
 cleanall: clean cleangen
 	rm -f o/httpd.exe o64/httpd.exe wo/http.exe http.exe wo/httpg.exe wo/shttps_mg.exe  wo/shttps_mgi.exe  wo/shttpsr_mg.exe  wo/shttpsr_mgi.exe wo/uninst.exe wo/libsecgnutls.dll o/libsec111.so o/libsecgnutls.so o64/httpd.exe o64/libsecgnutls.so o64/libsec111.so at/httpd.exe at/libsec111.so at/libsecgnutls.so
-	if [ -n $(TMPRAM) ] ; then rm -rf $(TMPRAM) ; fi
+	if [ "$(TMPRAM)" = "/dev/shm/shttps/o/" ] ; then rm -rf $(TMPRAM) ; fi

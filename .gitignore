@@ -10,6 +10,7 @@ arm
 fakelibs64
 fakelibs
 config.h.default
+httpd.cfg.default
 index.htm
 indexr.htm
 t2icfg.cpp

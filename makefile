@@ -1,5 +1,5 @@
 #
-# Copyright (C) 1999-2022 Maksim Feoktistov.
+# Copyright (C) 1999-2023 Maksim Feoktistov.
 #
 # This file is part of Small HTTP server project.
 # Author: Maksim Feoktistov
@@ -22,17 +22,24 @@
 #
 #
 
-CONFIG_BASE="/usr/local/"
-CONFIG_APPDIR="$(CONFIG_BASE)lib/smallsrv/"
-CONFIG_SHARE="$(CONFIG_BASE)share/smallsrv/"
-CONFIG_CONFIG="/etc/smallsrv/"
-CONFIG_LOG="/var/log/smallsrv/"
-CONFIG_DATA="/var"
-INSTALLFROM=o/
+CONFIG_BASE   ?= /usr/local/
+CONFIG_APPDIR ?= $(CONFIG_BASE)lib/smallsrv/
+CONFIG_SHARE  ?= $(CONFIG_BASE)share/smallsrv/
+CONFIG_CONFIG ?= /etc/smallsrv/
+CONFIG_LOG    ?= /var/log/smallsrv/
+CONFIG_DATA   ?= /var
+
+ICONFIG_BASE   := $(INSTALL_ROOT)$(CONFIG_BASE)
+ICONFIG_APPDIR := $(INSTALL_ROOT)$(CONFIG_APPDIR)
+ICONFIG_SHARE  := $(INSTALL_ROOT)$(CONFIG_SHARE)
+ICONFIG_CONFIG := $(INSTALL_ROOT)$(CONFIG_CONFIG)
+ICONFIG_LOG    := $(INSTALL_ROOT)$(CONFIG_LOG)
+
+INSTALLFROM ?= oo/
 
 G=  -g  -Os
 
-TMPRAM=/dev/shm/shttps/o/
+TMPRAM ?= /dev/shm/shttps/o/
 
 # OPT= -m32 -pipe -falign-loops=0 -falign-jumps=0 -falign-functions=0 -fno-enforce-eh-specs \
 # -fno-verbose-asm -fno-implicit-templates -mno-align-double \
@@ -679,14 +686,15 @@ ru/shs_lang.cfg : lS1_lf.cfg
 	./add_to_langcfg.pl lS1_lf.cfg $@
 
 
-install: all
-	mkdir -p $(CONFIG_APPDIR) $(CONFIG_SHARE) $(CONFIG_CONFIG) $(CONFIG_LOG)
-	for i in httpd.exe httpd_openssl httpd_gnutls libsecgnutls.so libsec111.so sndmsg ; do  if [ -e $$i ] ; cp $(INSTALLFROM)$$ii $(CONFIG_APPDIR) ; fi; done
-	if [ ! -e $(CONFIG_CONFIG)/httpd.cfg ] ; then if [ "/var" = "$(CONFIG_DATA)" -a "$(CONFIG_LOG)" = "/var/log/smallsrv/" ] ; cp httpd.cfg $(CONFIG_CONFIG) ; else perl -e ' while(<STDIN>){  s/\/var\/log\/smallsrv\/$$ARGV[0]/ || s/\/var/$$ARGV[1]/ ; print $_;  } ' $(CONFIG_LOG) $(CONFIG_DATA) < httpd.cfg > $(CONFIG_CONFIG)/httpd.cfg ;  fi
-	for i in vpn_if_client_down.sh vpn_if_client_up.sh vpn_if_up.sh ; do if [ ! -e $(CONFIG_CONFIG)/$$ii ] ; then cp script_examples/$$ii $(CONFIG_CONFIG) ; fi ; done
-	for i in httpd.exe httpd.exopenssl httpd.exgnutls sndmsg ; do  if [ -e $$i ] ; ln -sf $(CONFIG_APPDIR)/$$i $(CONFIG_BASE)/bin/ ; done
-	for i in ru en ; do mkdir -p $(CONFIG_SHARE)/$$i ; cp $$i/shs_lang.cfg $(CONFIG_SHARE)/$$i/ ; done
-	for i in license.ssl notes.ssl license06.txt notes.ssl ; descu.htm ; do cp $$i $(CONFIG_SHARE) ; done
+BINFILES := httpd.exe httpd.exopenssl httpd.exgnutls sndmsg
+
+install: # all
+	mkdir -p $(ICONFIG_APPDIR) $(ICONFIG_SHARE) $(ICONFIG_CONFIG) $(ICONFIG_LOG)
+	for i in $(BINFILES) libsecgnutls.so libsec111.so ; do  if [ -e $(INSTALLFROM)$$i ] ; then cp $(INSTALLFROM)$$i $(ICONFIG_APPDIR) ; fi; done
+	for i in httpd.cfg script_examples/*.sh ; do [ -e $(ICONFIG_CONFIG)/$$i ] || cp $$i $(ICONFIG_CONFIG) ; done
+	mkdir -p $(ICONFIG_BASE)/bin ; for i in $(BINFILES) ; do  if [ -e $(ICONFIG_APPDIR)/$$i ] ; then  ln -sf $(CONFIG_APPDIR)/$$i $(ICONFIG_BASE)/bin/ ; fi ; done
+	for i in ru en ; do mkdir -p $(ICONFIG_SHARE)/$$i ; cp $$i/shs_lang.cfg $(ICONFIG_SHARE)/$$i/ ; done
+	for i in license.ssl notes.ssl license06.txt notes.ssl descu.htm ; do cp $$i $(ICONFIG_SHARE) ; done
 
 
 DISTFILES=vpn_if_client_down.sh vpn_if_client_up.sh vpn_if_up.sh descu.htm httpd.cfg lang_notes.txt libsec111.so license.ssl notes.ssl libsecgnutls.so  license06.txt langpacks/ru langpacks/ru/shs_lang.cfg langpacks/en langpacks/en/shs_lang.cfg sndmsg
@@ -1116,4 +1124,4 @@ cleangen:
 
 cleanall: clean cleangen
 	rm -f o/httpd.exe o64/httpd.exe wo/http.exe http.exe wo/httpg.exe wo/shttps_mg.exe  wo/shttps_mgi.exe  wo/shttpsr_mg.exe  wo/shttpsr_mgi.exe wo/uninst.exe wo/libsecgnutls.dll o/libsec111.so o/libsecgnutls.so o64/httpd.exe o64/libsecgnutls.so o64/libsec111.so at/httpd.exe at/libsec111.so at/libsecgnutls.so
-	if [ -n $(TMPRAM) ] ; then rm -rf $(TMPRAM) ; fi
+	if [ "$(TMPRAM)" = "/dev/shm/shttps/o/" ] ; then rm -rf $(TMPRAM) ; fi

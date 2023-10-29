@@ -24,13 +24,13 @@
   For OpenSSL 1.1.1 required openssl-1.1.1-dev  
 
   
-  Now you need to run the `./Configure` script with the required parameters. You can disable some features. For example, to exclude the TLS VPN server, use the --withoutvpn switch.  
+  Now you need to run the `./configure` script with the required parameters. You can disable some features. For example, to exclude the TLS VPN server, use the --withoutvpn switch.  
   If you plan to install the program, pay attention to the CONFIG_BASE variable. The default value is "/usr/local/", the program will be installed in /usr/local/lib/smallsrv/ and links will be created in /usr/local/bin/.  
-  Use `./Configure --help` for all options.  
+  Use `./configure --help` for all options.  
   
   32-bit:  
   ```
-  ./Configure --target=i32  --withoutfakelibs
+  ./configure --target=i32  --withoutfakelibs
   make
   make o/libsec111.so
   make o/libsecgnutls.so
@@ -48,7 +48,7 @@
   
   64-bit:
   ```
-  ./Configure --target=i64  --withoutfakelibs
+  ./configure --target=i64  --withoutfakelibs
   make
   make o64/libsec111.so
   make o64/libsecgnutls.so
@@ -70,24 +70,46 @@
 
  If you just run  
  ```
-  ./Configure
+  ./configure
  ```
- without any keys, it tries to create a Makefile for all available targets.  
-
+ without any keys, it will try to detect the current architecture and create a Makefile for it or, if detection fails, for all available targets.  
  If you plan to copy the binary executable to another PC with a different Linux, use the --withfakelibs key.  
 
 
-  Build Linux version for ARM CPU:
-  --------------------------------
+  Cross build Linux version for ARM CPU with specifed libs:
+  ----------------------------------------------------------
 
   ```
-  ./Configure --target=arm  --armgcc="arm-linux-gnueabi-gcc"  \
+  ./configure --target=arm  --armgcc="arm-linux-gnueabi-gcc"  \
               --arminclude="/usr/src/crossarm/include" \
               --armlib="/usr/src/crossarm/lib"
   make
   ```
-  Direct your pathes instead /usr/src/crossarm/...
+  Direct your pathes instead /usr/src/crossarm/...  
 
+
+  Cross build Linux version for ARM64 CPU:
+  ----------------------------------------
+
+  ```
+  ./configure --target=arm64"
+  make
+  ```
+
+  Cross build Linux version for architecture that not defined in Makefile:
+  ------------------------------------------------------------------------
+
+  You can try to build the program for any system that not defined before.
+  This script and Makefile understands the ARCH, CROSS_COMPILE, INSTALL_ROOT environment variables.  
+
+  ```
+  export INSTALL_ROOT=/dev/shm/arm64_root/
+  export ARCH=arm64
+  export CROSS_COMPILE=aarch64-linux-gnu-
+  ./configure
+  make
+  make install
+  ```
 
   Build Windows version under Linux:
   ----------------------------------
@@ -105,7 +127,7 @@
 
   Run the commands:
   ```
-  ./Configure --target=win \
+  ./configure --target=win \
               --winsslinclude="/usr/src/openssl/include" --winssllib="/usr/src/openssl/lib" \
               --wingnutlsinclude="/usr/src/gnutls/include" --wingnutlslib="/usr/src/gnutls/lib"
   make
@@ -124,7 +146,7 @@
  Required MinGW and Perl for Windows
 
   ```
-  ./Configure    --wingcc="c:\\MINGW\\bin\\gcc.exe" \
+  ./configure    --wingcc="c:\\MINGW\\bin\\gcc.exe" \
                  --windir="c:\\MINGW" \
                  --target=win \
                  --winsslinclude="c:\\openssl\\include"  --winssllib="c:\\openssl\\lib" \
@@ -133,13 +155,13 @@
   make wo/libsec111.dll
   make wo/libsecgnutls.dll
   ```
- Direct your pathes instead c:\\...
+ Direct your pathes instead c:\\...  
 
  Build Windows version with DJGPP GCC/G++
  ----------------------------------------
 
  It is tested and optimised for DJGPP 2.95 only. Also required Windows libraries that can be generated withhelp [Utilites](https://smallsrv.com/mkpe/)  
- If your DJGGP ready to build Windows PE you may just use makefile.dj.  Fix the pathes in this file and then run:
+ If your DJGGP ready to build Windows PE you may just use makefile.dj.  Fix the pathes in this file and then run:  
  ```
  make -f makefile.dj
  ```
@@ -147,4 +169,6 @@
  ```
  c1.bat
  ```
- This DGPP build will be using precompiled binary make_pe.exe, bin2c.exe, copyres.exe. Sources of them present here, you may rebuild it yourself.
+ This DGPP build will be using precompiled binary make_pe.exe, bin2c.exe, copyres.exe. Sources of them present here, you may rebuild it yourself.  
+ 
+ 

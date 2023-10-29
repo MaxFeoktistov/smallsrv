@@ -139,7 +139,7 @@
        }
 
        printf '
-  This script and Makefile also understands the ARCH and CROSS_COMPILE environment variables. An example other way to build commands for Arm64:
+  This script and Makefile also understands the ARCH, CROSS_COMPILE, INSTALL_ROOT environment variables. An example other way to build commands for Arm64:
 export ARCH=arm64
 export CROSS_COMPILE=aarch64-linux-gnu-
 %s
@@ -614,7 +614,7 @@ N_DEP := $(N_FAKELIBS)
 
     foreach $x ( keys %var )
     {
-      s/^[ \t]*$x=.*/$x=$var{$x}/;
+      s/^[ \t]*$x[ ]*\?=.*/$x ?= $var{$x}/;
     }
 
     print OFILE $_;
@@ -673,6 +673,29 @@ N_DEP := $(N_FAKELIBS)
 #endif
 ';
   close OFILE;
+
+  if( $var{'CONFIG_DATA'} ne '/var' || $var{'CONFIG_LOG'} ne '/var/log/smallsrv/' )
+  {
+     if( ! stat('httpd.conf.default') )
+     {
+       rename('httpd.conf', 'httpd.conf.default');
+     }
+     if(! open FILE, "<httpd.conf.default" )
+     {
+
+       if(! open OFILE, ">httpd.conf.default" )
+       {
+         while(<FILE>)
+         {
+           s/var\/log\/smallsrv/$var{'CONFIG_LOG'}/ ||
+           s/\/var/$var{'CONFIG_DATA'}/ ;
+           print $_;
+         }
+         close OFILE;
+       }
+       close FILE;
+     }
+  }
 
   print "Done
   Target:        $all
