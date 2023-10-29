@@ -111,15 +111,15 @@
    --armgcc="arm-linux-gnueabi-gcc"  -- direct compiler for arm
    --arminclude="/usr/src/crossarm/include"
    --armlib="/usr/src/crossarm/lib"
-   --withoutIPv6    --  IPv4 only
-   --withoutFUTEX    -- do not use futex (Linux specifed feature)
-   --withoutPOOL    -- use select instead pool
-   --withoutMD5    -- without MD5
-   --withoutvpn    -- without VPN
-   --withouTelnet  -- without Telnet
-   --commonLog    -- without separate log
+   --withoutIPv6        -- IPv4 only
+   --withoutFUTEX       -- do not use futex (Linux specifed feature)
+   --withoutPOOL        -- use select instead pool
+   --withoutMD5         -- without MD5
+   --withoutVPN         -- without VPN
+   --withoutTelnet      -- without Telnet (Telnet for ARM and other little platforms)
+   --commonLog          -- without separate log
    --withoutfakelibs    -- without fakelibs  (with fakelibs the program can run in another Linux systems)
-   --withfakelibs    -- with fakelibs  (with fakelibs the program can run in another Linux systems)
+   --withfakelibs       -- with fakelibs  (with fakelibs the program can run in another Linux systems)
    <VAR>=<value>
 
    VARS:
@@ -399,7 +399,7 @@ make
 
  }
 
- $mf .= "INSTALLFROM=$INSTALLFROM/\n";
+ $mf .= "INSTALLFROM ?= $INSTALLFROM/\n";
 
  $i32gnutls30 = 0;
  $i64gnutls30 = 0;
@@ -544,7 +544,7 @@ N_DEP := $(N_FAKELIBS)
     {
       s/-DWITHMD5//g;
     }
-    if($without{'vpn'})
+    if($without{'VPN'})
     {
       s/-DVPN[A-Z_]+//g;
       s/-DTLSVPN//g;
@@ -647,7 +647,7 @@ N_DEP := $(N_FAKELIBS)
 #define CONFIG_TMP    ""
 
 #elif ! defined(SYSUNIX)
-// Windows definetion
+// Windows definitions
 
 #define CONFIG_BASE   "%s"
 #define CONFIG_APPDIR CONFIG_BASE
@@ -697,10 +697,18 @@ N_DEP := $(N_FAKELIBS)
      }
   }
 
-  print "Done
+  print "
+  Done
   Target:        $all
-  INSTALLFROM:   $INSTALLFROM
-  ";
+  Install from:  $INSTALLFROM\n";
+
+  my @opt_key = ( $help =~ /without([^ \t\n]+)/gm );
+  foreach $_ (@opt_key) {
+    printf  "  %-14s %s\n", "$_:", $without{$_}? 'disabled':'enabled';
+  }
+  foreach $_ (keys %var) {
+    printf  "  %-14s %s\n", "$_:", $var{$_};
+  }
 
 
 
@@ -710,8 +718,8 @@ sub chkmingw64
  my($sdir) ;
  if( stat("/usr/bin/$mingw-gcc")  || stat("/usr/local/bin/$mingw-gcc") )
  {
-    $mf .=  "WINEGPP=$mingw-gcc -m32 -DMINGW64\nWINEGCC=$mingw-gcc -m32 -DMINGW64\nWINEAS=$mingw-as\nWINERES=$mingw-windres\nMGDIR=/usr/$mingw\nWINLIB= -L\$(MGDIR)/lib\n";
-    $sdir = "/usr/lib/gcc/$mingw/";
+   $mf .=  "WINEGPP=$mingw-gcc -m32 -DMINGW64\nWINEGCC=$mingw-gcc -m32 -DMINGW64\nWINEAS=$mingw-as\nWINERES=$mingw-windres\nMGDIR=/usr/$mingw\nWINLIB= -L\$(MGDIR)/lib\n";
+   $sdir = "/usr/lib/gcc/$mingw/";
    if( !opendir(DIR, $sdir) )
    {
      print STDERR "Can't open $sdir\n";

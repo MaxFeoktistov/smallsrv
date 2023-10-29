@@ -207,6 +207,7 @@ OOBJS_TLS=$(COBJS) $(addprefix o/tls_,$(POBJS))
 OOBJS64_TLS=$(COBJS64) $(addprefix o64/tls_,$(AOBJS64))
 
 
+$(OOBJS) $(OOBJS64) $(WINOOBJS): $(GENERATED)
 
 #FLIBS=libc.so libdl.so libpthread.so libgnutls.so libssl.so
 FLIBS=libc.so libpthread.so libdl.so libgnutls.so libssl.so libcrypto.so libgnutls.so.30
@@ -1028,6 +1029,7 @@ ATOBJS0=to_linux.o srv0a.o srv_ssi.o srv_cgi.o req.o accept.o tools.o adminr.o r
 ATOBJS=$(addprefix at/,$(ATOBJS0))
 ATOBJS_TLS=$(addprefix at/tls_,$(ATOBJS0))
 
+ATOBJS: $(GENERATED)
 
 at/%.o : %.cpp
 	  $(ATGPP) -c $(S) $(ATFLAGS) -o $@  $<
@@ -1063,6 +1065,7 @@ N_OBJS0=to_linux.o srv0a.o srv_ssi.o srv_cgi.o req.o accept.o tools.o adminr.o r
 N_OBJS=$(addprefix oo/,$(N_OBJS0))
 N_OBJS_TLS=$(addprefix oo/tls_,$(N_OBJS0))
 
+N_OBJS: $(GENERATED)
 
 n_all: A_GCC=$(CROSS_COMPILE)gcc
 n_all: N_FLAGS = -mlittle-endian -Wno-deprecated-declarations -Wno-conversion  -Wno-write-strings  -fno-access-control  -fno-nonansi-builtins -fno-elide-constructors -fno-enforce-eh-specs   -fno-rtti  -fno-weak -nostdinc++  -Wnoexcept -fno-exceptions -Wno-format -fpermissive -DLINUX -DSYSUNIX -DNOTINTEL -DFREEVER -DTELNET -DUSE_IPV6 -DV_FULL=1 -DUSE_FUTEX -DUSE_POOL -DWITHMD5 -DFIX_EXCEPT -DUSEVALIST -DVPN_LINUX -DTLSVPN $(A_OPT) $(ADVOPT)
