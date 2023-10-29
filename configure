@@ -48,21 +48,21 @@
 
  %tdirs = (
    'i32' => 'o',
-   'i64' => 'o64/',
-   'arm' => 'at/',
-   'arm64' => 'at/',
-   'win' => 'wo/',
+   'i64' => 'o64',
+   'arm' => 'at',
+   'arm64' => 'at',
+   'win' => 'wo',
 
    'x86' => 'o',
    'i386' => 'o',
    'i686' => 'o',
-   'x86_64' => 'o64/',
-   'amd64' => 'o64/',
-   'arm' => 'at/',
-   'armv5te' => 'at/',
-   'arm64' => 'oo/',
-   'aarch64' => 'oo/',
-   'n_all' => 'oo/',
+   'x86_64' => 'o64',
+   'amd64' => 'o64',
+   'arm' => 'at',
+   'armv5te' => 'at',
+   'arm64' => 'oo',
+   'aarch64' => 'oo',
+   'n_all' => 'oo',
  );
 
  %ttargets = (
@@ -399,7 +399,7 @@ make
 
  }
 
- $mf .= "INSTALLFROM=$INSTALLFROM\n";
+ $mf .= "INSTALLFROM=$INSTALLFROM/\n";
 
  $i32gnutls30 = 0;
  $i64gnutls30 = 0;
@@ -664,7 +664,7 @@ N_DEP := $(N_FAKELIBS)
 
   foreach $x ( keys %var )
   {
-    print OFILE "#define $x $var{$x}\n";
+    print OFILE "#define $x \"$var{$x}\"\n";
   }
 
   print OFILE '

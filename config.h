@@ -25,12 +25,12 @@
 
 #else
 
-#define CONFIG_CONFIG /etc/smallsrv/
-#define CONFIG_APPDIR /usr/local/lib/smallsrv/
-#define CONFIG_DATA /var
-#define CONFIG_BASE /usr/local/
-#define CONFIG_LOG /var/log/smallsrv/
-#define CONFIG_SHARE /usr/local/share/smallsrv/
+#define CONFIG_SHARE "/usr/local/share/smallsrv/"
+#define CONFIG_APPDIR "/usr/local/lib/smallsrv/"
+#define CONFIG_CONFIG "/etc/smallsrv/"
+#define CONFIG_DATA "/var"
+#define CONFIG_LOG "/var/log/smallsrv/"
+#define CONFIG_BASE "/usr/local/"
 
 #endif
 

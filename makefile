@@ -269,10 +269,10 @@ arm: $(TMPRAM)at at/atobjdir at/httpd.exe at/libsec111.so at/libsecgnutls.so at/
 win: $(TMPRAM)wo wo/http.exe wo/httpg.exe bin2s wo/shttps_mg.exe wo/shttpsr_mg.exe wo/shttps_mgi.exe wo/shttpsr_mgi.exe wo/libsecgnutls.dll
 
 
-arm64: CROSS_COMPILE ::= aarch64-linux-gnu-
-arm64: A_OPT ::= -DA_64
-arm64: N_LFAKELIBS ::= -Loo/fakelibs
-arm64: N_LFLAGS ::= -mlittle-endian -Wl,-Bdynamic
+arm64: CROSS_COMPILE:=aarch64-linux-gnu-
+arm64: A_OPT:=-DA_64
+arm64: N_LFAKELIBS:=-Loo/fakelibs
+arm64: N_LFLAGS:=-mlittle-endian -Wl,-Bdynamic
 arm64: oo/fakelibs $(N_FAKELIBS)
 arm64: n_all
 
@@ -734,7 +734,7 @@ dist64: o64/dist/libsec111.so o64/dist/libsecgnutls.so o64/distu/libsec111.so o6
 	cd o64/distu/ ; strip httpd.exe ; chmod -R go-w,u+rw,a+X * ; chmod  0755 httpd.exe *.so  sndmsg ; chmod  0600 httpd.cfg ;  rm -f $(DIST_DIR)shttplnx64u.tgz ; tar --owner=root --group=root -czf $(DIST_DIR)shttplnx64u.tgz * ; chmod 0644 $(DIST_DIR)shttplnx64u.tgz
 
 
-arm64dist: CROSS_COMPILE ::= aarch64-linux-gnu-
+arm64dist: CROSS_COMPILE:=aarch64-linux-gnu-
 arm64dist: oo/dist $(addprefix oo/dist/,$(DISTFILES)) oo.prepare_dist
 	rm -f $(DIST_DIR)shttparm64lnx.tgz
 	cd oo/dist ; tar --owner=root --group=root -czf $(DIST_DIR)shttparm64lnx.tgz * ; chmod 0644 $(DIST_DIR)shttparm64lnx.tgz
