@@ -353,14 +353,14 @@ o64/of/httpd.exe: $(OOBJS64)
 
 
 o64/httpd.exopenssl: $(OOBJS64_TLS) o64/runssl111.o
-	$(GCC64)  $(G)  $^ -o $@  $(LOPT64) $(LIB64) $(LIBDIR64) -lssl $(LIBDIR64F) -lcrypto
+	$(GCC64)  $(G)  $^ -o $@  -Wl,--copy-dt-needed-entries $(LOPT64) $(LIB64) $(LIBDIR64) -lssl $(LIBDIR64F) -lcrypto
 
 o64/of/httpd.exopenssl: $(OOBJS64_TLS) o64/runssl111.o
 	$(GCC64)  $(G)  $^ -o $@  $(LOPT64) $(LIB64F) $(LIBDIR64F) -lssl $(LIBDIR64F) -lcrypto
 
 
 o64/httpd.exgnutls: $(OOBJS64_TLS) o64/rungnutls.o
-	$(GCC64)  $(G)  $^ -o $@  $(LOPT64) $(LIB64) $(LIBDIR64) -lgnutls
+	$(GCC64)  $(G)  $^ -o $@  -Wl,--copy-dt-needed-entries $(LOPT64) $(LIB64) $(LIBDIR64) -lgnutls
 
 o64/of/httpd.exgnutls: $(OOBJS64_TLS) o64/rungnutls.o
 	$(GCC64)  $(G)  $^ -o $@  $(LOPT64) $(LIB64F) $(LIBDIR64F) -l:libgnutls.so.30

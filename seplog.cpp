@@ -54,7 +54,7 @@ void TLog::LAddToLog(char *t,int s, TSOCKADDR *psa, const char *fmt,...)
  GetLocalTime(&stime);
 #ifdef USE_IPV6
  char addr6[64];
- IP2S(addr6,(sockaddr_in *)xsa);
+ IP2S(addr6,(sockaddr_in *)psa);
 #endif
  GetProt();
  if(FmtShortErr == fmt)
