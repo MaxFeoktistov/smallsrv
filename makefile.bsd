@@ -2,21 +2,22 @@
 
 OPT= -s -O2 -pipe -malign-loops=0 -malign-jumps=0 -malign-functions=0 \
 -fno-verbose-asm -fno-implicit-templates -mno-align-double \
--mno-fancy-math-387 -fwritable-strings -fconserve-space 
+-mno-fancy-math-387 -fwritable-strings -fconserve-space -DUSE_IPV6 -DUSE_POOL -DFREEVER  -DWITHMD5 -DFIX_EXCEPT -DVPN_LINUX -DTLSVPN
 
 
 #-nostdinc++
 
 
-#LOPT= -Xlinker -N  -Xlinker --unique   -Xlinker --gc-sections -Xlinker --unique -Xlinker -N 
-LOPT= -Xlinker -call_shared -Xlinker -x -Xlinker -X -Xlinker -Map -Xlinker flxmap 
+#LOPT= -Xlinker -N  -Xlinker --unique   -Xlinker --gc-sections -Xlinker --unique -Xlinker -N
+LOPT= -Xlinker -call_shared -Xlinker -x -Xlinker -X -Xlinker -Map -Xlinker flxmap
 # -Xlinker -Map -Xlinker flxmap -Xlinker -dy -Xlinker -s -Xlinker -S  -dynamic-linker  -shared
 
 LIB= -lc_r
 #-lpthread -lc
 # -dynamic-linker /lib/libc.so.6
 #OBJS=pkoulzl.o to_linux.o mstring1.o srv_cgi.o srv0a.o req.o adminr.o restart.o proxy.o conf.o icfgjs.o ftpd.o smptps.o smtpcl.o mailip.o icfg.o stat.o srv_ssi.o icfghtm.o musers.o srvdns.o
-OBJS=to_linux.o mstring1.o srv0a.o srv_ssi.o srv_cgi.o req.o accept.o adminr.o restart.o proxy.o musers.o conf.o icfg.o stat.o icfgjs.o reghtm.o ftpd.o smptps.o smtpcl.o mailip.o srvdns.o tlsm.o
+
+OBJS=to_linux.o srv0a.o srv_ssi.o srv_cgi.o req.o accept.o tools.o adminr.o restart.o proxy.o musers.o conf.o t2icfg.o stat.o icfgjs.o ftpd.o smptps.o smtpcl.o mailip.o dnsd.o tlsm.o gz.o dhcpd.o wmbx.o bvprintfv.o md5.o msprintfchk.o fcgi.o vpn.o
 
 
 .cpp.o:

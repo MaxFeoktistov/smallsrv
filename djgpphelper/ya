@@ -1,0 +1,24 @@
+-fpack-struct
+-m486
+-s
+-O2
+-malign-loops=0
+-malign-jumps=0
+-malign-functions=0
+-fno-verbose-asm
+-fno-implicit-templates
+-mno-svr3-shlib
+-mno-align-double
+-mno-fancy-math-387
+-static
+-fsjlj-exceptions
+-Zpe
+-ID:\DJGPP\INCLUDE\WIN32
+-Xlinker -Map -Xlinker flxmap
+-nostartfiles
+-nodefaultlibs
+-fconserve-space -DONEFILE -DSERVICE -DFREE_VER -DV_FULL=1 -DUSE_IPV6
+-mrtd
+ndp.o upl.o srv0a.o
+-luser -lkern -lsock -lgdi -lshell -lcdlg -lwadv
+

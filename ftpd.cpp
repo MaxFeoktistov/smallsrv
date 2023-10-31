@@ -592,7 +592,7 @@ union{
       Send(rcode,rcodeLen)
       <0)
    { dbg("Can\'t send.."); goto ex1;};
-   if(s_flg&FL_FULLLOG)AddToLog(rcode,s,FmtShrt);
+   if(s_flg&FL_FULLLOG)AddToLog(rcode,s,&sa_c46 ,FmtShrt);
   }
 #undef SendCMD
 #undef SendConstCMD
@@ -616,7 +616,7 @@ union{
      )
      {
        Send("234 Init TLS\r\n",sizeof("234 Init TLS\r\n")-1 );
-       if(s_flg&FL_FULLLOG)AddToLog("234 Init TLS\r\n",s,FmtShrt);
+       if(s_flg&FL_FULLLOG)AddToLog("234 Init TLS\r\n",s,&sa_c46,FmtShrt);
        if(TLSBegin(&m_con))
        {
          sec_state|=3;
@@ -816,7 +816,7 @@ lbPRX2:
      //shutdown(w,2); closesocket(w);
      CloseSocket(w);
      sprintf(bb,"FTP: proxy\tfor %s %d %d\r\n",puser->name,Tin,Tout);
-     AddToLog(bb,s);
+     AddToLog(bb,s,&sa_c46);
 
      goto ex1;
     }
@@ -833,7 +833,7 @@ lbPRX2:
     ])=0;
 //    if(cpath[pth.BSrcDirLen-1]==FSLUSH )cpath[--pth.BSrcDirLen]=0;
     sprintf(bb,"FTP: login in %.20s;%.127s\r\n",puser->name,((FL1_DELPAS&s_flgs[1]) && puser->pasw()[0])?"":bfr+5);
-    AddToLog(bb,s);
+    AddToLog(bb,s,&sa_c46);
 #ifdef SYSUNIX
     if( (upwd=getpwnam(uname=puser->name)) || (upwd=getpwnam(uname="ftp")) )
     {// gid=getgid(); uid=getuid();
@@ -1222,7 +1222,7 @@ lbCONECT:
          Send("150 Ok\r\n",sizeof("150 Ok\r\n")-1)
         ) < 0)
     { dbg("Can\'t send..");goto ex1;  };
-    if(s_flg&FL_FULLLOG)AddToLog("150 Ok\r\n",s,FmtShrt);
+    if(s_flg&FL_FULLLOG)AddToLog("150 Ok\r\n",s,&sa_c46,FmtShrt);
 
 
        xchg(s,s2);
@@ -1296,7 +1296,7 @@ lbCONECT:
        */
 
        sprintf(t,"FTP: download %.255s\tfor %s %d\r\n",bb,puser->name,x);
-       AddToLog(t,s2);
+       AddToLog(t,s2,0);
        if(lip && lnet)
        { x=(x+1023)>>10;
          lip->cnt+=x;
@@ -1369,7 +1369,7 @@ lbCONECT:
        */
 
        sprintf(t,"FTP: upload %.255s\tfrom %s %u\r\n",bb,puser->name,x);
-       AddToLog(t,s2);
+       AddToLog(t,s2,0);
        if(lipo && lneto)
        { x=(x+1023)>>10;
          lipo->cnt+=x;

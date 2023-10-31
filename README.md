@@ -73,7 +73,16 @@
   ./configure
  ```
  without any keys, it will try to detect the current architecture and create a Makefile for it or, if detection fails, for all available targets.  
+   
  If you plan to copy the binary executable to another PC with a different Linux, use the --withfakelibs key.  
+ Fake libraries are very useful for distributing binaries that will run on any Linux, but on some systems the `dlopen` function does not work with executables that are built with it. This function is required to load the library specified in the configuration. `httpd.exopenssl` and `httpd.exgnutls` were created for this case.
+ 
+ Even if you are configure a Makefile without fake libraries, you can build them with:
+ ```
+ make i32f
+ make i64f
+ ```
+ Binaries without dynamic object versions will be in `o/of/`  or `o64/of`  
 
 
   Cross build Linux version for ARM CPU with specifed libs:

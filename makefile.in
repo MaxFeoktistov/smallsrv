@@ -145,13 +145,13 @@ OOBJS64_TLS=$(COBJS64) $(addprefix o64/tls_,$(AOBJS64))
 
 
 #FLIBS=libc.so libdl.so libpthread.so libgnutls.so libssl.so
-FLIBS=libc.so libpthread.so libdl.so libgnutls.so libssl.so libcrypto.so libgnutls.so.30
-FAKELIBS=$(addprefix fakelibs/,$(FLIBS))
-FAKELIBS64=$(addprefix fakelibs64/,$(FLIBS))
+FLIBS ?= libc.so libpthread.so libdl.so libgnutls.so libssl.so libcrypto.so libgnutls.so.30
+FAKELIBS ?= $(addprefix fakelibs/,$(FLIBS))
+FAKELIBS64 ?= $(addprefix fakelibs64/,$(FLIBS))
 
-FLIBSARM= libgnutls.so libssl.so libcrypto.so libgnutls.so.30
-FAKELIBSARM=$(addprefix fakelibsarm/,$(FLIBSARM))
-N_FAKELIBS=$(addprefix oo/fakelibs/,$(FLIBSARM))
+FLIBSARM ?= libgnutls.so libssl.so libcrypto.so libgnutls.so.30
+FAKELIBSARM ?= $(addprefix fakelibsarm/,$(FLIBSARM))
+N_FAKELIBS ?= $(addprefix oo/fakelibs/,$(FLIBSARM))
 
 
 
@@ -328,14 +328,14 @@ o/of/httpd.exe: $(OOBJS)
 
 
 o/httpd.exopenssl: $(OOBJS_TLS) o/runssl111.o
-	$(GCC)  $(G)  $^ -o $@  $(LOPT) $(LIB) $(LIBDIR32) -lssl -lcrypto
+	$(GCC)  $(G)  $^ -o $@ -Wl,--copy-dt-needed-entries $(LOPT) $(LIB) $(LIBDIR32) -lssl -lcrypto
 
 o/of/httpd.exopenssl: $(OOBJS_TLS) o/runssl111.o
 	$(GCC)  $(G)  $^ -o $@  $(LOPT) $(LIBF) $(LIBDIR32F) -lssl  $(LIBDIR32F) -lcrypto
 
 
 o/httpd.exgnutls: $(OOBJS_TLS) o/rungnutls.o
-	$(GCC)  $(G)  $^ -o $@  $(LOPT) $(LIB) $(LIBDIR32) -lgnutls
+	$(GCC)  $(G)  $^ -o $@ -Wl,--copy-dt-needed-entries $(LOPT) $(LIB) $(LIBDIR32) -lgnutls
 
 o/of/httpd.exgnutls: $(OOBJS_TLS) o/rungnutls.o
 	$(GCC)  $(G)  $^ -o $@  $(LOPT) $(LIBF)  $(LIBDIR32F) -l:libgnutls.so.30
@@ -593,8 +593,6 @@ ru/shs_lang.cfg : lS1_lf.cfg
 	./add_to_langcfg.pl lS1_lf.cfg $@
 
 
-BINFILES := httpd.exe httpd.exopenssl httpd.exgnutls sndmsg
-
 install: # all
 	mkdir -p $(ICONFIG_APPDIR) $(ICONFIG_SHARE) $(ICONFIG_CONFIG) $(ICONFIG_LOG)
 	for i in $(BINFILES) libsecgnutls.so libsec111.so ; do  if [ -e $(INSTALLFROM)$$i ] ; then cp $(INSTALLFROM)$$i $(ICONFIG_APPDIR) ; fi; done
@@ -798,7 +796,7 @@ o/srv_ssi.o o64/srv_ssi.o wo/srv_ssi.o r/srv_ssi.o lpc/srv_ssi.o at/srv_ssi.o : 
 
 
 
-NIOBJS=to_linux.o srv0a.o srv_ssi.o srv_cgi.o req.o accept.o tools.o adminr.o restart.o proxy.o musers.o conf.o icfg.o stat.o icfgjs.o reghtm.o ftpd.o smptps.o smtpcl.o mailip.o dnsd.o tlsm.o gz.o dhcpd.o wmbx.o bvprintf.o msprintfchk.o
+NIOBJS=to_linux.o srv0a.o srv_ssi.o srv_cgi.o req.o accept.o tools.o adminr.o restart.o proxy.o musers.o conf.o icfg.o stat.o icfgjs.o ftpd.o smptps.o smtpcl.o mailip.o dnsd.o tlsm.o gz.o dhcpd.o wmbx.o bvprintf.o msprintfchk.o
 
 MIPSDIR=/opt/brcm/hndtools-mipsel-linux-3.2.3
 MIPSPATH=$(MIPSDIR)/bin:$(PATH)

@@ -2,7 +2,7 @@
  * Copyright (C) 1999-2020 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
- * Author: Maksim Feoktistov 
+ * Author: Maksim Feoktistov
  *
  *
  * Small HTTP server is free software: you can redistribute it and/or modify it
@@ -15,11 +15,11 @@
  * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see https://www.gnu.org/licenses/ 
+ * along with this program.  If not, see https://www.gnu.org/licenses/
  *
  * Contact addresses for Email:  support@smallsrv.com
  *
- * 
+ *
  */
 
 
@@ -58,7 +58,7 @@ extern "C" {
 #endif
 //char   TskStat[30];
 #define xdbg(ttt)
-#define zdbg(ttt) {AddToLog(ttt,e->sock);};
+#define zdbg(ttt) {AddToLog(ttt,e->sock,0);};
 #define send(a,b,c,d) a->SendChk(b,c)
 #define recv(a,b,c,d) a->Recv(b,c)
 
@@ -328,7 +328,7 @@ int Req::ExecDllEx(char *fnm)
   if(! (fn= (PFN_HTTPEXTENSIONPROC)GetProcAddress(hf,"HttpExtensionProc"))){ FreeLibrary(hf); dbg("Function not found..."); goto err;};
 #ifdef SYSUNIX
   if( setjmp( jmp_env ) ) goto lbErr;
-#else  
+#else
 stry.BegTry( &&lbErr);
 #endif
   if(

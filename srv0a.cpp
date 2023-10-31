@@ -174,21 +174,21 @@ void Req::OutErr(char *er)
  uint k=flsrv[1] & MAX_SERV_MASK;
  if(k>=N_LOG)k=0;
  sprintf(buf1,"Error: %.160s\r\n",er);
- sepLog[k]->LAddToLog(buf1,s);
+ sepLog[k]->LAddToLog(buf1,s,&sa_c46);
 }
 
 void dbgf(char *er,int s)
 {char buf1[200];
  TLog *t=GetLogS(s);
  sprintf(buf1,"Error: %s\r\n",er);
- t->LAddToLog(buf1,s);
+ t->LAddToLog(buf1,s,0);
 }
 
 #else
 void dbgf(char *er,int s)
 {char buf1[200];
  sprintf(buf1,"Error: %s\r\n",er);
- AddToLog(buf1,s);
+ AddToLog(buf1,s,0);
 }
 #endif
 const char FmtBasicC[]=">Keep-Alive\r\n%.4000s";

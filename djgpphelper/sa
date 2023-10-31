@@ -1,0 +1,23 @@
+-fpack-struct
+-m486
+-s
+-O2
+-malign-loops=0
+-malign-jumps=0
+-malign-functions=0
+-fno-verbose-asm
+-fno-implicit-templates
+-mno-svr3-shlib
+-mno-align-double
+-mno-fancy-math-387
+-static
+-fsjlj-exceptions
+-Zpe
+-Xlinker -Map -Xlinker flxmaps
+-nostartfiles
+-fconserve-space
+-ID:\DJGPP\INCLUDE\WIN32
+-DSERVICE
+-mrtd
+ndp.o upl.o stpdta.o sethttp3.o
+-luser -lkern -lgdi -lshell -lcdlg -lwadv

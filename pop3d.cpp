@@ -2,7 +2,7 @@
  * Copyright (C) 1999-2023 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
- * Author: Maksim Feoktistov 
+ * Author: Maksim Feoktistov
  *
  *
  * Small HTTP server is free software: you can redistribute it and/or modify it
@@ -15,11 +15,11 @@
  * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see https://www.gnu.org/licenses/ 
+ * along with this program.  If not, see https://www.gnu.org/licenses/
  *
  * Contact addresses for Email:  support@smallsrv.com
  *
- * 
+ *
  */
 
 #ifdef SEPLOG
@@ -59,21 +59,21 @@ int Req::POPReq()
 #ifdef WITHMD5
  struct timeval tpwd;
     if(  ! (s_flgs[1]&FL1_CRYPTPWD) )
-    {    
+    {
           gettimeofday(&tpwd,0);
           rcodeLen=sprintf(rcode=bfr,"+OK POP3 server ready <%u.%u@%.64s>\r\n",tpwd.tv_sec,tpwd.tv_usec,smtp_name?smtp_name:"shs");
     }
     else
-#endif 
+#endif
    { SendConstCMD( "+OK POP3 server ready\r\n"); }
  timout=POPTimeout;
-//  debug("!POP:%s\n",rcode) ;    
+//  debug("!POP:%s\n",rcode) ;
 
  do{
-//  debug("POP:%s\n",rcode) ;    
+//  debug("POP:%s\n",rcode) ;
   if(Send(rcode,rcodeLen)<0)
   {dbg("Can\'t send..");goto ex1;};
-  if(s_flg&FL_FULLLOG)AddToLog(rcode,s,FmtShrt);
+  if(s_flg&FL_FULLLOG)AddToLog(rcode,s,&sa_c46,FmtShrt);
   if(cmd==0x74697571)break;
  lcnt:
   if((cmd=RGetCMD(bfr))<0) goto ex1;
@@ -81,14 +81,14 @@ int Req::POPReq()
       && cmd!=0x61706163 x4CHAR("capa")
       && cmd!=0x73736170 x4CHAR("pass")
 #ifdef WITHMD5
-      && cmd!=0x706F7061 x4CHAR("apop")  
-#endif      
+      && cmd!=0x706F7061 x4CHAR("apop")
+#endif
       && cmd!=0x736C7473 x4CHAR("stls"))goto lerr;
   tt=SkipSpace(bfr+4);
   switch(cmd)
   {
    case 0x61706163 x4CHAR("capa"):
-/*       
+/*
     if(s_aflg&AFL_TLS)
     {
       SendConstCMD( "+OK\r\nUSER\r\nUIDL\r\nLIST\r\nSTLS\r\nTOP\r\n.\r\n");
@@ -104,30 +104,30 @@ int Req::POPReq()
       rcodeLen+=sprintf(rcode+rcodeLen,"STLS\r\n");
 #ifdef WITHMD5
    if(  ! (s_flgs[1]&FL1_CRYPTPWD) )
-   {    
+   {
       rcodeLen+=sprintf(rcode+rcodeLen,"APOP\r\n");
    }
-      
-#endif      
+
+#endif
    rcodeLen+=sprintf(rcode+rcodeLen,".\r\n");
 
    break;
 #ifdef WITHMD5
    case 0x706F7061 x4CHAR("apop") :
     if(  ! (s_flgs[1]&FL1_CRYPTPWD) )
-    {    
+    {
        t=strpbrk(tt," \t");
-       if(!t)    goto lerr;      
-       *t++=0;    
+       if(!t)    goto lerr;
+       *t++=0;
        if(!CheckBadName(tt))goto lerr;
        t=SkipSpace(t);
        postsize=sprintf(pst=pth,"<%u.%u@%.128s>",tpwd.tv_sec,tpwd.tv_usec,smtp_name);
-       
+
        if((puser=FindUser(tt,UserPOP3|FindUserMD5digest,t,this))) goto lbAuthOk;
-        
+
     }
-    goto lerr;      
-#endif      
+    goto lerr;
+#endif
    case 0x736C7473 x4CHAR("stls"):
     if(s_aflg&AFL_TLS)
     {Send("+OK\r\n",sizeof("+OK\r\n")-1);
@@ -160,7 +160,7 @@ int Req::POPReq()
     }
     if((puser=FindUser(pth,UserPOP3,tt,this)))
     {
-   lbAuthOk:     
+   lbAuthOk:
      status|=1;
      if(IsInIPRange(smtp_range)<=0) //,htonl(sa_c.sin_addr. S_ADDR)))) //saddr[ntsk]))))
      {POP3usr[iPOP3usr]=AddrHash(&sa_c); //sa_c.sin_addr. S_ADDR; //saddr[ntsk];
@@ -175,7 +175,7 @@ int Req::POPReq()
       //closesocket(h);
       CloseSocket(h);
       sprintf((char *)pn,"Proxy in:%u out:%u %s\r\n",Tin,Tout,puser->name);
-      AddToLog((char *)pn,s,FmtShort);
+      AddToLog((char *)pn,s,&sa_c46,FmtShort);
       goto ex1;
      }
       bfr[0]=0;
@@ -200,7 +200,7 @@ int Req::POPReq()
      if(mboxCount<0x2000)bb=(char *) (pn+mboxCount+2);
      else bb=new char[0x8100];
      sprintf(bb,"POP: login in %.20s;%.64s\r\n",puser->name,pth);
-     AddToLog(bb,s);
+     AddToLog(bb,s,&sa_c46);
    case 0x74617473 x4CHAR("stat")://19:
      rcodeLen=sprintf(rcode=bb,"+OK %u %u\r\n",mboxCount,mboxLen);
    }
@@ -265,7 +265,7 @@ int Req::POPReq()
      rcodeLen+=3;
     }
     if(Send(bb,rcodeLen)<=0)goto ex1;
-    if(l){bb[l]=0; l=0; AddToLog(bb,s,FmtShrt);}
+    if(l){bb[l]=0; l=0; AddToLog(bb,s,&sa_c46,FmtShrt);}
     rcodeLen=0;
    }while(i==0x8000);
    _lclose(h);

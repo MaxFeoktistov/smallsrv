@@ -911,7 +911,7 @@ void print_pkt(int index, uchar *pktl)
 void CloseVPNClient(int i)
 {
 
-  AddToLog(0, vpn_list[i]->s, FmtShortVPN,"Connection closed.", vpn_list[i]->Tin, vpn_list[i]->Tout, (GetTickCount() - vpn_list[i]->tmout)/1000 );
+  AddToLog(0, vpn_list[i]->s, & vpn_list[i]->sa_c46, FmtShortVPN,"Connection closed.", vpn_list[i]->Tin, vpn_list[i]->Tout, (GetTickCount() - vpn_list[i]->tmout)/1000 );
 
   maxVPNset.Clear(vpn_list[i]->s);
   SecClose((OpenSSLConnection*) vpn_list[i]->Adv);
@@ -2012,7 +2012,7 @@ ulong WINAPI VPNClient(void *)
             if(vpn.RecvPkt()<0)
             {
             err_s:
-              AddToLog(0, vpn.s, FmtShortVPN,"VPN client: connection closed. ", vpn.Tin, vpn.Tout, (GetTickCount() - vpn.tmout)/1000 );
+              AddToLog(0, vpn.s,&vpn.sa_c46, FmtShortVPN,"VPN client: connection closed. ", vpn.Tin, vpn.Tout, (GetTickCount() - vpn.tmout)/1000 );
               SecClose(&vpn.tls);
               CloseSocket(vpn.s);
               RunDownScript(vpn.tun_index, vpn.ipv4);

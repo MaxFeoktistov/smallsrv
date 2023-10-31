@@ -131,15 +131,27 @@ typedef unsigned int arh_ulong;
 #define ARH_ONE   1
 #endif
 
+
+#ifdef USE_IPV6
+#define  TSOCKADDR  sockaddr_in6
+#else
+#define  TSOCKADDR  sockaddr_in
+#endif
+
 struct Req
 {int s;
  tfSnd Snd;
  tfRcv Rcv;
  void *Adv;
  #ifdef USE_IPV6
- union{sockaddr_in6 sa_c6; sockaddr_in sa_c;};
+ union{
+    sockaddr_in6 sa_c6;
+    sockaddr_in sa_c;
+    TSOCKADDR sa_c46;
+ };
  #else
  struct sockaddr_in sa_c;
+ #define sa_c46 sa_c;
  #endif
  ulong tmout;
  time_t  KeepAliveExpired;
@@ -517,7 +529,7 @@ struct xsrv
 
 extern const char FmtBasic[],FmtBasicC[],FmtShort[],FmtShortErr[],FmtShortR[],FmtShrt[],FmtShrtR[];
 int InitSecDLL();
-void AddToLog(char *t,int s,const char *fmt=FmtBasic,...);
+void AddToLog(char *t,int s,TSOCKADDR * psa,const char *fmt=FmtBasic,...);
 int PrepCfg(char *fname);
 void InitParam(char *cln);
 typedef ulong WINAPI (*TskSrv)(void *);
@@ -915,12 +927,6 @@ void LoadDomainM();
 void CloseSocket(int);
 char* OutLL(long x0, long x1,char *t);
 
-#ifdef USE_IPV6
-#define  TSOCKADDR  sockaddr_in6
-#else
-#define  TSOCKADDR  sockaddr_in
-#endif
-
 
 void AddToLogDNS(const char *t,int n,TSOCKADDR *sa,char *ad="");
 int FNCATRIBUTE LZZUnpk(uchar *t,uchar *s0);
@@ -1028,7 +1034,7 @@ struct TLog
 
   void RelProt(SYSTEMTIME *stime);
   void RelProt();
-  void LAddToLog(char *t,int s,const char *fmt=FmtBasic,...);
+  void LAddToLog(char *t,int s, TSOCKADDR *psa, const char *fmt=FmtBasic,...);
   void LAddToLogDNS(const char *t,int n,TSOCKADDR  *sa,char *ad="");
   void MkFileName(char *t,int n);
   void Init(int n);

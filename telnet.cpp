@@ -2,7 +2,7 @@
  * Copyright (C) 1999-2021 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
- * Author: Maksim Feoktistov 
+ * Author: Maksim Feoktistov
  *
  *
  * Small HTTP server is free software: you can redistribute it and/or modify it
@@ -15,11 +15,11 @@
  * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see https://www.gnu.org/licenses/ 
+ * along with this program.  If not, see https://www.gnu.org/licenses/
  *
  * Contact addresses for Email:  support@smallsrv.com
  *
- * 
+ *
  */
 
 
@@ -62,7 +62,7 @@ uchar term_cmd[]={
 /*
 struct termios init_termp=
 {
-  
+
 };
 
 struct winsize winp=
@@ -98,7 +98,7 @@ int Req::TReq()
  long ec,st_fl=0;
  long xtimlim =tlnt_timeout;
 
-  AddToLog("Telnet income..\r\n",s,FmtShrtR);
+  AddToLog("Telnet income..\r\n",s,&sa_c46,FmtShrtR);
   if( (!DONT_USE_PTY) && !openpty(phrd, phrd+1, 0,
                 0,//   const struct termios *termp,
                 0//   const struct winsize *winp
@@ -140,14 +140,14 @@ int Req::TReq()
    close(hwr );
 
    if(hwrp!=hrd)
-   {  
+   {
    //close(hrde);
     close(hwrp);
    //close(hwre);
     close(hrdp);
    }
   // */
-  
+
    strncpy(bfr,tel_cmd,sizeof(bfr));
    i=0;
    p=bfr;
@@ -189,10 +189,10 @@ int Req::TReq()
     TVal.tv_usec=0;
     if( select(j+1,&set,0,0,&TVal)<=0 )
     {
-      
+
      ec=waitpid(child_pid,(int *)&ec,WNOHANG);
      if( (!is_no_exit) || (ec) || --xtimlim<=0 )
-     {  
+     {
       if(xtimlim<=0)HttpReturnError("Timeout\r\n");
     ex:;
       kill(child_pid,9);
@@ -231,11 +231,11 @@ int Req::TReq()
 	      if(st_fl==0xFB0008)
 	      {
 		Send(term_cmd,sizeof(term_cmd));
-	      }	
+	      }
 	    }
 	    st_fl&=~0xFF0008;
 	  }
-	  
+
 	  if(st_fl&1)
 	  {
 	    st_fl&=~1;
@@ -255,14 +255,14 @@ int Req::TReq()
 
 
 	    }
-	    
+
 	  }
 	  if(st_fl&4 && (*(uchar *)p==255) )
 	  {
 	    st_fl|=1;
-	    
-	  }  
-	  
+
+	  }
+
 	}
 	else if(*(uchar *)p==255)
 	{
@@ -281,7 +281,7 @@ int Req::TReq()
 
 	++p;
 
-	
+
       }
       j=(t-bfr2);
       write(hwrp,bfr2,j);
@@ -291,9 +291,9 @@ int Req::TReq()
 	if(j>64)
 	{
 	  DWORD_PTR(bfr2[64])=0x2E2E2E;
-	}  
+	}
 	else bfr2[j]=0;
-	AddToLog(bfr2,s,FmtShortR);
+	AddToLog(bfr2,s,&sa_c46,FmtShortR);
       }
 
     }
@@ -326,13 +326,13 @@ int Req::TReq()
 	  DWORD_PTR(bfr[64])=0x2E2E2E;
 	}
 	else bfr[j]=0;
-	AddToLog(bfr,s,FmtShort);
+	AddToLog(bfr,s,&sa_c46,FmtShort);
     }
     //if(i==hrde)break;
     //i=hrde;
       //xchg(hrd,hrde);
    //}while(1);
-    
+
     if(j!=TELNET_BFR_SIZE)ec=waitpid(child_pid,(int *)&ec,WNOHANG);
    }while(is_no_exit && !ec);
    if(!ec)
@@ -352,7 +352,7 @@ int Req::TReq()
  if(hwrp!=hrd) close(hrd);
  //close(hwre);
  //close(hrde);
- AddToLog("End telnet sesion..\r\n",s,FmtShrt);
+ AddToLog("End telnet sesion..\r\n",s,&sa_c46,FmtShrt);
  return 1;
 
  #undef  hrd

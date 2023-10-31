@@ -282,7 +282,7 @@ do{
   {if(l)break;
   er_recv:
    if(KeepAliveCounter==MAX_KEEPALIVE)
-   {AddToLog("Connection closed",s,FmtShort);
+   {AddToLog("Connection closed",s,&sa_c46,FmtShort);
     setsockopt(s,SOL_SOCKET,SO_LINGER,(char *)&lngr,sizeof(lngr));
    }
    goto ex2;
@@ -307,7 +307,7 @@ lbxx:
     xgz|=F_HTTP10;
  }
 
- AddToLog(in_buf,s,(KeepAliveCounter!=MAX_KEEPALIVE)?FmtBasicC:FmtBasic);
+ AddToLog(in_buf,s,&sa_c46,(KeepAliveCounter!=MAX_KEEPALIVE)?FmtBasicC:FmtBasic);
 
  sprintf(inf,"%.94s",in_buf+((in_buf[8]==':')?11:4));
 
@@ -808,12 +808,12 @@ lcgi:
       req=in_buf+dirlen-4;
       DWORD_PTR(*req)=0x3D727265 x4CHAR("err=") ;
       fl|=F_PHP;
-      AddToLog(in_buf+dirlen,s);
+      AddToLog(in_buf+dirlen,s,&sa_c46);
     }
     else
     {
      trn=in_buf;
-     AddToLog(req=in_buf+dirlen,s);
+     AddToLog(req=in_buf+dirlen,s,&sa_c46);
     }
     in_buf[h]=0;
     templ=0;
@@ -977,7 +977,7 @@ ex3a:
   if(!ttm)ttm+=GetTickCount()-tick;
   sprintf(xin_buf,"HTTP  in:%u out:%u %s Time:%u\r\n",Tin,Tout,(a && a->h) ?a->h:"",ttm);
 
-  AddToLog(xin_buf,s,FmtShort);
+  AddToLog(xin_buf,s,&sa_c46,FmtShort);
  }
  if(lipo && lneto)
  {  tick=(Tin+Tout+1023)>>10;

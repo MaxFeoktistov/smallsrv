@@ -45,7 +45,7 @@ const char  ReseivF[]= "Received: f";
 #undef send
 #define send(a,b,c,d) BSend(a,b,c)
 int SendCMDf(int s,char *xxx,int lll)
-{if(s_flg&FL_FULLLOG)AddToLog(xxx,s,FmtShrtR); return send(s,(xxx),(lll),0);}
+{if(s_flg&FL_FULLLOG)AddToLog(xxx,s,0,FmtShrtR); return send(s,(xxx),(lll),0);}
 #define SendCMD(xxx,lll)  if(SendCMDf(s,(xxx),(lll))<=0 )goto brkConn;
 #define SendConstCMD(xxx)   SendCMD(xxx,(sizeof(xxx)-1) )
 
@@ -540,7 +540,7 @@ if(n)
       debug("MAILHOST: %s %s",pth3+512,pth3+512+68);
      }
      if( (s=call_socket2(pth3+ (pth3[512+68]?512+68:512),25) )>0 )
-     {AddToLog("|Open",s,FmtShrtR);
+     {AddToLog("|Open",s,0,FmtShrtR);
       x=0;
 
        if((x=GetCMD(s,pth2,0))!=220)goto lerrmsg;

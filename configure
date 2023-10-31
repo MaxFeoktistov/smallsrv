@@ -560,11 +560,11 @@ N_DEP := $(N_FAKELIBS)
       s/-DSEPLOG//g;
     }
 
-    if($without{'fakelibs'})
-    {
-      s/-Lfakelibs[0-9]*//g;
-    }
-    else
+#     if($without{'fakelibs'})
+#     {
+#       s/-Lfakelibs[0-9]*//g;
+#     }
+#     else if(!$without{'fakelibs'})
     {
       if( stat('/lib/x86_64-linux-gnu/libc.so.6') )
       {

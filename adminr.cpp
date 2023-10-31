@@ -358,7 +358,7 @@ int Req::Admin()
      if( (!is_no_exit) && req!=NullString )
      {
    case 0x74736572 x4CHAR("rest") :
-       AddToLog( s_R_N____R ,s);
+       AddToLog( s_R_N____R ,s, &sa_c46);
        CloseSocket(s);
        u=cmdline; if(*u=='\"')++u;
        RestartServer(u,1);

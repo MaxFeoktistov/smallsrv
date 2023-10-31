@@ -177,6 +177,8 @@ LIB= $(LIBDIR32) -lpthread  $(LIBDIR32) -ldl $(LIBDIR32) -lc $(LIBDIR32) -lgcc -
 LIB64= $(LIBDIR64) -lpthread  $(LIBDIR64) -ldl $(LIBDIR64) -lc  $(LIBDIR32) -lgcc -lc_nonshared
 LIB64u=  -ldl -lpthread  -lc -lgcc -lc_nonshared
 
+BINFILES := httpd.exe httpd.exopenssl httpd.exgnutls sndmsg
+
 
 #LIB= -lpthread -ldl -lc -lc_nonshared
 #LIB64= -lpthread -ldl -lc -lc_nonshared
@@ -246,10 +248,7 @@ endif
 
 $(OOBJS) $(OOBJS64) $(WINOOBJS): $(GENERATED)
 
-# all: win o/httpd.exe
-#wo/libsec111.dll arm
-
-# i32: o/httpd.exe
+$(GENERATED): $(TMPRAM)o
 
 i32: $(TMPRAM)o o/httpd.exe o/libsec111.so o/libsecgnutls.so o/sndmsg
 
@@ -281,6 +280,14 @@ $(TMPRAM)% :
 	mkdir -p $@
 	[ -d $* ] || ln -sf $@ .
 
+%/of: $(TMPRAM)%
+	mkdir -p $@
+
+o64/of/%.o : o64/of
+
+o/of/%.o : o/of
+
+
 o/%.o :  %.cpp
 	   $(GPP) -c -DSYSUNIX -DV_FULL=1 $(G) $(OPT)  $< -o $@
 
@@ -295,19 +302,19 @@ o/tls_%.o :  %.c
 
 
 o64/%.o :  %.cpp
-	   $(GPP64) -c -Dx86_64 -DNOTINTEL -DSYSUNIX -DV_FULL=1 $(G) $(OPT)  $< -o $@
+	   $(GPP64) -c -Dx86_64 -DNOTINTEL -DSYSUNIX -DV_FULL=1 $(G) $(OPT64)  $< -o $@
 
 
 o64/%.o :  %.c
-	   $(GCC64) -c -Dx86_64 -DNOTINTEL -DSYSUNIX -DV_FULL=1 $(G) $(OPT)  $< -o $@
+	   $(GCC64) -c -Dx86_64 -DNOTINTEL -DSYSUNIX -DV_FULL=1 $(G) $(OPT64)  $< -o $@
 
 
 o64/tls_%.o :  %.cpp
-	   $(GPP64) -c -Dx86_64 -DNOTINTEL -DSYSUNIX -DV_FULL=1 $(G) $(OPTTLS)  $< -o $@
+	   $(GPP64) -c -Dx86_64 -DNOTINTEL -DSYSUNIX -DV_FULL=1 $(G) $(OPT64TLS)  $< -o $@
 
 
 o64/tls_%.o :  %.c
-	   $(GCC64) -c -Dx86_64 -DNOTINTEL -DSYSUNIX -DV_FULL=1 $(G) $(OPTTLS)  $< -o $@
+	   $(GCC64) -c -Dx86_64 -DNOTINTEL -DSYSUNIX -DV_FULL=1 $(G) $(OPT64TLS)  $< -o $@
 
 
 r/%.o :  %.cpp
@@ -403,7 +410,6 @@ o/1.x: /dev/shm/shttps/o/1.x
 /dev/shm/shttps/o/1.x :
 	mkdir -p /dev/shm/shttps/o /dev/shm/shttps/o64 /dev/shm/shttps/wo /dev/shm/shttps/arm ; echo 1 >$@
 
-
 o/httpd.exe: $(OOBJS)
 	$(GCC)  $(G)  $(OOBJS) -o $@  $(LOPT) $(LIB)
 
@@ -412,14 +418,14 @@ o/of/httpd.exe: $(OOBJS)
 
 
 o/httpd.exopenssl: $(OOBJS_TLS) o/runssl111.o
-	$(GCC)  $(G)  $^ -o $@  $(LOPT) $(LIB) $(LIBDIR32) -lssl -lcrypto
+	$(GCC)  $(G)  $^ -o $@ -Wl,--copy-dt-needed-entries $(LOPT) $(LIB) $(LIBDIR32) -lssl -lcrypto
 
 o/of/httpd.exopenssl: $(OOBJS_TLS) o/runssl111.o
 	$(GCC)  $(G)  $^ -o $@  $(LOPT) $(LIBF) $(LIBDIR32F) -lssl  $(LIBDIR32F) -lcrypto
 
 
 o/httpd.exgnutls: $(OOBJS_TLS) o/rungnutls.o
-	$(GCC)  $(G)  $^ -o $@  $(LOPT) $(LIB) $(LIBDIR32) -lgnutls
+	$(GCC)  $(G)  $^ -o $@ -Wl,--copy-dt-needed-entries $(LOPT) $(LIB) $(LIBDIR32) -lgnutls
 
 o/of/httpd.exgnutls: $(OOBJS_TLS) o/rungnutls.o
 	$(GCC)  $(G)  $^ -o $@  $(LOPT) $(LIBF)  $(LIBDIR32F) -l:libgnutls.so.30
@@ -427,7 +433,6 @@ o/of/httpd.exgnutls: $(OOBJS_TLS) o/rungnutls.o
 
 tclean:
 	rm $(OOBJS) $(OOBJS_TLS)
-
 
 o64/httpd.exe: $(OOBJS64)
 	$(GCC64)  $(G)  $(OOBJS64) -o $@  $(LOPT64) $(LIB64)
@@ -464,10 +469,10 @@ o/of/sndmsg: o/sndmsg.o o/mstring1.o
 	$(GCC) $(G) $^ -o $@  $(LOPT) $(LIBF)
 
 o64/sndmsg: o64/sndmsg.o
-	$(GCC64)  $(G)  $(OOBJS64) -o $@  $(LOPT64) $(LIB64)
+	$(GCC64)  $(G)  $^ -o $@  $(LOPT64) $(LIB64)
 
 o64/of/sndmsg: o64/sndmsg.o
-	$(GCC64)  $(G)  $(OOBJS64) -o $@  $(LOPT64) $(LIB64F)
+	$(GCC64)  $(G)  $^ -o $@  $(LOPT64) $(LIB64F)
 
 
 
@@ -686,8 +691,6 @@ en/shs_lang.cfg : lS1_lf.cfg
 ru/shs_lang.cfg : lS1_lf.cfg
 	./add_to_langcfg.pl lS1_lf.cfg $@
 
-
-BINFILES := httpd.exe httpd.exopenssl httpd.exgnutls sndmsg
 
 install: # all
 	mkdir -p $(ICONFIG_APPDIR) $(ICONFIG_SHARE) $(ICONFIG_CONFIG) $(ICONFIG_LOG)
@@ -931,7 +934,7 @@ o/srv_ssi.o o64/srv_ssi.o wo/srv_ssi.o r/srv_ssi.o lpc/srv_ssi.o at/srv_ssi.o : 
 
 
 
-NIOBJS=to_linux.o srv0a.o srv_ssi.o srv_cgi.o req.o accept.o tools.o adminr.o restart.o proxy.o musers.o conf.o icfg.o stat.o icfgjs.o reghtm.o ftpd.o smptps.o smtpcl.o mailip.o dnsd.o tlsm.o gz.o dhcpd.o wmbx.o bvprintf.o msprintfchk.o
+NIOBJS=to_linux.o srv0a.o srv_ssi.o srv_cgi.o req.o accept.o tools.o adminr.o restart.o proxy.o musers.o conf.o icfg.o stat.o icfgjs.o ftpd.o smptps.o smtpcl.o mailip.o dnsd.o tlsm.o gz.o dhcpd.o wmbx.o bvprintf.o msprintfchk.o
 
 MIPSDIR=/opt/brcm/hndtools-mipsel-linux-3.2.3
 MIPSPATH=$(MIPSDIR)/bin:$(PATH)

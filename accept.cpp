@@ -602,9 +602,9 @@ int Req::HttpReturnError(char *err,int errcode)
 #ifdef SEPLOG
   l=flsrv[1] & MAX_SERV_MASK;
   if(l>=N_LOG)l=0;
-  sepLog[l]->LAddToLog(err,s,FmtShortErr);
+  sepLog[l]->LAddToLog(err,s,&sa_c46 ,FmtShortErr);
 #else
- AddToLog(err,s,FmtShortErr);
+ AddToLog(err,s,&sa_c46 ,FmtShortErr);
 #endif
  SendChk(out_buf,sprintf(out_buf,
  (l=fl&0xE0000)? //2,3,4

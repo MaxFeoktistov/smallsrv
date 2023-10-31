@@ -1132,7 +1132,7 @@ if(DWORD_PTR(*ibf)==0x4E4E4F43 x4CHAR("CONN") )
    t2[1]=0;
    if(KeepAlive)
      KeepAlive=stristr(p,"Connection: Keep-Alive");
-   AddToLog(p,ss,FmtShrtR);
+   AddToLog(p,ss,0,FmtShrtR);
 // * Cashe
    t2[1]=i;
 
@@ -1360,7 +1360,7 @@ lerr5:;
   if(zz.avs>0)AvEnd(zz.avs,inf); //in_buf+6);
 
   sprintf(in_buf,"Proxy in:%u out:%u %s\r\n",Tout,tout,puser?puser->name:"");
-  AddToLog(in_buf,s,FmtShort);
+  AddToLog(in_buf,s,&sa_c46,FmtShort);
 #undef d
 /*
   if(lip && lnet)

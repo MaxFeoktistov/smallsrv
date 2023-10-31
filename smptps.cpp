@@ -230,7 +230,7 @@ int GetCMD(int s,char *b,int timo) //=POPTimeout)
  DWORD_PTR(b[l-2])=0;
  if(!timo) x=atoui(b);
  else x=DWORD_PTR(*b)|0x20202020;
- if(s_flg&FL_FULLLOG)AddToLog(b,s,(timo)?FmtShort:FmtShortR);
+ if(s_flg&FL_FULLLOG)AddToLog(b,s,0,(timo)?FmtShort:FmtShortR);
  return x;
 };
 
@@ -325,7 +325,7 @@ int Req::RGetCMD(char *b)
  DWORD_PTR(t[-1])=0;
  if(s_flg&FL_FULLLOG)
  {
-     AddToLog(b,s,FmtShort);
+     AddToLog(b,s,&sa_c46,FmtShort);
  }
  return DWORD_PTR(*b)|0x20202020;
 }
@@ -538,7 +538,7 @@ int Req::CheckDNSBL(char *t,struct sockaddr_in *sa)
     if(gethostbyname(bfr))
     {
      Send(bfr,sprintf(bfr,"%u %.64s spamers list content your IP\r\n",pass_port,t));
-     AddToLog(bfr,s);
+     AddToLog(bfr,s,&sa_c46);
      return 1;
     }
     if(!p)break;
@@ -680,7 +680,7 @@ int Req::SMTPReq()
   {
  erSnd:
     Send("421 limit overflow\r\n",sizeof("421 limit overflow\r\n")-1);
-    AddToLog("421 limit overflow\r\n",s);
+    AddToLog("421 limit overflow\r\n",s,&sa_c46);
     return 1;
   }
  }
@@ -694,7 +694,7 @@ lpcnt:
  {dbg("Can\'t send..");
   break;
  };
- if(s_flg&FL_FULLLOG)AddToLog(rcode,s,FmtShrt);
+ if(s_flg&FL_FULLLOG)AddToLog(rcode,s,&sa_c46,FmtShrt);
  if(cmd==0x74697571 x4CHAR("quit"))break;
 lbb1:
  if((cmd=RGetCMD(bfr))<0)break;
@@ -923,7 +923,7 @@ lbSn1:
 
      Send(("354 send the mail data, end with .\r\n"),
       sizeof("354 send the mail data, end with .\r\n")-1);
-     if(s_flg&FL_FULLLOG)AddToLog("354 send the mail data, end with .\r\n",s,FmtShrt);
+     if(s_flg&FL_FULLLOG)AddToLog("354 send the mail data, end with .\r\n",s,&sa_c46,FmtShrt);
 //     i=GetMsgName(stime);
      sprintf(bb+0x5000,"%.255s" FSLUSHS "%8.8X.msg",out_path,i);
      if( (x=Recv(bb,0x4004) )<=0 )
@@ -946,7 +946,7 @@ lbSn1:
      };
 
    _hwrite(h,rr,l);
-   AddToLog(rr,s);
+   AddToLog(rr,s,&sa_c46);
    Tin=x;
    l=0;
    em=0;
@@ -1037,7 +1037,7 @@ lbSn1:
    CloseHandle((FHANDLE)h);
    AddSendMessage(i);
    sprintf(bb,"SMTP: %u user>%s user<%s\r\n",Tin,puser_s?puser_s->name:"*",puser_r?puser_r->name:"*");
-   AddToLog(bb,s);
+   AddToLog(bb,s,&sa_c46);
    /*
    if(chkl)// smtp_ltime)
    {i=(Tin+1023)>>10;

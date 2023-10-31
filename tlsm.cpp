@@ -328,7 +328,7 @@ int Req::TLSReq()
     }
     else
     {
-      AddToLog("TLS error\r\n",s);
+      AddToLog("TLS error\r\n",s,&sa_c46);
     }
     DBG_PRINT("TLS end");
     return 1;

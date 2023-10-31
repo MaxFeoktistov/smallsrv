@@ -222,15 +222,11 @@ v
 
 
 
-void AddToLog(char *t,int s,const char *fmt,...)
+void AddToLog(char *t,int s, TSOCKADDR *psa, const char *fmt,...)
 {SYSTEMTIME stime;
-#ifdef USE_IPV6
- struct sockaddr_in6
-#else
- struct sockaddr_in
-#endif
-  xsa[2];
-#define sa  (*(sockaddr_in *)xsa)
+ TSOCKADDR xsa[2];
+
+#define sa  (*(sockaddr_in *)psa)
 #define san (*(sockaddr_in *)(xsa+1))
  int ll,l;
  l=sizeof(xsa[0]);
@@ -238,9 +234,13 @@ void AddToLog(char *t,int s,const char *fmt,...)
 
 // printf("s=%d \n",s);
  if(s>0){
-  getpeername(s,(sockaddr*) (xsa),&l);
-  getsockname(s,(sockaddr *) (xsa+1),&l);
+   if(!psa) {
+     getpeername(s,(sockaddr*) (xsa),&l);
+     l=sizeof(xsa[0]);
+   }
+   getsockname(s,(sockaddr *) (xsa+1),&l);
  }else memset(&sa,0,sizeof(xsa));
+ if(!psa) psa = xsa;
 
  GetLocalTime(&stime);
 #ifdef USE_IPV6

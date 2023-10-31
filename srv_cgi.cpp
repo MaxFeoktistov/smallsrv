@@ -96,9 +96,9 @@ int Req::SendChk(const char *b,int l)
    {
      #ifdef SEPLOG
      //               sepLog[CGI_ERR_LOG]->LAddToLog(loc,s,FmtShortErr);
-     sepLog[CGI_ERR_LOG]->LAddToLog(0,s,">>%.256s ; %.512s\r\n",loc,req?req:"");
+     sepLog[CGI_ERR_LOG]->LAddToLog(0,s,&sa_c46,">>%.256s ; %.512s\r\n",loc,req?req:"");
      #else
-     AddToLog(loc,s,FmtShortErr);
+     AddToLog(loc,s,&sa_c46,FmtShortErr);
      #endif
      fl|=F_NAMEOUTED;
    }

@@ -673,7 +673,7 @@ User   *FindUser(char *bfr,int typ,char *pwd /*=0*/,Req *r) //=0)
  lbBad:
   if(r)
   { sprintf(bfr+24,"Try to login failed %.20s;%.127s\r\n",bfr,pwd);
-    AddToLog(bfr+24,r->s);
+    AddToLog(bfr+24,r->s,&r->sa_c46);
 #if defined(SPECIAL) || !defined(CD_VER)
 #ifdef USE_IPV6
     if(IsIPv6(&r->sa_c) )//sa_client.sin_family==AF_INET6)
@@ -714,7 +714,7 @@ int Req::CallUp(User *puser)
   GetCMD(h,tmp,0);
   send(h,tmp,sprintf(tmp,"PASS %.64s\r\n",trn),0);
   sprintf(tmp,"X-PROXY: login in %.64s (to %.64s)\r\n",puser->name,pst);
-  AddToLog(tmp,s);
+  AddToLog(tmp,s,&sa_c46);
  }
  return h;
 }
