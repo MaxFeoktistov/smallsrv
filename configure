@@ -574,18 +574,18 @@ N_DEP := $(N_FAKELIBS)
 
     if($woseclib32)
     {
-      s/^i32\:(.*)o\/libsec111.so(.*)/i32: $1 $2/g;
-      s/^i32\:(.*)o\/libsec.so(.*)/i32: $1 $2/g;
+      s/^i32([f]*\:.*)o\/libsec111.so(.*)/i32$1 $2/g;
+      s/^i32([f]*\:.*)o\/libsec.so(.*)/i32$1 $2/g;
     }
     if($wolibgnutls32)
     {
-      s/^i32\:(.*)o\/libsecgnutls.so(.*)/i32: $1 $2/g;
+      s/^i32([f]*\:.*)o\/libsecgnutls.so(.*)/i32$1 $2/g;
     }
 
     if($woseclib64)
     {
-      s/^i64:(.*)o64\/libsec.so(.*)/i64: $1 $2/g;
-      s/^i64:(.*)o64\/libsec111.so(.*)/i64: $1 $2/g;
+      s/^i64([f]*\:.*)o64\/libsec.so(.*)/i64$1 $2/g;
+      s/^i64([f]*\:.*)o64\/libsec111.so(.*)/i64$1 $2/g;
     }
     if($wolibgnutls64)
     {

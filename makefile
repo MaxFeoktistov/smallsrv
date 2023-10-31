@@ -923,16 +923,26 @@ wo/libsecgnutls.dll: wo/libsecgnutls.o
 
 SECOBJ=runssl111.o rungnutls.o sndmsg.o
 
-o/srv0a.o o64/srv0a.o wo/srv0a.o r/srv0a.o lpc/srv0a.o at/srv0a.o : g4strc.h srv0a.cpp slloop.cpp srvars.cpp seplog.cpp onelog.cpp
-o/adminr.o o64/adminr.o r/adminr.o wo/adminr.o at/adminr.o : g4strc.h adminr.cpp t2icfghtm.cpp g4strhtm.hh
-o/stat.o o64/stat.o wo/stat.o r/stat.o at/stat.o mips/stat.o : g4strc.h stat.cpp cstat.cpp statusr.cpp
-o/smptps.o o64/smptps.o r/smptps.o mips/smptps.o at/smptps.o : g4strc.h smptps.cpp pop3d.cpp
+OBJDIRS := o/ o64/ wo/ at/ oo/
+OBJDIRS_TLS := $(addsuffix tls_,$(OBJDIRS))
+
+$(addsuffix srv0a.o,$(OBJDIRS) $(OBJDIRS_TLS)): g4strc.h srv0a.cpp slloop.cpp srvars.cpp seplog.cpp onelog.cpp
+$(addsuffix adminr.o,$(OBJDIRS) $(OBJDIRS_TLS)): g4strc.h adminr.cpp t2icfghtm.cpp g4strhtm.hh
+$(addsuffix stat.o,$(OBJDIRS) $(OBJDIRS_TLS)): g4strc.h stat.cpp cstat.cpp statusr.cpp
+$(addsuffix o64/smptps.o,$(OBJDIRS) $(OBJDIRS_TLS)): g4strc.h smptps.cpp pop3d.cpp
+$(addsuffix conf.o,$(OBJDIRS) $(OBJDIRS_TLS)): g4strc.h g4s1.hh g4strcwm.h S2_lf.hh
+$(addsuffix t2icfg.o,$(OBJDIRS) $(OBJDIRS_TLS)): g4strc.h g4s1.hh g4strcwm.h S2_lf.hh
+$(addsuffix wmbx.o,$(OBJDIRS) $(OBJDIRS_TLS)):  g4strc.h g4s1.hh g4strcwm.h
+$(addsuffix srv_ssi.o,$(OBJDIRS) $(OBJDIRS_TLS)):  g4strc.h regular.cpp
+
+#o/srv0a.o o64/srv0a.o wo/srv0a.o r/srv0a.o lpc/srv0a.o at/srv0a.o : g4strc.h srv0a.cpp slloop.cpp srvars.cpp seplog.cpp onelog.cpp
+#o/adminr.o o64/adminr.o r/adminr.o wo/adminr.o at/adminr.o : g4strc.h adminr.cpp t2icfghtm.cpp g4strhtm.hh
+#o/stat.o o64/stat.o wo/stat.o r/stat.o at/stat.o mips/stat.o : g4strc.h stat.cpp cstat.cpp statusr.cpp
+#o/smptps.o o64/smptps.o r/smptps.o mips/smptps.o at/smptps.o : g4strc.h smptps.cpp pop3d.cpp
 wo/fwnd.o: wndcfg.cpp
-o/conf.o o64/conf.o o/t2icfg.o o64/t2icfg.o wo/conf.o wo/t2icfg.o at/t2icfg.o at/conf.o: g4strc.h g4s1.hh g4strcwm.h S2_lf.hh
-o/wmbx.o o64/wmbx.o o/t2icfg.o wo/wmbx.o at/t2icfg.o at/wmbx.o: g4strc.h g4s1.hh g4strcwm.h
-o/srv_ssi.o o64/srv_ssi.o wo/srv_ssi.o r/srv_ssi.o lpc/srv_ssi.o at/srv_ssi.o : g4strc.h regular.cpp
-
-
+#o/conf.o o64/conf.o o/t2icfg.o o64/t2icfg.o wo/conf.o wo/t2icfg.o at/t2icfg.o at/conf.o: g4strc.h g4s1.hh g4strcwm.h S2_lf.hh
+#o/wmbx.o o64/wmbx.o o/t2icfg.o wo/wmbx.o at/t2icfg.o at/wmbx.o: g4strc.h g4s1.hh g4strcwm.h
+#o/srv_ssi.o o64/srv_ssi.o wo/srv_ssi.o r/srv_ssi.o lpc/srv_ssi.o at/srv_ssi.o : g4strc.h regular.cpp
 
 NIOBJS=to_linux.o srv0a.o srv_ssi.o srv_cgi.o req.o accept.o tools.o adminr.o restart.o proxy.o musers.o conf.o icfg.o stat.o icfgjs.o ftpd.o smptps.o smtpcl.o mailip.o dnsd.o tlsm.o gz.o dhcpd.o wmbx.o bvprintf.o msprintfchk.o
 
