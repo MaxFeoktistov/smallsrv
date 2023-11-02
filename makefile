@@ -248,25 +248,23 @@ endif
 
 $(OOBJS) $(OOBJS64) $(WINOOBJS): $(GENERATED)
 
-$(GENERATED): $(TMPRAM)o
+$(GENERATED): $(TMPRAM)o o
 
-i32: $(TMPRAM)o o/httpd.exe o/libsec111.so o/libsecgnutls.so o/sndmsg
+i32: $(TMPRAM)o o o/httpd.exe o/libsec111.so o/libsecgnutls.so o/sndmsg
 
-#o/libsecgnutls.so o/libsec.so o/libsec111.so
+i64: $(TMPRAM)o64 o64 o64/httpd.exe o64/libsecgnutls.so o64/libsec111.so o64/sndmsg
 
-i64: $(TMPRAM)o64 o64/httpd.exe o64/libsecgnutls.so o64/libsec111.so o64/sndmsg
-
-i32f: $(TMPRAM)o/of $(FAKELIBS) o/of/httpd.exe o/of/libsec111.so o/of/libsecgnutls.so o/of/httpd.exgnutls o/of/httpd.exopenssl o/of/sndmsg
+i32f: $(TMPRAM)o/of o $(FAKELIBS) o/of/httpd.exe o/of/libsec111.so o/of/libsecgnutls.so o/of/httpd.exgnutls o/of/httpd.exopenssl o/of/sndmsg
 
 #o/libsecgnutls.so o/libsec.so o/libsec111.so
 
-i64f: $(TMPRAM)o64/of $(FAKELIBS64) o64/of/httpd.exe o64/of/libsecgnutls.so o64/of/libsec111.so o64/of/httpd.exgnutls o64/of/httpd.exopenssl o64/of/sndmsg
+i64f: $(TMPRAM)o64/of o64 $(FAKELIBS64) o64/of/httpd.exe o64/of/libsecgnutls.so o64/of/libsec111.so o64/of/httpd.exgnutls o64/of/httpd.exopenssl o64/of/sndmsg
 
 #o64/httpdu.exe o64/libsecgnutls.so o64/libsec.so o64/libsec111.so o64/libsec.so
 
-arm: $(TMPRAM)at at/atobjdir at/httpd.exe at/libsec111.so at/libsecgnutls.so at/httpd.exopenssl at/httpd.exgnutls
+arm: $(TMPRAM)at at at/atobjdir at/httpd.exe at/libsec111.so at/libsecgnutls.so at/httpd.exopenssl at/httpd.exgnutls
 
-win: $(TMPRAM)wo wo/http.exe wo/httpg.exe bin2s wo/shttps_mg.exe wo/shttpsr_mg.exe wo/shttps_mgi.exe wo/shttpsr_mgi.exe wo/libsecgnutls.dll
+win: $(TMPRAM)wo wo wo/http.exe wo/httpg.exe bin2s wo/shttps_mg.exe wo/shttpsr_mg.exe wo/shttps_mgi.exe wo/shttpsr_mgi.exe wo/libsecgnutls.dll
 
 
 arm64: CROSS_COMPILE:=aarch64-linux-gnu-
@@ -442,14 +440,14 @@ o64/of/httpd.exe: $(OOBJS64)
 
 
 o64/httpd.exopenssl: $(OOBJS64_TLS) o64/runssl111.o
-	$(GCC64)  $(G)  $^ -o $@  $(LOPT64) $(LIB64) $(LIBDIR64) -lssl $(LIBDIR64F) -lcrypto
+	$(GCC64)  $(G)  $^ -o $@  -Wl,--copy-dt-needed-entries $(LOPT64) $(LIB64) $(LIBDIR64) -lssl $(LIBDIR64F) -lcrypto
 
 o64/of/httpd.exopenssl: $(OOBJS64_TLS) o64/runssl111.o
 	$(GCC64)  $(G)  $^ -o $@  $(LOPT64) $(LIB64F) $(LIBDIR64F) -lssl $(LIBDIR64F) -lcrypto
 
 
 o64/httpd.exgnutls: $(OOBJS64_TLS) o64/rungnutls.o
-	$(GCC64)  $(G)  $^ -o $@  $(LOPT64) $(LIB64) $(LIBDIR64) -lgnutls
+	$(GCC64)  $(G)  $^ -o $@  -Wl,--copy-dt-needed-entries $(LOPT64) $(LIB64) $(LIBDIR64) -lgnutls
 
 o64/of/httpd.exgnutls: $(OOBJS64_TLS) o64/rungnutls.o
 	$(GCC64)  $(G)  $^ -o $@  $(LOPT64) $(LIB64F) $(LIBDIR64F) -l:libgnutls.so.30
@@ -923,8 +921,13 @@ wo/libsecgnutls.dll: wo/libsecgnutls.o
 
 SECOBJ=runssl111.o rungnutls.o sndmsg.o
 
+OBJDIRSNAMES := o o64 wo at oo
 OBJDIRS := o/ o64/ wo/ at/ oo/
 OBJDIRS_TLS := $(addsuffix tls_,$(OBJDIRS))
+
+${OBJDIRSNAMES} :
+	mkdir -p ${TMPRAM}/$@
+	ln -s ${TMPRAM}/$@ .
 
 $(addsuffix srv0a.o,$(OBJDIRS) $(OBJDIRS_TLS)): g4strc.h srv0a.cpp slloop.cpp srvars.cpp seplog.cpp onelog.cpp
 $(addsuffix adminr.o,$(OBJDIRS) $(OBJDIRS_TLS)): g4strc.h adminr.cpp t2icfghtm.cpp g4strhtm.hh
@@ -1082,7 +1085,7 @@ $(N_OBJS): $(GENERATED)
 
 n_all: A_GCC=$(CROSS_COMPILE)gcc
 n_all: N_FLAGS = -mlittle-endian -Wno-deprecated-declarations -Wno-conversion  -Wno-write-strings  -fno-access-control  -fno-nonansi-builtins -fno-elide-constructors -fno-enforce-eh-specs   -fno-rtti  -fno-weak -nostdinc++  -Wnoexcept -fno-exceptions -Wno-format -fpermissive -DLINUX -DSYSUNIX -DNOTINTEL -DFREEVER -DTELNET -DUSE_IPV6 -DV_FULL=1 -DUSE_FUTEX -DUSE_POOL -DWITHMD5 -DFIX_EXCEPT -DUSEVALIST -DVPN_LINUX -DTLSVPN $(A_OPT) $(ADVOPT)
-n_all: $(TMPRAM)oo $(N_DEP) oo/httpd.exe oo/sndmsg oo/libsec111.so oo/libsecgnutls.so oo/httpd.exopenssl oo/httpd.exgnutls
+n_all: $(TMPRAM)oo oo $(N_DEP) oo/httpd.exe oo/sndmsg oo/libsec111.so oo/libsecgnutls.so oo/httpd.exopenssl oo/httpd.exgnutls
 
 
 oo/%.o : %.cpp

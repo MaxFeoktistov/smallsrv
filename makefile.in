@@ -157,19 +157,19 @@ N_FAKELIBS ?= $(addprefix oo/fakelibs/,$(FLIBSARM))
 
 $(OOBJS) $(OOBJS64) $(WINOOBJS): $(GENERATED)
 
-$(GENERATED): $(TMPRAM)o
+$(GENERATED): $(TMPRAM)o o
 
-i32: $(TMPRAM)o o/httpd.exe o/libsec111.so o/libsecgnutls.so o/sndmsg
+i32: $(TMPRAM)o o o/httpd.exe o/libsec111.so o/libsecgnutls.so o/sndmsg
 
-i64: $(TMPRAM)o64 o64/httpd.exe o64/libsecgnutls.so o64/libsec111.so o64/sndmsg
+i64: $(TMPRAM)o64 o64 o64/httpd.exe o64/libsecgnutls.so o64/libsec111.so o64/sndmsg
 
-i32f: $(TMPRAM)o/of $(FAKELIBS) o/of/httpd.exe o/of/libsec111.so o/of/libsecgnutls.so o/of/httpd.exgnutls o/of/httpd.exopenssl o/of/sndmsg
+i32f: $(TMPRAM)o/of o $(FAKELIBS) o/of/httpd.exe o/of/libsec111.so o/of/libsecgnutls.so o/of/httpd.exgnutls o/of/httpd.exopenssl o/of/sndmsg
 
-i64f: $(TMPRAM)o64/of $(FAKELIBS64) o64/of/httpd.exe o64/of/libsecgnutls.so o64/of/libsec111.so o64/of/httpd.exgnutls o64/of/httpd.exopenssl o64/of/sndmsg
+i64f: $(TMPRAM)o64/of o64 $(FAKELIBS64) o64/of/httpd.exe o64/of/libsecgnutls.so o64/of/libsec111.so o64/of/httpd.exgnutls o64/of/httpd.exopenssl o64/of/sndmsg
 
-arm: $(TMPRAM)at at/atobjdir at/httpd.exe at/libsec111.so at/libsecgnutls.so at/httpd.exopenssl at/httpd.exgnutls
+arm: $(TMPRAM)at at at/atobjdir at/httpd.exe at/libsec111.so at/libsecgnutls.so at/httpd.exopenssl at/httpd.exgnutls
 
-win: $(TMPRAM)wo wo/http.exe wo/httpg.exe bin2s wo/shttps_mg.exe wo/shttpsr_mg.exe wo/shttps_mgi.exe wo/shttpsr_mgi.exe wo/libsecgnutls.dll
+win: $(TMPRAM)wo wo wo/http.exe wo/httpg.exe bin2s wo/shttps_mg.exe wo/shttpsr_mg.exe wo/shttps_mgi.exe wo/shttpsr_mgi.exe wo/libsecgnutls.dll
 
 
 arm64: CROSS_COMPILE:=aarch64-linux-gnu-
@@ -785,8 +785,13 @@ wo/libsecgnutls.dll: wo/libsecgnutls.o
 
 SECOBJ=runssl111.o rungnutls.o sndmsg.o
 
+OBJDIRSNAMES := o o64 wo at oo
 OBJDIRS := o/ o64/ wo/ at/ oo/
 OBJDIRS_TLS := $(addsuffix tls_,$(OBJDIRS))
+
+${OBJDIRSNAMES} :
+	mkdir -p ${TMPRAM}/$@
+	ln -s ${TMPRAM}/$@ .
 
 $(addsuffix srv0a.o,$(OBJDIRS) $(OBJDIRS_TLS)): g4strc.h srv0a.cpp slloop.cpp srvars.cpp seplog.cpp onelog.cpp
 $(addsuffix adminr.o,$(OBJDIRS) $(OBJDIRS_TLS)): g4strc.h adminr.cpp t2icfghtm.cpp g4strhtm.hh
