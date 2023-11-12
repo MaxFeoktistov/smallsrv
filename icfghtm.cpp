@@ -78,7 +78,7 @@
 "</table>"
 #else
 
-#define  HTML_TOP1 "HTTP/1.1 200 Ok\r\n"\
+#define  HTML_TOP1 CXS(S5t2T_622312, "HTTP/1.1 200 Ok\r\n"\
 "Pragma: no-cache\r\n"\
 "Content-Type: text/html%s\r\n"\
 "\r\n"\
@@ -111,12 +111,12 @@
 "<td><font size=2 class=f><b><a href=/$_admin_$susr>Summary statistics</a></b></font></td>"\
 "<td><font size=2 class=f><b><a href=/$_admin_$logo>Logout</a></b></font></td>"\
 "</tr>"\
-"</table>"
+"</table>")
 
 
-#define  HTML_TOP2 "<td><font size=2 class=f><b><a href=/$_admin_$conf>Setting</a></b></font></td>"\
+#define  HTML_TOP2 CXS(S5t2T_622313, "<td><font size=2 class=f><b><a href=/$_admin_$conf>Setting</a></b></font></td>"\
 "<td><font size=2 class=f><b><a href=/$_admin_$host>Users & Virtual Hosts</a></b></font></td>"\
-"<td><font size=2 class=f><b><a href=/$_admin_$logl>Current Log</a></b></font></td>"
+"<td><font size=2 class=f><b><a href=/$_admin_$logl>Current Log</a></b></font></td>")
 
 /*
 #define  HTML_TOP3 "<td><font size=2 class=f><b><a href=/$_admin_$stat>Current statistics</a> / <a href=/$_admin_$stat?t=0>pages</a></b></font></td>"\
@@ -403,7 +403,7 @@ int Req::OutActualConn(char *bfr)
  oline.bfr = bfr;
 
  oline.j=sprintf(bfr,
-   "<h2>Now connected:</h2>"
+  CXS(S5t2T_0, "<h2>Now connected:</h2>"
    "<table bgcolor=#cffce0 border=1>"
    "<tr bgcolor=#a0eef8><td align=center><font size=3 class=f3><b>"
      "Remote IP</b></font>"
@@ -412,7 +412,7 @@ int Req::OutActualConn(char *bfr)
    "</td><td align=left><font size=2 class=f2>in/out (bytes)</font>"
    "</td><td align=left><font size=2 class=f2>info</font>"
    "</td><td align=left><font size=2 class=f2> &nbsp;</font>"
-   "</td></tr>"  HTML_LN );
+   "</td></tr>" )  );
  Req *r;
  ++no_close_req;
  oline.k=0;

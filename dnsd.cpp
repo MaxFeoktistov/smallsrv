@@ -866,6 +866,9 @@ void DNSLogRepeat::out()
 }
 
 
+const char *FmtShortDNS1[]={ "<%s %.64s", ">%s %.64s" };
+const char *FmtShortDNS2[]={ "<%s", ">%s"};
+
 #ifdef SEPLOG
 
 #define pprot  lpprot
@@ -878,43 +881,52 @@ void TLog::LAddToLogDNS(const char *t,int n,TSOCKADDR  *sa,char *ad)
 void AddToLogDNS(const char *t,int n,TSOCKADDR *sa ,char *ad) //="")
 #endif
 {
- int ll,l,p1,p2,ltbr,i;
+ int //ll,
+     l,
+     //p1,
+     p2,ltbr,i, direction;
  char *ttt;
  char tbfr[128];
- SYSTEMTIME stime;
 
 
-  if(n==257) ttt="CAA";
+ if(n==257) ttt="CAA";
  else if((ttt=memchr(NSTypes,n,sizeof(NSTypes))))
   ttt=NSTypesTXT[ttt-NSTypes];
  else ttt="";
- l='>';
+ //l='>';
  p2=n?53:67;
+ direction = (t[0]=='(') ;
+
+ /*
  if(//t==REQURSION_CALL ||
    t[0]=='(')
  {
    l-=2;
  }
-
+*/
  if(n==-3)
  {
-  ltbr=sprintf(tbfr,"%s %.64s",t,ad);
+  //ltbr=sprintf(tbfr,"%s %.64s",t,ad);
+   AddToLog(0, -p2, sa, FmtShortDNS1[direction], t, ad);
  }
  else
  {
 
-  ltbr=sprintf(tbfr,"%c%s %s(%d)%.64s",l,t,ttt,n,ad);
+   ltbr=sprintf(tbfr,"%c%s %s(%d)%.64s", FmtShortDNS2[direction][0], t, ttt, n, ad);
 
-  if(t!=REQURSION_CALL)
-   for(i=0;i<REPEAT_Q_SIZE; i++)if( ! logrepeat[i].cmp(tbfr,sa) )
-   {
-     logrepeat[i].cnt++;
-     logrepeat[i].last=cur_time;
-     if( (!log_flash_time) || log_flash_pos==i ){log_flash_time=cur_time+20; log_flash_pos=i; }
-     return;
-   }
+   if(t!=REQURSION_CALL)
+     for(i=0;i<REPEAT_Q_SIZE; i++)if( ! logrepeat[i].cmp(tbfr,sa) )
+     {
+       logrepeat[i].cnt++;
+       logrepeat[i].last=cur_time;
+       if( (!log_flash_time) || log_flash_pos==i ){log_flash_time=cur_time+20; log_flash_pos=i; }
+       return;
+     }
+
+   AddToLog(0, -p2, sa, FmtShortDNS2[direction], tbfr);
  }
-
+#if 0
+ SYSTEMTIME stime;
 #ifdef USE_IPV6
  char addr6[64];
  IP2S(addr6,(sockaddr_in *)sa);
@@ -952,6 +964,7 @@ void AddToLogDNS(const char *t,int n,TSOCKADDR *sa ,char *ad) //="")
      memcpy(pprot,tbfr,ltbr+1);
      pprot+=ltbr;
      RelProt(&stime);
+#endif
      if(  t!=REQURSION_CALL && n!=-3 )
      {
        time_t tb;

@@ -128,17 +128,21 @@ const char *wkday[]={"Sun","Mon","Tue","Wed","Thu","Fri","Sat"};
 const char *month[]={"Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"};
 
 const char EMSG[]= "SndMsg -- sendmail emulator for Small HTTP server.\n"
-"Command line:%s {Keys} [to@address]\n"
-"Keys:\n"
-"-t  -- read recipients from message\n"
-"-o d:\\outbox\\foulder  -- Outbox subderectory in Small HTTP server or\n"
-"-o smtp://smtp.address[:25] -- Out to SMTP server\n"
-"-f from@address\n"
-"-F \"full name\"\n"
-"-s  -- save From lines in headers\n"
-"-m filename  -- message file instead stdin\n"
-"-a filename  -- attach binary file\n"
-"\n(C) 2002-2007 by M.Feoktistov\n"
+"Usage: %s {Keys} [to@address]\n"
+"Options:\n"
+" -t                             read recipients from message\n"
+#ifdef SYSUNIX
+" -o /var/smallsrv/outbox        outbox subderectory in Small HTTP server or\n"
+#else
+" -o d:\\outbox\\foulder         outbox subderectory in Small HTTP server or\n"
+#endif
+" -o smtp://smtp.address[:25]    out to SMTP server (default smtp://127.0.0.1:25)\n"
+" -f from@address                from address\n"
+" -F \"full name\"               name \n"
+" -s                             save From lines in headers\n"
+" -m filename                    message file instead stdin\n"
+" -a filename                    attach binary file\n"
+"\n(C) 2002-2023 by M.Feoktistov\n"
 ;
 
 char fromm[128];
@@ -506,8 +510,11 @@ int main(int argc,char *argv[])
  fin=stdin;
  for(pp=argv+1;(p=*pp)  ;++pp)
  {if(*p=='-')
-  {state|=0x4;
-   switch(*++p)
+  {
+   state|=0x4;
+   ++p;
+   if(*p=='-')++p;
+   switch(*p)
    {
     case 't': state|=8;  break;
     case 's': state|=0x20; break;
@@ -537,6 +544,11 @@ int main(int argc,char *argv[])
     case 'a': //if(GetCmdPar(boutbox,++p))
              if(pp[1]) attach=*++pp;
              break;
+    case 'v':
+             printf("version 1.0\n");
+             return 0;
+    default:
+      goto lbeer;
    }
   }
   else
@@ -558,7 +570,9 @@ int main(int argc,char *argv[])
      || !strchr(p,'@')
     )
   {
-    fprintf(stderr,EMSG,argv[0]);
+  lbeer:
+    //fprintf(stderr,EMSG,argv[0]);
+    printf(EMSG,argv[0]);
     //if(p)printf("--- |%s| %X --",p,state);
     //CPUTSN(EMSG,stderr);
     return -1;

@@ -1,9 +1,9 @@
 depend.cpp
 makefile.orig
 Makefile
-*.hh
 t2icfghtm.cpp
 o
+oo
 o64
 wo
 arm
@@ -15,9 +15,9 @@ index.htm
 indexr.htm
 t2icfg.cpp
 g4strc.h
-arm
-fakelibs
-fakelibs64
-o
-o64
-wo
+S2_lf.hh
+lS2_lf.cfg
+g4strc.h
+S3_lf.hh
+lS3_lf.cfg
+g4strcwm.h

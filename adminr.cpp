@@ -33,7 +33,7 @@
 #include "srv.h"
 #endif
 
-#include "t2icfghtm.cpp"
+#include "icfghtm.cpp"
 
 #ifndef CD_VER
 

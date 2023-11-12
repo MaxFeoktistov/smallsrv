@@ -1,0 +1,27 @@
+
+[NAME]
+sndmsg -- sendmail emulator for Small HTTP server
+
+[SYNOPSIS]
+sndmsg {Keys} [to@address]
+
+
+[DESCRIPTION]
+The program send mail message with help Small HTTP server, or with help another SMTP server.
+
+[OPTIONS]
+
+
+[AUTHOR]
+Written by Maksim Feoktistov   <max@smallsrv.com>
+
+[REPORTING BUGS]
+Maksim Feoktistov   <max@smallsrv.com>
+
+[SEE ALSO]
+
+httpd.exe(1)
+
+The full description of Small HTTP server is maintained as a html file in [..]/share/smallsrv/descu.htm
+
+Last version at https://smallsrv.com/descu.htm

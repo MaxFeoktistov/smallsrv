@@ -1227,5 +1227,7 @@ char* CopyBB(char *y,char *t);
 
 extern uint  dns_dos_limit;
 
+#define CS(a) a
+#define CXS(a,b) a
 
 #endif

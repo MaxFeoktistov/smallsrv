@@ -48,7 +48,12 @@ void TLog::LAddToLog(char *t,int s, TSOCKADDR *psa, const char *fmt,...)
      l=sizeof(xsa[0]);
    }
    getsockname(s,(sockaddr *) (xsa+1),&l);
- }else memset(&sa,0,sizeof(xsa));
+ }
+ else
+ {
+   memset(&sa,0,sizeof(xsa));
+   san.sin_port = htons(-s);
+ }
  if(!psa) psa = xsa;
 
  GetLocalTime(&stime);

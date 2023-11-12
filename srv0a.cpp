@@ -492,7 +492,18 @@ void PrintHelp()
 #define printf(a...)  _hwrite(h,b_prot,wsprintf(b_prot,a))
 
 #endif
-     printf("%s\nCommand line:\n%s [--v][--c config_file|@config_file][--h|?] [{Params }]\n--v print version and exit\n--c config_file use directed config file instead default\n@config_file  use directed config file after default\n--h,--? print this help and exit\nParams the same as the params in config file:\n",sSMALL_HTT,
+ char toalign[96];
+
+     printf("%s\nUsage: %s [--v][--c config_file|@config_file][--h|?] [{Params}]\n"
+     "Options:\n\n"
+     " --v                print version and exit\n"
+     " --c                config_file use directed config file instead default\n"
+     " @config_file       use directed config file after default\n"
+     " --h, --?           print this help and exit\n"
+     "\n'Params' the same as the params in config file:\n\n"
+
+
+     ,sSMALL_HTT,
       cmdline
     //        argv[0]
            );
@@ -505,22 +516,46 @@ void PrintHelp()
        {
             if( (cp->min==255 || cp->min==256) && cp->v )
             {
-                printf("%s=path - %s\n",cp->name,cp->desc);
+               // printf(" %s=path - %s\n",cp->name,cp->desc);
+                sprintf(toalign,"%s=path", cp->name);
+                printf(" %-24s %s\n", toalign, cp->desc);
 
             }
             else     if(cp->v )
             {
                if(cp->adv)
                {
-                   printf("%s=value - ",cp->name);
+                 //  printf(" %s=value - ",cp->name);
+
+                   sprintf(toalign,"%s=value", cp->name);
+                   printf(" %-27s ", toalign);
+
                    printf(cp->desc,cp->adv);
                    printf("\n");
                }
                else
-                   printf("%s=value - %s\n",cp->name,cp->desc);
+               {
+                   //printf(" %s=value - %s\n",cp->name,cp->desc);
+
+                   sprintf(toalign,"%s=value", cp->name);
+                   printf(" %-27s %s\n", toalign, cp->desc);
+
+               }
             }
             else
-               printf("%s - %s\n",cp->name,cp->desc);
+            {
+              if(cp->adv)
+              {
+                printf(" %-27s ",cp->name);
+                printf(cp->desc,cp->adv);
+                printf("\n");
+              }
+              else
+              {
+               printf(" %-27s %s\n",cp->name,cp->desc);
+//               printf(" %s - %s\n",cp->name,cp->desc);
+              }
+            }
        }
 #ifndef SYSUNIX
 #undef printf
