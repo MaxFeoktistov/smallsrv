@@ -895,7 +895,7 @@ void AddToLogDNS(const char *t,int n,TSOCKADDR *sa ,char *ad) //="")
  else ttt="";
  //l='>';
  p2=n?53:67;
- direction = (t[0]=='(') ;
+ direction = (t[0]!='(') ;
 
  /*
  if(//t==REQURSION_CALL ||

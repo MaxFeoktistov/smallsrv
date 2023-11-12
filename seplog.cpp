@@ -51,8 +51,6 @@ void TLog::LAddToLog(char *t,int s, TSOCKADDR *psa, const char *fmt,...)
  }
  else
  {
-   //memset(xsa,0,sizeof(xsa));
-   //memcpy(xsa+1, psa, sizeof(xsa[1]) );
    san.sin_port = htons(-s);
  }
  if(!psa) psa = xsa;

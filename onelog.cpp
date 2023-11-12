@@ -242,7 +242,6 @@ void AddToLog(char *t,int s, TSOCKADDR *psa, const char *fmt,...)
  }
  else
  {
-   memset(&sa,0,sizeof(xsa));
    san.sin_port = htons(-s);
  }
  if(!psa) psa = xsa;
