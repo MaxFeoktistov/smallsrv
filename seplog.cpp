@@ -34,7 +34,7 @@ void TLog::Init(int n){lpprot=lf_prot=loldprot=lb_prot; suffix=SrvNameSufix[n] ;
 void TLog::LAddToLog(char *t,int s, TSOCKADDR *psa, const char *fmt,...)
 {SYSTEMTIME stime;
   TSOCKADDR xsa[2];
-
+  //TSOCKADDR lsa = xsa + 1;
 #define sa  (*(sockaddr_in *)psa)
 #define san (*(sockaddr_in *)(xsa+1))
  int ll,l;
@@ -51,7 +51,8 @@ void TLog::LAddToLog(char *t,int s, TSOCKADDR *psa, const char *fmt,...)
  }
  else
  {
-   memset(&sa,0,sizeof(xsa));
+   //memset(xsa,0,sizeof(xsa));
+   //memcpy(xsa+1, psa, sizeof(xsa[1]) );
    san.sin_port = htons(-s);
  }
  if(!psa) psa = xsa;

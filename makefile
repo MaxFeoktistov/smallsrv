@@ -606,7 +606,7 @@ g4strc.h: strc.h
 	echo "#define G4STRING_CONST_H\n\n" >> g4strc.h
 
 
-#g4strcwm.h S3_lf.hh:   strcwm.h
+S3_lf.hh: g4strcwm.h
 
 g4strcwm.h: strcwm.h
 	./def4str.pl S3 < $< > g4strcwm.h

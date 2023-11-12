@@ -866,8 +866,8 @@ void DNSLogRepeat::out()
 }
 
 
-const char *FmtShortDNS1[]={ "<%s %.64s", ">%s %.64s" };
-const char *FmtShortDNS2[]={ "<%s", ">%s"};
+const char *FmtShortDNS1[]={ "<%s %.64s\r\n", ">%s %.64s\r\n" };
+const char *FmtShortDNS2[]={ "<%s\r\n", ">%s\r\n"};
 
 #ifdef SEPLOG
 
