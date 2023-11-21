@@ -31,7 +31,7 @@
 //"Small HTTP Server CD version based on ver. 3.05.01"
 
 #else
-#define STRVER  "3.06.27test3"   /* DONT_AUTO_CHANGE */
+#define STRVER  "3.06.27test4"   /* DONT_AUTO_CHANGE */
 #define sSMALL_HTT "Small HTTP Server ver. " STRVER /* DONT_AUTO_CHANGE */
 #endif
 
@@ -283,7 +283,7 @@
 #define sTLS__SERV   "TLS/SSL server"
 #define sDISABLE_TLS "Disable TLS/SSL server"
 #define sTCP_IP_TLS  "TCP/IP port for TLS/SSL server. Usually it's 443"
-#define sTLS__LIB    "DLL library with TLS/SSL. E.g. seclib.dll"
+#define sTLS__LIB    "DLL library with TLS/SSL. E.g. libsec111.dll"
 #define sTLS__SERT   "Certificate file"
 #define sTLS__KEYF   "Key file"
 #define sTLS__CAFILE "CA-file"

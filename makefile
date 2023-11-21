@@ -22,18 +22,25 @@
 #
 #
 
-CONFIG_BASE   ?= /usr/local/
+VERSION=3.06.27test3
+
+prefix ?=/usr/local/
+CONFIG_BASE   ?= $(prefix:%/=%)/
 CONFIG_APPDIR ?= $(CONFIG_BASE)lib/smallsrv/
 CONFIG_SHARE  ?= $(CONFIG_BASE)share/smallsrv/
 CONFIG_CONFIG ?= /etc/smallsrv/
 CONFIG_LOG    ?= /var/log/smallsrv/
 CONFIG_DATA   ?= /var
 
-ICONFIG_BASE   := $(INSTALL_ROOT)$(CONFIG_BASE)
-ICONFIG_APPDIR := $(INSTALL_ROOT)$(CONFIG_APPDIR)
-ICONFIG_SHARE  := $(INSTALL_ROOT)$(CONFIG_SHARE)
-ICONFIG_CONFIG := $(INSTALL_ROOT)$(CONFIG_CONFIG)
-ICONFIG_LOG    := $(INSTALL_ROOT)$(CONFIG_LOG)
+ifneq ($(DESTDIR),)
+DESTDIR := $(DESTDIR:%/=%)/
+endif
+
+ICONFIG_BASE   := $(DESTDIR)$(CONFIG_BASE)
+ICONFIG_APPDIR := $(DESTDIR)$(CONFIG_APPDIR)
+ICONFIG_SHARE  := $(DESTDIR)$(CONFIG_SHARE)
+ICONFIG_CONFIG := $(DESTDIR)$(CONFIG_CONFIG)
+ICONFIG_LOG    := $(DESTDIR)$(CONFIG_LOG)
 
 INSTALLFROM ?= oo/
 
@@ -764,6 +771,7 @@ dist64: o64/dist/libsec111.so o64/dist/libsecgnutls.so o64/distu/libsec111.so o6
 	cd o64/distu/ ; strip httpd.exe ; chmod -R go-w,u+rw,a+X * ; chmod  0755 httpd.exe *.so  sndmsg ; chmod  0600 httpd.cfg ;  rm -f $(DIST_DIR)shttplnx64u.tgz ; tar --owner=root --group=root -czf $(DIST_DIR)shttplnx64u.tgz * ; chmod 0644 $(DIST_DIR)shttplnx64u.tgz
 
 
+arm64dist: arm64
 arm64dist: CROSS_COMPILE:=aarch64-linux-gnu-
 arm64dist: oo/dist $(addprefix oo/dist/,$(DISTFILES)) oo.prepare_dist
 	rm -f $(DIST_DIR)shttparm64lnx.tgz
@@ -781,7 +789,7 @@ oo/dist: $(TMPRAM)oo
 
 sinst:  o/dist/httpd.exe $(DIST_DIR)shttplnx.tgz $(DIST_DIR)shttplnxu.tgz $(DIST_DIR)shttparmlnx.tgz $(DIST_DIR)shttplnx64.tgz  $(DIST_DIR)shttplnx64u.tgz
 	chmod 0666 wo/shttps*.exe
-	for i in wo/shttps_mg.exe wo/shttpsr_mg.exe $(DIST_DIR)*.tgz ; do echo $$i ; cp $$i /mnt/d/var/www/pre/ ; done
+	for i in wo/shttps_mg.exe wo/shttpsr_mg.exe $(DIST_DIR)*.tgz smallsrv_$(VERSION)-1_amd64.deb ; do echo $$i ; cp $$i /mnt/d/var/www/pre/ ; done
 
 # 	for i in wo/shttps_mg.exe wo/shttpsr_mg.exe $(DIST_DIR)shttplnx.tgz $(DIST_DIR)shttplnxu.tgz $(DIST_DIR)shttparmlnx.tgz $(DIST_DIR)shttplnx64.tgz $(DIST_DIR)shttplnx64u.tgz ; do cp $$i /mnt/d/var/www/pre/ ; done
 
@@ -1179,3 +1187,30 @@ cleangen:
 cleanall: clean cleangen
 	rm -f o/httpd.exe o64/httpd.exe wo/http.exe http.exe wo/httpg.exe wo/shttps_mg.exe  wo/shttps_mgi.exe  wo/shttpsr_mg.exe  wo/shttpsr_mgi.exe wo/uninst.exe wo/libsecgnutls.dll o/libsec111.so o/libsecgnutls.so o64/httpd.exe o64/libsecgnutls.so o64/libsec111.so at/httpd.exe at/libsec111.so at/libsecgnutls.so
 	if [ "$(TMPRAM)" = "/dev/shm/shttps/o/" ] ; then rm -rf $(TMPRAM) ; fi
+
+SRC = accept.cpp cdde.cpp descu.htm fix_langpack.pl gz.h LICENSE mstring1.h pop3d.cpp secdll.h srv_ssi.cpp strtoul.cpp uninst.cpp \
+add_to_langcfg.pl conf.cpp dgpp_quote.h fix_rdesk.pl heap.cpp license06.txt md5.cpp mstring2.cpp proxy.cpp rulst.cpp seplog.cpp stat.cpp strvar.cpp updr.rc \
+adminr.cpp configure dhcpd.cpp ftpd.cpp hton.h licr06.txt md5.h musers.cpp prxcach.cpp rungnutls.cpp sethttp3.cpp statusr.cpp \
+arhbb.cpp dhcp.h fwnd.cpp icfg.cpp lS1_lf.cfg mdef.h qsort.cpp runssl111.cpp slib.h stpdtai.s  wgnuext.cpp \
+ dhhosts.h g4s1.hh icfghtm.cpp lS2_lf.cfg mkfakelib64.pl ndpdbg.s README.md runssl.cpp slloop.cpp stpdtamg.s t3_g4strc.h \
+bin2s.cpp cres.cpp g4strc.h icfgjs.cpp lS3_lf.cfg mkfakelib_arm.pl realloc.s S1_lf.hh smptps.cpp stpdtari.s telnet.cpp winpr.cpp \
+bvprintf.cpp g4strcwm.h lS5_lf.cfg mkfakelib.pl ndp.s S2_lf.hh smtpcl.cpp stpdtar.s tlsdll.h wmbx.cpp \
+bvprintf.h crt0pe.s dnsd.cpp g4strhtm.hh ico2.h mailip.cpp mlist.h nommc_dlfcn.h regular.cpp S3_lf.hh srv0a.cpp stpdta.s tlsm.cpp wndcfg.cpp \
+bvprintfv.cpp cstat.cpp get4def.pl ico.h mrc.cpp onelog.cpp regular.h S5_lf.hh srvars.cpp _strc.h to_linux.cpp xx31.ico \
+ def4str.pl fcgi.cpp getstr isapi.cpp makefile.bsd mrc.h pe_m.h req.cpp srv_cgi.cpp strc.h to_linux.h \
+ desc.htm fcgi.h getstr.cpp isapi.h makefile.dj msprintfchk.cpp pkbig.cpp ress1.s srvdat.cpp strcwm.h to_win.h \
+c4char.pl descr.htm gz.cpp lang_notes.txt makefile.in mstring1.cpp pklz.cpp restart.cpp srv.h strcwmr.h vpn.cpp vpn.h tools.cpp mkfakelib_cros.pl sndmsg.cpp httpd.exe.1 sndmsg.1 sndmsg_usage.1.in httpd_usage.1.in def4str2.pl httpd.cfg
+
+WSRC = $(addprefix winclude/,winsock_IPv6.h zconf.h zlib.h tap-windows.h nethdr.h)
+LSRC = $(addsuffix shs_lang.cfg, ru/ en/)
+SSRC = $(addprefix script_examples/,vpn_if_client_down.bat vpn_if_client_down.sh vpn_if_client_up.bat vpn_if_client_up.sh vpn_if_up.bat vpn_if_up.sh)
+
+src_name=o/smallsrv-$(VERSION).tar.gz
+src_dir=smallsrv-$(VERSION)
+
+sources:
+	tar -czvf $(src_name) --transform="s,^,./$(src_dir)/," --exclude-backups $(SRC) $(WSRC) $(LSRC) $(SSRC)
+
+deb: sources
+	cd o ; tar -xzf $(src_dir).tar.gz
+	cd o/$(src_dir) ;  debmake ; debuild -i -us -uc -b

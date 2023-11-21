@@ -109,10 +109,10 @@
   ------------------------------------------------------------------------
 
   You can try to build the program for any system that not defined before.
-  This script and Makefile understands the ARCH, CROSS_COMPILE, INSTALL_ROOT environment variables.  
+  This script and Makefile understands the ARCH, CROSS_COMPILE, DESTDIR environment variables.  
 
   ```
-  export INSTALL_ROOT=/dev/shm/arm64_root/
+  export DESTDIR=/dev/shm/arm64_root/
   export ARCH=arm64
   export CROSS_COMPILE=aarch64-linux-gnu-
   ./configure

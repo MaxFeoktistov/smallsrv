@@ -55,7 +55,7 @@ char *TLSLibrary=
 #ifdef SYSUNIX
           "./libsec111.so";
 #else
-          "seclib111.dll";
+          "libsec111.dll";
 #endif
 
 #ifndef  TLSWODLL

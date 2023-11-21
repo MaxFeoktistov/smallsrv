@@ -34,7 +34,7 @@
 
 #endif
 
-const char FmtShortVPN []=">>%.256s VPN   in:%u out:%u time: %us\r\n";
+const char FmtShortVPN []=">>%.256s VPN   in:%u out:%u time: %us %s\r\n";
 
 
 
@@ -911,7 +911,7 @@ void print_pkt(int index, uchar *pktl)
 void CloseVPNClient(int i)
 {
 
-  AddToLog(0, vpn_list[i]->s, & vpn_list[i]->sa_c46, FmtShortVPN,"Connection closed.", vpn_list[i]->Tin, vpn_list[i]->Tout, (GetTickCount() - vpn_list[i]->tmout)/1000 );
+  AddToLog(0, vpn_list[i]->s, & vpn_list[i]->sa_c46, FmtShortVPN,"Connection closed.", vpn_list[i]->Tin, vpn_list[i]->Tout, (GetTickCount() - vpn_list[i]->tmout)/1000, vpn_list[i]->a_user? vpn_list[i]->a_user->name: "" );
 
   maxVPNset.Clear(vpn_list[i]->s);
   SecClose((OpenSSLConnection*) vpn_list[i]->Adv);
@@ -941,7 +941,7 @@ int Req::InsertVPNclient()
   VPNclient *cl;
   char *rnd, *pwdcode;
   int l;
-  User *tuser;
+  User *tuser = 0;
   char *t;
   char *p;
   int isTap;
@@ -992,6 +992,7 @@ int Req::InsertVPNclient()
    memcpy(&cl->tls, Adv, sizeof(OpenSSLConnection) );
    cl->Adv = &cl->tls;
    cl->tls.CallbackParam = cl;
+   cl->a_user = tuser;
    SecUpdateCB(&cl->tls);
 
    cl->fl = F_VPNTUN << isTap;
@@ -1613,7 +1614,7 @@ int VPNclient::ClientConnect(OpenSSLConnection *x)
 #ifndef  TLSWODLL
   if( (!PSecConnect) || PSecConnect == SecConnectAbcent)
   {
-    debug("Your version of 'seclib' library doesn't support functions required for VPN client. Please update it...\r\n");
+    debug("Your version of 'libsec' library doesn't support functions required for VPN client. Please update it...\r\n");
     return -4;
   }
 #endif
@@ -2012,7 +2013,7 @@ ulong WINAPI VPNClient(void *)
             if(vpn.RecvPkt()<0)
             {
             err_s:
-              AddToLog(0, vpn.s,&vpn.sa_c46, FmtShortVPN,"VPN client: connection closed. ", vpn.Tin, vpn.Tout, (GetTickCount() - vpn.tmout)/1000 );
+              AddToLog(0, vpn.s,&vpn.sa_c46, FmtShortVPN,"VPN client: connection closed. ", vpn.Tin, vpn.Tout, (GetTickCount() - vpn.tmout)/1000, "" );
               SecClose(&vpn.tls);
               CloseSocket(vpn.s);
               RunDownScript(vpn.tun_index, vpn.ipv4);

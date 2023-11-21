@@ -224,8 +224,14 @@ struct Req
  int Tin,Tout;
  ulong bSpd;
  int   event;
- union { void *gz; int  pass_port; };
- host_dir *vhdir;
+ union {
+   void *gz;
+   int  pass_port;
+ };
+ union {
+   host_dir *vhdir;
+   User *a_user;
+ };
  char inf[96];
 
 #ifdef FIX_EXCEPT

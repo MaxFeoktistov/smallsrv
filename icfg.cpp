@@ -506,7 +506,7 @@ SPD(5,tls)
 
 {"tls_lib"  ,256,0,(uint *)&TLSLibrary,
 #ifndef  TLSWODLL
-  CXS(S2sTLS__LIB, "DLL library with TLS/SSL. E.g. seclib.dll")
+  CXS(S2sTLS__LIB, "DLL library with TLS/SSL. E.g. libsec111.dll")
 #else
   0
 #endif

@@ -33,6 +33,14 @@
 
 #endif
 
+#if defined(__BYTE_ORDER__) &&  __BYTE_ORDER__  ==  __ORDER_BIG_ENDIAN__
+#ifndef BIG_ENDIAN
+#define BIG_ENDIAN 1
+#endif
+#else
+#undef BIG_ENDIAN
+#endif
+
 
 #undef uint
 #undef ushort
@@ -70,21 +78,32 @@ typedef long long i64;
 
 #undef LOWORD
 #undef HIWORD
-#define MIN(a,b)  ( ((a)<(b))?(a):(b) )
-#define MAX(a,b)  ( ((a)>(b))?(a):(b) )
+
+#ifdef BIG_ENDIAN
+
+#define HIWORD(a) ( (a)&0xFFFFul)
+#define LOWORD(a) ((ulong)(a)>>16)
+#define MAKE_DWORD(b,a) (((ulong)(a)<<16)|(b))
+#define MAKE_DWORD1(b,a) (((ulong)(a)<<16)|((b)&0xFFFF))
+
+#else
+
 #define LOWORD(a) ( (a)&0xFFFFul)
 #define HIWORD(a) ((ulong)(a)>>16)
 #define MAKE_DWORD(a,b) (((ulong)(a)<<16)|(b))
 #define MAKE_DWORD1(a,b) (((ulong)(a)<<16)|((b)&0xFFFF))
 
-#if __SIZEOF_INT__ == 4 &&  __SIZEOF_POINTER__ == 8
+#endif
 
+#define MIN(a,b)  ( ((a)<(b))?(a):(b) )
+#define MAX(a,b)  ( ((a)>(b))?(a):(b) )
+
+
+
+#ifdef A_64
 #define LODWORD(a) ((uint) ((ulong long) (a)) )
 #define HIDWORD(a) ((uint) (((ulong long)(a))>>32) )
 
-#endif
-
-#ifdef A_64
 //#define PACKED __attribute__((packed, aligned(1)))
 //#define PACKED __attribute__((__packed__))
 #define PACKED __attribute__((packed))
@@ -94,76 +113,108 @@ typedef long long i64;
 
 #endif
 
-#if defined(AT_ARM)
+
+
+#if defined(AT_ARM) || defined(ARCH_REQ_ALIGN)
 
 #ifdef __cplusplus
-
-
-//#define DWORD_PTR(a) ( (uint)(uchar * )(&(a))[1]<<8ul)|( (uint)(uchar * )(&(a))[2]<<16ul)|((uint) (uchar * )(&(a))[3]<<24ul)|(* (uchar * )(&(a)) )
-
-//#define WORD_PTR(a) ( (uint)(uchar * )(&(a))[1]<<8ul) | (* (uchar * )(&(a)) )
-
 
 struct OffsetBugW
 {
  uchar *t;
  OffsetBugW(void *c){t=(uchar *) c;}
  OffsetBugW & operator=(short c)
- {*t=*(uchar *)(&c);
-  t[1]=((uchar *)(&c))[1];
-  return *this;
+ {
+   *t=*(uchar *)(&c);
+   t[1]=((uchar *)(&c))[1];
+   return *this;
  }
  operator ushort()
  {
+#ifdef BIG_ENDIAN
+   return
+       (((uint)(t[1])) ) |
+       (((uint)(t[0])) <<8  ) ;
+#else
    return
        (((uint)(t[0])) ) |
        (((uint)(t[1])) <<8  ) ;
+#endif
  }
 };
 struct OffsetBugD
 {
- uchar *t;
- OffsetBugD(void *c){t=(uchar *) c;}
- OffsetBugD & operator=(int c)
- {
-/*
-   *t=*(uchar *)(&c);
-  t[1]=((uchar *)(&c))[1];
-  t[2]=((uchar *)(&c))[2];
-  t[3]=((uchar *)(&c))[3];
-  */
-  *t=c;
-  t[1]=c>>8;
-  t[2]=c>>16;
-  t[3]=c>>24;
+  uchar *t;
+  OffsetBugD(void *c){t=(uchar *) c;}
+  OffsetBugD & operator=(int c)
+  {
+#ifdef BIG_ENDIAN
+    *t=c>>24;
+    t[1]=c>>16;
+    t[2]=c>>8;
+    t[3]=c;
+#else
+    *t=c;
+    t[1]=c>>8;
+    t[2]=c>>16;
+    t[3]=c>>24;
+#endif
   return *this;
  }
  operator int()
- { return
+ {
+#ifdef BIG_ENDIAN
+   return
+       (((uint)(t[3]))      ) |
+       (((uint)(t[2])) <<8  ) |
+       (((uint)(t[1])) <<16 ) |
+       (((uint)(t[0])) <<24 ) ;
+#else
+   return
        (((uint)(t[0]))      ) |
        (((uint)(t[1])) <<8  ) |
        (((uint)(t[2])) <<16 ) |
        (((uint)(t[3])) <<24 ) ;
+#endif
  }
  OffsetBugD & operator+=(int c)
- {c+=  (((uint)(t[0]))      ) |
-       (((uint)(t[1])) <<8  ) |
-       (((uint)(t[2])) <<16 ) |
-       (((uint)(t[3])) <<24 );
-  *t=c;
-  t[1]=c>>8;
-  t[2]=c>>16;
-  t[3]=c>>24;
+ {
+#ifdef BIG_ENDIAN
+    c+= (((uint)(t[3]))      ) |
+        (((uint)(t[2])) <<8  ) |
+        (((uint)(t[1])) <<16 ) |
+        (((uint)(t[0])) <<24 );
+    *t=c>>24;
+    t[1]=c>>16;
+    t[2]=c>>8;
+    t[3]=c;
+#else
+    c+= (((uint)(t[0]))      ) |
+        (((uint)(t[1])) <<8  ) |
+        (((uint)(t[2])) <<16 ) |
+        (((uint)(t[3])) <<24 );
+    *t=c;
+    t[1]=c>>8;
+    t[2]=c>>16;
+    t[3]=c>>24;
+#endif
   return *this;
  }
 
  OffsetBugD & operator^=(int c)
  {
-  *t^=(c);
-  t[1]^=c>>8;
-  t[2]^=c>>16;
-  t[3]^=c>>24;
-  return *this;
+#ifdef BIG_ENDIAN
+    *t^=c>>24;
+    t[1]^=c>>16;
+    t[2]^=c>>8;
+    t[3]^=c;
+#else
+    *t^=(c);
+    t[1]^=c>>8;
+    t[2]^=c>>16;
+    t[3]^=c>>24;
+#endif
+    return *this;
  }
 
 };
@@ -172,6 +223,25 @@ struct OffsetBugD
 #define DWORD_PTR(a)  ((OffsetBugD)( (void *) & (a) ))
 
 #else  // ! __cplusplus
+
+#ifdef BIG_ENDIAN
+
+inline ulong fDWORD_PTR(uchar *t)
+{ return
+       (((uint)(t[3]))      ) |
+       (((uint)(t[2])) <<8  ) |
+       (((uint)(t[1])) <<16 ) |
+       (((uint)(t[0])) <<24 ) ;
+}
+
+inline ushort fWORD_PTR(uchar *t)
+{ return
+       (((uint)(t[1]))      ) |
+       (((uint)(t[0])) <<8  ) ;
+}
+
+#else  // LITTLE_ENDIAN
+
 inline ulong fDWORD_PTR(uchar *t)
 { return
        (((uint)(t[0]))      ) |
@@ -185,13 +255,12 @@ inline ushort fWORD_PTR(uchar *t)
        (((uint)(t[0]))      ) |
        (((uint)(t[1])) <<8  ) ;
 }
+#endif
 #define WORD_PTR(a)  fWORD_PTR((uchar *)  & (a))
 #define DWORD_PTR(a) fDWORD_PTR((uchar *) & (a))
 
 #endif  // __cplusplus
 
-//dfsfs
-//#define WORD_PTR(a)    ((* (ushort *)(&(a)) )
 
 #else
 
