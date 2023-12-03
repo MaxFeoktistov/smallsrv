@@ -590,6 +590,10 @@ int PrepCfg(char *fname)
       strcpy(conf_name,fname);
     }
   }
+#ifdef USE_SYSPASS
+  InitAccessGids();
+#endif
+
   return 0;
  }//else
      MessageBox(0, sUNABLE_TO ,fname,MB_ICONSTOP|MB_OK);

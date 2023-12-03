@@ -27,6 +27,12 @@
 #ifndef SRV_H
 #include "srv.h"
 #endif
+#ifdef SYSUNIX
+#include <pwd.h>
+#include <shadow.h>
+#include <crypt.h>
+#include <grp.h>
+#endif
 
 
 #ifndef A_64
@@ -444,7 +450,6 @@ int User::Parse()
 
 
 //-------
-#ifdef FORMTS
 int IsSame(char *tt,char *pp)
 {
  char *z;
@@ -463,7 +468,6 @@ int IsSame(char *tt,char *pp)
   }while(*tt);
  return !*pp;
 }
-#endif
 
 void Req::AddHack(ulong t,int v)
 {
@@ -508,10 +512,16 @@ void Req::AddHack(ulong t,int v)
    lip->first=t;
    lip->cnt+=v;
 }
+
+#define USER_FOUND ((SysUser *) 1)
 //-------
 //ulong lastbadip[24],nextbadip;
 User   *FindUser(char *bfr,int typ,char *pwd /*=0*/,Req *r) //=0)
-{User *tuser;
+{
+  union {
+    User *tuser;
+    SysUser *suser;
+  };
  char *t,*t1,*t2;
  ulong ip; //,*pip=0;
  union{
@@ -560,13 +570,7 @@ User   *FindUser(char *bfr,int typ,char *pwd /*=0*/,Req *r) //=0)
  {
   cc++;
 // debug("%s %s %X %X",tuser->name,bfr,tuser->state,typ);
-  if( (tuser->state&0x80) && (tuser->state&typ) &&
-#ifdef FORMTS
-  IsSame(tuser->name,bfr)
-#else
-  !stricmp(tuser->name,bfr)
-#endif
-
+  if( (tuser->state & UserPARSED) && (tuser->state&typ) && IsSame(tuser->name,bfr)
   )
   {
 
@@ -617,6 +621,7 @@ User   *FindUser(char *bfr,int typ,char *pwd /*=0*/,Req *r) //=0)
 //    if( (pip=memchr4(lastbadip, r->sa_c.sin_addr. S_ADDR ,8)))//saddr[r->ntsk],8)) )
 //    {if(!(pip[8]&=~((0x501*cc)<<5)))*pip=0;
 //    }
+  lbFound:;
 #ifdef USE_IPV6
   if( IsIPv6( & r->sa_c ) ) //sa_client.sin_family==AF_INET6)
   {
@@ -632,6 +637,48 @@ User   *FindUser(char *bfr,int typ,char *pwd /*=0*/,Req *r) //=0)
    return tuser;
   }
  }
+#ifdef USE_SYSPASS
+#ifdef SYSUNIX
+ if((!tuser) && (FL3_SYS_USERS & s_flgs[3]) )
+ {
+    for(suser=suserList;suser;suser=(SysUser *) suser->next)
+    {
+      if( !strcmp(suser->nname,bfr) )
+      {
+        if(md5pwd)
+        {
+          r->fl|=F_DIGET_UNAVILABLE;
+          return 0;
+        }
+
+        if(! suser->IsPwd(bfr)) goto lbBad;
+        break;
+      }
+    }
+    if(!tuser) suser = CheckSysPassword(bfr,pwd);
+    if(suser == USER_FOUND)
+    {
+      if(md5pwd)
+      {
+        r->fl|=F_DIGET_UNAVILABLE;
+        return 0;
+      }
+      goto lbBad;
+    }
+    if(!suser) goto lbBad;
+    if( suser->state & typ)
+    {
+      if(r)
+      {
+        r->dir = suser->ddr;
+        goto lbFound;
+      }
+      return tuser;
+    }
+ }
+#endif
+#endif
+
 #if !defined(CD_VER)
 //debug("U1 %X %X %X",s_flgs[1],(1<<(BYTE_PTR(r->fl,2)&0xE)),s_flgs[1]&(1<<(BYTE_PTR(r->fl,2)&0xE)) );
   if(r && (r->Snd!=&TLSSend)
@@ -743,3 +790,98 @@ int CfgParam::IsR()
  return 0;
 
 }
+
+#ifdef USE_SYSPASS
+#ifdef SYSUNIX
+
+void InitAccessGids()
+{
+  int i;
+  struct group *g;
+  for(i=0;i<N_ACESS_FLAGS; i++)
+  {
+    g = getgrnam(access_groups[i]);
+    if(g)
+      access_gids[i] = g->gr_gid;
+  }
+}
+
+SysUser* AllocSysUser(struct passwd* pEntry, char *pas)
+{
+  int l1 = strlen(pEntry->pw_name);
+  int l2 = strlen(pEntry->pw_dir);
+  int l3 = strlen(pas);
+  SysUser *ret;
+  int ngroups = 128;
+  gid_t gids[128];
+  int  i,j;
+
+  ret = (SysUser* )malloc(l1+l2+l3+ 3 + sizeof(SysUser) );
+  if(ret)
+  {
+#ifdef A_64
+    ret->name = ret->nname;
+    ret->state = UserSYSUSER | UserPARSED;
+#else
+    ret->state = UserPARSED;
+#endif
+    strcpy(ret->nname,pEntry->pw_name);
+    strcpy(ret->ddr=ret->nname + l1 + 1, pEntry->pw_dir);
+    strcpy(ret->pwd=ret->ddr + l2 + 1, pas);
+
+    if(getgrouplist(pEntry->pw_name, pEntry->pw_gid,
+                        gids, &ngroups)>0)
+    {
+      for(i=0; i<ngroups; i++)
+        for(j=0; j<N_ACESS_FLAGS; j++)
+          if(gids[i] == access_gids[j]) ret->state |= (1<<j);
+    }
+    ret->state ^= UserNOCGI;
+    ret->next = (User*) suserList;
+    suserList = ret;
+  }
+  return ret;
+}
+
+// @return 0 - password is correct, otherwise no
+SysUser* CheckSysPassword( const char* user, const char* password )
+{
+    struct passwd* pEntry;
+    SysUser *ret=0;
+    MyLock(user_mutex);
+    pEntry = getpwnam( user );
+    if ( pEntry )
+    {
+      ret = USER_FOUND;
+      if ( WORD_PTR(pEntry->pw_passwd[0]) != 'x' )
+      {
+        if(! strcmp( pEntry->pw_passwd, crypt( password, pEntry->pw_passwd ) ) )
+        {
+          ret = AllocSysUser(pEntry, pEntry->pw_passwd);
+        }
+      }
+      else
+      {
+        // password is in shadow file
+        struct spwd* shadowEntry = getspnam( user );
+        if ( shadowEntry && strcmp( shadowEntry->sp_pwdp, crypt( password, shadowEntry->sp_pwdp ) ) )
+        {
+          ret = AllocSysUser(pEntry, shadowEntry->sp_pwdp);
+        }
+      }
+    }
+    MyUnlock(user_mutex);
+    return ret;
+
+}
+
+int SysUser::IsPwd(char *pas)
+{
+  int ret;
+  MyLock(user_mutex);
+  ret = strcmp(pwd, crypt(pas, pwd));
+  MyUnlock(user_mutex);
+  return ret;
+}
+#endif
+#endif

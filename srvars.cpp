@@ -392,3 +392,21 @@ int mutexASyncIO;
 ulong ASyncIOtrd_id;
 #endif
 
+#ifdef USE_SYSPASS
+#ifdef SYSUNIX
+
+int user_mutex;
+gid_t access_gids[N_ACESS_FLAGS];
+const char* access_groups[N_ACESS_FLAGS]={
+  "mail",
+  "mail",
+  "ftp",
+  "root",
+  "proxy",
+  "root",
+  "ftpcgi"
+};
+SysUser* suserList;
+
+#endif
+#endif

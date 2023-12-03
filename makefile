@@ -22,7 +22,7 @@
 #
 #
 
-VERSION=3.06.27test3
+VERSION=3.06.27test5
 
 prefix ?=/usr/local/
 CONFIG_BASE   ?= $(prefix:%/=%)/
@@ -61,7 +61,7 @@ TMPRAM ?= /dev/shm/shttps/o/
 OPT= -pipe  \
   -fno-stack-protector -fno-stack-check -fno-verbose-asm -fno-nonansi-builtins -fno-access-control  -fno-optional-diags -momit-leaf-frame-pointer\
  -DUSE_IPV6 -DUSE_FUTEX -DUSE_POOL -fno-exceptions  -Wno-deprecated -Wno-address-of-packed-member -fno-bounds-check -fno-tree-bit-ccp -fno-builtin -mno-red-zone -DFREEVER  -DWITHMD5 -DFIX_EXCEPT -DPF_LONG_LONG \
-  -DUSEVALIST -DSEPLOG $(ADVOPT) -DVPN_LINUX -DTLSVPN
+  -DUSEVALIST -DSEPLOG $(ADVOPT) -DVPN_LINUX -DTLSVPN -DUSE_SYSPASS
 
 OPTTLS= $(OPT) -DTLSWODLL
 
@@ -180,9 +180,9 @@ WIN64ELFLG=  -mwindows $(WIN64LIB) -luser32 -lkernel32 -lws2_32 -lgdi32 -lshell3
 LOPT=   -dynamic-linker   -Xlinker -Map -Xlinker o/flxmap  -nodefaultlibs
 LOPT64=   -dynamic-linker   -Xlinker -Map -Xlinker o64/flxmap  -nodefaultlibs
 
-LIB= $(LIBDIR32) -lpthread  $(LIBDIR32) -ldl $(LIBDIR32) -lc $(LIBDIR32) -lgcc -lc_nonshared
-LIB64= $(LIBDIR64) -lpthread  $(LIBDIR64) -ldl $(LIBDIR64) -lc  $(LIBDIR32) -lgcc -lc_nonshared
-LIB64u=  -ldl -lpthread  -lc -lgcc -lc_nonshared
+LIB= $(LIBDIR32) -lpthread  $(LIBDIR32) -ldl $(LIBDIR32) -lc $(LIBDIR32) -lgcc -lc_nonshared  $(LIBDIR32) -lcrypt
+LIB64= $(LIBDIR64) -lpthread  $(LIBDIR64) -ldl $(LIBDIR64) -lc  $(LIBDIR32) -lgcc -lc_nonshared $(LIBDIR32) -lcrypt
+LIB64u=  -ldl -lpthread  -lc -lgcc -lc_nonshared -lcrypt
 
 BINFILES := httpd.exe httpd.exopenssl httpd.exgnutls sndmsg
 
@@ -217,11 +217,11 @@ OOBJS_TLS=$(COBJS) $(addprefix o/tls_,$(POBJS))
 OOBJS64_TLS=$(COBJS64) $(addprefix o64/tls_,$(AOBJS64))
 
 #FLIBS=libc.so libdl.so libpthread.so libgnutls.so libssl.so
-FLIBS=libc.so libpthread.so libdl.so libgnutls.so libssl.so libcrypto.so libgnutls.so.30
+FLIBS=libc.so libpthread.so libdl.so libgnutls.so libssl.so libcrypto.so libgnutls.so.30 libcrypt.so
 FAKELIBS=$(addprefix fakelibs/,$(FLIBS))
 FAKELIBS64=$(addprefix fakelibs64/,$(FLIBS))
 
-FLIBSARM= libgnutls.so libssl.so libcrypto.so libgnutls.so.30
+FLIBSARM= libgnutls.so libssl.so libcrypto.so libgnutls.so.30 libcrypt.so
 FAKELIBSARM=$(addprefix fakelibsarm/,$(FLIBSARM))
 N_FAKELIBS=$(addprefix oo/fakelibs/,$(FLIBSARM))
 
@@ -258,9 +258,9 @@ $(OOBJS) $(OOBJS64) $(WINOOBJS): $(GENERATED)
 
 $(GENERATED): $(TMPRAM)o
 
-i32: $(TMPRAM)o o o/httpd.exe o/libsec111.so o/libsecgnutls.so o/sndmsg
+i32: $(TMPRAM)o o o/httpd.exe o/libsec111.so o/libsecgnutls.so o/sndmsg o/httpd.exgnutls o/httpd.exopenssl
 
-i64: $(TMPRAM)o64 o o64 o64/httpd.exe o64/libsecgnutls.so o64/libsec111.so o64/sndmsg
+i64: $(TMPRAM)o64 o o64 o64/httpd.exe o64/libsecgnutls.so o64/libsec111.so o64/sndmsg o64/httpd.exgnutls o64/httpd.exopenssl
 
 i32f: $(TMPRAM)o/of o $(FAKELIBS) o/of/httpd.exe o/of/libsec111.so o/of/libsecgnutls.so o/of/httpd.exgnutls o/of/httpd.exopenssl o/of/sndmsg
 
@@ -395,8 +395,8 @@ LIBDIR32F=-Lfakelibs/
 LIBDIR64F=-Lfakelibs64/
 LIBDIRARMF=-Lfakelibsarm/
 
-LIBF= $(LIBDIR32F) -lpthread  $(LIBDIR32F) -ldl $(LIBDIR32F) -lc $(LIBDIR32F) -lgcc -lc_nonshared
-LIB64F= $(LIBDIR64F) -lpthread  $(LIBDIR64F) -ldl $(LIBDIR64F) -lc $(LIBDIR64F) -lgcc -lc_nonshared
+LIBF= $(LIBDIR32F) -lpthread  $(LIBDIR32F) -ldl $(LIBDIR32F) -lc $(LIBDIR32F) -lgcc -lc_nonshared  $(LIBDIR64F) -lcrypt
+LIB64F= $(LIBDIR64F) -lpthread  $(LIBDIR64F) -ldl $(LIBDIR64F) -lc $(LIBDIR64F) -lgcc -lc_nonshared  $(LIBDIR64F) -lcrypt
 
 getstr: getstr.cpp
 	g++ -m32 -pipe -fpack-struct -fconserve-space -O2 -s getstr.cpp -o getstr
@@ -789,7 +789,8 @@ oo/dist: $(TMPRAM)oo
 
 sinst:  o/dist/httpd.exe $(DIST_DIR)shttplnx.tgz $(DIST_DIR)shttplnxu.tgz $(DIST_DIR)shttparmlnx.tgz $(DIST_DIR)shttplnx64.tgz  $(DIST_DIR)shttplnx64u.tgz
 	chmod 0666 wo/shttps*.exe
-	for i in wo/shttps_mg.exe wo/shttpsr_mg.exe $(DIST_DIR)*.tgz smallsrv_$(VERSION)-1_amd64.deb ; do echo $$i ; cp $$i /mnt/d/var/www/pre/ ; done
+	for i in wo/shttps_mg.exe wo/shttpsr_mg.exe $(DIST_DIR)*.tgz o/smallsrv_$(VERSION)-1_amd64.deb ; do echo $$i ; cp $$i /mnt/d/var/www/pre/ ; done
+	ln -s smallsrv_$(VERSION)-1_amd64.deb /mnt/d/var/www/pre/smallsrv_3.06.37test-1_amd64.deb
 
 # 	for i in wo/shttps_mg.exe wo/shttpsr_mg.exe $(DIST_DIR)shttplnx.tgz $(DIST_DIR)shttplnxu.tgz $(DIST_DIR)shttparmlnx.tgz $(DIST_DIR)shttplnx64.tgz $(DIST_DIR)shttplnx64u.tgz ; do cp $$i /mnt/d/var/www/pre/ ; done
 
@@ -1120,7 +1121,7 @@ N_OBJS_TLS=$(addprefix oo/tls_,$(N_OBJS0))
 $(N_OBJS): $(GENERATED)
 
 n_all: A_GCC=$(CROSS_COMPILE)gcc
-n_all: N_FLAGS = -mlittle-endian -Wno-deprecated-declarations -Wno-conversion  -Wno-write-strings  -fno-access-control  -fno-nonansi-builtins -fno-elide-constructors -fno-enforce-eh-specs   -fno-rtti  -fno-weak -nostdinc++  -Wnoexcept -fno-exceptions -Wno-format -fpermissive -DLINUX -DSYSUNIX -DNOTINTEL -DFREEVER -DTELNET -DUSE_IPV6 -DV_FULL=1 -DUSE_FUTEX -DUSE_POOL -DWITHMD5 -DFIX_EXCEPT -DUSEVALIST -DVPN_LINUX -DTLSVPN $(A_OPT) $(ADVOPT)
+n_all: N_FLAGS = -mlittle-endian -Wno-deprecated-declarations -Wno-conversion  -Wno-write-strings  -fno-access-control  -fno-nonansi-builtins -fno-elide-constructors -fno-enforce-eh-specs   -fno-rtti  -fno-weak -nostdinc++  -Wnoexcept -fno-exceptions -Wno-format -fpermissive -DLINUX -DSYSUNIX -DNOTINTEL -DFREEVER -DTELNET -DUSE_IPV6 -DV_FULL=1 -DUSE_FUTEX -DUSE_POOL -DWITHMD5 -DFIX_EXCEPT -DUSEVALIST -DVPN_LINUX -DTLSVPN -DUSE_SYSPASS $(A_OPT) $(ADVOPT)
 n_all: $(TMPRAM)oo o oo $(N_DEP) oo/httpd.exe oo/sndmsg oo/libsec111.so oo/libsecgnutls.so oo/httpd.exopenssl oo/httpd.exgnutls
 
 
@@ -1140,13 +1141,13 @@ oo/runssl111.o: runssl111.cpp
 	 $(A_GCC) -c -s -o $@  -DOSSL111 -I/usr/src/openssl-1.1.1m/include $(N_FLAGS) -O2  $<
 
 oo/httpd.exe: $(N_OBJS)
-	$(A_GCC)  $(S) -o $@ $^ $(N_LFLAGS) -lc -lutil -lpthread -ldl
+	$(A_GCC)  $(S) -o $@ $^ $(N_LFLAGS) -lc -lutil -lpthread -ldl $(N_LFAKELIBS) -lcrypt
 
 oo/httpd.exopenssl: $(N_OBJS_TLS) oo/runssl111.o
-	$(A_GCC)  $(S) -o $@ $^  $(N_LFLAGS) -lc -lutil -lpthread -ldl  -Wl,-Bdynamic $(N_LFAKELIBS) -lssl $(N_LFAKELIBS) -lcrypto
+	$(A_GCC)  $(S) -o $@ $^  $(N_LFLAGS) -lc -lutil -lpthread -ldl -Wl,-Bdynamic $(N_LFAKELIBS) -lssl $(N_LFAKELIBS) -lcrypto $(N_LFAKELIBS) -lcrypt
 
 oo/httpd.exgnutls: $(N_OBJS_TLS) oo/rungnutls.o
-	$(A_GCC)  $(S) -o $@ $^ $(N_LFLAGS) -lc -lutil -lpthread -ldl -Wl,-Bdynamic  $(N_LFAKELIBS) -l:libgnutls.so.30
+	$(A_GCC)  $(S) -o $@ $^ $(N_LFLAGS) -lc -lutil -lpthread -ldl -Wl,-Bdynamic  $(N_LFAKELIBS) -l:libgnutls.so.30 $(N_LFAKELIBS) -lcrypt
 
 oo/libsecgnutls.so: rungnutls.cpp
 	 $(A_GCC) -s -o $@   -fPIC -shared -O2 -I/usr/src/openssl-1.1.1m/include $(N_FLAGS) -O2  $<  $(N_LFAKELIBS) -l:libgnutls.so.30 -lc
@@ -1213,4 +1214,5 @@ sources:
 
 deb: sources
 	cd o ; tar -xzf $(src_dir).tar.gz
-	cd o/$(src_dir) ;  debmake ; debuild -i -us -uc -b
+	mkdir -p o/$(src_dir)/debian ; sed "s/^Version:.*/Version: $(VERSION)/" control >o/$(src_dir)/debian/control
+	cd o/$(src_dir) ; DEBEMAIL="max@smallsrv.com" ; DEBFULLNAME="Maksim Feoktistov" ; debmake -b "binarypackage:bin" ; debuild -i -us -uc -b

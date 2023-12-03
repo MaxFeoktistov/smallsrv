@@ -499,6 +499,8 @@ int FndLimit(int lst,LimitBase **ip, LimitBase **net, sockaddr_in *sa );
 #define FL3_VPN_TLSSHSTYLE  0x00000800
 #define FL3_VPN_SCRKEEP     0x00001000
 
+#define FL3_SYS_USERS       0x00002000
+
 #define USE_TUN       (s_flgs[3] & FL3_VPN_TUN)
 #define USE_TAP       (s_flgs[3] & FL3_VPN_TAP)
 #define TAP_CLIENT    (s_flgs[3] & FL3_TAP_CLIENT)
@@ -556,6 +558,7 @@ struct User
 #define UserADMIN 0x20
 #define UserNOCGI 0x40
 #define UserPARSED 0x80
+#define UserSYSUSER 0x100
 #define FindUserMD5digest 0x10000
 #ifdef A_64
  char *name;
@@ -578,7 +581,47 @@ struct User
  void MkDir();
  int Convert(char *x);
  int FlgString(char *bfr);
+ int IsSysUser()
+ {
+#ifdef A_64
+   return (state & UserSYSUSER);
+#else
+   return name[0] == 1;
+#endif
+ }
+
 }PACKED ;
+
+#ifdef SYSUNIX
+struct SysUser: public User
+{
+#ifdef A_64
+#else
+ char *pwd,*ddr;
+
+ char *pasw(){return pwd;};
+ char *dir(char *ps){return ddr;};
+ char *dir(){ return ddr;};
+#endif
+ char nname[1];
+
+ //char *name() {return nname;}
+ int IsPwd(char *pas);
+
+};
+
+extern int user_mutex;
+#define N_ACESS_FLAGS 7
+extern gid_t access_gids[N_ACESS_FLAGS];
+extern const char* access_groups[N_ACESS_FLAGS];
+extern SysUser* suserList;
+void InitAccessGids();
+SysUser* AllocSysUser(struct passwd* pEntry, char *pas);
+SysUser* CheckSysPassword( const char* user, const char* password );
+
+#else
+struct SysUser;
+#endif
 
 #endif
 

@@ -318,7 +318,41 @@ int BFILE::bvprintf(const char *fmt,va_list vl)
 };
 
 
+#ifdef TEST_BUILD
+//gcc -m32 bvprintfv.cpp -o o/bvprintfv -DTEST_BUILD -DPF_LONG_LONG -DSYSUNIX -DUSEVALIST
+//-DBPRINTF_INLINE
+//#include <unistd.h>
+//#include <stdlib.h>
 
+int TPrintFlush(void *,char *s,ulong l)
+{
+  return write(1,s,l);
+}
+
+uint atouisc(const char *&a)
+{register uint r=0,l,n=0;
+ while( (l=*a-'0')<10 ){r=r*10+l;a++; if(n++>11)break; };
+ return r;
+};
+
+int main()
+{
+  BFILE bf;
+  char  b[BFR_LIM+0x100];
+  bf.Init(0,(PrintFlush)TPrintFlush,b);
+  bf.bprintf(
+    "llu:%llu\n"
+    "llX:%llX\n"
+    "llo:%llo\n"
+    ,0x123456789ABCDEF
+    ,0x123456789ABCDEF
+    ,0x123456789ABCDEF
+    );
+  bf.fflush();
+  return 0;
+}
+
+#endif
 
 
 

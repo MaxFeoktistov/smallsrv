@@ -136,7 +136,8 @@ CfgParam ConfigParams[]={
 { #b "_spdusr",0,0x200000,(uint *) & (ipspdusr[a]),CXS(S1t2T_4406032, "How many another connections must have activity, to check on speed limitation" )},
 
 RANGES(ip,CXS(S2sIP_RANGES, "IPs that can access this server."
-" Separe single IP by comma and IP ranges with hyphens."),CS(sIP_RANGESD))
+" Separe single IP by comma and IP ranges with hyphens."),CXS(S2sIP_RANGESD, "Deny IPs that can't access this server."
+" Separe single IP by comma and IP ranges with hyphens."))
 
 {"cryptpwd",1,FL1_CRYPTPWD,(uint *)0, CXS(S1t2T_3105507, "Don't save uncrypted passwords in config file" )},
 {"delpwd",1,FL1_DELPAS,(uint *)0, CXS(S1t2T_2188250, "Remove passwords from the log" )},
@@ -156,6 +157,19 @@ RANGES(adm,sIP_RANGES1,sIP_RANGESD1)
 #ifndef SYSUNIX
 //{"utf8",2,FL2_UTF,(uint *)0, CS("Convert filenames from UTF-8" )},
 {"utf8",2,FL2_UTF,(uint *)0, CXS(S1t2T_1406971, "For the log window: Check the log for UTF-8 characters and convert the log to Unicode, if any. (take a little longer)" )},
+#else
+#ifdef USE_SYSPASS
+
+{"sysuser",3,FL3_SYS_USERS,(uint *)0, CXS(S1T_39580082, "Use system users/passwords databases. Warning: Digest and APOP authorization methods will not work for system users")},
+{"grp_pop",64,0,(uint *)&(access_groups[0]), CXS(S1T_48821451, "The name of the system group whose members are allowed to connect to the POP3 server (if system user/password databases are used)")},
+{"grp_smtp",64,0,(uint *)&(access_groups[1]), CXS(S1T_44994085, "The name of the system group whose members are allowed to send mail via SMTP server (if system user/password databases are used)")},
+{"grp_ftpr",64,0,(uint *)&(access_groups[2]), CXS(S1T_43526262, "The name of the system group whose members are allowed to receive files via FTP (if system user/password databases are used)")},
+{"grp_ftpw",64,0,(uint *)&(access_groups[3]), CXS(S1T_40165245, "The name of the system group whose members are allowed to upload files via FTP (if system user/password databases are used)")},
+{"grp_ftpe",64,0,(uint *)&(access_groups[6]), CXS(S1T_45385361, "The name of the system group whose members are allowed to set executable file mode via FTP (if system user/password databases are used)")},
+{"grp_proxy",64,0,(uint *)&(access_groups[4]), CXS(S1T_39605550, "The name of the system group whose members are allowed to use Proxy and VPN (if system user/password databases are used)")},
+{"grp_admin",64,0,(uint *)&(access_groups[5]), CXS(S1T_48452563, "The name of the system group whose members are allowed to administrate the server (if system user/password databases are used)")},
+
+#endif
 #endif
 
 #endif
@@ -169,7 +183,8 @@ RANGES(adm,sIP_RANGES1,sIP_RANGESD1)
 {"port"  ,1,0xFFFF,(uint *)&http_port,    CXS(S2sTCP_IP_PO, "TCP/IP port for HTTP server. Usualy it's 80")},
 
 RANGES(http,CXS(S2sIP_RANGES, "IPs that can access this server."
-" Separe single IP by comma and IP ranges with hyphens."),CS(sIP_RANGESD))
+" Separe single IP by comma and IP ranges with hyphens."),CXS(S2sIP_RANGESD, "Deny IPs that can't access this server."
+" Separe single IP by comma and IP ranges with hyphens."))
 
 OIPV6(http,0)
 SPD(0,http)
@@ -266,7 +281,8 @@ OIPV6(dns,SDNS_IND)
                         //{"dnsaptr",1,FL1_AUTOPTR ,(uint *)0, CS("Auto make PTR from A record"  )},
 
 RANGES(dns,CXS(S2sIP_RANGES, "IPs that can access this server."
-" Separe single IP by comma and IP ranges with hyphens."),CS(sIP_RANGESD))
+" Separe single IP by comma and IP ranges with hyphens."),CXS(S2sIP_RANGESD, "Deny IPs that can't access this server."
+" Separe single IP by comma and IP ranges with hyphens."))
 
 {"nodnscachefile",2,0,(uint *)0, CXS(S2sDON_T_SAV, "Don't save DNS cache on exit.")},
 {"dnscachefile",256,0,(uint *)&dnscachefile, CXS(S2sDNS_CACHE, "DNS cache file name.")},
@@ -309,7 +325,8 @@ OIPV6(proxy,1)
 {"proxyusers" ,0,FL_PRXUSER,(uint *)0, CXS(S2sPROXY_FOR, "Proxy for authorized users only.")},
 
 RANGES(proxy,CXS(S2sIP_RANGES, "IPs that can access this server."
-" Separe single IP by comma and IP ranges with hyphens."),CS(sIP_RANGESD))
+" Separe single IP by comma and IP ranges with hyphens."),CXS(S2sIP_RANGESD, "Deny IPs that can't access this server."
+" Separe single IP by comma and IP ranges with hyphens."))
 
  SPD(1,proxy)
 {"proxy_big" ,1,FL1_BIGPROXY, (uint *)0, CXS(S1t2T_3282821, "Large mode. Useful to hold a lot of data traffic.")},
@@ -350,7 +367,8 @@ RANGES(proxy,CXS(S2sIP_RANGES, "IPs that can access this server."
 
 OIPV6(ftp,2)
 RANGES(ftp,CXS(S2sIP_RANGES, "IPs that can access this server."
-" Separe single IP by comma and IP ranges with hyphens."),CS(sIP_RANGESD))
+" Separe single IP by comma and IP ranges with hyphens."),CXS(S2sIP_RANGESD, "Deny IPs that can't access this server."
+" Separe single IP by comma and IP ranges with hyphens."))
 SPD(2,ftp)
 
 {"noftp_pasvp",0,0,(uint *)0, CXS(S1t2T_2064283, "Use any free system provided port for a passive data connection" )},
@@ -383,7 +401,8 @@ XLIMIT(ftpo, CXS(S1t2T_297855, "FTP upload"),4),
 " Connection will close, if user is idle for this time.")},
 
 RANGES(pop,CXS(S2sIP_RANGES, "IPs that can access this server."
-" Separe single IP by comma and IP ranges with hyphens."),CS(sIP_RANGESD))
+" Separe single IP by comma and IP ranges with hyphens."),CXS(S2sIP_RANGESD, "Deny IPs that can't access this server."
+" Separe single IP by comma and IP ranges with hyphens."))
 OIPV6(pop,4)
 SPD(4,pop)
 
@@ -483,7 +502,8 @@ XLIMIT(smtp, "SMTP",0),
 {"tel_port" ,1,0xFFFF,(uint *)&tel_port, CXS(S1t2T_3432320, "Telnet port" )},
 
 RANGES(tel,CXS(S2sIP_RANGES, "IPs that can access this server."
-" Separe single IP by comma and IP ranges with hyphens."),CS(sIP_RANGESD))
+" Separe single IP by comma and IP ranges with hyphens."),CXS(S2sIP_RANGESD, "Deny IPs that can't access this server."
+" Separe single IP by comma and IP ranges with hyphens."))
 OIPV6(tel,6)
 SPD(6,tel)
 {"tel_cmd",256,0,(uint *)&tel_cmd, CXS(S1t2T_2348618, "Path to telnet shell (e.g. /bin/bash)" )},
@@ -497,7 +517,8 @@ SPD(6,tel)
 {"tls_port" ,1,0xFFFF,(uint *)&ssl_port,     CXS(S2sTCP_IP_TLS, "TCP/IP port for TLS/SSL server. Usually it's 443")},
 
 RANGES(ssl,CXS(S2sIP_RANGES, "IPs that can access this server."
-" Separe single IP by comma and IP ranges with hyphens."),CS(sIP_RANGESD))
+" Separe single IP by comma and IP ranges with hyphens."),CXS(S2sIP_RANGESD, "Deny IPs that can't access this server."
+" Separe single IP by comma and IP ranges with hyphens."))
 OIPV6(tls,5)
 SPD(5,tls)
 {"smtp_tls",1,FL1_SMTPTLS,(uint *)0, CXS(S1t2T_2938073, "Enable TLS for POP3/SMTP" )},
