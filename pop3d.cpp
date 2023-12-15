@@ -273,7 +273,8 @@ int Req::POPReq()
   };
  }while(1);
  ex1:;
-  if(Snd==&TLSSend)SecClose(&otls);
+  //if(Snd==&TLSSend)SecClose(&otls);
+  Close();
   if(pn)
   {if(mboxCount>=0x2000)delete bb;
    delete pn;

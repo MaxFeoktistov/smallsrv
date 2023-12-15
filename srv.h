@@ -193,6 +193,8 @@ struct Req
 #define F_VPN_IP6SET2  0x80
 #define F_VPN_LASTSINHERROR 0x200
 
+#define F_SMTP_CL     0x4000000
+
  int  timout;
  char *loc, *rq;
  ulong freqcnt;
@@ -353,6 +355,10 @@ struct Req
  int DoFCGI(FCGI_task *fcgi);
  int CheckEndChunked();
  int InsertVPNclient();
+
+ int SendCMDsmtp(char *xxx,int lll);
+ void Close();
+
 };
 
 
@@ -500,6 +506,11 @@ int FndLimit(int lst,LimitBase **ip, LimitBase **net, sockaddr_in *sa );
 #define FL3_VPN_SCRKEEP     0x00001000
 
 #define FL3_SYS_USERS       0x00002000
+
+#define FL3_SMTP_TLS        0x00004000
+#define FL3_SMTP_CHKTLS     0x00008000
+#define FL3_SMTP_TLSONLY    0x00010000
+
 
 #define USE_TUN       (s_flgs[3] & FL3_VPN_TUN)
 #define USE_TAP       (s_flgs[3] & FL3_VPN_TAP)
@@ -890,6 +901,7 @@ extern char *user_name,NullString[],about[],*wkday[],*month[],
 extern HANDLE htrd;
 extern ulong trd_id;
 extern int iofs,no_close_req,MutexEr;
+extern int close_wait;
 extern CfgParam ConfigParams[];
 extern short MnuOffset[20];
 extern const ulong *FTPcmd;
@@ -1058,6 +1070,7 @@ extern char *NSTypesTXT[];
 extern char *DNS_DoS_hosts;
 extern int   pid_to_wait;
 
+void dec_no_close_req();
 
 #ifdef USEVALIST
 #define mva_list va_list

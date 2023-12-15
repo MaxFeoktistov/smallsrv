@@ -914,8 +914,10 @@ void CloseVPNClient(int i)
   AddToLog(0, vpn_list[i]->s, & vpn_list[i]->sa_c46, FmtShortVPN,"Connection closed.", vpn_list[i]->Tin, vpn_list[i]->Tout, (GetTickCount() - vpn_list[i]->tmout)/1000, vpn_list[i]->a_user? vpn_list[i]->a_user->name: "" );
 
   maxVPNset.Clear(vpn_list[i]->s);
-  SecClose((OpenSSLConnection*) vpn_list[i]->Adv);
-  CloseSocket(vpn_list[i]->s);
+  //SecClose((OpenSSLConnection*) vpn_list[i]->Adv);
+  //CloseSocket(vpn_list[i]->s);
+  vpn_list[i]->Close();
+
 
   MyLock(vpn_mutex);
   free(vpn_list[i]);
@@ -1697,8 +1699,9 @@ agayn1:
   {
  err_close:
     debug("VPN client: TLS Connection error\n");
-    SecClose(x);
-    CloseSocket(s);
+    //SecClose(x);
+    //CloseSocket(s);
+    Close();
     return -3;
   };
 #if 0
@@ -1749,8 +1752,9 @@ agayn1:
         DBGLA(" %s %s %s", vpn_realm, vpn_notice, vpn_opaque)
 
         if(!tryes) {
-          SecClose(x);
-          CloseSocket(s);
+          //SecClose(x);
+          //CloseSocket(s);
+          Close();
           tryes ++ ;
           goto agayn1;
         }
@@ -1877,18 +1881,18 @@ agayn1:
 
 
   tmout = GetTickCount();
+
+#ifdef USE_IPV6
+  l = sizeof(sa_c6);
+#else
+  l = sizeof(sa_c);
+#endif
   getpeername(s,(sockaddr*) (&sa_c), &l);
   vpn_cln_connected = this;
   tun_up(INDEX_CLIENT, ipv4, client_nmask, ipv4gw, client_dns = GetVar(http_var,"dns"));
 
 #endif
   pos_pkt = 0;
-
- #ifdef USE_IPV6
-  l = sizeof(sa_c6);
- #else
-  l = sizeof(sa_c);
- #endif
 
   SetKeepAliveSock(s);
 
@@ -2014,8 +2018,9 @@ ulong WINAPI VPNClient(void *)
             {
             err_s:
               AddToLog(0, vpn.s,&vpn.sa_c46, FmtShortVPN,"VPN client: connection closed. ", vpn.Tin, vpn.Tout, (GetTickCount() - vpn.tmout)/1000, "" );
-              SecClose(&vpn.tls);
-              CloseSocket(vpn.s);
+              //SecClose(&vpn.tls);
+              //CloseSocket(vpn.s);
+              vpn.Close();
               RunDownScript(vpn.tun_index, vpn.ipv4);
               break;
             }

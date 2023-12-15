@@ -37,12 +37,12 @@
  $adv='';
 
  %var = (
- 'CONFIG_BASE' => '/usr/local/',
+ 'CONFIG_BASE' => '/usr/local',
  'CONFIG_CONFIG'  => '/etc/smallsrv/',
  'CONFIG_LOG' => '/var/log/smallsrv/',
  'CONFIG_DATA' => '/var',
- 'CONFIG_APPDIR' => '$(CONFIG_BASE)lib/smallsrv/',
- 'CONFIG_SHARE' =>'$(CONFIG_BASE)share/smallsrv/',
+ 'CONFIG_APPDIR' => '$(CONFIG_BASE)/lib/smallsrv/',
+ 'CONFIG_SHARE' =>'$(CONFIG_BASE)/share/smallsrv/',
  'WIN_CONFIG_BASE' => 'c:\\shttps\\'
  );
 
@@ -75,6 +75,17 @@
    'armv5te' => 'arm',
    'arm64' => 'arm64',
    'aarch64' => 'arm64'
+ );
+
+ %bld = (
+   'x86_64-linux-gnu' => 'i64',
+   'i386-linux-gnu' => 'i32',
+   'i486-linux-gnu' => 'i32',
+   'i586-linux-gnu' => 'i32',
+   'i686-linux-gnu' => 'i32',
+   'arm-linux-gnueabi' => 'arm',
+   'arm-linux-gnu' => 'arm',
+   'aarch64-linux-gnu' => 'arm64'
  );
 
  if($ENV['ARCH'] && $ttargets[$ENV['ARCH']] )
@@ -120,6 +131,21 @@
    --commonLog          -- without separate log
    --withoutfakelibs    -- without fakelibs  (with fakelibs the program can run in another Linux systems)
    --withfakelibs       -- with fakelibs  (with fakelibs the program can run in another Linux systems)
+
+   --build=x86_64-linux-gnu
+   --prefix=/usr
+   --includedir=\${prefix}/include
+   --mandir=\${prefix}/share/man
+   --infodir=\${prefix}/share/info
+   --sysconfdir=/etc
+   --localstatedir=/var
+   --disable-option-checking
+   --disable-silent-rules
+   --libdir=\${prefix}/lib/x86_64-linux-gnu
+   --runstatedir=/run
+   --disable-maintainer-mode
+   --disable-dependency-tracking
+
    <VAR>=<value>
 
    VARS:
@@ -139,7 +165,7 @@
        }
 
        printf '
-  This script and Makefile also understands the ARCH, CROSS_COMPILE, INSTALL_ROOT environment variables. An example other way to build commands for Arm64:
+  This script and Makefile also understands the ARCH, CROSS_COMPILE, DESTDIR environment variables. An example other way to build commands for Arm64:
 export ARCH=arm64
 export CROSS_COMPILE=aarch64-linux-gnu-
 %s
@@ -283,6 +309,72 @@ make
        next L1;
      }
 
+     if(/--build=(.*)/)
+     {
+       $x = $1;
+       if($bld{$x})
+       {
+         $all = $bld{$x};
+       }
+       else
+       {
+         $cross = 1;
+         $crosspref="$x-" if(! $crosspref);
+         $all='n_all';
+       }
+       $target=1;
+
+       next L1;
+     }
+
+     if(/--prefix=(.*)/)
+     {
+       $var{'CONFIG_BASE'}=$1;
+       $var{'prefix'}=$1;
+       next L1;
+     }
+     if(/--sysconfdir=(.*)/)
+     {
+       $x = $1;
+       $var{'CONFIG_CONFIG'}="$x/smallsrv/";
+       next L1;
+     }
+     if(/--localstatedir=(.*)/)
+     {
+       $x = $1;
+       $var{'CONFIG_DATA'}=$x;
+       $var{'CONFIG_LOG'}="$x/log/smallsrv/";
+       next L1;
+     }
+
+     foreach $x (
+       'includedir',
+       'mandir',
+       'infodir',
+       'disable-option-checking',
+       'disable-silent-rules',
+       'libdir',
+       'runstatedir',
+       'disable-maintainer-mode',
+       'disable-dependency-tracking'
+     )
+     {
+       if(/--$x/)
+       {
+         if(/--$x=(.*)/)
+         {
+           $avar{$x}=$1;
+         }
+         else
+         {
+           $avar{$x}=1;
+         }
+         $autobuild = 1;
+         next L1;
+       }
+     }
+
+
      foreach $x ( keys %var )
      {
        if(/$x=(.*)/)
@@ -293,7 +385,7 @@ make
      }
 
      print  "Unknow key $_\n";
-     exit -1;
+     exit -1 if(!$autobuild);
    }
  }
 
@@ -318,6 +410,7 @@ make
 
  $WIN_CONFIG_BASE = $var{'WIN_CONFIG_BASE'};
  delete($var{'WIN_CONFIG_BASE'});
+
 
  foreach $_ ( keys %var )
  {
@@ -403,8 +496,37 @@ make
 
  $i32gnutls30 = 0;
  $i64gnutls30 = 0;
+ $libdir = '/usr/lib';
+ $includedir = '/usr/include';
+
+ $vp='\\${prefix}';
+ if( $avar{'libdir'} )
+ {
+   $libdir = $avar{'libdir'};
+   $libdir =~ s/$vp/$var{'CONFIG_BASE'}/;
+
+
+   $adv .= " -L$libdir";
+
+   if( $avar{'includedir'} )
+   {
+     $includedir = $avar{'includedir'};
+     $includedir =~ s/$vp/$var{'CONFIG_BASE'}/;
+
+     if( $includedir ne '/usr/include' )
+     {
+       $adv .= " -I$includedir";
+     }
+
+     print "****TEMP includedir $libdir $includedir \n";
+   }
+
+ }
+
+
  if($all =~ /i32/   )
  {
+
    if( (!$openssl_path) &&  ((!stat('/usr/lib/i386-linux-gnu/libssl.so') ) || !stat('/usr/include/openssl') ) )
    {
       print STDERR "i32: Not found OpenSSL library or OpenSSL header files.  Build without seclib.so\n";
@@ -412,19 +534,19 @@ make
       $sec =~ s/libssl.so//;
    }
 
-   if(stat('/usr/lib/i386-linux-gnu/libgnutls.so') )
+   if(stat('/usr/lib/i386-linux-gnu/libgnutls.so') || stat("$libdir/libgnutls.so") )
    {
      $i32gnutls30 = 3;
    }
-   elsif(stat('/usr/lib/i386-linux-gnu/libgnutls.so.30') )
+   elsif(stat('/usr/lib/i386-linux-gnu/libgnutls.so.30') || stat("$libdir/libgnutls.so.30") )
    {
      $i32gnutls30 = 1;
    }
-   elsif(stat('/usr/lib/i386-linux-gnu/libgnutls.a') )
+   elsif(stat('/usr/lib/i386-linux-gnu/libgnutls.a') || stat("$libdir/libgnutls.a") )
    {
      $i32gnutls30 = 2;
    }
-   if( (! $i32gnutls30 ) || !stat('/usr/include/gnutls') )
+   if( (! $i32gnutls30 ) || ( (!stat('/usr/include/gnutls')) &&  !stat("$includedir/gnutls") )  )
    {
       print STDERR "i32: Not found GnuTLS library or GnuTLS header files.  Build without libgnutls.so\n";
       $wolibgnutls32=1;
@@ -442,15 +564,15 @@ make
    }
 
 
-   if(stat('/usr/lib/x86_64-linux-gnu/libgnutls.so') )
+   if(stat('/usr/lib/x86_64-linux-gnu/libgnutls.so')  || stat("$libdir/libgnutls.so") )
    {
      $i64gnutls30 = 3;
    }
-   elsif(stat('/usr/lib/x86_64-linux-gnu/libgnutls.so.30') )
+   elsif(stat('/usr/lib/x86_64-linux-gnu/libgnutls.so.30') || stat("$libdir/libgnutls.so.30") )
    {
      $i64gnutls30 = 1;
    }
-   elsif(stat('/usr/lib/x86_64-linux-gnu/libgnutls.a') )
+   elsif(stat('/usr/lib/x86_64-linux-gnu/libgnutls.a') || stat("$libdir/libgnutls.a") )
    {
      $i64gnutls30 = 2;
    }
@@ -664,7 +786,10 @@ N_DEP := $(N_FAKELIBS)
 
 ', $WIN_CONFIG_BASE;
 
-
+  if($var{'prefix'})
+  {
+    delete $var{'prefix'};
+  }
   foreach $x ( keys %var )
   {
     print OFILE "#define $x \"$var{$x}\"\n";

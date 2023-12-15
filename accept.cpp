@@ -59,8 +59,26 @@ int (Req::*FWrk[])()=
 };
 #endif
 int no_close_req=0;
+int close_wait;
 int err_cnt;
 
+
+void dec_no_close_req()
+{
+#ifdef USE_FUTEX
+  if( --no_close_req <= 0)
+  {
+    no_close_req = 0;
+    if(close_wait)
+    {
+      close_wait = 0;
+      futex((int *)&no_close_req,FUTEX_WAKE,1,0,0,0);
+    }
+  }
+#else
+  if(--no_close_req<0)no_close_req = 0;
+#endif
+}
 
 void SetKeepAliveSock(int s)
 {
@@ -100,13 +118,20 @@ void RemoveKeepAlive(int i)
   if(unlock) MyUnlock(KeepAliveMutex);
 }
 
+void Req::Close()
+{
+  if(s != -1)
+  {
+    if(Snd==&TLSSend)SecClose((OpenSSLConnection*)Adv);
+    CloseSocket(s);
+    s = -1;
+  }
+};
+
+
 void DeleteKeepAlive(Req* preq)
 {
-  if(preq->s != -1)
-  {
-    if(preq->Snd==&TLSSend)SecClose((OpenSSLConnection*) preq->Adv);
-    CloseSocket( preq->s );
-  }
+  preq->Close();
   DBGLA("free %lX", (long)preq)
   free(preq);
 }
@@ -202,7 +227,7 @@ int TryToAddKeepAlive(Req *req)
   else
   {
   lbCanT:
-    if(req->Snd==&TLSSend)SecClose((OpenSSLConnection*) req->Adv);
+    //if(req->Snd==&TLSSend)SecClose((OpenSSLConnection*) req->Adv);
     req->fl &= ~F_KEEP_ALIVE;
     return 0;
   }
@@ -372,13 +397,13 @@ int WINAPI SetServ(uint fnc)
    {if((++j)>=max_cln_host)
     {req.HttpReturnError( sTOO_MANY_ );
 //     setsockopt(req.s,SOL_SOCKET,SO_LINGER,(char *)&lngr,sizeof(lngr));
-     --no_close_req;
+     dec_no_close_req();
      i=-1;
      goto cnt;
     }
    }
   }
-   if(--no_close_req<0)no_close_req=0;
+  dec_no_close_req();
   }
 #elif 0
   if(sa_client.sin_addr. S_ADDR !=0x0100007F)
@@ -415,6 +440,7 @@ cnt:
      no_close_req=0;
      break;
     }
+    close_wait++;
     futex((int *)&no_close_req,FUTEX_WAIT,no_close_req,&timeout_10ms,0,0);
 #else
     Sleep(1);
@@ -442,7 +468,8 @@ cnt:
   }
   closesocket( req.s );
  */
-  if( req.s != -1 &&  ! (req.fl & F_KEEP_ALIVE) ) CloseSocket( req.s );
+  //if( req.s != -1 &&  ! (req.fl & F_KEEP_ALIVE) ) CloseSocket( req.s );
+  if( ! (req.fl & F_KEEP_ALIVE) ) req.Close();
 
 #ifndef CD_VER
   if(serv==1)proxy_chk.CheckProxy();
@@ -652,7 +679,7 @@ int Req::SleepSpeed()
     else if(y>0x400)++j;
    }
   }
-  --no_close_req;
+  dec_no_close_req();
  sum>>=8;
  if((x=sum-uspd)>0 && j>=ipspdusr[flsrv[1]&7]){ Sleep(MULDIV(x,0x4000,uspd)); return 1;}
  return 0;
@@ -739,11 +766,11 @@ int Req::IsProxyRange(int a)
 #endif
   )
   {i=IsInIPRange(a);
-   --no_close_req;
+   dec_no_close_req();
    return i<=0;
   }
  }
- --no_close_req;
+ dec_no_close_req();
  return 0;
 };
 

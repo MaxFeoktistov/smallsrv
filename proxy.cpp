@@ -782,7 +782,7 @@ struct{
           r->sa_c.sin_addr.s_addr==sa_c.sin_addr.s_addr &&
           DWORD_PTR(r->dir)==xu
         ) ++h;
-    --no_close_req;
+    dec_no_close_req();
     if(h<cnt_same)break;
     if(RESelect(1,1,1,s) || ++l>PRXTimeout)return 0;
    }while(1);

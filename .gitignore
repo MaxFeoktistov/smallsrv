@@ -21,3 +21,7 @@ g4strc.h
 S3_lf.hh
 lS3_lf.cfg
 g4strcwm.h
+fix_desk.pl
+fix_rdesk.pl
+fix_udesk.pl
+genpg6.pl

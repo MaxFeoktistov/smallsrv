@@ -463,7 +463,7 @@ int Req::OutActualConn(char *bfr)
      return -1;
  }
 #endif
- --no_close_req;
+ dec_no_close_req();
  oline.j+=sprintf(bfr+oline.j, "</table><hr>");
  if(send(s,bfr,oline.j,0)<=0)return -1;
 #endif

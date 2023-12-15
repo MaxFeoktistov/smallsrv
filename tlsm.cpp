@@ -320,8 +320,16 @@ int Req::TLSReq()
       HttpReq();
 
       //   SecRecv(&x,(char *)b,10);
-      if(! (fl & F_KEEP_ALIVE) ) SecClose(&x);
+      if(! (fl & F_KEEP_ALIVE) ) {
+        /*
+        SecClose(&x);
+        Snd=(tfSnd) &JustSnd;
+        Rcv=(tfRcv) &JustRcv;
+        */
+        Close();
+      }
       else if( ! (fl & F_VPNANY) )
+      //if( (fl & F_KEEP_ALIVE) && ! (fl & F_VPNANY) )
       {
         TryToAddKeepAlive(this);
       }

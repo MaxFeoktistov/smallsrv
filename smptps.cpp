@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2022 Maksim Feoktistov.
+ * Copyright (C) 1999-2023 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov
@@ -322,12 +322,14 @@ int Req::RGetCMD(char *b)
   }
   b[i]=0;
  }while( !(t=strchr(b,'\n')) );
- DWORD_PTR(t[-1])=0;
+ if(b[i-1]=='\n')b[i-2]=0;
  if(s_flg&FL_FULLLOG)
  {
-     AddToLog(b,s,&sa_c46,FmtShort);
+   AddToLog(b,s,&sa_c46, (fl&F_SMTP_CL) ? FmtShort:FmtShortR);
  }
- return DWORD_PTR(*b)|0x20202020;
+ if (fl&F_SMTP_CL) return atoui(b);
+ DWORD_PTR(t[-1])=0;
+ return (DWORD_PTR(*b)|0x20202020);
 }
 #ifdef SEPLOG
 
@@ -1071,7 +1073,8 @@ lbSn1:
  };
  }while(1);
  ex1:
- if(Snd==&TLSSend)SecClose(&otls);
+ //if(Snd==&TLSSend)SecClose(&otls);
+ Close();
  if(chkl)// smtp_ltime)
  {i=(Tin+1023)>>10;
   totalcnt.cnt+=i;

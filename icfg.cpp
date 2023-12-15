@@ -471,6 +471,14 @@ RANGES(smtp, "Us IP ranges (allowed list)" /* sIP_RANGES */,sIP_RANGESD)
 
 {"spam_time" ,0,0x7FFFFFFF,(uint *)(ltime+1), CXS(S1t2T_4238571, "How long spamers IPs will active in spamer's list (in seconds)" )},
 
+{"smtptls",3,FL3_SMTP_TLS    ,(uint *)0,     CXS(S1T_18888487, "Use TLS when sending outgoing message if possible" )},
+{"smtponlytls",3,FL3_SMTP_TLSONLY,(uint *)0, CXS(S1T_19735689, "Always use TLS when sending outgoing messages; if not possible, don't send" )},
+{"smtpchktls",3,FL3_SMTP_CHKTLS ,(uint *)0,  CXS(S1T_13046591, "Verify the remote certificate signature." )},
+
+
+
+
+
 XLIMIT(smtp, "SMTP",0),
 
 {"nolimitus",1,FL1_NOLUS,(uint *)0, CXS(S1t2T_2847040, "No limitation for alowed IPs" )},

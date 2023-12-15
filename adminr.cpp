@@ -451,7 +451,7 @@ if(0){
 #else
       shutdown(rreq[i]->s,2);
 #endif
-      --no_close_req;
+      dec_no_close_req();
       Sleep(50);
      }
    }

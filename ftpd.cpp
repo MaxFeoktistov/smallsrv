@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2022 Maksim Feoktistov.
+ * Copyright (C) 1999-2023 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov
@@ -504,18 +504,21 @@ ex2a:
    return 1;
  }
 
-  if(s_flgs[2]&FL2_NOMFTP )
-  {++no_close_req;
+ if(s_flgs[2]&FL2_NOMFTP )
+ {
+   ++no_close_req;
    for(int i=0;i<max_tsk;++i)
-   {if( ((u_long)(rreq[i]))>1 && rreq[i] !=this &&
-         rreq[i]->sa_c.sin_addr. S_ADDR == sa_c.sin_addr. S_ADDR
-    )
-    {--no_close_req;
-     goto ex2a;
-    }
+   {
+     if( ((u_long)(rreq[i]))>1 && rreq[i] !=this &&
+       rreq[i]->sa_c.sin_addr. S_ADDR == sa_c.sin_addr. S_ADDR
+     )
+     {
+       dec_no_close_req();
+       goto ex2a;
+     }
    }
-   --no_close_req;
-  }
+   dec_no_close_req();
+ }
 #define SrcDirLen pth.SrcDirLen
 #define cpath    pth.cpath
 #define SrcPath  pth.SrcPath
@@ -686,7 +689,7 @@ union{
       { if( ((u_long)rreq[i])>1 &&  rreq[i]->pass_port == pass_port && (rreq[i]->fl& F_SERV_MASK)== F_SERV_FTP) pass_port++;
       }
       MyUnlock(FTPPortMtx);
-      --no_close_req;
+      dec_no_close_req();
     }
     if(fl&F_PRX)
     {status|=4;
@@ -1682,10 +1685,9 @@ lbPORT:
 //  setegid(gid);
 // }
 #endif
- if(sec_state&1)
- {
-  SecClose(&m_con);
- }
+
+ //if(sec_state&1)  SecClose(&m_con);
+ Close();
  return 0;
 
 #undef SrcDirLen

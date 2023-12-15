@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2021 Maksim Feoktistov.
+ * Copyright (C) 1999-2023 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov
@@ -43,11 +43,15 @@ const char  ReseivF[]= "Received: f";
 #undef SendConstCMD
 #undef SendCMD
 #undef send
-#define send(a,b,c,d) BSend(a,b,c)
-int SendCMDf(int s,char *xxx,int lll)
-{if(s_flg&FL_FULLLOG)AddToLog(xxx,s,0,FmtShrtR); return send(s,(xxx),(lll),0);}
-#define SendCMD(xxx,lll)  if(SendCMDf(s,(xxx),(lll))<=0 )goto brkConn;
-#define SendConstCMD(xxx)   SendCMD(xxx,(sizeof(xxx)-1) )
+//#define send(a,b,c,d) BSend(a,b,c)
+#define send(a,b,c,d) req.Send(b,c)
+int Req::SendCMDsmtp(char *xxx,int lll)
+{
+  if(s_flg&FL_FULLLOG)AddToLog(xxx,s,0,FmtShrtR);
+  return Send(xxx,lll);
+}
+#define SendCMD(xxx,lll)  if(req.SendCMDsmtp((xxx),(lll))<=0 )goto brkConn;
+#define SendConstCMD(xxx) SendCMD(xxx,(sizeof(xxx)-1) )
 
 #ifndef SYSUNIX
 STARTUPINFO cbFwd;
@@ -364,15 +368,25 @@ void MLChk::SndErrMsg(char *mg,char *sbj)
   }
  }
 }
+
 ulong SmtpLErr;
 ulong WINAPI SMTPcl(void *)
-{char pth[512],*bb;
+{
+ char pth[512],*bb;
  MLChk chk;
  ulong last;
  WIN32_FIND_DATA fnds;
  HANDLE hdl=INVALID_HANDLE_VALUE,hdlf;
  User *puser;
- int h,i,s,x,sent_cnt,no_move,dir_loop,esmtp;
+ int h,i,x,sent_cnt,no_move,dir_loop,esmtp;
+ Req req;
+ OpenSSLConnection tls;
+ char *remote_host;
+ int y;
+
+
+#define STARTTLS_SUPPORTED 2
+//#define TLS_USED           3
 
 #define b  chk.b
 #define t  chk.t
@@ -408,11 +422,11 @@ while( is_no_exit )
     if( ((u_long)(rreq[i])>1) &&
           rreq[i]->postsize == n &&         rreq[i]->dirlen==0x29041975)
     {
-     --no_close_req;
+     dec_no_close_req();
      goto lbDxx;
 
     }
-   --no_close_req;
+   dec_no_close_req();
  }
  else
  {
@@ -539,46 +553,99 @@ if(n)
   lbAgain:
       debug("MAILHOST: %s %s",pth3+512,pth3+512+68);
      }
-     if( (s=call_socket2(pth3+ (pth3[512+68]?512+68:512),25) )>0 )
-     {AddToLog("|Open",s,0,FmtShrtR);
-      x=0;
+     memset(&req,0,sizeof(req));
+     req.fl=F_SMTP|F_SMTP_CL;
+     if( (req.s=call_socket2(remote_host = (pth3+ (pth3[512+68]?512+68:512)),25) )>0 )
+     {
+       AddToLog("|Open",req.s,0,FmtShrtR);
+       req.Snd=(tfSnd) &JustSnd;
+       req.Rcv=(tfRcv) &JustRcv;
+       req.timout = POPTimeout;
+       y = sizeof(req.sa_c);
+       getpeername(req.s,(sockaddr*) (&req.sa_c), &y);
+
+#define GetCMD(a,b,c) req.RGetCMD(b)
+       x=0;
 
        if((x=GetCMD(s,pth2,0))!=220)goto lerrmsg;
-       esmtp=
-#ifdef A_64
-      NULL !=
-#else
-   (int)
-#endif
-         stristr(pth2,"ESMTP");
-       while(pth2[3]=='-')GetCMD(s,pth2,0);
-       SendCMD(pth2, sprintf(pth2,(esmtp)?"EHLO %s\r\n": "HELO %s\r\n",smtp_name) );
-       if( ((x=GetCMD(s,pth2,0))!=250) || !stricmp(pth2+4,smtp_name) )
-       {lerrmsg:
-        SendConstCMD("QUIT\r\n" );
-       brkConn:
-        debug("!SMTP error send to %.127s message %X <%.127s> \r\n",t2,n,pth2);
-        //shutdown(s,2);
-        //closesocket( (int) s);
-         CloseSocket(s);
+       esmtp = (NULL != stristr(pth2,"ESMTP"));
+       while( ! strstr(pth2,"220 ") ) //pth2[3]=='-')
+       {
+         GetCMD(s,pth2,0);
+         if( esmtp && stricmp(pth2,"STARTTLS") ) esmtp = STARTTLS_SUPPORTED;
+       }
 
-//if(t5 && (t5=(char *)GetNextMH((uchar *)pth2,(uchar *)t5,pth2+512))) goto lbAgain;
-        if(t5)goto loopNextMH;
-        if(x<0)strcpy(pth2,"Connection error");
-        if(n>SmtpLErr)
-        {
-         chk.SndErrMsg(pth2,"Can't send message. May be it is temporary, server will try again" );
-         SmtpLErr=n;
-        }
+
+       for(i=0;i<2;i++)
+       {
+         SendCMD(pth2, sprintf(pth2,( (!i) && (y=(esmtp || (s_flgs[3] & (FL3_SMTP_TLS|FL3_SMTP_TLSONLY) ) )  )?"EHLO %s\r\n": "HELO %s\r\n"),smtp_name ) );
+         if( ((x=GetCMD(s,pth2,0))==250) && stricmp(pth2+4,smtp_name) ) break;
+         if( (!i) && y && x!=250 && ! (s_flgs[3] & FL3_SMTP_TLSONLY) ) continue;
+      lerrmsg:
+         SendConstCMD("QUIT\r\n" );
+         brkConn:
+         debug("!SMTP error send to %.127s message %X <%.127s> \r\n",t2,n,pth2);
+         //shutdown(s,2);
+         //closesocket( (int) s);
+         //if(esmtp == +) SecClose(&tls);
+         //CloseSocket(s);
+         req.Close();
+
+         //if(t5 && (t5=(char *)GetNextMH((uchar *)pth2,(uchar *)t5,pth2+512))) goto lbAgain;
+         if(t5)goto loopNextMH;
+         if(x<0)strcpy(pth2,"Connection error");
+         if(n>SmtpLErr)
+         {
+           chk.SndErrMsg(pth2,"Can't send message. May be it is temporary, server will try again" );
+           SmtpLErr=n;
+         }
 
 
          //if((x/10)==45) goto lbErr2;
          if(x<=499) goto lbErr2;
          goto lerrMsg1;
-       };
-       while(pth2[3]=='-')GetCMD(s,pth2,0);
+       }
+
+       if( stricmp(pth2,"STARTTLS") ) esmtp = STARTTLS_SUPPORTED;
+       while( ! strstr(pth2,"250 ") )
+       {
+         GetCMD(s,pth2,0);
+         if( stricmp(pth2,"STARTTLS") ) esmtp = STARTTLS_SUPPORTED;
+       }
+
+       if( esmtp == STARTTLS_SUPPORTED && (s_flgs[3] & (FL3_SMTP_TLS|FL3_SMTP_TLSONLY) ) )
+       {
+         SendConstCMD("STARTTLS\r\n");
+         if( (x=GetCMD(s,pth2,0)) == 220 )
+         {
+
+           i = 0;
+           if(s_flgs[3] & FL3_SMTP_CHKTLS    ) i |= tbtVerfyRequired;
+           if(s_flgs[3] & FL3_VPN_TLSIGNTIME) i |= tbtDontVerfyTyme;
+           if(s_flgs[3] & FL3_VPN_TLSSSIGN  ) i |= tbtDontVerfySigner;
+           if(s_flgs[3] & FL3_VPN_TLSSHSTYLE ) i |= tbtSSHstyleVerfy;
+
+           if( req.TLSBegin(&tls,i,(s_flgs[3] & FL3_SMTP_CHKTLS)? remote_host : 0 ) )
+           {
+             AddToLog("|TLS connection inited",req.s,0,FmtShrtR);
+             // esmtp = TLS_USED;
+           }
+           else
+           {
+             AddToLog("|Error to init TLS connection",req.s,0,FmtShrtR);
+             if(s_flgs[3] & FL3_SMTP_TLSONLY) goto lerrmsg;
+           }
+         }
+       }
+       else if(s_flgs[3] & FL3_SMTP_TLSONLY)
+       {
+         AddToLog("|TLS unsupported but required",req.s,0,FmtShrtR);
+         goto lerrmsg;
+       }
+
        if(!(t4=strchr(b+5,' ')))goto lexsend;
        x=' ';
+
        do{
         *t4=0;
         SendCMD(pth2, sprintf(pth2,(esmtp)?"MAIL FROM:<%s> SIZE=%u\r\n":"MAIL FROM:<%s>\r\n",b+5,l+(t-bb)+2) );
@@ -597,14 +664,17 @@ if(n)
        SendConstCMD("\r\n.\r\n" );
        if( (x=GetCMD(s,pth2,0))!=250){t5=0; goto lerrmsg;}
        if( (s_flgs[1]&FL1_CONFIRM) && (t4=stristr(t1,"\nGenerate-Delivery-Report:")) && t4<stristr(t1,"\r\n\r\n")  )
-       { chk.SndErrMsg(pth2, "Delivery success");  }
+       { chk.SndErrMsg(pth2, "Delivery success"); }
        ++sent_cnt;
        no_move=0;
      lexsend:
       SendConstCMD("QUIT\r\n" );
       //shutdown(s,2);
       //closesocket( (int) s);
-       CloseSocket(s);
+       //if(esmtp == TLS_USED) SecClose(&tls);
+       //CloseSocket(req.s);
+      req.Close();
+
       if(time_btw<2)time_btw=2;
       Sleep(time_btw*1024 ); //2048);
      }

@@ -842,13 +842,13 @@ lcgi:
          rreq[j]->sa_c.sin_addr. S_ADDR == sa_c.sin_addr. S_ADDR
       )
     {
-     --no_close_req;
+     dec_no_close_req();
      HttpReturnError("Only one stream enabled");
      _lclose(h);
      goto ex2a;
     }
    }
-   --no_close_req;
+   dec_no_close_req();
   }
   llmn=_llseek64(h,atoll(t+mn),0);
     //fd.nFileSizeLow-llmnv[0];
