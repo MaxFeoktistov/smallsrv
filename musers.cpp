@@ -639,8 +639,11 @@ User   *FindUser(char *bfr,int typ,char *pwd /*=0*/,Req *r) //=0)
  }
 #ifdef USE_SYSPASS
 #ifdef SYSUNIX
+ DBGL("")
  if((!tuser) && (FL3_SYS_USERS & s_flgs[3]) )
  {
+    DBGL("SYS")
+
     for(suser=suserList;suser;suser=(SysUser *) suser->next)
     {
       if( !strcmp(suser->nname,bfr) )
@@ -651,11 +654,12 @@ User   *FindUser(char *bfr,int typ,char *pwd /*=0*/,Req *r) //=0)
           return 0;
         }
 
-        if(! suser->IsPwd(bfr)) goto lbBad;
+        if(! suser->IsPwd(pwd)) goto lbBad;
         break;
       }
     }
     if(!tuser) suser = CheckSysPassword(bfr,pwd);
+    DBGLA("SYS %lX", (long)suser)
     if(suser == USER_FOUND)
     {
       if(md5pwd)
@@ -719,7 +723,8 @@ User   *FindUser(char *bfr,int typ,char *pwd /*=0*/,Req *r) //=0)
 #endif
  lbBad:
   if(r)
-  { sprintf(bfr+24,"Try to login failed %.20s;%.127s\r\n",bfr,pwd);
+  {
+    sprintf(bfr+24,"Try to login failed %.20s;%.127s\r\n",bfr,pwd?pwd:"");
     AddToLog(bfr+24,r->s,&r->sa_c46);
 #if defined(SPECIAL) || !defined(CD_VER)
 #ifdef USE_IPV6
@@ -848,11 +853,17 @@ SysUser* CheckSysPassword( const char* user, const char* password )
 {
     struct passwd* pEntry;
     SysUser *ret=0;
+
+    DBGLA("SYS PAS %s %s",user,password)
+
     MyLock(user_mutex);
     pEntry = getpwnam( user );
     if ( pEntry )
     {
       ret = USER_FOUND;
+
+      DBGLA("SYS PAS %s %s",user,pEntry->pw_passwd)
+
       if ( WORD_PTR(pEntry->pw_passwd[0]) != 'x' )
       {
         if(! strcmp( pEntry->pw_passwd, crypt( password, pEntry->pw_passwd ) ) )
@@ -862,10 +873,15 @@ SysUser* CheckSysPassword( const char* user, const char* password )
       }
       else
       {
+        DBGL("password is in shadow file")
         // password is in shadow file
         struct spwd* shadowEntry = getspnam( user );
+
+        DBGLA("SYS PAS %s %s",user,(shadowEntry)? shadowEntry->sp_pwdp: "")
+
         if ( shadowEntry && strcmp( shadowEntry->sp_pwdp, crypt( password, shadowEntry->sp_pwdp ) ) )
         {
+          DBGL("ok")
           ret = AllocSysUser(pEntry, shadowEntry->sp_pwdp);
         }
       }
@@ -879,8 +895,9 @@ int SysUser::IsPwd(char *pas)
 {
   int ret;
   MyLock(user_mutex);
-  ret = strcmp(pwd, crypt(pas, pwd));
+  ret = ! strcmp(pwd, crypt(pas, pwd));
   MyUnlock(user_mutex);
+  DBGLA("%d %s %s", ret, pas, pwd)
   return ret;
 }
 #endif

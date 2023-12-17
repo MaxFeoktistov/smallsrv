@@ -127,6 +127,7 @@
    --withoutPOOL        -- use select instead pool
    --withoutMD5         -- without MD5
    --withoutVPN         -- without VPN
+   --withoutSYSPASS     -- without system password support
    --withoutTelnet      -- without Telnet (Telnet for ARM and other little platforms)
    --commonLog          -- without separate log
    --withoutfakelibs    -- without fakelibs  (with fakelibs the program can run in another Linux systems)
@@ -671,6 +672,11 @@ N_DEP := $(N_FAKELIBS)
       s/-DVPN[A-Z_]+//g;
       s/-DTLSVPN//g;
       s/ vpn.o//g;
+    }
+    if($without{'SYSPASS'})
+    {
+      s/-DUSE_SYSPASS//g;
+      s/ -lcrypto//g;
     }
     if($without{'Telnet'})
     {
