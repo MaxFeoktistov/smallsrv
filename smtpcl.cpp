@@ -629,6 +629,10 @@ if(n)
            {
              AddToLog("|TLS connection inited",req.s,0,FmtShrtR);
              // esmtp = TLS_USED;
+             SendCMD(pth2, sprintf(pth2,"EHLO %s\r\n",smtp_name ) );
+             GetCMD(s,pth2,0);
+             while( ! strstr(pth2,"250 ") )
+               GetCMD(s,pth2,0);
            }
            else
            {
