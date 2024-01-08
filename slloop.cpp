@@ -307,18 +307,23 @@ fd_set er_set;
      exit(0);
    }
    */
-   switch(DWORD_PTR(argv[1][0]))
+   i=DWORD_PTR(argv[1][0]);
+   if(! (i&0xFF0000) ) i&=0xFFFF;
+   switch(i)
    {
+       case 0x00762D x4CHAR("-v") :
        case 0x00762D2D x4CHAR("--v") :
        case 0x65762D2D x4CHAR("--ve") :
            printf("%s\n", sSMALL_HTT);
            exit(0);
+       case  0x003F2D x4CHAR("-?"):
        case  0x003F2D2D x4CHAR("--?"):
 #if defined(CONFIG_CONFIG) && ! defined(CONFIG_CURRENT_DIR)
         if( LoadLangCfg(CONFIG_CONFIG "shs_lang.cfg" ) < 0 )
 #endif
          LoadLangCfg( "shs_lang.cfg" );
 
+       case  0x00682D x4CHAR("-h"):
        case  0x00682D2D x4CHAR("--h"):
        case 0x65682D2D x4CHAR("--he"):
           PrintHelp();

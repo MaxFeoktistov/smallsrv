@@ -377,7 +377,7 @@ int sOutLine::OutConnLine(Req *r, char *alt_text)
 #endif
              contry,
              (ushort)san.sin_port,
-             GetTickCount()-r->tmout, //[i],
+             DTick(GetTickCount(),r->tmout), //[i],
              r->Tin,r->Tout, (alt_text)? alt_text : r->inf,i,r->tmout //[i]
              ,(s_flg&FL_RADMIN)?"submit":"hidden"
   );

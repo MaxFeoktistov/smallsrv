@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2023 Maksim Feoktistov.
+ * Copyright (C) 1999-2024 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov
@@ -246,31 +246,61 @@ void Restart()
 
 #endif
 
+ulong DTick(ulong tick1, ulong tick2)
+{
+  if(tick1 > tick2) return tick1 - tick2;
+  return (0xFFFFffff - tick2 + tick1);
+}
 
 int hLock,hcLock;
 int FreeThreads()
 {int i,j=-1;
- ulong r;
  MyLock(hLock);
  for(i=0;i<max_tsk;++i)
- {if(hndls[i])
-  {
-#ifdef SYSUNIX
-//   if( waitpid(hndls[i],(int *)&r,WNOHANG)>0 )
-//   if( waitpid(hndls[i],(int *)&r,WNOHANG) && WIFEXITED(r) )
-   if( ((u_long)(rreq[i])) == 1 )
-   {pthread_detach((pthread_t) hndls[i]);
-    rreq[i]=0;
-#else
-   if( (!GetExitCodeThread(hndls[i],&r)) || r!=STILL_ACTIVE)
+ {
+   if(hndls[i])
    {
-    CloseHandle(hndls[i]);
-#endif
-    hndls[i]=0;
-    goto lbJ;
+     #ifdef SYSUNIX
+     if( ((u_long)(rreq[i])) != 1 )  continue;
+     pthread_detach((pthread_t) hndls[i]);
+     rreq[i]=0;
+     #else
+     ulong r;
+     if( (GetExitCodeThread(hndls[i],&r)) && r == STILL_ACTIVE) continue;
+     CloseHandle(hndls[i]);
+     #endif
+     hndls[i]=0;
    }
-  }
-  else{lbJ: if(j<0)j=i;}
+   if(j<0)j=i;
+ }
+ if(j<0 && dos_protect_speed)
+ {
+#define  TIME_TO_CHECK_TICK     (300*1024)
+   ulong bytes_per_s = (dos_protect_speed<<10)/60;
+   ulong tick = GetTickCount();
+   ulong time_tick;
+   int k;
+
+   for(i=0;i<max_tsk;++i)
+   {
+     k = rreq[i]->flsrv[1]&MAX_SERV_MASK;
+     if( hndls[i] &&
+         rreq[i] > (Req *)1 &&
+         (time_tick = DTick(tick,rreq[i]->tmout)) > TIME_TO_CHECK_TICK &&
+         rreq[i]->s != -1
+       )
+     {
+       if( ( (u64) rreq[i]->Tin + (u64) rreq[i]->Tout ) < ( (time_tick * bytes_per_s )>>10 ) )
+       {
+         #ifdef SEPLOG
+         sepLog[k]->Ldebug("**Found DoS connection at thread %u (port: %u)\r\n",i,soc_port[k]);
+         #else
+         debug("**Found DoS connection at thread %u (port: %u) \r\n",i,soc_port[k]);
+         #endif
+         rreq[i]->Close();
+       }
+     }
+   }
  }
  MyUnlock(hLock);
  return j;

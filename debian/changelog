@@ -1,0 +1,1509 @@
+smallsrv (3.06.27test9) unstable; urgency=medium
+
+  * 3.06.27test9 Added detection of DoS attacks when there are a large number of slow connections.
+  * 3.06.27test8 Fixed SMTP client (EHLO after STARTTLS)
+  * Fixed system pasword check
+  * 3.06.27test6 Added TLS support for SMTP client
+  * 3.06.27test5 For Linux added system user/password authorization
+    support. Enabled paterns for users name for private virtual
+    directories.
+  * 3.06.27test4 Little changes
+  * 3.06.27test3  Fixed DNS log
+  * 3.06.27test1  Added man, optimised AddToLogDNS
+
+ -- Maksim Feoktistov <max@smallsrv.com> Sun 07 Jan 2024 09:49:08 PM +04
+
+smallsrv (3.06.26)
+
+  * Added Log to VPN. Fixed descriptions.
+  * Added build for arm64, and cross build for any system.
+    - Changed Configure script.
+    - Added --openssl option to Configure script
+  * Added install option to makefile;
+  * added build with seclib inside httpd.exopenssl htppd.exgnutls
+  * sndmsg included in sources...
+  * Fixed icfghtm.cpp
+  * Fixed APOP autorization
+  * Fixed FCGI over TLS
+  * Added chunked support to FCGI
+  * updated chunked support for CGI
+  * Fixed vpn client URL name, Fixed add user for Linux 64-bit version
+
+ -- Maksim Feoktistov <max@smallsrv.com> Sat Oct 21 01:59:53 2023 +0400
+
+smallsrv (3.06.25)
+
+  * Fixes in description...
+  * Added TLS VPN support for Windows. Added Keep-Alive support for
+    Windows.
+  * Fixed libsecgnutls SecRecv, added SecConnect support to libsec111,
+    modifed TLS VPN for Linux
+  * Added separate KeepAlive wait, add "chunked" support for TLS
+    connection, added "chunked" support for CGI
+  * Added FTP option to allways ask for a password, even for users
+    without a password
+
+ -- Maksim Feoktistov <max@smallsrv.com> Thu Jun 1 09:02:40 2023 +0400
+
+smallsrv (3.06.24)
+
+  * Changed version
+  * Added out tread info in exception
+  * Updated descripton files for FastCGI options. readme.md
+  * Changed fcntl64 call to fcntl for compatible with each Linux
+  * Fixed some stupid watnings
+  * Added FastCGI support
+  * Fixed CGI handles inherit in Linux versions.
+  * Fixed DHCP for large income packets.
+  * Fixed SMTP after POP authorization for IPv6.
+  * Fixed restart in Windows version.
+  * Optimized CGI wait
+
+ -- Maksim Feoktistov <max@smallsrv.com> Tue May 10 01:03:16 2022 +0300
+
+smallsrv (3.06.23)
+
+  * Fixed bugs and incompatibilities when working over IPv6.
+  * Other small changes and bug fixes.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Fri Mar 25 18:00:20 2022 +0300
+
+smallsrv (3.06.22)
+
+  * Added the ability to include boolean expressions in SSI and filters
+    in the debug log.
+  * Fixed a serious bug in IPv6 support for DNS
+  * Other small changes and bugs fixes.
+  * Added support for OpenSLL 1.1.1+. For Linux versions, a new library
+    libsec111.so has been compiled and included in the archives, which is
+    supposed to work with OpenSLL 1.1.1 libraries. For Windows,
+    libsec111.zip is built with the OpenSLL 1.1.1m libraries also
+    included in the archive.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Fri Mar 25 17:46:09 2022 +0300
+
+smallsrv (3.06.21)
+
+  * Added separate logs for each server. (optional)
+  * Added the ability to disable the output of the standard error
+    stream from the CGI to the user and the ability to duplicate this
+    stream (stderr) to the http.err log
+  * Added detection of duplicate DNS log entries which can
+    significantly shorten this log.
+  * Added DNS DoS attack detection by predefined names.
+  * Several bugs fixed, other minor changes
+
+ -- Maksim Feoktistov <max@smallsrv.com> Thu Jul 29 13:26:40 2021 +0300
+
+smallsrv (3.06.20)
+
+  * Added the ability to disable error stream output (STDERR) from CGI
+    to users.
+  * Fixed a serious bug in the DNS server that occurred when a CNAME
+    record was found in responses to recursive queries.
+  * Fixed bug in web administration (error in displaying lists)
+
+ -- Maksim Feoktistov <max@smallsrv.com> Mon Feb 8 22:04:46 2021 +0300
+
+smallsrv (3.06.19)
+
+  * Fixed serious errors in the DNS server.
+  * Many small changes.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Sun Nov 29 00:00:00 2020
+
+smallsrv (3.06.18)
+
+  * Added the ability to filter by part of the URL and by IP address in
+    statistics.
+  * In SSI, to the lastmod tag added the ability to set the format of
+    the date of the last file modification.
+  * Several bugs fixed, some little changes.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Wed Oct 14 00:00:00 2020
+
+smallsrv (3.06.17)
+
+  * In the Windows version, a bug in the menu in the "Configuration"
+    window has been fixed.
+  * The new SSI functions fsize(filename) and ftime(filename) work more
+    correctly.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Mon Oct 12 00:00:00 2020
+
+smallsrv (3.06.16)
+
+  * Created 64-bit version for Linux. (unstable)
+  * To Server Side Includes for #if statement added four functions:
+    - exist(filename) - returns 1 if file exist, otherwise 0.
+    - fsize(filename) - returns size of the file.
+    - ftime(filename) - returns time of last modification of the file
+      in seconds from 01.01.1971.
+    - fmode(filename) - returns access mode of the file.
+  * To Server Side Includes for #fsize tag added modifiers 'Kb' and
+    'Mb' to show size of file in Kilobytes and Megabytes.
+    Example of usage: <!--#fsize Kb virtual="path/file_name" -->
+  * The table "External referer" has been add to Statistics.
+  * In statistics "Referer" and "Hosts of referer" tables now also
+    included https connections. (Before these tables was for http only)
+  * DoS request detecting has been added to DNS server.
+    Number of DoS-like requests for IP blocking is set in the settings.
+  * In ARM version few bug e.g. with CGI "Status" has been fixed.
+  * Other little changes...
+  * Added the ability to edit the configuration file in Web
+    Administration.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Sun Aug  2 00:00:00 2020
+
+smallsrv (3.06.15)
+
+  * MDTM extension has been added to FTP server.
+  * Bug with save (unsave) DHCP database file has been fixed.
+  * In DNS server $IF_DOWN remote service checker now will work more
+    correct.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Thu Jul  2 00:00:00 2020
+
+smallsrv (3.06.13)
+
+  * TLS for FTP (RFC 2228 - FTP Security Extensions) has been added
+    to FTP server.
+  * The description fixed.
+  * As you may have noticed, another variation of the distribution has
+    been published, which already includes an IP database by country.
+    For any version of distribution, you can separately download and
+    install monthly updating IP-country database.
+  * Now distributions compiled by MinGW are packaged using UPX and due
+    to this they weigh less.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Sun Apr 12 00:00:00 2020
+
+smallsrv (3.06.12)
+
+  * Slave mode for DNS server has been added. To the host definition
+    file
+    added the tag $SLAVE:
+    - $SLAVE <domain-name> <ip-address-of-master> [<filename>]
+    to work as slave DNS server for this domain. The server will be
+    download full domain from master.
+  * UTF-8 support for filenames has been added to HTTP.
+  * Now, optoionally, the log window in version for Windows may be
+    converted
+    to unicode to correct show non-ansi characters in FTP requests.
+  * Now limits for network always calculated for /24 networks
+    independent of
+    the class of IP.
+  * Now command line also understand keys '--v' -- to print version,
+    '--h' or '--?' for help, '--c config_file' for load this
+    config_file instead default.
+  * Other little changes.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Sun Mar 22 00:00:00 2020
+
+smallsrv (3.06.11)
+
+
+  * Fixed bug in Windows version SecLibGnuTLS.DLL
+
+ -- Maksim Feoktistov <max@smallsrv.com> Thu Mar 12 00:00:00 2020
+
+smallsrv (3.06.11)
+
+  * DNS over HTTP(S) aka DoH (RFC8484) has been added. This option
+    switch on in HTTP settings and DNS server must be enabled for this
+    feature.
+  * The ability to set priorities for ciphers, key exchange methods and
+    macs, has been added for the TLS/SSL server.
+    - SecLib library that using OpenSSL has been rebuilt for this, and
+      also an alternated SecLibGnuTLS library that using GnuTLS library
+      has been created.
+  * Lot of little changes...
+
+ -- Maksim Feoktistov <max@smallsrv.com> Tue Jan 14 00:00:00 2020
+
+smallsrv (3.06.10)
+
+  * Fixed FTP FEAT comand.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Sun Jan 12 00:00:00 2020
+
+smallsrv (3.06.08)
+
+  * FTP UTF-8 support has been added.
+  * An attempt has been made to fix problems sometimes encountered
+    when running the Openssl library. Also (seclib with openssl-1.02t)
+    has ben updated.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Mon Dec 16 00:00:00 2019
+
+smallsrv (3.06.07)
+
+  * EDNS support has been added to DNS server.
+  * Now DNS server enlarge TTL IP packet header field for DNS UDP
+    packet.
+  * Linux version change TOS IP field of DNS UDP packets.
+  * Country code info has been added to Current state page.
+  * Now request /$_ip2country_$?l=h support variable 'l=' that may be
+    'h' - for html reply, 'j' - for javascript reply, and any other
+    value for just text reply.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Sun Dec  1 00:00:00 2019
+
+smallsrv (3.06.06)
+
+  * Now country code shown for each IP address in statistics
+    (if IP-country base loaded)
+  * Now the HTTP server can support '/$_ip2country_$?ip=83.139.28.74'
+    request to return the country of the specified IP address.
+  * Another little changes.
+  * Compiled seclib102t.zip with the output of detailed information
+    about errors that occur
+
+ -- Maksim Feoktistov <max@smallsrv.com> Thu Nov 14 00:00:00 2019
+
+smallsrv (3.06.05)
+
+  * Support for CAA record and corresponding request has been added to
+    DNS server.
+  * Changes in the DNS server:
+    - Now if there is a record in the host definetion file for a domain
+      using a template and there is a record without a template that
+      matches the template, then only the record without the template
+      will be  returned. (Excluding AXFR request)
+  * Other little changes.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Mon Nov  4 00:00:00 2019
+
+smallsrv (3.06.04)
+
+  * In the web interface has been fixed a bug with the list file
+    editing page and the host definition file editing page
+  * Now when using "Daily log" , when one year passed, and file of
+    previous year is present, the server will be automatically move old
+    file to the subdirectory named as the year number.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Thu Oct 24 00:00:00 2019
+
+smallsrv (3.06.03)
+
+  * Now support of separated loadable language pack file has been
+    added. This give possibility to make any localisation of the program.
+    The language file named 'shs_lang.cfg'. The file is the same for
+    Windows and for Linux versions. If this file is placed in the same
+    directory where placed configuration file, the program load strings
+    from this file. If the file for your language is not precent there,
+    then you can make it yourself, just translate the file from some
+    other language. If you do it, then you may send me the result, it
+    will be including in the next packages and it will be a vailable for
+    download on the site. File format description precent in the
+    lang_notes.txt.
+  * For HTTP, Proxy and web-mail support of two variant of MD5 Digest
+    authorization (RFC2069/RFC2617) has been added, but this
+    authorization method is posibly only in case when the server know
+    original passwords, when these stored in config file.
+  * If somebody don't want to store the password in the config, and
+    also don't want that it transfer by network from the user, that want
+    to use MD5 Digest authorization, now the program can store MD5 Digest
+    of the password instead the password in RFC2069/RFC2617 format.
+  * APOP authorization method has been added to POP3 server. But, it
+    also will be posibly only in case when the server know original
+    passwords, when these stored in config. And in this case passwords
+    stored in MD5 Digest format will not work.
+  * For ARM version telnet server has been added. (For other platforms
+    this is hardly relevant)
+  * To the table of state DHTP, for each IP address date and time of
+    last access has been added.
+  * Lot of other big and small changes...
+
+ -- Maksim Feoktistov <max@smallsrv.com> Wed Mar  2 00:00:00 2011
+
+smallsrv (3.05.92)
+
+  * Little changes in FTP
+  * In DNS server, for $IF_DOWN derective, if remote service is down,
+    now the server also update SERIAL in SOA record.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Wed Nov 17 00:00:00 2010
+
+smallsrv (3.05.91)
+
+  * Fixed some bugs in DNS. [12.10.10] Version 3.05.90
+
+ -- Maksim Feoktistov <max@smallsrv.com> Tue Oct 12 00:00:00 2010
+
+smallsrv (3.05.89)
+
+  * DNS server has been full rewrited. Now, it support personal TTL in
+    each record. Cañhing and reqursion search will work better.
+  * UTF conversion has been added to Web mail.
+  * Too many another little changes.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Wed Jul 28 00:00:00 2010
+
+smallsrv (3.05.88)
+
+ -- Maksim Feoktistov <max@smallsrv.com> Mon Jul 26 00:00:00 2010
+
+smallsrv (3.05.87)
+
+  * Proxy has been updated. Now, the proxy may connect to antivirus and
+    send to check income file. Optionaly proxy may require to check
+    applicaton only, or all files. Now this has been tested with ClamAv
+    that has been runing on Linux host. (Antivirus may be installed on
+    remote host, in server options you may direct hostname and TCP port)
+  * DNS server has been fixed.
+  * The problems with IPv6/IPv4 addapter only bind has been fixed.
+  * Too many another little changes.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Mon Apr 12 00:00:00 2010
+
+smallsrv (3.05.86)
+
+  * WebMail has been updated.
+  * SMTP server has been changed. Now in badlist and graylist you may
+    use $checkhello variable. The server will check does in 'hello' is
+    valid hostname If hostname is valid then $checkhello =1 else
+    $checkhello = 0
+  * Little changes in CGI
+  * Too many another little changes
+
+ -- Maksim Feoktistov <max@smallsrv.com> Wed Mar 25 00:00:00 2009
+
+smallsrv (3.05.85)
+
+  * WebMail has been updated and fixed
+  * Posibility to change own password for users has been included in
+    WebMail interface.
+  * Now server can try to detect UTF8 in names.
+  * Little but important changes in DNS, Proxy, HTTP
+
+smallsrv (3.05.84)
+
+  * DNSBL server has been added to DNS server.
+    - It work with SMTP server, and public the IP addresess from
+      internal badlist.
+    - For check on this feature just direct the name of DNSBL server in
+      DNS settings.
+    - Use this name on remote SMTP servers.
+  * Little changes in HTTP, Proxy, SMTP.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Tue Nov 11 00:00:00 2008
+
+smallsrv (3.05.83)
+
+  * Changes in HTTP and Web administration.
+  * Version for ARM Linux (usualy for embeded systems) has been
+    compiled.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Sun Oct 12 00:00:00 2008
+
+smallsrv (3.05.82)
+
+  * Web administration (statistics and current state pages) has been
+    made more usefull
+  * Now, in SMTP settings, you may direct more then one fake e-mail
+    address. Fake addresses it is very effective way to filtring spam, --
+    you may just public this address anywhere (may be in invisible area
+    of the web page), and if somebody try to send message to it, the
+    server will shure that it is spamer and block the IP.
+  * Folders support has been added to POP3 and WebMail. This may be
+    usefull for auto sort messagess e.g. from 'forward' or antivirus
+    scripts. To access to user's mail sub-folder via POP3, in mail
+    program create the account and direct "user/folder_name" as user
+    name.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Mon Sep 15 00:00:00 2008
+
+smallsrv (3.05.80)
+
+  * Little changes in FTP and Web administration.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Mon Jul 14 00:00:00 2008
+
+smallsrv (3.05.78)
+
+  * New antyspam futures has been added to SMTP server.
+    - Now users may add DNSBL servers to check incomming to they
+      personal 'badlist' and 'graylist' files and DNSWL servers to
+      personal 'goodlist' file.
+    - To use this futures add line:
+      "?? dnsbl1.server dnsbl2.server ..." to list file.
+  * Other little changes
+
+ -- Maksim Feoktistov <max@smallsrv.com> Wed Jun 11 00:00:00 2008
+
+smallsrv (3.05.77)
+
+  * Webmail has been integrated.
+    - If Web Mail enabled in settings, the users that have POP3 access
+      may use it by http://your.host/$_wmail_$
+    - Web mail avilable only from IP addresses from POP3 range.
+  * New feature has been added to DNS server
+    - now it may check a serverice on remote host and if the service
+      down, change one IP address to other:
+    - $IF_DOWN derectives now undestand in host definetion file. Format
+      of derictive: "$IF_DOWN host:port interval Old.IP=New.IP"
+    - By this option server will try to connect to the host:port for
+      time interval (in seconds), and if fail in each record with Old.IP
+      it will be replasing to New.IP.
+  * Web administration has been updated. Now you may edit host
+    definetion file, the lists, antivirus file from administration
+    pages.
+  * Posibility to bind to directed addapters (IP adresses) only has
+    been added.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Wed Feb 27 00:00:00 2008
+
+smallsrv (3.05.76)
+
+  * To DNS server has been added option "Don't try to recursive find
+    AAAA records. (for networks that don't use Internet through IPv6)"
+  * Little changes in FTP and SMTP
+
+ -- Maksim Feoktistov <max@smallsrv.com> Tue Feb 12 00:00:00 2008
+
+smallsrv (3.05.75)
+
+  * Changes in HTTP,SSI,Proxy,SMTP,etc.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Sat Nov 10 00:00:00 2007
+
+smallsrv (3.05.74)
+
+  * Changes in DHCP,HTTP,FTP,Proxy.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Thu Oct 25 00:00:00 2007
+
+smallsrv (3.05.73)
+
+  * IPv6 address support has been added to the proxy. IPv6 corrected.
+  * Little changes in HTTP, SMTP, DHCP.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Mon Oct  8 00:00:00 2007
+
+smallsrv (3.05.72a)
+
+  * IPv6 for HTTP corrected
+  * Little changes in SMTP.
+  * Advanced protection for one type of DoS has been added.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Sun Aug  5 00:00:00 2007
+
+smallsrv (3.05.71a)
+
+  * Updated format for IP-country database.
+  * Little changes in Proxy,HTTP,SMTP, Statistics
+
+ -- Maksim Feoktistov <max@smallsrv.com> Sun Jun 24 00:00:00 2007
+
+smallsrv (3.05.69)
+
+  * New antispam features has been added to SMTP server. "Graylist" --
+    it is common or user's personal file like "goodlist" and "badlist",
+    may content, e-mails, IPs adresses, regular expresion paterns etc. If
+    any of condition from common or personal "graylist" will true, server
+    will not receive message immidiatle, for a time or until IP will not
+    checked. This will well work with fake e-mail address. The message
+    will be receive after little time if sender don't try to send
+    something to fake address.
+  * Little changes in ISAPI. Php5isapi.dll must work as PHP
+    interpreter.
+  * FTP and Proxy limits has been corrected.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Sun Jun 10 00:00:00 2007
+
+smallsrv (3.05.68)
+
+  * Now in options for web root directories you may direct a URL link
+    to another web server.
+   - In this case when resource will be required the server will work
+     like proxy.
+  * Proxy has been updated
+  * DNS has been updated
+
+ -- Maksim Feoktistov <max@smallsrv.com> Mon Oct  8 00:00:00 2007
+
+smallsrv (3.05.72a)
+
+  * IPv6 for HTTP corrected
+  * Little changes in SMTP.
+  * Advanced protection for one type of DoS has been added.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Sun Aug  5 00:00:00 2007
+
+smallsrv (3.05.71a)
+
+  * Updated format for IP-country database.
+  * Little changes in Proxy,HTTP,SMTP, Statistics
+
+ -- Maksim Feoktistov <max@smallsrv.com> Sun Jun 24 00:00:00 2007
+
+smallsrv (3.05.69)
+
+  * New antispam features has been added to SMTP server. "graylist" --
+    it is common or user's personal file like "goodlist" and "badlist",
+    may content, e-mails, IPs adresses, regular expresion paterns etc. If
+    any of condition from common or personal "graylist" will true, server
+    will not receive message immidiatle, for a time or until IP will not
+    checked. This will well work with fake e-mail address. The message
+    will be receive after little time if sender don't try to send
+    something to fake address.
+  * Little changes in ISAPI. Php5isapi.dll must work as PHP
+    interpreter.
+  * FTP and Proxy limits has been corrected.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Sun Jun 10 00:00:00 2007
+
+smallsrv (3.05.68)
+
+  * Now in options for web root directories you may direct a URL link
+    to another web server. In this case when resource will be required
+    the server will work like proxy.
+  * Proxy has been updated
+  * DNS has been updated
+
+ -- Maksim Feoktistov <max@smallsrv.com> Mon Apr 30 00:00:00 2007
+
+smallsrv (3.05.67)
+
+  * For users of virtual directories option "NOHTTP" has been added, to
+    make virtual directory avilable for FTP only.
+  * Little but importen canges in FTP,SMTP,DNS,HTTP
+
+ -- Maksim Feoktistov <max@smallsrv.com> Thu Apr 12 00:00:00 2007
+
+smallsrv (3.05.66)
+
+  * FTP has been changed. Huge files support has been added.
+  * Some features has been added to SMTP. Now you may enable to check
+    mailhost of sender before receive mail.
+  * Other little changes.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Thu Mar 15 00:00:00 2007
+
+smallsrv (3.05.65b)
+
+  * First FTP port for passive data connection may be directed
+
+ -- Maksim Feoktistov <max@smallsrv.com> Sun Mar  4 00:00:00 2007
+
+smallsrv (3.05.64)
+
+  * Option "Disable multy stream download for one file." has been added
+    for HTTP
+  * Now SMTP can generate delivery report. (optionaly and if required)
+  * Changes in SMTP,ISAPI,DNS and other little changes
+
+ -- Maksim Feoktistov <max@smallsrv.com> Mon Jan  1 00:00:00 2007
+
+smallsrv (3.05.63)
+
+ -- Maksim Feoktistov <max@smallsrv.com> Fri Dec 29 00:00:00 2006
+
+smallsrv (3.05.62a)
+
+  * Little but important changes in SMTP,DNS
+  * In Linux/BSD versions little changes in CGI execution.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Mon Dec  4 00:00:00 2006
+
+smallsrv (3.05.61)
+
+  * In SMTP server send outside algoritm changed.
+  * Proxy changed. Option for no cashe pages when request content
+    cookes has been added.
+  * Little change in CGI execution
+
+ -- Maksim Feoktistov <max@smallsrv.com> Tue Nov  7 00:00:00 2006
+
+smallsrv (3.05.60)
+
+  * Now the program can show statistic by countries and server may add
+    REMOTE_COUNTRY variably with country name to SSI/CGI enviroment.
+    IP-contry database need for these features. Database is compresed
+    (about 130Kb file and allocate about 300 Kb in memory). Fast search
+    will not delay SSI and CGI execution. The program does not garanted
+    valid country detection for evry time, but in many times it will be.
+    For IP addresses that absent in database the server show "unknown"
+    instead country name. Now the country database does not content some
+    IP of USA and Canada because AIRN doesn't public full IP database.
+    (Or I doesn't found it. If somebody know where is full AIRN database
+    avilable, please let me know)
+  * Another little changes in HTTP,FTP,SMTP,DNS
+
+ -- Maksim Feoktistov <max@smallsrv.com> Wed Sep 27 00:00:00 2006
+
+smallsrv (3.05.59)
+
+  * Now in DNSBL (external blackhole lists) you may direct more then
+    one servers through space
+  * Some mistake in version 3.05.57 has been fixed.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Mon Sep 11 00:00:00 2006
+
+smallsrv (3.05.57)
+
+  * Little changes in SSI
+  * Little changes in DNS
+
+ -- Maksim Feoktistov <max@smallsrv.com> Sun Sep  3 00:00:00 2006
+
+smallsrv (3.05.56)
+
+ -- Maksim Feoktistov <max@smallsrv.com> Wed Aug 30 00:00:00 2006
+
+smallsrv (3.05.55)
+
+  * DNSBL (external blackhole lists) support has been added to SMTP
+    server.
+  * Other little changes.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Wed Aug 23 00:00:00 2006
+
+smallsrv (3.05.54)
+
+  * DHCP server has been updated. Now client's IP may be changed
+    manualy
+
+ -- Maksim Feoktistov <max@smallsrv.com> Wed Aug 16 00:00:00 2006
+
+smallsrv (3.05.53)
+
+ -- Maksim Feoktistov <max@smallsrv.com> Sat Aug 12 00:00:00 2006
+
+smallsrv (3.05.52)
+
+  * Option for just listen another DHCP servers has been added
+
+ -- Maksim Feoktistov <max@smallsrv.com> Sun Aug  6 00:00:00 2006
+
+smallsrv (3.05.51)
+
+ -- Maksim Feoktistov <max@smallsrv.com> Fri Jul 28 00:00:00 2006
+
+smallsrv (3.05.50)
+
+  * DHCP server has been added
+  * DNS server can work with DHCP and resolve local names from DHCP
+    users.
+  * Little changes in SMTP
+  * Little changes in FTP
+
+ -- Maksim Feoktistov <max@smallsrv.com> Wed Jul 12 00:00:00 2006
+
+smallsrv (3.05.49)
+
+  * Little changes in DNS,FTP,SSI
+
+ -- Maksim Feoktistov <max@smallsrv.com> Wed Jun 28 00:00:00 2006
+
+smallsrv (3.05.48)
+
+  * Little changes in SMTP
+
+ -- Maksim Feoktistov <max@smallsrv.com> Fri Jun 23 00:00:00 2006
+
+smallsrv (3.05.47)
+
+  * New super big mode for proxy has been added (experemental)
+  * Little changes in SSI.
+  * Changes in proxy
+
+ -- Maksim Feoktistov <max@smallsrv.com> Wed Apr 19 00:00:00 2006
+
+smallsrv (3.05.46)
+
+  * Little changes in DNS,SMTP,Proxy,CGI execution
+
+ -- Maksim Feoktistov <max@smallsrv.com> Mon Apr  3 00:00:00 2006
+
+smallsrv (3.05.45)
+
+  * Now DNS server cashe PTR records and all unknow reply too.
+  * In SMTP some type of logical expresion in lists corected.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Fri Mar 24 00:00:00 2006
+
+smallsrv (3.05.44)
+
+ -- Maksim Feoktistov <max@smallsrv.com> Sun Mar 19 00:00:00 2006
+
+smallsrv (3.05.43)
+
+  * New antispam feature has been added to SMTP server.
+    - Now server support common and personal badlist and goodlist
+      files.
+    - The names of common lists you may direct in options.
+    - Also in options you may enable check personal files named
+      "badlist" and "goodlist" in user's home directories.
+    - Files will check before receive message. Each line of these file
+      may be:
+       - E-mail address or any part of address.
+       - IP address or part of IP address.
+       - ? Logical expresion where you may do action with $sender,
+         $hello, $control variables.
+  * Another little changes in regular expression, CGI execution,
+    administration...
+
+ -- Maksim Feoktistov <max@smallsrv.com> Sat Mar  4 00:00:00 2006
+
+smallsrv (3.05.42)
+
+
+ -- Maksim Feoktistov <max@smallsrv.com> Tue Feb 28 00:00:00 2006
+
+smallsrv (3.05.41)
+
+  * Web and local administration has been changed.
+  * Stattistcs for hosts of referer has been added.
+  * IPv6 part has been updated.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Sat Feb  4 00:00:00 2006
+
+smallsrv (3.05.40)
+
+ -- Maksim Feoktistov <max@smallsrv.com> Sat Jan 28 00:00:00 2006
+
+smallsrv (3.05.39)
+
+  * IPv6 support has been added.
+    - May be check on optionaly.
+    - Now through IPv6 may work HTTP,POP3,SMTP income, Proxy income,
+      DNS request about us domain
+    - SMTP server still send messages outside through IPv4, DNS still
+      send recurcive requests to resolve names through IPv4.
+    - If you use buildin DNS for caching/resolving then unrecomendet to
+      enable IPv6 for DNS.
+  * Now DNS support AAAA record.
+  * Little changes in SMTP.
+  * Little changes in DNS.
+  * An error has been found and fixed in proxy.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Sun Jan  8 00:00:00 2006
+
+smallsrv (3.05.38)
+
+ -- Maksim Feoktistov <max@smallsrv.com> Mon Dec 26 00:00:00 2005
+
+smallsrv (3.05.37a)
+
+  * Now host definetion file for DNS server may be reloaded without
+    restart server.
+  * Administration pages and reconfiguration on fly has been changed
+  * Fake E-mail address work correct.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Fri Dec 16 00:00:00 2005
+
+smallsrv (3.05.36)
+
+  * Statistics by hours for HTTP has been added.
+  * Logical expresion has been fixed.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Mon Dec 12 00:00:00 2005
+
+smallsrv (3.05.35)
+
+  * Has been added statistics for HTTP time and average speed of
+    exchange.
+  * Limits per IP for proxy and for FTP has been added.
+  * Advansed spam filter and fake E-mail address has been added.
+    - If spam filter return true, or when somebody try to send message
+      to fake address, server add IP of remote to spamer's list and will
+      not receive message from this address.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Thu Nov 17 00:00:00 2005
+
+smallsrv (3.05.33)
+
+  * Proxy,HTTP,Web Administration has been changed
+  * SndMsg has been updated.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Thu Nov 10 00:00:00 2005
+
+smallsrv (3.05.32)
+
+  * Now limit for size of file that will saved in proxy cashe has been
+    added, and other changes in proxy.
+  * Limits for SMTP incomming has been added.
+  * To "current state" administration page has been added advanced info
+  * Summary statistic by file has been added.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Mon Oct 24 00:00:00 2005
+
+smallsrv (3.05.31)
+
+  * Proxy has been changed. Now server support 'chunked' encoding.
+  * Other changes.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Mon Sut 01 00:00:00 2005
+
+smallsrv (3.05.30)
+
+  * Now, if you use an external ZLib library, proxy can send requests
+    with ask compressed reply, each when client's browser (such as most
+    popular browser..) unsupporting compression, and in in this case
+    proxy will auto decompress reply from server before put it to
+    client.
+  * HTTP server has been updated. Another algoritm for translate big
+    POST to CGI has been implement.
+  * Another little changes
+
+ -- Maksim Feoktistov <max@smallsrv.com> Mon Sep 12 00:00:00 2005
+
+smallsrv (3.05.29)
+
+  * HTTP server has been changed. GZip compresion with an external ZLib
+    library has been added.
+    - This help you minimize outgoing HTTP trafic.
+    - You may download zlib.dll, that nesseser for it, from zlib home
+      page: www.zlib.org or www.gzip.org/zlib/
+  * Little changes in FTP.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Wed Jul 27 00:00:00 2005
+
+smallsrv (3.05.28)
+
+
+ -- Maksim Feoktistov <max@smallsrv.com> Tue Jul 19 00:00:00 2005
+
+smallsrv (3.05.27)
+
+  * DNS server has been full rebuilded.
+  * Little changes in the proxy has been made.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Thu May 19 00:00:00 2005
+
+smallsrv (3.05.24)
+
+  * Proxy has been changed.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Sat May 14 00:00:00 2005
+
+smallsrv (3.05.23)
+
+  * Proxy has been changed. FTP autorization request has been added
+  * SMTP has been changed.
+  * Some other changes.
+  * Sendmail emulator has been updated
+    - Some functions for attach file and send through SMTP has been
+      added. Version for Linux included in shttplnx.tgz
+
+ -- Maksim Feoktistov <max@smallsrv.com> Sat Apr 23 00:00:00 2005
+
+smallsrv (3.05.21)
+
+  * Proxy has been changed.
+    - Powerful downloading files with automatic continues for HTTP and
+      FTP has been added. (Continues after broken connection)
+  * Out advanced info about active connections has been added
+  * Regular extpresion has been fixed.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Sat Apr 16 00:00:00 2005
+
+smallsrv (3.05.20)
+
+  * In administration pages current state has ben moved to own page
+  * Proxy has been changed.
+    - Continue downloading files that has been partial loading before
+      has been added. (Continues after broken connection)
+  * Super feature in FTP/POP3/SMTP proxy, -- access outside through up
+    level HTTPS proxy has been added.
+  * Now paswords may be removed from the log (optionaly).
+  * HTTP server has been updated.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Thu Mar 17 00:00:00 2005
+
+smallsrv (3.05.18)
+
+  * Limitation for speed of outgoing transfer has been changed
+  * Support points in DNS TXT record
+  * Proxy has been changed
+
+ -- Maksim Feoktistov <max@smallsrv.com> Wed Mar  9 00:00:00 2005
+
+smallsrv (3.05.16)
+
+  * Limitation for speed of outgoing transfer has been added
+  * To more detailed info about current connections
+  * Now DNS server support TXT record
+  * Proxy server will work with some strange types of FTP servers that
+    has been unavilable before.
+  * Little changes in SMTP server.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Thu Dec 23 00:00:00 2004
+
+smallsrv (3.05.15)
+
+  * Variable REMOTE_ADDR avilable from SSI
+  * Proxy correct delete old files in big mode
+
+ -- Maksim Feoktistov <max@smallsrv.com> Mon Nov 29 00:00:00 2004
+
+smallsrv (3.05.12)
+
+  * IP restrictions for remote administration, POP3, FTP has been
+    added.
+  * SMTP proxy mode has been added.
+  * Some other.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Thu Oct 28 00:00:00 2004
+
+smallsrv (3.05.11)
+
+  * Page of directory files list has been changed.
+  * Mistake in SMTP has been fixed.
+  * Some other.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Wed Aug 18 00:00:00 2004
+
+smallsrv (3.05.06)
+
+ -- Maksim Feoktistov <max@smallsrv.com> Sun Aug 15 00:00:00 2004
+
+smallsrv (3.05.05)
+
+  * Optional support for attributes of files has been added to Windows
+    version.
+    - Now hidden files may never sending to HTTP users, and system
+      files may runing from any directory.
+    - Also this attributes may be changed by FTP.
+  * DNS server has been changed.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Sun Jun 27 00:00:00 2004
+
+smallsrv (3.05.04)
+
+ -- Maksim Feoktistov <max@smallsrv.com> Mon Jun 21 00:00:00 2004
+
+smallsrv (3.05.03)
+
+  * Logical expression for SSI and mail-scripts has been updated.
+    - Now too difficult expression must be working fine.
+  * Large mode for proxy has been added.
+    - This mode may be usefull to save a lot of trafic files.
+  * POP3 proxy now support remote login names that include '@'.
+  * Break-filter has been added to SMTP server.
+  * Some other...
+
+ -- Maksim Feoktistov <max@smallsrv.com> Thu May  6 00:00:00 2004
+
+smallsrv (3.05.02)
+
+ -- Maksim Feoktistov <max@smallsrv.com> Wed Apr 28 00:00:00 2004
+
+smallsrv (3.05.01)
+
+  * Regular expression support in SSI and in SMTP 'forward' file has
+    been added.
+  * Variables in command line for execute external application from
+    forward file now are supported.
+  * SMTP part has been updated.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Fri Mar 12 00:00:00 2004
+
+smallsrv (3.04.12)
+
+ -- Maksim Feoktistov <max@smallsrv.com> Mon Mar  8 00:00:00 2004
+
+smallsrv (3.04.11)
+
+  * Option to disable save uncrypted password in config file has been
+    added.
+  * Proxy has been changed.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Wed Feb 18 00:00:00 2004
+
+smallsrv (3.04.10)
+
+  * SMTP server has been updated.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Fri Jan 30 00:00:00 2004
+
+smallsrv (3.04.08)
+
+  * Mail forward-file has been updated.
+    - Commands '#cp', '#mv','#rv', and other has been added.
+  * Posibility to run antivirus for incomming/outgoing mail has been
+    added.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Mon Jan 12 00:00:00 2004
+
+smallsrv (3.04.07)
+
+  * Special FTP proxy (or proxy mode for FTP) has been added.
+  * Little changes in proxy.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Thu Dec 18 00:00:00 2003
+
+smallsrv (3.04.05)
+
+  * Opening SMTP access after POP3 authentication has been added.
+  * Little changes in proxy.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Tue Dec  9 00:00:00 2003
+
+smallsrv (3.04.03)
+
+  * POP3 proxy has been added.
+  * Option for proxy session timeout has been added.
+  * Optimised and other.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Fri Nov 28 00:00:00 2003
+
+smallsrv (3.04.02)
+
+ -- Maksim Feoktistov <max@smallsrv.com> Wed Nov 26 00:00:00 2003
+
+smallsrv (3.04.01)
+
+  * Some mistakes has been fixed,
+  * Proxy server correct work with some types of FTP and can set secure
+    connection through higher level proxy server.
+  * SSI correct return pages with some unclosed #if statments.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Sun Nov 16 00:00:00 2003
+
+smallsrv (3.04test2) unstable; urgency=medium
+
+  * Support secure TLS connection for POP3 has been added
+  * Support secure TLS connection for SMTP has been added
+  * Some other little changes
+
+ -- Maksim Feoktistov <max@smallsrv.com> Thu Oct 30 00:00:00 2003
+
+smallsrv (3.04test1) unstable; urgency=medium
+
+  * Lot of changes in organisation
+
+ -- Maksim Feoktistov <max@smallsrv.com> Thu Oct 30 00:00:00 2003
+
+smallsrv (3.039987)
+
+  * Updates in FTP has been maden.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Mon Oct 27 00:00:00 2003
+
+smallsrv (3.04test0) unstable; urgency=medium
+
+  *  This version includes interface for SSL/TLS library.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Wed Oct  1 00:00:00 2003
+
+smallsrv (3.039986)
+
+  * SMTP server has been updated.
+    - When size of message too long conection will be break, and if
+      remote try resend this message again, the server detect it and
+      close connection imediatly.
+    - Also option to disable break connection, has been added.
+  * Small updates in FTP has been maden.
+  * Some other ...
+
+ -- Maksim Feoktistov <max@smallsrv.com> Fri Sep  12 00:00:00 2003
+
+smallsrv (3.039985)
+
+  * Now statistics calculating too fast.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Thu Sep 25 00:00:00 2003
+
+smallsrv (3.039984)
+
+  * More statistics for FTP has been added.
+  * Modes for virtual directories through FTP has been added.
+  * Mistake in security, that could emerge with some values of
+    settings, has been fixed.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Mon Sep 15 00:00:00 2003
+
+smallsrv (3.039983)
+
+  * Mistake in security, that could emerge with some values of
+    settings, has been fixed.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Sun Aug 31 00:00:00 2003
+
+smallsrv (3.039981)
+
+  * Deny IPs lists has been added.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Sun Aug  3 00:00:00 2003
+
+smallsrv (3.039971)
+
+  * Access to private virtual directories via FTP has been added.
+  * In DNS server SOA record has been corrected.
+  * Support of independent PTR records has been added to DNS server.
+  * Icon and other details has been changed.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Sat Jun 28 00:00:00 2003
+
+smallsrv (3.03996)
+
+ -- Maksim Feoktistov <max@smallsrv.com> Mon Jun 16 00:00:00 2003
+
+smallsrv (3.03995)
+
+  * SSI has been updated. Server corect work with crazy SSI tags.
+  * Little changes in ISAPI. Now php4isapi.dll may be used.
+  * SMTP has been changed
+
+ -- Maksim Feoktistov <max@smallsrv.com> Thu May 29 00:00:00 2003
+
+smallsrv (3.03993)
+
+ -- Maksim Feoktistov <max@smallsrv.com> Sat Apr  5 00:00:00 2003
+
+smallsrv (3.03992)
+
+  * Summary statistics (for IP/users/virtual hosts) has been added
+  * Now user's name is case unsensitive
+
+ -- Maksim Feoktistov <max@smallsrv.com> Fri Mar 21 00:00:00 2003
+
+smallsrv (3.03991)
+
+  * For up level proxy server authorization has been added.
+  * The possibility to direct upload directory has been added to FTP
+    server . If this directory presents, users with "read only" access
+    can upload files there.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Fri Jan 31 00:00:00 2003
+
+smallsrv (3.03981)
+
+  * Support secure conections for proxy.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Thu Jan  9 00:00:00 2003
+
+smallsrv (3.03973)
+
+  * HTTP continues corrected
+  * Now ISAPI scripts run from SSI, don't output header's lines.
+  * SMTP was updated, -- now, it receives messages to send from IP
+    adresses that are inside avilable IP range only.
+  * Proxy was updated.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Mon Dec  2 00:00:00 2002
+
+smallsrv (3.0397)
+
+  * Now virtual hosts and virtual directoties may be privated for
+    directed users only.
+  * Now you may add advanced lines to HTTP control header.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Sun Nov 17 00:00:00 2002
+
+smallsrv (3.03962)
+
+  * SSI was updated, some mistakes was revised.
+  * Statistics for POP3 and HTTP has been appended.
+  * The possibility of using up level proxy server has been added.
+  * Now IP range for which the servers are avilable can be multiple.
+
+  * Web Mail was updated Get 1.12 (25Kb)
+Work with external POP3 servers has been optimised. Keys for
+  administrator to run with shedule auto checking new mail on external
+  POP3 servers by users orders, has been added.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Sun Oct 27 00:00:00 2002
+
+smallsrv (3.0395)
+
+  * Statistics for mail has been appended.
+  * Proxy was updated.
+  * Some bugs fixed.
+  * Now server detects the trying to catch the password, and doesn't
+    receive next requests from hacker's hosts.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Sat Oct  5 00:00:00 2002
+
+smallsrv (3.0392)
+
+  * unstable for Linux
+  * It's nearly simelar with 3.0392 for Windows, but it has some
+    differents that are specific for UNIX.
+    - E.g. CGI ident isn't used, the files that have "executable for
+      other" mode attribute are files to run.
+    - If server has a right to change current user, the scripts will be
+      run from user's id of the file.
+    - The files that have "readable for other" mode attribute are files
+      to return.
+    - FTP support SITE command.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Sun Sep 22 00:00:00 2002
+
+smallsrv (3.0391)
+
+  * Autorization for proxy
+  * Error file
+  * Interface to NT Service updated.
+  * Optimized
+
+ -- Maksim Feoktistov <max@smallsrv.com> Sat Sep 14 00:00:00 2002
+
+smallsrv (3.039)
+
+  * The support of virtual directory (common directory for all hosts)
+    has been added
+  * Now server can run as NT servise.
+  * Changes in HTTP and Proxy, persistent connections.
+  * DNS over TCP, support AXFR requests
+  * Statistics for DNS hosts
+
+ -- Maksim Feoktistov <max@smallsrv.com> Wed Jul 24 00:00:00 2002
+
+smallsrv (3.038)
+
+  * DNS server is updated. Reqursion and cache have been added.
+  * Optional conversion names with space in FTP
+
+ -- Maksim Feoktistov <max@smallsrv.com> Wed Jun  5 00:00:00 2002
+
+smallsrv (3.0371)
+
+  * Blacklist in SMTP
+  * "forward" file support to redirect or percolate messages
+  * Virtual hosts may be alias domain name in SMTP
+  * Bugs in HTTP and Proxy was fixed
+
+ -- Maksim Feoktistov <max@smallsrv.com> Sat May 11 00:00:00 2002
+
+smallsrv (3.03672)
+
+ -- Maksim Feoktistov <max@smallsrv.com> Sat Apr 27 00:00:00 2002
+
+smallsrv (3.0366)
+
+  * Statistics is updated.
+  * Statistics by pages mode. (One table per page)
+  * Proxy is updated.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Tue Mar 12 00:00:00 2002
+
+smallsrv (3.0365)
+
+  * Checking user's disconnect, when CGI is executed.
+  * Variables REMOTE_USER and AUTH_PASS avilable for SSI.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Tue Feb 19 00:00:00 2002
+
+smallsrv (3.0364)
+
+  * Proxy can store cache in hard disk.
+  * Interface.
+  * Optimized.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Sun Jan 20 00:00:00 2002
+
+smallsrv (3.035)
+
+  * Limitatition of SMTP message size.
+  * Now server creates as much threads as realy nessesary.
+  * SMTP server is updated. Now you can optional enable to send message
+    from any address. Also you can restrict IP range, that enable to send
+    message via your SMTP.
+  * Server correct works with file names that content space.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Fri Dec  7 00:00:00 2001
+
+smallsrv (3.032)
+
+ -- Maksim Feoktistov <max@smallsrv.com> Mon Nov 12 00:00:00 2001
+
+smallsrv (3.031)
+
+ -- Maksim Feoktistov <max@smallsrv.com> Wed Oct 24 00:00:00 2001
+
+smallsrv (3.03)
+
+  * Now proxy can restrict remote IP, E.g. to enable use proxy only for
+    local network.
+  * ISAPI updated to most compatible with diferent DLLs.
+  * Bug in SMTP fixed.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Fri Sep 21 00:00:00 2001
+
+smallsrv (3.022)
+
+  * exceptions from external ISA DLLs are intercepted by server.
+  * when requested file is absent, server adds .asi* suffix to file
+    name and trys to find it.
+    - It is cose to make redirect for moved files.
+  * In previous version, path to web root directory couldn't content
+    space. Fixed.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Mon Sep  3 00:00:00 2001
+
+smallsrv (3.02)
+
+  * Now template character '*' is supported in default file name. You
+    can direct default file name "index.*" and server may return
+    "index.htm", or run "index.cgi" from cgi-bin, etc..
+  * SMTP server was updated.
+    - Now mail routing detects correctly. Just direct DNS server in
+      SMTP options, to use this feature.
+  * DNS server was updated.
+    - If you would like to create your own dialup network, you can add
+      last record "your_ip * " to DNS-hosts file, and all request to
+      unknown hosts will be directed to your PC.
+  * When script includes from SSI, QUERY_STRING transfers correctly.
+  * Some other little changes.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Wed Aug  1 00:00:00 2001
+
+smallsrv (3.01)
+
+  * Local administration dialog box.
+  * Optimised.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Thu Jul 12 00:00:00 2001
+
+smallsrv (3.00) unstable; urgency=medium
+
+  * Administration & remote administration
+  * Full detail statistics
+  * FTP server
+  * SMTP server
+  * POP3 server
+  * Proxy also uderstends ftp:// requests
+  * List of files returns, when directory is requested and default file
+    is absent
+  * LAN gate is removed.
+  * Now configuration doesn't build into .exe file. Now it's taken from
+    http.cfg
+  * Other little changes...
+
+ -- Maksim Feoktistov <max@smallsrv.com> Mon May 28 00:00:00 2001
+
+smallsrv (2.04)
+
+  * Now, system predefined names (AUX,LPT1,PRN,etc.) are detected as
+    bad request.
+  * QUERY_STRING variable is visible for SSI.
+  * Options ssihtm, nossihtm have been added.
+    - Before SSI tags had been checked in .sht*,.sml*,.asp* files only.
+      Now optional SSI could be checked in .htm* files too.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Sun Dec 10 00:00:00 2000
+
+smallsrv (2.03)
+
+  * User's mime types.
+  * cgi_ident=\cgi-bin\ is a part of URL for identification CGI.
+    - By default it is "\cgi-bin\", but now you can define it by your
+      own e.g. "\cgi-", "\local-bin\", "-bin\", ".cgi", etc.
+  * now you can restrict number of simulate request from the same host.
+  * Bug: Before some memory didn't become free when request without
+    file specified name came and default file was absent. -- Fixed.
+  * Protection. Server will work more steady when attacker sends out
+    few "bad" requests.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Mon May 22 00:00:00 2000
+
+smallsrv (2.00)
+
+  * With simple DNS server!
+  * With HTTP proxy! Memory cache is up to 16 Mb.
+  * With LAN gate: To make Internet access per Nowell Netware Server on
+    any PC into Microsoft Network.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Sat Apr 22 00:00:00 2000
+
+ smallsrv (1.216b) unstable; urgency=medium
+
+  * This version support dynamic DNS from http://www.dns4ever.com
+    - option "ddns=user_name;pasword;domain"
+    - server will be connect to DNS4EVER evry 5 minut for validate your
+      IP.
+    - key noddns to no use dynamic DNS
+
+ -- Maksim Feoktistov <max@smallsrv.com> Sun Mar 19 00:00:00 2000
+
+smallsrv (1.215) unstable; urgency=medium
+
+ -- Maksim Feoktistov <max@smallsrv.com> Fri Mar 10 00:00:00 2000
+
+smallsrv (1.215b) unstable; urgency=medium
+
+  * ASIS files support has been added.
+    - Those files content HTTP header in the begining.
+    - Such files are being used for redirect inbound requist to other
+      site.
+    - This file must begins with keyword "Status: " after this
+      returning code and your header is going.
+    - After header one line is empty, and data.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Mon Feb 28 00:00:00 2000
+
+smallsrv (1.214b) unstable; urgency=medium
+
+  * option "noicon" not to add the icon into systrey (server's window
+    always in back)
+  * option "noshare" not to use share directory;
+
+ -- Maksim Feoktistov <max@smallsrv.com> Thu Feb  3 00:00:00 2000
+
+smallsrv (1.212)
+
+ -- Maksim Feoktistov <max@smallsrv.com> Thu Jan 27 00:00:00 2000
+
+smallsrv (1.210)
+
+  * In this version advanced setting can also be loaded from text file.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Sat Jan 22 00:00:00 2000
+
+smallsrv (1.209)
+
+ -- Maksim Feoktistov <max@smallsrv.com> Sat Jan 15 00:00:00 2000
+
+smallsrv (1.208) unstable; urgency=medium
+
+  * Multihosting support has been added.
+    - Now you can create some different host names in your PC, link any
+      name with own web root directory.
+  * Now any web directory could have own cgi-bin subdir.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Fri Dec 17 00:00:00 1999
+
+smallsrv (1.207)
+
+  * In SSI-tag if "part of ..." logic operation has been added:
+    - "str1 ~ str2" -- the result is true, if the string str2 is the
+      part of string str1 E.g.:
+    - <!--#if expr="$USER_AGENT ~ Win95" --> Text for '95 users only
+      ... <!--#endif -->
+
+ -- Maksim Feoktistov <max@smallsrv.com> Fri Dec 10 00:00:00 1999
+
+smallsrv (1.206)
+
+ -- Maksim Feoktistov <max@smallsrv.com> Wed Dec  8 00:00:00 1999
+
+smallsrv (1.206b) unstable; urgency=medium
+
+  * Resuming.
+  * Method HEAD.
+  * Now, if the file name in SSI tag <!--#include virtual="name" -->
+    does not begin with a slash (/) then it is taken from directory of
+    the curent document.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Fri Nov 19 00:00:00 1999
+
+smallsrv (1.205)
+
+  * Any CGI file extension can be associated with a specified
+    application or DLL.
+  * Protocol output has been optimized.
+  * Setup prompt.
+
+ -- Maksim Feoktistov <max@smallsrv.com> Fri Nov 12 00:00:00 1999
+
+smallsrv (1.204)
+
+  * A bag with .phtml opening has been fixed. Now PHP works correctly.
+  * Authorization
+  * Internet Server Applications (ISA) support.
+
+

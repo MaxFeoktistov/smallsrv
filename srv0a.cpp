@@ -86,19 +86,18 @@ int MyLock(volatile int &x){int a=(int) GetCurrentThreadId();
    Sleep(1);
 #endif
 
-   do{ while(x && x!=a && --dead_lock_chk>0)
+   do{
+     while(x && x!=a && --dead_lock_chk>0)
 #ifdef USE_FUTEX
-    futex((int *)&x,FUTEX_WAIT,x,&timeout_50ms,0,0);
+        futex((int *)&x,FUTEX_WAIT,x,&timeout_50ms,0,0);
 #else
-    Sleep(50);
+        Sleep(50);
 #endif
      x=a;
-//   Sleep(0);
 #ifdef SYSUNIX
-   //usleep(100);
-   sched_yield();
+     sched_yield();
 #else
-   Sleep(1);
+     Sleep(1);
 #endif
    }while(x!=a);
  //Sleep(0); do{ while(x){ Sleep(30);}  if(++x==1)break; --x; }while(1);
@@ -494,13 +493,13 @@ void PrintHelp()
 #endif
  char toalign[96];
 
-     printf("%s\nUsage: %s [--v][--c config_file|@config_file][--h|?] [{Params}]\n"
+     printf("%s\nUsage: %s [--v][--c config_file|@config_file][--h|?] [{Param}]\n"
      "Options:\n\n"
      " --v                print version and exit\n"
-     " --c                config_file use directed config file instead default\n"
+     " --c config_file    use directed config file instead default\n"
      " @config_file       use directed config file after default\n"
      " --h, --?           print this help and exit\n"
-     "\n'Params' the same as the params in config file:\n\n"
+     "\n'Param' the same as the params in config file:\n\n"
 
 
      ,sSMALL_HTT,
@@ -518,7 +517,7 @@ void PrintHelp()
             {
                // printf(" %s=path - %s\n",cp->name,cp->desc);
                 sprintf(toalign,"%s=path", cp->name);
-                printf(" %-24s %s\n", toalign, cp->desc);
+                printf(" %-27s %s\n", toalign, cp->desc);
 
             }
             else     if(cp->v )

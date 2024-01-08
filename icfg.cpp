@@ -131,6 +131,8 @@ CfgParam ConfigParams[]={
 {"from_same_host",0,256,(uint *)&max_cln_host, CXS(S2sUSERS_FRO, "Number of simultaneous requests from each host. "
 "(Note: Restriction includes all TCP connections (HTTP,FTP,POP,SMTP,Proxy)")},
 
+{"dos_protect_speed",0,0x10000 ,(uint *)&dos_protect_speed, CXS(S1T_52236673, "Minimum connection speed to detect a DoS attack over a large number of slow connections. (KBytes/minute). Zero to disable checking.") },
+
 #define SPD(a,b) {"no" #b  "_speed",0,0,(uint *)0, CXS(S1t2T_4199171, "Don't restrict speed of outgoing transfer" )},\
 { #b "_speed",0, 0x200000,(uint *) & (ipspeed[a]), CXS(S1t2T_3759240, "Limit for summary speed of outgoing transfer for all connections from the same IP (KBytes/minute)")},\
 { #b "_spdusr",0,0x200000,(uint *) & (ipspdusr[a]),CXS(S1t2T_4406032, "How many another connections must have activity, to check on speed limitation" )},

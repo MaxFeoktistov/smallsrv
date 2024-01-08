@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2023 Maksim Feoktistov.
+ * Copyright (C) 1999-2024 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov
@@ -222,8 +222,9 @@ struct Req
 #endif
  char *dir;
  int dirlen, ntsk, postsize;
+#define dlNOW_SENDING_SIGN 0x12345678
  char *KeepAlive;
- int Tin,Tout;
+ uint Tin,Tout;
  ulong bSpd;
  int   event;
  union {
@@ -785,7 +786,9 @@ int IsPwdAPOP(char *pas,char *dgst,char *s,int ssize);
 void CalkPwdMD5D(char **dgv, uint *HA1,char *method, char *HA2Hex);
 //void CalkHA1(char *u,char *pwd, uchar *HA1);
 void ConvPwdMD5L4(uint *t4,char *u,char *pas, char *realmm=realm);
+extern int dos_protect_speed;
 
+ulong DTick(ulong tick1, ulong tick2);
 ulong Rnd();
 
 void ShowProt();

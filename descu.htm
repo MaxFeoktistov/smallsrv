@@ -253,7 +253,14 @@ This restriction includes all TCP connections (HTTP,FTP,POP,SMTP,Proxy)</td><td>
 <tr><td><b>Using MD5 Digest for authorization if posible (RFC2069/RFC2617)</b></td><td><b>md5digest</b></td></tr>
 <tr><td><b>Using paranoidal variant of MD5 Digest for authorization if posible (RFC2617 qop=auth)</b></td><td><b>md5paranoidal</b></td></tr>
 
-
+<tr><td><b>Use system users/passwords databases.</b> Warning: Digest and APOP authorization methods will not work for system users</td><td><b>sysuser</b></td></tr>
+<tr><td><b>The name of the system group whose members are allowed to connect to the POP3 server (if system user/password databases are used)</b></td><td><b>grp_pop=value</b></td></tr>
+<tr><td><b>The name of the system group whose members are allowed to send mail via SMTP server (if system user/password databases are used)</b></td><td><b>grp_smtp=value</b></td></tr>
+<tr><td><b>The name of the system group whose members are allowed to receive files via FTP (if system user/password databases are used)</b></td><td><b>grp_ftpr=value</b></td></tr>
+<tr><td><b>The name of the system group whose members are allowed to upload files via FTP (if system user/password databases are used)</b></td><td><b>grp_ftpw=value</b></td></tr>
+<tr><td><b>The name of the system group whose members are allowed to set executable file mode via FTP (if system user/password databases are used)</b></td><td><b>grp_ftpe=value</b></td></tr>
+<tr><td><b>The name of the system group whose members are allowed to use Proxy and VPN (if system user/password databases are used)</b></td><td><b>grp_proxy=value</b></td></tr>
+<tr><td><b>The name of the system group whose members are allowed to administrate the server (if system user/password databases are used)</b></td><td><b>grp_admin=value</b></td></tr>
 
 
 <tr><td><b>IPs from that can administrate this server.</b> Separe single IP by comma and IP ranges with hyphens. E.g. 192.168.0.1-192.168.0.16,127.0.0.1</td><td><b>adm_range=value</b></td></tr>
@@ -570,6 +577,11 @@ still upload files here. E.g. /pub/"</td><td><b>ftp_upload=<i>"/dir/"</i></b></t
 Separate addreses by space. Use *@host to block receiving from any address of this host)</td><td><b>blacklist="<i>u@adr1 *@adr2 ...</i>"</b></td></tr>
 <tr><td><b>Use instructions from the "forward" file in a user's directory.</b></td><td><b>forward</b></td></tr>
 <tr><td><b>Alow execution of applications from user's "forward" file.</b></td><td><b>fwdrun</b></td></tr>
+
+<tr><td><b>Use TLS when sending outgoing message if possible</b></td><td><b>smtptls</b></td></tr>
+<tr><td><b>Always use TLS when sending outgoing messages; if not possible, don't send</b></td><td><b>smtponlytls</b></td></tr>
+<tr><td><b>Verify the remote certificate signature. (Verfy methods the same as directed in VPN client settings)</b></td><td><b>smtpchktls</b></td></tr>
+
 
 <tr align=center bgcolor=#c0fff8><td colspan=2><b>DHTP server setting</b></td></tr>
 

@@ -410,3 +410,5 @@ SysUser* suserList;
 
 #endif
 #endif
+
+int  dos_protect_speed = 3;

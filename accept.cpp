@@ -356,7 +356,7 @@ int WINAPI SetServ(uint fnc)
    i=-1;
    goto cnt;
   }
-#else
+#else // CD_VER
   if( IPv4addr(&sa_client) //sa_client.sin_addr. S_ADDR
       == 0x7F000001)
   {
@@ -661,10 +661,8 @@ int Req::SleepSpeed()
  ++no_close_req;
  for(i=0;i<max_tsk;++i)
   if( (u_long)(r=rreq[i])>1 )
-  {x=tt-r->tmout;
-   if(x<0) x=-x;
-   //if(x>0)
-   {
+  {
+    x=DTick(tt,r->tmout);
     y=r->Tout;
     if(x>0x4000)
     {
@@ -677,7 +675,6 @@ int Req::SleepSpeed()
     }
     if(r->sa_c.sin_addr.s_addr==sa_c.sin_addr.s_addr)sum+=y;
     else if(y>0x400)++j;
-   }
   }
   dec_no_close_req();
  sum>>=8;
