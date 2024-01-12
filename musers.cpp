@@ -724,8 +724,13 @@ User   *FindUser(char *bfr,int typ,char *pwd /*=0*/,Req *r) //=0)
  lbBad:
   if(r)
   {
-    sprintf(bfr+24,"Try to login failed %.20s;%.127s\r\n",bfr,pwd?pwd:"");
-    AddToLog(bfr+24,r->s,&r->sa_c46);
+#ifdef SEPLOG
+    sepLog[r->ServerNumber()]->LAddToLog(0, r->s, & r->sa_c46, " Try to login failed %.20s;%.127s\r\n",bfr,pwd?pwd:"");
+#else
+    AddToLog(0, r->s, & r->sa_c46, "Try to login failed %.20s;%.127s\r\n",bfr,pwd?pwd:"");
+#endif
+    //sprintf(bfr+24," Try to login failed %.20s;%.127s\r\n",bfr,pwd?pwd:"");
+    //AddToLog(bfr+24,r->s,&r->sa_c46);
 #if defined(SPECIAL) || !defined(CD_VER)
 #ifdef USE_IPV6
     if(IsIPv6(&r->sa_c) )//sa_client.sin_family==AF_INET6)

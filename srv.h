@@ -195,6 +195,8 @@ struct Req
 
 #define F_SMTP_CL     0x4000000
 
+#define MAX_SERV_MASK 0xF
+
  int  timout;
  char *loc, *rq;
  ulong freqcnt;
@@ -359,6 +361,7 @@ struct Req
 
  int SendCMDsmtp(char *xxx,int lll);
  void Close();
+ int ServerNumber(){return flsrv[1]&MAX_SERV_MASK; }
 
 };
 
@@ -822,7 +825,6 @@ extern char *phtml_ini;
 extern uchar icn[];
 #define MAX_ADAPT  5
 #define MAX_SERV   10
-#define MAX_SERV_MASK 0xF
 
 #define MAX_SOCK  (MAX_ADAPT*MAX_SERV+12)
 

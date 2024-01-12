@@ -75,16 +75,21 @@ void WINAPI NThandler(DWORD fdwControl)
 #ifdef USE_FUTEX
 const  struct timespec timeout_50ms={0,50000000};
 #endif
-int MyLock(volatile int &x){int a=(int) GetCurrentThreadId();
+volatile int lock_cnt;
+int MyLock(volatile int &x)
+{
+   int a=(int) GetCurrentThreadId();
    if(a == x) return 0;
    int dead_lock_chk=128;
 #if 1
-#ifdef SYSUNIX
-  // usleep(10);
-  sched_yield();
-#else
-   Sleep(1);
-#endif
+   if( ++lock_cnt > 1)
+   {
+     #ifdef SYSUNIX
+     sched_yield();
+     #else
+     Sleep(1);
+     #endif
+   }
 
    do{
      while(x && x!=a && --dead_lock_chk>0)
@@ -94,11 +99,14 @@ int MyLock(volatile int &x){int a=(int) GetCurrentThreadId();
         Sleep(50);
 #endif
      x=a;
-#ifdef SYSUNIX
-     sched_yield();
-#else
-     Sleep(1);
-#endif
+     if(lock_cnt > 1)
+     {
+       #ifdef SYSUNIX
+       sched_yield();
+       #else
+       Sleep(1);
+       #endif
+     }
    }while(x!=a);
  //Sleep(0); do{ while(x){ Sleep(30);}  if(++x==1)break; --x; }while(1);
 #else
@@ -114,6 +122,7 @@ int MyLock(volatile int &x){int a=(int) GetCurrentThreadId();
  }
  ex2:;
 #endif
+  if(--lock_cnt < 0) lock_cnt = 0;
   return 1;
 }
 
