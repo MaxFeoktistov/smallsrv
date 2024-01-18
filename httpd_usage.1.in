@@ -10,52 +10,13 @@ httpd.exgnutls [--v][--c config_file|@config_file][--h|?] [{Params }]
 
 
 [DESCRIPTION]
-The program included Web-server, Mail server, DNS server, FTP server, DHCP server, HTTPS VPN server and client.
+The program included Web-server, Mail server (POP3/SMTP), DNS server, FTP server, DHCP server, HTTPS VPN server and client.
 
-By default enabled only Web server without SSL/TLS
+httpd.exopenssl is built to work with the OpenSSL security library.
 
-HTTP server support:
-  Server Side Includes. Regular expression in SSI.
-  CGI and FastCGI interfaces for scripts (Executable files; Perl, PHP, or  another external interpreters)
-  ISAPI interface.
-  Virtual hosts and directories
+httpd.exgnutls is built to work with the GNUTLS security library.
 
-Mail server support:
-  POP3 server.
-  SMTP server.
-  Anti-spam filters. Good, bad, and gray lists common and personal for each user.
-  Forwarding and possibilities to execute scripts for income messages.
-  Execute external anti-virus
-
-FTP server support:
-  Virtual directories for FTP
-  FTP proxy.
-
-HTTP proxy server support:
-  HTTP, FTP, HTTPS request supported
-  Store lot of traffic, fast access.
-  Internal continues downloading when connection broken.
-  Server can request compressed and unpack reply on fly  (with an external Zlib library)
-
-DNS server support:
-  Option for dinamicaly check a serverice on remote host and if the service down,  change one IP address to other.
-  Reqursion from root DNS or from DNS of provider. Caching.
-  Option for autoreply to request to resolve IPv6 name. (for networks that don't use Internet through IPv6).
-  DNSBL server (work with SMTP)
-  DNS over HTTP(S) aka DoH (RFC8484)
-
-DHCP server.
-
-HTTP TLS VPN server and client suport:
-   TUN and TAP interfaces.
-   Run Up and Down scripted to configure interfaces, routing, DNS, etc.
-
-Full detail statistics. Include statiscs by countries.
-Web and local administration.
-IPv6 support
-SSL/TLS support with an external library.
-GZip compression support with an external Zlib library.
-
+httpd.exe allows you to select a security library in the configuration. (lib/smallsrv/libsec111.so or lib/smallsrv/libsecgnutls.so)
 
 [OPTIONS]
 
@@ -79,7 +40,8 @@ Written by Maksim Feoktistov   <max@smallsrv.com>
 Maksim Feoktistov   <max@smallsrv.com>
 
 [SEE ALSO]
-The full description is maintained as a html file in [..]/share/smallsrv/descu.htm
-If the program runed and HTTP server enabled Web administration available at http://127.0.0.1/$_admin_$conf
-
+The full description is maintained as a html file in /usr[/local]/share/smallsrv/descu.htm
 Last version at https://smallsrv.com/descu.htm
+
+If the program runed and HTTP server enabled, Web administration available at http://127.0.0.1/$_admin_$conf
+

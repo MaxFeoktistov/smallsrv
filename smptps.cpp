@@ -934,7 +934,7 @@ lbSn1:
        goto ex1;
      }
      postsize=i;
-     dirlen=0x29041975;
+     dirlen=dlNOW_SENDING_SIGN;
      if((h=
 #ifdef SYSUNIX
       open(bb+0x5000,O_CREAT|O_EXCL|O_WRONLY|O_CLOEXEC,secat)

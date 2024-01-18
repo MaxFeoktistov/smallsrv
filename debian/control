@@ -1,0 +1,51 @@
+Source: smallsrv
+Section: net
+Priority: standard
+Maintainer: Maksim Feoktistov <max@smallsrv.com>
+Build-Depends: debhelper-compat (= 12)
+Standards-Version: 4.5.0
+Homepage: https://smallsrv.com
+
+Package: smallsrv
+Version: 3.06.27
+Maintainer: Maksim Feoktistov <max@smallsrv.com>
+Architecture: any
+Multi-Arch: foreign
+Depends: libc6 (>= 2.14), libgnutls30 (>= 3.0.0), libssl1.1 (>= 1.1.0), ${misc:Depends}, ${shlibs:Depends}
+Description: Web, Mail, DNS, FTP, DHCP servers, HTTPS VPN server and client.
+ HTTP server support:
+  Server Side Includes. Regular expression in SSI.
+  CGI and FastCGI interfaces for scripts
+  ISAPI interface.
+  Virtual hosts and directories
+ Mail server support:
+  POP3 server.
+  SMTP server.
+  Anti-spam filters. Good, bad, and gray lists common and personal
+  for each user.
+  Forwarding and possibilities to execute scripts for income messages.
+  Execute external anti-virus
+ FTP server support:
+  Virtual directories for FTP
+  FTP proxy.
+ HTTP proxy server support:
+  HTTP, FTP, HTTPS request supported
+  Store lot of traffic, fast access.
+  Internal continues downloading when connection broken.
+  Server can request compressed and unpack reply on fly (with Zlib library)
+ DNS server support:
+  Reqursion from root DNS or from DNS of provider. Caching.
+  Can dinamicaly check a serverice on remote host and if the service
+   down, change one IP address to other.
+  Option for autoreply to request to resolve IPv6 name.
+  DNSBL server (work with SMTP)
+  DNS over HTTP(S) aka DoH (RFC8484)
+ DHCP server.
+ HTTP TLS VPN server and client.
+   Suport TUN and TAP interfaces.
+   Run Up and Down scripted to configure interfaces, routing, DNS, etc.
+ Full detail statistics. Include statiscs by countries.
+ Web administration.
+ IPv6 support
+ SSL/TLS support with an external library.
+ GZip compression support with an external Zlib library.

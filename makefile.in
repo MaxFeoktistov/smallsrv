@@ -22,7 +22,7 @@
 #
 #
 
-VERSION=3.06.27test9
+VERSION=3.06.27
 
 prefix ?=/usr/local/
 CONFIG_BASE   ?= $(prefix:%/=%)/
@@ -626,7 +626,7 @@ install: # all
 	for i in ru en ; do mkdir -p $(ICONFIG_SHARE)/$$i ; cp $$i/shs_lang.cfg $(ICONFIG_SHARE)/$$i/ ; done
 	for i in license.ssl notes.ssl license06.txt notes.ssl descu.htm ; do cp $$i $(ICONFIG_SHARE) ; done
 	for i in httpd.exe.1 sndmsg.1 ; do cp $$i $(ICONFIG_BASE)/share/man1/ ; done
-	for i in httpd.exgnutls.1 httpd.exopenssl.1 ; do ln -sf $(ICONFIG_BASE)/share/man1/httpd.exe.1 $(ICONFIG_BASE)/share/man1/$$i ; done
+	for i in httpd.exgnutls.1 httpd.exopenssl.1 ; do ln -sf httpd.exe.1 $(ICONFIG_BASE)/share/man1/$$i ; done
 
 
 DISTFILES=vpn_if_client_down.sh vpn_if_client_up.sh vpn_if_up.sh descu.htm httpd.cfg lang_notes.txt libsec111.so license.ssl notes.ssl libsecgnutls.so  license06.txt langpacks/ru langpacks/ru/shs_lang.cfg langpacks/en langpacks/en/shs_lang.cfg sndmsg httpd.exe.1 sndmsg.1
@@ -1056,10 +1056,11 @@ c4char.pl descr.htm gz.cpp lang_notes.txt makefile.in mstring1.cpp pklz.cpp rest
 WSRC = $(addprefix winclude/,winsock_IPv6.h zconf.h zlib.h tap-windows.h nethdr.h)
 LSRC = $(addsuffix shs_lang.cfg, ru/ en/)
 SSRC = $(addprefix script_examples/,vpn_if_client_down.bat vpn_if_client_down.sh vpn_if_client_up.bat vpn_if_client_up.sh vpn_if_up.bat vpn_if_up.sh)
+ASRC = license.ssl notes.ssl
 
 src_name=o/smallsrv-$(VERSION).tar.gz
 src_dir=smallsrv-$(VERSION)
 
 sources:
-	tar -czvf $(src_name) --transform="s,^,./$(src_dir)/," --exclude-backups $(SRC) $(WSRC) $(LSRC) $(SSRC)
+	tar -czvf $(src_name) --transform="s,^,./$(src_dir)/," --exclude-backups $(SRC) $(WSRC) $(LSRC) $(SSRC) $(ASRC)
 

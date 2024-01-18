@@ -22,7 +22,7 @@
 #
 #
 
-VERSION=3.06.27test11
+VERSION=3.06.27
 
 prefix ?=/usr/local/
 CONFIG_BASE   ?= $(prefix:%/=%)/
@@ -722,7 +722,7 @@ install: # all
 	for i in ru en ; do mkdir -p $(ICONFIG_SHARE)/$$i ; cp $$i/shs_lang.cfg $(ICONFIG_SHARE)/$$i/ ; done
 	for i in license.ssl notes.ssl license06.txt notes.ssl descu.htm ; do cp $$i $(ICONFIG_SHARE) ; done
 	for i in httpd.exe.1 sndmsg.1 ; do cp $$i $(ICONFIG_BASE)/share/man1/ ; done
-	for i in httpd.exgnutls.1 httpd.exopenssl.1 ; do ln -sf $(ICONFIG_BASE)/share/man1/httpd.exe.1 $(ICONFIG_BASE)/share/man1/$$i ; done
+	for i in httpd.exgnutls.1 httpd.exopenssl.1 ; do ln -sf httpd.exe.1 $(ICONFIG_BASE)/share/man1/$$i ; done
 
 
 DISTFILES=vpn_if_client_down.sh vpn_if_client_up.sh vpn_if_up.sh descu.htm httpd.cfg lang_notes.txt libsec111.so license.ssl notes.ssl libsecgnutls.so  license06.txt langpacks/ru langpacks/ru/shs_lang.cfg langpacks/en langpacks/en/shs_lang.cfg sndmsg httpd.exe.1 sndmsg.1
@@ -790,7 +790,7 @@ oo/dist: $(TMPRAM)oo
 sinst:  o/dist/httpd.exe $(DIST_DIR)shttplnx.tgz $(DIST_DIR)shttplnxu.tgz $(DIST_DIR)shttparmlnx.tgz $(DIST_DIR)shttplnx64.tgz  $(DIST_DIR)shttplnx64u.tgz
 	chmod 0666 wo/shttps*.exe
 	for i in wo/shttps_mg.exe wo/shttpsr_mg.exe $(DIST_DIR)*.tgz o/smallsrv_$(VERSION)_amd64.deb ; do echo $$i ; cp $$i /mnt/d/var/www/pre/ ; done
-	ln -sf smallsrv_$(VERSION)-1_amd64.deb /mnt/d/var/www/pre/smallsrv_3.06.27test-1_amd64.deb
+	ln -sf smallsrv_$(VERSION)_amd64.deb /mnt/d/var/www/pre/smallsrv_3.06.27test-1_amd64.deb
 
 # 	for i in wo/shttps_mg.exe wo/shttpsr_mg.exe $(DIST_DIR)shttplnx.tgz $(DIST_DIR)shttplnxu.tgz $(DIST_DIR)shttparmlnx.tgz $(DIST_DIR)shttplnx64.tgz $(DIST_DIR)shttplnx64u.tgz ; do cp $$i /mnt/d/var/www/pre/ ; done
 
@@ -1206,14 +1206,14 @@ WSRC = $(addprefix winclude/,winsock_IPv6.h zconf.h zlib.h tap-windows.h nethdr.
 LSRC = $(addsuffix shs_lang.cfg, ru/ en/)
 SSRC = $(addprefix script_examples/,vpn_if_client_down.bat vpn_if_client_down.sh vpn_if_client_up.bat vpn_if_client_up.sh vpn_if_up.bat vpn_if_up.sh)
 DSRC = $(addprefix debian/,changelog rules copyright)
-
+ASRC = license.ssl notes.ssl
 src_name=o/smallsrv-$(VERSION).tar.gz
 src_dir=smallsrv-$(VERSION)
 
 sources:
-	tar -czvf $(src_name) --transform="s,^,./$(src_dir)/," --exclude-backups $(SRC) $(WSRC) $(LSRC) $(SSRC) $(DSRC)
+	tar -czvf $(src_name) --transform="s,^,./$(src_dir)/," --exclude-backups $(SRC) $(WSRC) $(LSRC) $(SSRC) $(DSRC) $(ASRC)
 
 deb: sources
 	cd o ; tar -xzf $(src_dir).tar.gz
-	mkdir -p o/$(src_dir)/debian ; sed "s/^Version:.*/Version: $(VERSION)/" control >o/$(src_dir)/debian/control
+	mkdir -p o/$(src_dir)/debian ; sed "s/^Version:.*/Version: $(VERSION)/" debian/control >o/$(src_dir)/debian/control
 	cd o/$(src_dir) ; DEBEMAIL="max@smallsrv.com" ; DEBFULLNAME="Maksim Feoktistov" ; debmake -b "binarypackage:bin" ; debuild -i -us -uc -b
