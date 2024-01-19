@@ -361,6 +361,7 @@ struct Req
 
  int SendCMDsmtp(char *xxx,int lll);
  void Close();
+ void Shutdown(){ shutdown(s, 2); } ;
  int ServerNumber(){return flsrv[1]&MAX_SERV_MASK; }
 
 };

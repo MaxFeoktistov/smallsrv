@@ -415,42 +415,20 @@ if(0){
       else if(i ==  CONID_VPNCL_VALUE)
       {
         if(vpn_cln_connected && vpn_cln_connected->tmout == j)
-        {
-          #ifdef shutdown
-          #undef shutdown
-          shutdown(vpn_cln_connected->s,2);
-          #define shutdown(a,b)
-          #else
-          shutdown(vpn_cln_connected->s,2);
-          #endif
-        }
+          vpn_cln_connected->Shutdown();
       }
       else if(i & CONID_VPN_MASK)
       {
         i&=~CONID_VPN_MASK;
         if(i<vpn_count && vpn_list[i]->tmout==j )
-        {
-          #ifdef shutdown
-          #undef shutdown
-          shutdown(vpn_list[i]->s,2);
-          #define shutdown(a,b)
-          #else
-          shutdown(vpn_list[i]->s,2);
-          #endif
-        }
-
+          vpn_list[i]->Shutdown();
       }
 #endif
-      else if((i<max_tsk) &&
-        ((u_long)(rreq[i]) )>1  && rreq[i]->tmout==j
-      )
-#ifdef shutdown
-#undef shutdown
-      shutdown(rreq[i]->s,2);
-#define shutdown(a,b)
-#else
-      shutdown(rreq[i]->s,2);
-#endif
+      else if( (i<max_tsk) &&
+               ((u_long)(rreq[i]) )>1  &&
+               rreq[i]->tmout==j
+             ) rreq[i]->Shutdown();
+
       dec_no_close_req();
       Sleep(50);
      }

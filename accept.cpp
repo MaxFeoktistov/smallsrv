@@ -62,6 +62,29 @@ int no_close_req=0;
 int close_wait;
 int err_cnt;
 
+void no_close_wait()
+{
+  int j=0;
+  while(no_close_req>0)
+  {
+#ifdef USE_FUTEX
+    if(++j>100)
+    {
+     no_close_req=0;
+     break;
+    }
+    close_wait++;
+    futex((int *)&no_close_req,FUTEX_WAIT,no_close_req,&timeout_10ms,0,0);
+#else
+    Sleep(1);
+    if(++j>1000)
+    {
+     no_close_req=0;
+     break;
+    }
+#endif
+  }
+}
 
 void dec_no_close_req()
 {
@@ -431,26 +454,7 @@ int WINAPI SetServ(uint fnc)
     TryToAddKeepAlive(&req);
 
 cnt:
-  j=0;
-  while(no_close_req>0)
-  {
-#ifdef USE_FUTEX
-    if(++j>100)
-    {
-     no_close_req=0;
-     break;
-    }
-    close_wait++;
-    futex((int *)&no_close_req,FUTEX_WAIT,no_close_req,&timeout_10ms,0,0);
-#else
-    Sleep(1);
-    if(++j>1000)
-    {
-     no_close_req=0;
-     break;
-    }
-#endif
-  }
+  no_close_wait();
 
   if(rreq[req.ntsk]==&req)
   {
@@ -516,6 +520,7 @@ int WINAPI KeepAliveWike(Req *preq)
 
 cnt:
   DBGL("");
+  no_close_wait();
   if(rreq[preq->ntsk]==preq)
   {
     rreq[preq->ntsk]=0;

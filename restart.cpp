@@ -281,26 +281,30 @@ int FreeThreads()
    ulong time_tick;
    int k;
 
+   ++no_close_req;
    for(i=0;i<max_tsk;++i)
-   {
-     k = rreq[i]->flsrv[1]&MAX_SERV_MASK;
-     if( hndls[i] &&
-         rreq[i] > (Req *)1 &&
+     if(rreq[i] > (Req *)1)
+     {
+       k = rreq[i]->flsrv[1]&MAX_SERV_MASK;
+       if( hndls[i] &&
          (time_tick = DTick(tick,rreq[i]->tmout)) > TIME_TO_CHECK_TICK &&
          rreq[i]->s != -1
        )
-     {
-       if( ( (u64) rreq[i]->Tin + (u64) rreq[i]->Tout ) < ( (time_tick * bytes_per_s )>>10 ) )
        {
-         #ifdef SEPLOG
-         sepLog[k]->Ldebug("**Found DoS connection at thread %u (port: %u)\r\n",i,soc_port[k]);
-         #else
-         debug("**Found DoS connection at thread %u (port: %u) \r\n",i,soc_port[k]);
-         #endif
-         rreq[i]->Close();
+         if( ( (u64) rreq[i]->Tin + (u64) rreq[i]->Tout ) < ( (time_tick * bytes_per_s )>>10 ) )
+         {
+           #ifdef SEPLOG
+           sepLog[k]->Ldebug("**Found DoS connection at thread %u (port: %u)\r\n",i,soc_port[k]);
+           #else
+           debug("**Found DoS connection at thread %u (port: %u) \r\n",i,soc_port[k]);
+           #endif
+           rreq[i]->Shutdown();
+         }
        }
      }
-   }
+
+  dec_no_close_req();
+
  }
  MyUnlock(hLock);
  return j;
