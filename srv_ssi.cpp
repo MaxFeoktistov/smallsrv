@@ -94,6 +94,7 @@ void Req::prepare_HTTP_var()
  register int i;
  int j;
  char *t;
+ char c;
 
  t=rq;
  for(i=0;i<(MAX_HTTP_VARS-22);i+=2)
@@ -105,10 +106,14 @@ void Req::prepare_HTTP_var()
   }while(1);
   *t=0; t+=2;
   http_var[i]=t;
-  for(;*t!=':'; t++)
-   if( (*t >= 'a') && (*t <= 'z') ) *t&=0xDF;
-   else if(*t=='-')*t='_'; else if(!*t)goto brk1;
-  *t=0; do{++t;}while(*t==' ');
+  for(; (c=*t) != ':'; t++)
+  {
+    if( (c >= 'a') && (c <= 'z') ) *t&=0xDF;
+    else if(c =='-')*t='_';
+    else if(!c) goto brk1;
+  }
+  *t=0;
+  do{ ++t;}while(*t==' ');
   http_var[i+1]=t;
  };
 brk1:

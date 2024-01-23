@@ -22,7 +22,7 @@
 #
 #
 
-VERSION=3.06.27a
+VERSION=3.06.27b
 
 prefix ?=/usr/local/
 CONFIG_BASE   ?= $(prefix:%/=%)/
@@ -1205,7 +1205,7 @@ c4char.pl descr.htm gz.cpp lang_notes.txt makefile.in mstring1.cpp pklz.cpp rest
 WSRC = $(addprefix winclude/,winsock_IPv6.h zconf.h zlib.h tap-windows.h nethdr.h)
 LSRC = $(addsuffix shs_lang.cfg, ru/ en/)
 SSRC = $(addprefix script_examples/,vpn_if_client_down.bat vpn_if_client_down.sh vpn_if_client_up.bat vpn_if_client_up.sh vpn_if_up.bat vpn_if_up.sh)
-DSRC = $(addprefix debian/,changelog rules copyright)
+DSRC = $(addprefix debian/,changelog rules copyright smallsrv.manpages)
 ASRC = license.ssl notes.ssl
 src_name=o/smallsrv-$(VERSION).tar.gz
 src_dir=smallsrv-$(VERSION)

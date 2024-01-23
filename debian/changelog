@@ -1,3 +1,10 @@
+smallsrv (3.06.27b) unstable; urgency=low
+
+  * Fixed year
+  * Little changes and optimisations
+
+ -- Maksim Feoktistov <max@smallsrv.com>  Tue, 23 Jan 2024 09:13:12 +0400
+
 smallsrv (3.06.27a) unstable; urgency=low
 
   * Fixed bug in detection of DoS attacks

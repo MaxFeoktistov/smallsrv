@@ -79,6 +79,15 @@ void RestartServer(char *u,int cnt)
 
   for(i=0;i<  MAX_SOCK  ; i++) if(soc_srv[i]>0){CloseSocket(soc_srv[i]); }
 
+  Sleep(200);
+  if(count_of_tr>cnt)
+  {
+    ++no_close_req;
+    for(i=0;i<max_tsk;++i)
+      if(rreq[i] > (Req *)1 && rreq[i]->s > 0) rreq[i]->Shutdown();
+    dec_no_close_req();
+  }
+
 //  Sleep(0x20);
   Sleep(100);
   if(total_dhcp_ip)SaveDHCP();
@@ -136,12 +145,14 @@ void RestartServer(char *u,int cnt)
 //  fprintf(stderr,"\r\n*** Restarting. Wait for clossing all incomming connections and terminating. (%d)\r\n",errno);
 //  sleep(1);
 #endif
+/*
   Sleep(0x200);
   l=128;
   do
   { Sleep(0x100);
     if(--l<=0)break;
   }while(count_of_tr>cnt);
+*/
   CloseServer();
 };
 
@@ -285,7 +296,7 @@ int FreeThreads()
    for(i=0;i<max_tsk;++i)
      if(rreq[i] > (Req *)1)
      {
-       k = rreq[i]->flsrv[1]&MAX_SERV_MASK;
+
        if( hndls[i] &&
          (time_tick = DTick(tick,rreq[i]->tmout)) > TIME_TO_CHECK_TICK &&
          rreq[i]->s != -1
@@ -293,6 +304,7 @@ int FreeThreads()
        {
          if( ( (u64) rreq[i]->Tin + (u64) rreq[i]->Tout ) < ( (time_tick * bytes_per_s )>>10 ) )
          {
+           k = rreq[i]->flsrv[1]&MAX_SERV_MASK;
            #ifdef SEPLOG
            sepLog[k]->Ldebug("**Found DoS connection at thread %u (port: %u)\r\n",i,soc_port[k]);
            #else
@@ -303,7 +315,7 @@ int FreeThreads()
        }
      }
 
-  dec_no_close_req();
+   dec_no_close_req();
 
  }
  MyUnlock(hLock);
