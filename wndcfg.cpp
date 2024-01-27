@@ -2,7 +2,7 @@
  * Copyright (C) 1999-2020 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
- * Author: Maksim Feoktistov 
+ * Author: Maksim Feoktistov
  *
  *
  * Small HTTP server is free software: you can redistribute it and/or modify it
@@ -15,32 +15,35 @@
  * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see https://www.gnu.org/licenses/ 
+ * along with this program.  If not, see https://www.gnu.org/licenses/
  *
  * Contact addresses for Email:  support@smallsrv.com
  *
- * 
+ *
  */
 
 #ifndef SRV_H
 #include "srv.h"
 #endif
 
-int TabStops[]={60,170,220};
 
 //#include <stdio.h>
 
 extern "C" {
-    
-    
-    
+
+int TabStops[]={60,170,220};
+
+short MnuOffset[20];
+int iofs;
+
+
 int utf2unicode(uchar *s,ushort *cm)
 {
   int r=0;
-  uint a,b,c,d;  
+  uint a,b,c,d;
   do
   {
-    a=*s++;  
+    a=*s++;
     if(a<0x80)
     {
         d=a;
@@ -51,24 +54,24 @@ int utf2unicode(uchar *s,ushort *cm)
         b=*s++;
         if( b<0x80 || b>0xbf )
         {
-          return -1;  
-        }    
+          return -1;
+        }
 //        *cm++=((a&0x1F)<<6)|(b&0x3F);
         d=((a&0x1F)<<6)|(b&0x3F);
         r++;
-    }    
+    }
     else if(a>=0xE0 && a <=0xEF)
     {
         b=*s++;
         c=*s++;
         if( b<0x80 || b>0xbf || c<0x80 || c>0xbf )
         {
-          return -1;  
-        }    
+          return -1;
+        }
 //        *cm++=((a&0xF)<<12)|((b&0x3F)<<6)|(c&0x3F);
         d=((a&0xF)<<12)|((b&0x3F)<<6)|(c&0x3F);
         r++;
-    }    
+    }
     else if(a>=0xF0 && a <=0xF5)
     {
         b=*s++;
@@ -76,8 +79,8 @@ int utf2unicode(uchar *s,ushort *cm)
         d=*s++;
         if( b<0x80 || b>0xbf || c<0x80 || c>0xbf || d<0x80 || d>0xbf )
         {
-          return -1;  
-        }    
+          return -1;
+        }
         d=((a&0xF)<<18)|((b&0x3F)<<12)|((c&0x3F)<<6)|(d&0x3F);
         r++;
     }
@@ -89,31 +92,31 @@ int utf2unicode(uchar *s,ushort *cm)
     if(d<0xFFFE)
 //    if(d<0xD800)
     {
-      if(d >= UNI_SUR_HIGH_START && d < UNI_SUR_LOW_END)  
+      if(d >= UNI_SUR_HIGH_START && d < UNI_SUR_LOW_END)
       {
-          *cm=(ushort)-2; 
+          *cm=(ushort)-2;
           r=-2;
-      }    
-      else *cm++=d;  
+      }
+      else *cm++=d;
     }
     else
     {
       *cm++=(d>>10)  + UNI_SUR_HIGH_START ;
       *cm++=(d&0x3FF)  + UNI_SUR_LOW_START ;
-    }    
-    
+    }
+
   }while( a );
-  return r;  
+  return r;
 };
 
 #if 0
 int utf2unicode(uchar *s,uint *cm)
 {
   int r=0;
-  uint a,b,c,d;  
+  uint a,b,c,d;
   do
   {
-    a=*s++;  
+    a=*s++;
     if(a<0x80)
     {
         *cm++=a;
@@ -124,22 +127,22 @@ int utf2unicode(uchar *s,uint *cm)
         b=*s++;
         if( b<0x80 || b>0xbf )
         {
-          return -1;  
-        }    
+          return -1;
+        }
         *cm++=((a&0x1F)<<6)|(b&0x3F);
         r++;
-    }    
+    }
     else if(a>=0xE0 && a <=0xEF)
     {
         b=*s++;
         c=*s++;
         if( b<0x80 || b>0xbf || c<0x80 || c>0xbf )
         {
-          return -1;  
-        }    
+          return -1;
+        }
         *cm++=((a&0xF)<<12)|((b&0x3F)<<6)|(c&0x3F);
         r++;
-    }    
+    }
     else if(a>=0xF0 && a <=0xF5)
     {
         b=*s++;
@@ -147,14 +150,14 @@ int utf2unicode(uchar *s,uint *cm)
         d=*s++;
         if( b<0x80 || b>0xbf || c<0x80 || c>0xbf || d<0x80 || d>0xbf )
         {
-          return -1;  
-        }    
+          return -1;
+        }
         *cm++=((a&0xF)<<18)|((b&0x3F)<<12)|((c&0x3F)<<6)|(d&0x3F);
         r++;
     }
     else return -1;
   }while( a );
-  return r;  
+  return r;
 };
 
 #endif
@@ -177,12 +180,12 @@ HWND CreateWindowExX(
 )
 {
  if(strstr(charset,
-//#ifdef UTF16SUPPORT    
+//#ifdef UTF16SUPPORT
      " utf"
 //#else
 //     " utf-8"
-//#endif     
-     
+//#endif
+
 ) )
  {
    ushort cm[64];
@@ -190,9 +193,9 @@ HWND CreateWindowExX(
    int r=0;
 #ifdef UTF16SUPPORT
    if(strstr(charset," utf-16"))
-   {    
-//    r=utf162unicode((ushort *)lpClassName,cm);    
-//    r+=utf162unicode((ushort *)lpWindowName,wm);    
+   {
+//    r=utf162unicode((ushort *)lpClassName,cm);
+//    r+=utf162unicode((ushort *)lpWindowName,wm);
      return CreateWindowExW(
         dwExStyle,
         (LPCWSTR) lpClassName,
@@ -205,15 +208,15 @@ HWND CreateWindowExX(
         hWndParent,
         hMenu,
         hInstance,
-        lpParam);  
+        lpParam);
    }
-   else 
-#endif       
+   else
+#endif
    {
-    r=utf2unicode((uchar *)lpClassName,cm);    
-    r|=utf2unicode((uchar *)lpWindowName,wm);    
-   }     
-       
+    r=utf2unicode((uchar *)lpClassName,cm);
+    r|=utf2unicode((uchar *)lpWindowName,wm);
+   }
+
    if(r>0)return CreateWindowExW(
         dwExStyle,
         (LPCWSTR) cm,
@@ -227,7 +230,7 @@ HWND CreateWindowExX(
         hMenu,
         hInstance,
         lpParam);
-        
+
  }
  return CreateWindowEx(
   dwExStyle,
@@ -242,8 +245,8 @@ HWND CreateWindowExX(
   hMenu,
   hInstance,
   lpParam);
-    
-    
+
+
 };
 
 void ReinitListBox(int n,ListNext fln,void *lst)
@@ -506,11 +509,11 @@ void CreatCfgWindow()
    ,0,0,640,480,0,MkMnu(mnu3,CreateMenu), hinstance, 0);
   SendMessage(dwndc,WM_SETFONT,j=(ulong)GetStockObject(17),1);
 
-  
+
   for(k=0;ConfigParams[k].desc  ;++k)
   {
    kk=k*HGH;
-   
+
    sprintf(bfr+
     sprintf(bfr,ConfigParams[k].desc,ConfigParams[k].adv),"%s", ConfigParams[k].IsR()?  RSTNEED :"");
 //   sprintf(bfr,"%s%s",ConfigParams[k].desc, ConfigParams[k].IsR()? ". " RSTNEED :"");

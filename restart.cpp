@@ -293,7 +293,8 @@ int FreeThreads()
    int k;
 
    ++no_close_req;
-   for(i=0;i<max_tsk;++i)
+   for(i=0; i<max_tsk; ++i)
+   {
      if(rreq[i] > (Req *)1)
      {
 
@@ -314,7 +315,7 @@ int FreeThreads()
          }
        }
      }
-
+   }
    dec_no_close_req();
 
  }

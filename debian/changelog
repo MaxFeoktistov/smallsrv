@@ -1,3 +1,11 @@
+smallsrv (3.06.27c) unstable; urgency=low
+
+  * Fixed substitution of some strings on the configuration
+    page to support multiple languages.
+  * Fixed install man
+
+ -- Maksim Feoktistov <max@smallsrv.com>  Sat, 27 Jan 2024 09:51:28 +0400
+
 smallsrv (3.06.27b) unstable; urgency=low
 
   * Fixed year

@@ -29,6 +29,7 @@
  $mf="\n";
  $all='';
  $without{'fakelibs'} = 1;
+ $without{'debug'} = 1;
  $crosspref='';
 
  $sec=' libgnutls.so libssl.so libcrypto.so';
@@ -88,6 +89,7 @@
    'aarch64-linux-gnu' => 'arm64'
  );
 
+
  if($ENV['ARCH'] && $ttargets[$ENV['ARCH']] )
  {
    $all=$ttargets[$ENV['ARCH']];
@@ -132,6 +134,7 @@
    --commonLog          -- without separate log
    --withoutfakelibs    -- without fakelibs  (with fakelibs the program can run in another Linux systems)
    --withfakelibs       -- with fakelibs  (with fakelibs the program can run in another Linux systems)
+   --debug              -- with debug
 
    --build=x86_64-linux-gnu
    --prefix=/usr
@@ -332,6 +335,11 @@ make
      {
        $var{'CONFIG_BASE'}=$1;
        $var{'prefix'}=$1;
+       next L1;
+     }
+     if(/--debug/)
+     {
+       $without{'debug'} = 0;
        next L1;
      }
      if(/--sysconfdir=(.*)/)
@@ -687,6 +695,11 @@ N_DEP := $(N_FAKELIBS)
     {
       s/-DSEPLOG//g;
     }
+    if($without{'debug'} == 0 )
+    {
+      s/ -s([^a-z])/ -g$1/g;
+      s/ -s$/ -g/g;
+    }
 
 #     if($without{'fakelibs'})
 #     {
@@ -837,7 +850,7 @@ N_DEP := $(N_FAKELIBS)
   Install from:  $INSTALLFROM\n";
 
   my @opt_key = ( $help =~ /without([^ \t\n]+)/gm );
-  foreach $_ (@opt_key) {
+  foreach $_ (@opt_key, 'debug') {
     printf  "  %-14s %s\n", "$_:", $without{$_}? 'disabled':'enabled';
   }
   foreach $_ (keys %var) {

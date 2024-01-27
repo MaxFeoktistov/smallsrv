@@ -54,8 +54,6 @@
 //
 // #endif
 
-short MnuOffset[20];
-int iofs;
 #ifdef CD_VER
 char *phtml_ini="";
 #endif
@@ -153,7 +151,11 @@ RANGES(ip,CXS(S2sIP_RANGES, "IPs that can access this server."
 
 #ifndef CD_VER
 {"radmin",0,FL_RADMIN,(uint *)0, CXS(S2sENABLE_TO, "Enable web administration.")},
-RANGES(adm,sIP_RANGES1,sIP_RANGESD1)
+
+RANGES(adm,CXS(S2sIP_RANGES1,"IPs from that can administrate this server."
+ " Separe single IP by comma and IP ranges with hyphens."),CXS(S2sIP_RANGESD1,"Deny IPs from that can't administrate this server."
+ " Separe single IP by comma and IP ranges with hyphens."))
+
 {"twopoint",1,FL1_2P,(uint *)0, CXS(S1t2T_2186080, "Enable 2 point in filenames (may be dangerous)" )},
 
 #ifndef SYSUNIX
@@ -440,7 +442,10 @@ OIPV6(smtp,3)
 " on failed send")},
 {"smtp_any",0,FL_SMTPANY,(uint *)0, CXS(S2sRECEIVE_T, "Alow any \"From\" field."
 " Otherwise server will send message from defined_user@domain.name only")},
-RANGES(smtp, "Us IP ranges (allowed list)" /* sIP_RANGES */,sIP_RANGESD)
+
+RANGES(smtp, CXS(S1t2T_281408, "Us IP ranges (allowed list)"), CXS(S2sIP_RANGESD,"Deny IPs that can't access this server."
+ " Separe single IP by comma and IP ranges with hyphens."))
+
 {"smtp_pop_ip",1,FL1_SMTP_AVT,(uint *)0, CXS(S1t2T_3845776, "Temporary add IP to allowed list after POP3 authorization" )},
 {"smtp_msg_limit" ,0x1000,0x1C00000,(uint *)&max_msg_size, CXS(S2sLIMIT_OF_1, "Limit message size. (in bytes).")},
 {"smtp_nobreak",0,FL_NOBRKSMTP,(uint *)0, CXS(S2sDONT_BREAK, "Don't break connection, when overflow size limit")},

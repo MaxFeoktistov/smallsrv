@@ -225,6 +225,7 @@ uchar icn[]={
 16,16,4,1,0
 };
 #define NTSERVISE icn[132]
+
 #else
 #ifdef CD_VER1
 #include "cdde.cpp"

@@ -22,7 +22,7 @@
 #
 #
 
-VERSION=3.06.27b
+VERSION=3.06.27c
 
 prefix ?=/usr/local/
 CONFIG_BASE   ?= $(prefix:%/=%)/
@@ -715,14 +715,14 @@ ru/shs_lang.cfg : lS1_lf.cfg
 
 
 install: # all
-	mkdir -p $(ICONFIG_APPDIR) $(ICONFIG_SHARE) $(ICONFIG_CONFIG) $(ICONFIG_LOG) $(ICONFIG_BASE)/bin $(ICONFIG_BASE)/share/man1
+	mkdir -p $(ICONFIG_APPDIR) $(ICONFIG_SHARE) $(ICONFIG_CONFIG) $(ICONFIG_LOG) $(ICONFIG_BASE)/bin $(ICONFIG_BASE)/share/man/man1
 	for i in $(BINFILES) libsecgnutls.so libsec111.so ; do  if [ -e $(INSTALLFROM)$$i ] ; then cp $(INSTALLFROM)$$i $(ICONFIG_APPDIR) ; fi; done
 	for i in httpd.cfg script_examples/*.sh ; do [ -e $(ICONFIG_CONFIG)/$$i ] || cp $$i $(ICONFIG_CONFIG) ; done
 	for i in $(BINFILES) ; do  if [ -e $(ICONFIG_APPDIR)/$$i ] ; then  ln -sf $(CONFIG_APPDIR)/$$i $(ICONFIG_BASE)/bin/ ; fi ; done
 	for i in ru en ; do mkdir -p $(ICONFIG_SHARE)/$$i ; cp $$i/shs_lang.cfg $(ICONFIG_SHARE)/$$i/ ; done
 	for i in license.ssl notes.ssl license06.txt notes.ssl descu.htm ; do cp $$i $(ICONFIG_SHARE) ; done
-	for i in httpd.exe.1 sndmsg.1 ; do cp $$i $(ICONFIG_BASE)/share/man1/ ; done
-	for i in httpd.exgnutls.1 httpd.exopenssl.1 ; do ln -sf httpd.exe.1 $(ICONFIG_BASE)/share/man1/$$i ; done
+	for i in httpd.exe.1 sndmsg.1 ; do cp $$i $(ICONFIG_BASE)/share/man/man1/ ; done
+	for i in httpd.exgnutls.1 httpd.exopenssl.1 ; do ln -sf httpd.exe.1 $(ICONFIG_BASE)/share/man/man1/$$i ; done
 
 
 DISTFILES=vpn_if_client_down.sh vpn_if_client_up.sh vpn_if_up.sh descu.htm httpd.cfg lang_notes.txt libsec111.so license.ssl notes.ssl libsecgnutls.so  license06.txt langpacks/ru langpacks/ru/shs_lang.cfg langpacks/en langpacks/en/shs_lang.cfg sndmsg httpd.exe.1 sndmsg.1
@@ -790,7 +790,7 @@ oo/dist: $(TMPRAM)oo
 sinst:  o/dist/httpd.exe $(DIST_DIR)shttplnx.tgz $(DIST_DIR)shttplnxu.tgz $(DIST_DIR)shttparmlnx.tgz $(DIST_DIR)shttplnx64.tgz  $(DIST_DIR)shttplnx64u.tgz
 	chmod 0666 wo/shttps*.exe
 	for i in wo/shttps_mg.exe wo/shttpsr_mg.exe $(DIST_DIR)*.tgz o/smallsrv_$(VERSION)_amd64.deb ; do echo $$i ; cp $$i /mnt/d/var/www/pre/ ; done
-	ln -sf smallsrv_$(VERSION)_amd64.deb /mnt/d/var/www/pre/smallsrv_3.06.27test-1_amd64.deb
+	ln -sf smallsrv_$(VERSION)_amd64.deb /mnt/d/var/www/pre/smallsrv_$(VERSION)test-1_amd64.deb
 
 # 	for i in wo/shttps_mg.exe wo/shttpsr_mg.exe $(DIST_DIR)shttplnx.tgz $(DIST_DIR)shttplnxu.tgz $(DIST_DIR)shttparmlnx.tgz $(DIST_DIR)shttplnx64.tgz $(DIST_DIR)shttplnx64u.tgz ; do cp $$i /mnt/d/var/www/pre/ ; done
 
