@@ -537,9 +537,10 @@ User   *FindUser(char *bfr,int typ,char *pwd /*=0*/,Req *r) //=0)
 // ConvPwdMD5L4(dgt,bfr,pwd);
 // typ&=0x7F;
 
- if( (typ != (UserPOP3|FindUserMD5digest)) && pwd && ( strin(pwd,"Digest") ||md5pwd ) )
+ if( //(typ != (UserPOP3|FindUserMD5cram)) &&
+     //(! (typ & (UserPOP3|UserSMTP)) ) &&
+     pwd && ( strin(pwd,"Digest") || md5pwd ) )
  {
-
 
    for(cc=0;digetvars[cc];cc++)
    {
@@ -562,7 +563,7 @@ User   *FindUser(char *bfr,int typ,char *pwd /*=0*/,Req *r) //=0)
     if( (!r)  || ! (r->CheckNonce(dgtvars[digtVar_nonce],dgtvars[digtVar_opaque])) ) return 0;
    }
  }
- //typ&=~FindUserMD5digest;
+ //typ&=~FindUserMD5cram;
 #endif
 //debug("TTT %s %X %X",bfr,typ,userList);
  cc=0;
@@ -582,16 +583,15 @@ User   *FindUser(char *bfr,int typ,char *pwd /*=0*/,Req *r) //=0)
     if( *(t=tuser->pasw())  )
     {
    //   debug("%s %s %X %X",tuser->name,t,tuser->state,typ);
-     if(*t==1 && md5pwd)
+     if(*t==1 && ( md5pwd || (typ & (FindUserMD5cram|FindUserMD5digest) ) ) )
      {
        r->fl|=F_DIGET_UNAVILABLE;
  //      debug("Digest unavilable for %s",tuser->name);
        return 0;
      }
-     if(typ == (UserPOP3|FindUserMD5digest))
+     if( typ & FindUserMD5cram ) // typ == (UserPOP3|FindUserMD5cram) || typ == (UserSMTP | FindUserMD5cram) )
      {
         if(! IsPwdAPOP(t,pwd,r->pst,r->postsize)) goto lbBad;
-
      }
      else
      {

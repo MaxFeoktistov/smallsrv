@@ -177,51 +177,54 @@ ulong D64X(uchar i)
  return i-'a' + 26;
 };
 
-char * Req::CheckAuth(char *&p)
-{char *t,*z,*y;
- ulong i,j;
- if( (t= GetVar(http_var,"AUTHORIZATION")) )
- {z=y=p;
-//  debug("|%s|",t);
-  if( strin(t,"Basic") )
+char * Decode64(char *t, char *s, int max_size)
+{
+  char *y = t;
+  uint i,j;
+
+  while((i=D64X(*s))<64)
   {
-    t+=6;
-    while((i=D64X(*t))<64)
-    {t++;
-    if( (j=D64X(*t))>=64 )break;
+    s++;
+    if( (j=D64X(*s))>=64 )break;
     *y=(i<<2)|(j>>4);
-    t++; y++;
-    if( (i=D64X(*t))>=64 )break;
+    s++; y++;
+    if( (i=D64X(*s))>=64 )break;
     *y=(j<<4)|(i>>2);
-    t++; y++;
-    if( (j=D64X(*t))>=64 )break;
+    s++; y++;
+    if( (j=D64X(*s))>=64 )break;
     *y=(i<<6)|(j);
-    t++; y++;
-    if((y-z)>=256) return 0;
-    }
-    *y=0;
-    if((y=strchr(z,':'))){*y=0;y++;}else y="";
-    p=y;
-    return z;
+    s++; y++;
+    if((y-t) >= max_size) return 0;
   }
-  else   if( strin(t,"Digest") )
+  *y=0;
+  return t;
+}
+
+char * Req::CheckAuth(char *&p)
+{
+  char *t,*z,*y;
+  if( (t= GetVar(http_var,"AUTHORIZATION")) )
   {
+    z=y=p;
+    //  debug("|%s|",t);
+    if( strin(t,"Basic") )
+    {
+      if(! (t=Decode64(y, t + 6, 256) ) ) return 0;
+      if((y=strchr(z,':'))){*y=0;y++;}else y="";
+      p=y;
+      return z;
+    }
+    else   if( strin(t,"Digest") )
+    {
       p=t;
       if((z=strstr(t, "username=\"")))
       {
         z+=sizeof("username=");
         return z;
-        /*
-        if((y=strchr(z,'"')))
-        {
-            p=y;
-        }
-        else p="";
-        */
       }
+    }
   }
- }
- return 0;
+  return 0;
 }
 
 #ifndef SYSUNIX

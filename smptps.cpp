@@ -571,9 +571,12 @@ ulong AddrHash(sockaddr_in *sa)
 const char  endmsg[]="\r\n.\r\n";
 int Req::SMTPReq()
 {
- union{
- char bfr[520];
- int handles[33]; };
+  union {
+    char bfr[520];
+    int handles[33];
+  };
+
+ User *puser_a = 0;
  int rcnt,x,i,h,ll,us_ip,chkl=0,chkspm=0,em;
 
  int l=sizeof(sockaddr_in);
@@ -692,11 +695,13 @@ int Req::SMTPReq()
  bb=new char[0x8800];
 do{
 lpcnt:
- if( ( Send(rcode,rcodeLen) ) < 0)
- {dbg("Can\'t send..");
-  break;
- };
- if(s_flg&FL_FULLLOG)AddToLog(rcode,s,&sa_c46,FmtShrt);
+  if( ( Send(rcode,rcodeLen) ) < 0)
+  {
+  lbErrSend:
+    dbg("Can\'t send..");
+    break;
+  };
+if(s_flg&FL_FULLLOG)AddToLog(rcode,s,&sa_c46,FmtShrt);
  if(cmd==0x74697571 x4CHAR("quit"))break;
 lbb1:
  if((cmd=RGetCMD(bfr))<0)break;
@@ -709,9 +714,51 @@ lbb1:
     printSendCMD(bfr, (cmd==0x6F6C6865 x4CHAR("ehlo"))?
     "250-%.127s\r\n%s"
     "250-8BITMIME\r\n"
-    "250 SIZE=%u\r\n":
+    "250-SIZE=%u\r\n"
+    "250 AUTH CRAM-MD5 PLAIN\r\n"
+    :
     "250 %.127s\r\n"
     ,smtp_name,(s_aflg&AFL_TLS)?"250-STARTTLS\r\n":"",max_msg_size);
+    break;
+
+  case 0x68747561 x4CHAR("auth"):
+
+    if( stristr(bfr," PLAIN") )
+    {
+      SendConstCMD("334 \r\n");
+      x = 0;
+    }
+    else if( stristr(bfr," CRAM-MD5") )
+    {
+      struct timeval tv;
+      gettimeofday(&tv,0);
+      p=Encode64(bb+512,bb, postsize = sprintf(pst = bb, "<%u.%u@%s>", tv.tv_sec, tv.tv_usec, smtp_name));
+      printSendCMD(bfr,"334 %s", bb+512);
+      x = FindUserMD5cram;
+    }
+    else
+    {
+      SendConstCMD("534 5.7.9  Unsupported algorithm\r\n");
+      break;
+    }
+    if( ( Send(rcode, rcodeLen) ) < 0) goto lbErrSend;
+    if(s_flg&FL_FULLLOG)AddToLog(rcode, s, &sa_c46, FmtShrt);
+    if( (l = Recv(bfr, 128) ) <= 0) goto ex1;
+    bfr[l] = 0;
+    if( ( Decode64(bb+1024, bfr, 128) ) &&  (p=strchr(bb+1024, ' ') ) )
+    {
+      *p = 0;
+      puser_a = FindUser(bb, UserSMTP | x, p + 1, this);
+      if( puser_a )
+      {
+        SendConstCMD("235 2.7.0  Authentication Succeeded\r\n");
+        ++us_ip;
+        break;
+      }
+    }
+
+    SendConstCMD("535 5.7.8  Authentication credentials invalid\r\n");
+
     break;
 
   case 0x646E6573 x4CHAR("send")://1:

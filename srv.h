@@ -576,6 +576,8 @@ struct User
 #define UserPARSED 0x80
 #define UserSYSUSER 0x100
 #define FindUserMD5digest 0x10000
+#define FindUserMD5cram   0x20000
+
 #ifdef A_64
  char *name;
  char *pwd,*ddr;
@@ -917,6 +919,8 @@ extern unsigned long NullLong;
 char* DecodeName(char *tt,char *s,char *dm);
 char* StrVar(char *p,char *n);
 char* Encode64(char *t,char *s,int cnt);
+char* Decode64(char *t, char *s, int max_size);
+
 //#define HTML_LN "\n"
 #define HTML_LN
 char* CheckBadName(char *in_buf);

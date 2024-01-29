@@ -123,7 +123,7 @@ int Req::POPReq()
        t=SkipSpace(t);
        postsize=sprintf(pst=pth,"<%u.%u@%.128s>",tpwd.tv_sec,tpwd.tv_usec,smtp_name);
 
-       if((puser=FindUser(tt,UserPOP3|FindUserMD5digest,t,this))) goto lbAuthOk;
+       if((puser=FindUser(tt,UserPOP3|FindUserMD5cram,t,this))) goto lbAuthOk;
 
     }
     goto lerr;
