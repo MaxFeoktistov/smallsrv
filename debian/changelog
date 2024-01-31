@@ -1,8 +1,15 @@
+smallsrv (3.06.28test1) unstable; urgency=low
+
+  * Added SMTP authorization
+  * Fixed keep-alive bug
+
+ -- Maksim Feoktistov <max@smallsrv.com>  Wed, 31 Jan 2024 08:27:30 +0400
+
 smallsrv (3.06.27c) unstable; urgency=low
 
   * Fixed substitution of some strings on the configuration
     page to support multiple languages.
-  * Fixed install man
+  * Installation of man pages has been fixed.
 
  -- Maksim Feoktistov <max@smallsrv.com>  Sat, 27 Jan 2024 09:51:28 +0400
 

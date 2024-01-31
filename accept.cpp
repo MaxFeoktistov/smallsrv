@@ -502,6 +502,7 @@ cnt:
 int WINAPI KeepAliveWike(Req *preq)
 {
   int serv=preq->flsrv[1] & MAX_SERV_MASK;
+  int ntsk = preq->ntsk;
 #ifdef FIX_EXCEPT
   if(SetFixExept(preq) )
   {
@@ -521,9 +522,9 @@ int WINAPI KeepAliveWike(Req *preq)
 cnt:
   DBGL("");
   no_close_wait();
-  if(rreq[preq->ntsk]==preq)
+  if(rreq[ntsk]==preq)
   {
-    rreq[preq->ntsk]=0;
+    rreq[ntsk]=0;
     count_of_tr--;
     if(count_of_tr<0)count_of_tr=0;
   }
@@ -546,6 +547,9 @@ cnt:
   }
 
   runed[serv]--;
+#ifdef SYSUNIX
+  rreq[ntsk] = (Req *) 1;
+#endif
 
   return 0;
 }
