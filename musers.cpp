@@ -34,7 +34,6 @@
 #include <grp.h>
 #endif
 
-
 #ifndef A_64
 char *User::dir(char *ps)
 {
@@ -185,6 +184,45 @@ int IsPwdAPOP(char *pas,char *dgst,char *s,int ssize)
 }
 
 
+void CopyXor64(uchar *t, const char *s, uint pad)
+{
+  uchar *e=t+64;
+  do{
+    *t++ = *s ^ pad;
+    if(*s) s++;
+  }while(t<e);
+}
+
+void GenCRAM_dgst(char *pas,char *dgst,char *s,int ssize)
+{
+  MD5_CTX context;
+  uchar tmp[68];
+  uint dgt[6];
+
+  CopyXor64(tmp, pas, 0x36);
+  MD5Init (&context);
+  MD5Update (&context, tmp, 64);
+  MD5Update (&context, (uchar *)s, ssize);
+  MD5Final ((uchar *)dgt, &context);
+//  CvtHex(dgt,dgst);
+
+  CopyXor64(tmp, pas, 0x5c);
+  MD5Init (&context);
+  MD5Update (&context, tmp, 64);
+//  MD5Update (&context, (uchar *)dgst, 32);
+  MD5Update (&context, (uchar *)dgt, 16);
+  MD5Final ((uchar *)dgt, &context);
+  CvtHex(dgt,dgst);
+}
+
+int IsPwdCRAM(char *pas,char *dgst,char *s,int ssize)
+{
+  char dgHex[40];
+  GenCRAM_dgst(pas,dgHex,s,ssize);
+  DBGLA("DEBUG  CRAM %s %s %s %s %u\r\n",pas,s,dgHex,dgst,ssize);
+  return ! strcmp(dgHex,dgst);
+}
+
 void CalkPwdMD5D(char **dgv, uint *HA1,char *method, char *HA2Hex)
 {
   uint HA2[6]      ;
@@ -318,7 +356,13 @@ int IsPwdC(char *p, char *pas)
  if(*p==1)return IsPwd(DWORD_PTR(p[1]),DWORD_PTR(p[5]), pas);
  return !strcmp(p,pas);
 }
-
+/*
+int IsUserPwd(char *u, char *p, char *userpas)
+{
+ if(! strin(userpas,u)) return 0;
+ return IsPwdC(p, userpas + strlen(u) );
+}
+*/
 
 /*
 inline int  User::Convert(char *x)
@@ -547,7 +591,7 @@ User   *FindUser(char *bfr,int typ,char *pwd /*=0*/,Req *r) //=0)
      if((dgtvars[cc]=  PrFinVar(pwd,digetvars[cc])) )
         md5pwd|=1<<cc;
    }
-//debug("TTT digest %X %s %X",md5pwd,bfr,typ);
+   DBGLA("DEBUG  digest %X %s %X",md5pwd,bfr,typ);
    if( (md5pwd &  DIGT_MIN_REQUIRED) != DIGT_MIN_REQUIRED )
    {
      debug("Absent DIGEST_MIN_REQUIRED %X %X",md5pwd&0xFFFF,DIGT_MIN_REQUIRED);
@@ -563,78 +607,91 @@ User   *FindUser(char *bfr,int typ,char *pwd /*=0*/,Req *r) //=0)
     if( (!r)  || ! (r->CheckNonce(dgtvars[digtVar_nonce],dgtvars[digtVar_opaque])) ) return 0;
    }
  }
- //typ&=~FindUserMD5cram;
 #endif
-//debug("TTT %s %X %X",bfr,typ,userList);
+ DBGLA("DEBUG  %s %X %X",bfr,typ,userList);
  cc=0;
  for(tuser=userList;tuser;tuser=tuser->next)
  {
   cc++;
-// debug("%s %s %X %X",tuser->name,bfr,tuser->state,typ);
-  if( (tuser->state & UserPARSED) && (tuser->state&typ) && IsSame(tuser->name,bfr)
-  )
+  DBGLA("DEBUG 3 %s %s %X %X",tuser->name,bfr,tuser->state,typ);
+  if( (tuser->state & UserPARSED) && (tuser->state&typ) )
   {
-
-   if(pwd)
-   {
-#ifndef WITHMD5
-    if( *(t=tuser->pasw()) && ! IsPwdC(t,pwd)  )goto lbBad;
-#else
-    if( *(t=tuser->pasw())  )
+    /*
+    if( typ == UserSMTP && bfr == pwd  )
     {
-   //   debug("%s %s %X %X",tuser->name,t,tuser->state,typ);
-     if(*t==1 && ( md5pwd || (typ & (FindUserMD5cram|FindUserMD5digest) ) ) )
-     {
-       r->fl|=F_DIGET_UNAVILABLE;
- //      debug("Digest unavilable for %s",tuser->name);
-       return 0;
-     }
-     if( typ & FindUserMD5cram ) // typ == (UserPOP3|FindUserMD5cram) || typ == (UserSMTP | FindUserMD5cram) )
-     {
-        if(! IsPwdAPOP(t,pwd,r->pst,r->postsize)) goto lbBad;
-     }
-     else
-     {
-        t1="GET";
-        if(r->fl&F_POST)t1="POST";
-        if(DWORD_PTR(r->loc) == 0x4E4E4F43 x4CHAR("CONN")  ) t1="CONNECT";
-        if(DWORD_PTR(r->loc) == 0x44414548 x4CHAR("HEAD")  ) t1="HEAD";
-        if( !(
-           (md5pwd)?
-            (
-              (*t==2)?
-                    IsPwdMD5D(dgtvars,(uint *)(t+1),t1) :
-                    IsPwdMD5DD(dgtvars,tuser->name,t,t1)
-
-            )
-        :
-        (*t==2)?
-        IsPwdMD5C(t,pwd,tuser->name)
-        :
-        IsPwdC(t,pwd)  //strcmp(t,pwd)
-        ) )goto lbBad;
-     }
+       if(IsUserPwd(tuser->name, tuser->pasw(), bfr)) return tuser;
     }
-#endif
-    r->dir=tuser->dir(t);
+    else
+      */
+    if(IsSame(tuser->name,bfr))
+    {
 
-//    if( (pip=memchr4(lastbadip, r->sa_c.sin_addr. S_ADDR ,8)))//saddr[r->ntsk],8)) )
-//    {if(!(pip[8]&=~((0x501*cc)<<5)))*pip=0;
-//    }
-  lbFound:;
-#ifdef USE_IPV6
-  if( IsIPv6( & r->sa_c ) ) //sa_client.sin_family==AF_INET6)
-  {
-     if( (lip6=hack6.Find(r->sa_c6.sin6_addr ) ) )
-     { if(!(lip6->cnt&=~ ((0x501*cc)<<5))) hack6.Del(lip6); }
-  }
-  else
-#endif
-    if( (lip=hack.Find( IPv4addr(& r->sa_c ) ) ) ) //r->sa_c.sin_addr. S_ADDR)))
-    { if(!(lip->cnt&=~((0x501*cc)<<5)))hack.Del(lip); }
+      if(pwd)
+      {
+        #ifndef WITHMD5
+        if( *(t=tuser->pasw()) && ! IsPwdC(t,pwd)  )goto lbBad;
+        #else
 
-   }
-   return tuser;
+        if( *(t=tuser->pasw())  )
+        {
+          DBGLA("DEBUG U %s %s %X %X",tuser->name,t,tuser->state,typ);
+          if(*t==1 && ( md5pwd || (typ & (FindUserMD5cram|FindUserMD5digest) ) ) )
+          {
+            r->fl|=F_DIGET_UNAVILABLE;
+            debug("Cram and digest unavilable for %s",tuser->name);
+            return 0;
+          }
+          if( typ == (UserPOP3|FindUserMD5cram) )
+          {
+            if(! IsPwdAPOP(t,pwd,r->pst,r->postsize)) goto lbBad;
+          }
+          else if( typ == (UserSMTP|FindUserMD5cram) )
+          {
+            if(! IsPwdCRAM(t,pwd,r->pst,r->postsize) ) goto lbBad;
+          }
+          else
+          {
+            t1="GET";
+            if(r->fl&F_POST)t1="POST";
+            if(DWORD_PTR(r->loc) == 0x4E4E4F43 x4CHAR("CONN")  ) t1="CONNECT";
+            if(DWORD_PTR(r->loc) == 0x44414548 x4CHAR("HEAD")  ) t1="HEAD";
+            if( !(
+              (md5pwd)?
+              (
+                (*t==2)?
+                IsPwdMD5D(dgtvars,(uint *)(t+1),t1) :
+                IsPwdMD5DD(dgtvars,tuser->name,t,t1)
+
+              )
+              :
+              (*t==2)?
+              IsPwdMD5C(t,pwd,tuser->name)
+              :
+              IsPwdC(t,pwd)  //strcmp(t,pwd)
+            ) )goto lbBad;
+          }
+        }
+        #endif
+        r->dir=tuser->dir(t);
+
+        //    if( (pip=memchr4(lastbadip, r->sa_c.sin_addr. S_ADDR ,8)))//saddr[r->ntsk],8)) )
+        //    {if(!(pip[8]&=~((0x501*cc)<<5)))*pip=0;
+        //    }
+        lbFound:;
+        #ifdef USE_IPV6
+        if( IsIPv6( & r->sa_c ) ) //sa_client.sin_family==AF_INET6)
+        {
+          if( (lip6=hack6.Find(r->sa_c6.sin6_addr ) ) )
+          { if(!(lip6->cnt&=~ ((0x501*cc)<<5))) hack6.Del(lip6); }
+        }
+        else
+          #endif
+          if( (lip=hack.Find( IPv4addr(& r->sa_c ) ) ) ) //r->sa_c.sin_addr. S_ADDR)))
+          { if(!(lip->cnt&=~((0x501*cc)<<5)))hack.Del(lip); }
+
+      }
+      return tuser;
+    }
   }
  }
 #ifdef USE_SYSPASS

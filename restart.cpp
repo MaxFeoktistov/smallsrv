@@ -272,7 +272,7 @@ int FreeThreads()
    if(hndls[i])
    {
      #ifdef SYSUNIX
-     if( ((u_long)(rreq[i])) != 1 )  continue;
+     if( ((u_long)(rreq[i])) != 1 ) continue;
      pthread_detach((pthread_t) hndls[i]);
      rreq[i]=0;
      #else

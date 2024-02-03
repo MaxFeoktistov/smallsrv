@@ -1,9 +1,9 @@
-smallsrv (3.06.28test1) unstable; urgency=low
+smallsrv (3.06.28test2) unstable; urgency=low
 
   * Added SMTP authorization
   * Fixed keep-alive bug
 
- -- Maksim Feoktistov <max@smallsrv.com>  Wed, 31 Jan 2024 08:27:30 +0400
+ -- Maksim Feoktistov <max@smallsrv.com>  Sat, 03 Feb 2024 20:14:17 +0400
 
 smallsrv (3.06.27c) unstable; urgency=low
 

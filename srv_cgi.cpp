@@ -197,7 +197,7 @@ char * Decode64(char *t, char *s, int max_size)
     if((y-t) >= max_size) return 0;
   }
   *y=0;
-  return t;
+  return y;
 }
 
 char * Req::CheckAuth(char *&p)
@@ -209,7 +209,7 @@ char * Req::CheckAuth(char *&p)
     //  debug("|%s|",t);
     if( strin(t,"Basic") )
     {
-      if(! (t=Decode64(y, t + 6, 256) ) ) return 0;
+      if(! (Decode64(y, t+6, 256) ) ) return 0;
       if((y=strchr(z,':'))){*y=0;y++;}else y="";
       p=y;
       return z;

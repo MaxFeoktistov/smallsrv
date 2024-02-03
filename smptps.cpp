@@ -723,17 +723,25 @@ lbb1:
 
   case 0x68747561 x4CHAR("auth"):
 
-    if( stristr(bfr," PLAIN") )
+    if( (p=stristr(bfr," PLAIN") ) )
     {
-      SendConstCMD("334 \r\n");
+
       x = 0;
+      DBGLA("%s %s\r\n", p, bfr)
+      if(p[6] == ' ' && p[7] >= 'A')
+      {
+        p+=7;
+        DBGLA("p=%s\r\n", p)
+        goto lb_chk;
+      }
+      SendConstCMD("334 \r\n");
     }
     else if( stristr(bfr," CRAM-MD5") )
     {
       struct timeval tv;
       gettimeofday(&tv,0);
       p=Encode64(bb+512,bb, postsize = sprintf(pst = bb, "<%u.%u@%s>", tv.tv_sec, tv.tv_usec, smtp_name));
-      printSendCMD(bfr,"334 %s", bb+512);
+      printSendCMD(bfr,"334 %s\r\n", bb+512);
       x = FindUserMD5cram;
     }
     else
@@ -743,12 +751,24 @@ lbb1:
     }
     if( ( Send(rcode, rcodeLen) ) < 0) goto lbErrSend;
     if(s_flg&FL_FULLLOG)AddToLog(rcode, s, &sa_c46, FmtShrt);
-    if( (l = Recv(bfr, 128) ) <= 0) goto ex1;
-    bfr[l] = 0;
-    if( ( Decode64(bb+1024, bfr, 128) ) &&  (p=strchr(bb+1024, ' ') ) )
+    if( RGetCMD(bfr) < 0 ) break;
+    p=bfr;
+
+    lb_chk:;
+
+    DBGLA("p=|%s|\r\n", p)
+
+
+
+    if( (t1=Decode64(t=bb+1024, p, 128)) )
     {
-      *p = 0;
-      puser_a = FindUser(bb, UserSMTP | x, p + 1, this);
+      if( (!*t) && t<t1 )t++;
+      DBGLA("|%s| %s %X\r\n", t, p, x)
+      p=strchr(t, ' ');
+      if(p) *p++ = 0;
+      else if( (p = t+1+strlen(t) ) >= t1  ) goto lbAuthInvalid;
+
+      puser_a = FindUser(t, UserSMTP | x, p, this);
       if( puser_a )
       {
         SendConstCMD("235 2.7.0  Authentication Succeeded\r\n");
@@ -756,7 +776,7 @@ lbb1:
         break;
       }
     }
-
+   lbAuthInvalid:
     SendConstCMD("535 5.7.8  Authentication credentials invalid\r\n");
 
     break;

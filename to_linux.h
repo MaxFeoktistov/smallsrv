@@ -108,7 +108,7 @@ extern int __REDIRECT (fcntl32, (int __fd, int __cmd, ...), fcntl);
 
 //   pragma GCC diagnostic ignored "-Wstrict-prototypes"
 
-#pragma GCC diagnostic ignored "-Wpragmas"
+//#pragma GCC diagnostic ignored "-Wpragmas"
 #pragma GCC diagnostic ignored "-Wformat"
 #pragma GCC diagnostic ignored "-Wcomment"
 #pragma GCC diagnostic ignored "-Wwrite-strings"
