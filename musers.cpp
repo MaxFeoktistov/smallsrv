@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2022 Maksim Feoktistov.
+ * Copyright (C) 1999-2024 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov
@@ -21,8 +21,6 @@
  *
  *
  */
-
-
 
 #ifndef SRV_H
 #include "srv.h"
@@ -80,14 +78,11 @@ void MD5UpdateL(MD5_CTX *c, char *u)
   if(u)
   {
     MD5Update (c, (uchar *)u, strlen ( (char *) u));
-   // debug("MD5UL<<%s",u);
   }
   else
   {
     debug("MD5UL required variable is abcent");
-
   }
-
 };
 
 
@@ -226,10 +221,7 @@ int IsPwdCRAM(char *pas,char *dgst,char *s,int ssize)
 void CalkPwdMD5D(char **dgv, uint *HA1,char *method, char *HA2Hex)
 {
   uint HA2[6]      ;
-//  ulong rt2[6]      ;
- // char HA2Hex[40]      ;
   char HA1Hex[40]      ;
-//  char rez[40]      ;
 #define rt2 HA2
 #define rez HA2Hex
   MD5_CTX context;
@@ -314,35 +306,36 @@ char* ConvPwd(char *t,char *pas)
 }
 
 void UpdPwdCrypt(char *p)
-{ulong a,b;
- if(*p=='+' && p[9]=='Z' && strlen(p)==18 && (a=atouix(p+1)) && (b=atouix(p+10)) )
- {
-  *p=1;
-  DWORD_PTR(p[1])=a;
-  DWORD_PTR(p[5])=b;
- }
-#ifdef WITHMD5
- else  if(*p=='~' && p[9]=='.' && strlen(p)==36 )
- {
-   char *t;
-   uint d[4];
+{
+  ulong a,b;
+  if(*p=='+' && p[9]=='Z' && strlen(p)==18 && (a=atouix(p+1)) && (b=atouix(p+10)) )
+  {
+    *p=1;
+    DWORD_PTR(p[1])=a;
+    DWORD_PTR(p[5])=b;
+  }
+  #ifdef WITHMD5
+  else  if(*p=='~' && p[9]=='.' && strlen(p)==36 )
+  {
+    char *t;
+    uint d[4];
     t=p;
     for(a=0; a<4; a++)
     {
       b=strtoul(t+1,&t,16);
-      if( (*t!='.' && a!=3) )//|| (! (b&0xFF) ) || (! (b&0xFF00) ) || (! (b&0xFF0000) ) || (! (b&0xFF000000) ))
-          goto exLp2;
+      if( (*t!='.' && a!=3) )
+        goto exLp2;
       d[a]=b;
     }
 
     *p++ =2;
     memcpy(p,d,16);
 
-  exLp2: ;
- }
-#endif
+    exLp2: ;
+  }
+  #endif
 }
-//inline
+
 int IsPwd(ulong a,ulong b, char *pas)
 {
  ulong x;
@@ -351,18 +344,12 @@ int IsPwd(ulong a,ulong b, char *pas)
  b=rol(b,pas[1]);
  return ((a^x)==~(b-x));
 }
+
 int IsPwdC(char *p, char *pas)
 {
  if(*p==1)return IsPwd(DWORD_PTR(p[1]),DWORD_PTR(p[5]), pas);
  return !strcmp(p,pas);
 }
-/*
-int IsUserPwd(char *u, char *p, char *userpas)
-{
- if(! strin(userpas,u)) return 0;
- return IsPwdC(p, userpas + strlen(u) );
-}
-*/
 
 /*
 inline int  User::Convert(char *x)
@@ -384,34 +371,35 @@ inline int  User::Convert(char *x)
 
 void User::MkDir()
 {
-char bfr[280];
-char *d;
-#ifdef SYSUNIX
-struct passwd *pwd;
-int i;
-#endif
- if(state&(UserFTP|UserPOP3))
- {
-  d=dir();
-#ifdef SYSUNIX
-  i=
-#endif
-  CreateDirectory(d,&secat);
-#ifdef SYSUNIX
-  if( (!i) && ((pwd=getpwnam(name)) || ( (state&UserFTP) && (pwd=getpwnam("ftp")))) )
-  {chown(d,pwd->pw_uid,pwd->pw_gid); }
-#endif
-  if(state&UserPOP3)
-  {sprintf(bfr,"%.255s" FSLUSHS "mbox",d);
-#ifdef SYSUNIX
-  i=
-#endif
-   CreateDirectory(bfr,&secat);
-#ifdef SYSUNIX
-   if( (!i) && pwd){chown(bfr,pwd->pw_uid,pwd->pw_gid); }
-#endif
+  char bfr[280];
+  char *d;
+  #ifdef SYSUNIX
+  struct passwd *pwd;
+  int i;
+  #endif
+  if(state&(UserFTP|UserPOP3))
+  {
+    d=dir();
+    #ifdef SYSUNIX
+    i=
+    #endif
+    CreateDirectory(d,&secat);
+    #ifdef SYSUNIX
+    if( (!i) && ((pwd=getpwnam(name)) || ( (state&UserFTP) && (pwd=getpwnam("ftp")))) )
+    {chown(d,pwd->pw_uid,pwd->pw_gid); }
+    #endif
+    if(state&UserPOP3)
+    {
+      sprintf(bfr,"%.255s" FSLUSHS "mbox",d);
+      #ifdef SYSUNIX
+      i=
+      #endif
+      CreateDirectory(bfr,&secat);
+      #ifdef SYSUNIX
+      if( (!i) && pwd){chown(bfr,pwd->pw_uid,pwd->pw_gid); }
+      #endif
+    }
   }
- }
 }
 
 #ifdef AT_ARM
@@ -441,28 +429,24 @@ int User::Parse(char *x)
 int User::Parse()
 {
 
-//user=name;password;home_dir;PSHF_flags
- char *t;
-// char *n;
- char *x;
- char *pasw;
- char *dir;
- char bfr[264];
-    if(state&UserPARSED)return 1;
-  //  if((t=strchr(name,'\n')))*t=0;
-  //  if( (t=strchr(name,'#')))*t=0;
-    if((pasw=strchr(name,';')))
-    {*pasw++=0;
-     if((dir=strchr(pasw,';')))
-     {  *dir++=0;
-        state=0;
-        if((x=strchr(dir,';')))
-        {
-         if(x[-1]==FSLUSH)x[-1]=0;
-         *x++=0;
+  char *t;
+  char *x;
+  char *pasw;
+  char *dir;
+  char bfr[264];
+  if(state&UserPARSED)return 1;
+  if((pasw=strchr(name,';')))
+  {*pasw++=0;
+    if((dir=strchr(pasw,';')))
+    {  *dir++=0;
+      state=0;
+      if((x=strchr(dir,';')))
+      {
+        if(x[-1]==FSLUSH)x[-1]=0;
+        *x++=0;
         do{
-           switch(*x)
-           {
+          switch(*x)
+          {
             case 'P':state|=UserPOP3; break;
             case 'S':state|=UserSMTP; break;
             case 'H':state|=UserHTTP; break;
@@ -470,33 +454,30 @@ int User::Parse()
             case 'N':state|=UserNOCGI;break;
             case 'W':state|=UserFTPW; break;
             case 'F':state|=UserFTPR; break;
-          //  case ' ':
             default:
               goto l1;
-           };
-           x++;
-          }while(1);
+          };
+          x++;
+        }while(1);
         l1:;
-         state|=UserPARSED;
-#ifdef A_64
+        state|=UserPARSED;
+        #ifdef A_64
         pwd=pasw;ddr=dir ;
-#endif
-         MkDir();
-	// debug("user=%.15s pass=%.15s dir=%.20s ; %u\n",name,pasw,dir,offset(User,name));
-         UpdPwdCrypt(pasw);
-
-         return 1;
-        }
-     }
-    };
-    return 0;
+        #endif
+        MkDir();
+        UpdPwdCrypt(pasw);
+        return 1;
+      }
+    }
+  };
+  return 0;
 };
 
 
 //-------
 int IsSame(char *tt,char *pp)
 {
- char *z;
+  char *z;
   z=0;
   do{
    if(*tt && !*pp)return 0;
@@ -510,7 +491,7 @@ int IsSame(char *tt,char *pp)
     return 0;
    }
   }while(*tt);
- return !*pp;
+  return !*pp;
 }
 
 void Req::AddHack(ulong t,int v)
@@ -529,15 +510,7 @@ void Req::AddHack(ulong t,int v)
      {
       lip6=hack6.Push();
       lip6->Set(sa_c6.sin6_addr);
-      /*
-      lip6->ip.ip.s6_addr32[0] =  sa_c6.sin6_addr.s6_addr32[0];
-      lip6->ip.ip.s6_addr32[1] =  sa_c6.sin6_addr.s6_addr32[1];
-      lip6->ip.ip.s6_addr32[2] =  sa_c6.sin6_addr.s6_addr32[2];
-      lip6->ip.ip.s6_addr32[3] =  sa_c6.sin6_addr.s6_addr32[3];
-      */
      }
-
-
    }
    else
    {
@@ -546,9 +519,9 @@ void Req::AddHack(ulong t,int v)
 #endif
      ulong ip4;
      ip4=IPv4addr(&sa_c);
-     if(!(lip=hack.Find(ip4))) // sa_c.sin_addr. S_ADDR)))
+     if(!(lip=hack.Find(ip4)))
      {
-         lip=hack.Push(); lip->ip=ip4; // sa_c.sin_addr. S_ADDR;
+         lip=hack.Push(); lip->ip=ip4;
      }
 #ifdef USE_IPV6
    }
@@ -559,7 +532,6 @@ void Req::AddHack(ulong t,int v)
 
 #define USER_FOUND ((SysUser *) 1)
 //-------
-//ulong lastbadip[24],nextbadip;
 User   *FindUser(char *bfr,int typ,char *pwd /*=0*/,Req *r) //=0)
 {
   union {
@@ -567,7 +539,7 @@ User   *FindUser(char *bfr,int typ,char *pwd /*=0*/,Req *r) //=0)
     SysUser *suser;
   };
  char *t,*t1,*t2;
- ulong ip; //,*pip=0;
+ ulong ip;
  union{
  LimitCntr *lip;
  LimitCntrIPv6 *lip6;
@@ -575,21 +547,15 @@ User   *FindUser(char *bfr,int typ,char *pwd /*=0*/,Req *r) //=0)
  int  cc;
 #ifdef WITHMD5
  int md5pwd=typ&FindUserMD5digest;
-// ulong dgt[4];
  char *dgtvars[10];
 
-// ConvPwdMD5L4(dgt,bfr,pwd);
-// typ&=0x7F;
 
- if( //(typ != (UserPOP3|FindUserMD5cram)) &&
-     //(! (typ & (UserPOP3|UserSMTP)) ) &&
-     pwd && ( strin(pwd,"Digest") || md5pwd ) )
+ if( pwd && ( strin(pwd,"Digest") || md5pwd ) )
  {
-
    for(cc=0;digetvars[cc];cc++)
    {
      if((dgtvars[cc]=  PrFinVar(pwd,digetvars[cc])) )
-        md5pwd|=1<<cc;
+       md5pwd|=1<<cc;
    }
    DBGLA("DEBUG  digest %X %s %X",md5pwd,bfr,typ);
    if( (md5pwd &  DIGT_MIN_REQUIRED) != DIGT_MIN_REQUIRED )
@@ -599,12 +565,12 @@ User   *FindUser(char *bfr,int typ,char *pwd /*=0*/,Req *r) //=0)
    }
    else
    {
-    for(cc=0;digetvars[cc];cc++)
-    {
-     if(dgtvars[cc] && (t=strpbrk(dgtvars[cc],"\t\r\n \",")) )*t=0;
-    }
-    bfr=dgtvars[digtVar_username];
-    if( (!r)  || ! (r->CheckNonce(dgtvars[digtVar_nonce],dgtvars[digtVar_opaque])) ) return 0;
+     for(cc=0;digetvars[cc];cc++)
+     {
+       if(dgtvars[cc] && (t=strpbrk(dgtvars[cc],"\t\r\n \",")) )*t=0;
+     }
+     bfr=dgtvars[digtVar_username];
+     if( (!r)  || ! (r->CheckNonce(dgtvars[digtVar_nonce],dgtvars[digtVar_opaque])) ) return 0;
    }
  }
 #endif
@@ -616,16 +582,8 @@ User   *FindUser(char *bfr,int typ,char *pwd /*=0*/,Req *r) //=0)
   DBGLA("DEBUG 3 %s %s %X %X",tuser->name,bfr,tuser->state,typ);
   if( (tuser->state & UserPARSED) && (tuser->state&typ) )
   {
-    /*
-    if( typ == UserSMTP && bfr == pwd  )
-    {
-       if(IsUserPwd(tuser->name, tuser->pasw(), bfr)) return tuser;
-    }
-    else
-      */
     if(IsSame(tuser->name,bfr))
     {
-
       if(pwd)
       {
         #ifndef WITHMD5
@@ -661,34 +619,28 @@ User   *FindUser(char *bfr,int typ,char *pwd /*=0*/,Req *r) //=0)
                 (*t==2)?
                 IsPwdMD5D(dgtvars,(uint *)(t+1),t1) :
                 IsPwdMD5DD(dgtvars,tuser->name,t,t1)
-
               )
               :
               (*t==2)?
               IsPwdMD5C(t,pwd,tuser->name)
               :
-              IsPwdC(t,pwd)  //strcmp(t,pwd)
+              IsPwdC(t,pwd)
             ) )goto lbBad;
           }
         }
         #endif
         r->dir=tuser->dir(t);
-
-        //    if( (pip=memchr4(lastbadip, r->sa_c.sin_addr. S_ADDR ,8)))//saddr[r->ntsk],8)) )
-        //    {if(!(pip[8]&=~((0x501*cc)<<5)))*pip=0;
-        //    }
         lbFound:;
         #ifdef USE_IPV6
-        if( IsIPv6( & r->sa_c ) ) //sa_client.sin_family==AF_INET6)
+        if( IsIPv6( & r->sa_c ) )
         {
           if( (lip6=hack6.Find(r->sa_c6.sin6_addr ) ) )
           { if(!(lip6->cnt&=~ ((0x501*cc)<<5))) hack6.Del(lip6); }
         }
         else
           #endif
-          if( (lip=hack.Find( IPv4addr(& r->sa_c ) ) ) ) //r->sa_c.sin_addr. S_ADDR)))
+          if( (lip=hack.Find( IPv4addr(& r->sa_c ) ) ) )
           { if(!(lip->cnt&=~((0x501*cc)<<5)))hack.Del(lip); }
-
       }
       return tuser;
     }
@@ -741,35 +693,28 @@ User   *FindUser(char *bfr,int typ,char *pwd /*=0*/,Req *r) //=0)
 #endif
 
 #if !defined(CD_VER)
-//debug("U1 %X %X %X",s_flgs[1],(1<<(BYTE_PTR(r->fl,2)&0xE)),s_flgs[1]&(1<<(BYTE_PTR(r->fl,2)&0xE)) );
   if(r && (r->Snd!=&TLSSend)
     && (t=strpbrk(bfr,"@#")) &&
     (s_flgs[1]&(1<<(BYTE_PTR(r->fl,2)&0xE)))
     &&
-     //IsInIPRange(proxy_range,htonl( r->sa_c.sin_addr. S_ADDR )) //saddr[r->ntsk]))
      r->IsInIPRange(proxy_range)>0
     )
   {
-//debug("U2 %s",t);
-//    if( (t1=strpbrk(++t,"@#") ) )
     ++t;
     if( (t1=strchr(t,t[-1]) ) )
     {++t1;
      if( !(t2=strpbrk(pwd,"@#") ) )
-     //t2=strpbrk(t1,"@#");
        t2=strchr(t1,t[-1]);
      if(t2)
      {t[-1]=0;
       *t2++=0;
       t1[-1]=0;
-//debug("U3 %s %s",bfr,pwd);
 
       if((tuser=FindUser(bfr,typ,pwd,r)))
       {r->fl|=F_PRX;
        r->req=t;
        r->pst=t1;
        r->trn=t2;
-//debug("U4 %s %s %s",r->req,r->pst,r->trn);
 
       };
       return tuser;
@@ -786,32 +731,29 @@ User   *FindUser(char *bfr,int typ,char *pwd /*=0*/,Req *r) //=0)
 #else
     AddToLog(0, r->s, & r->sa_c46, "Try to login failed %.20s;%.127s\r\n",bfr,pwd?pwd:"");
 #endif
-    //sprintf(bfr+24," Try to login failed %.20s;%.127s\r\n",bfr,pwd?pwd:"");
-    //AddToLog(bfr+24,r->s,&r->sa_c46);
 #if defined(SPECIAL) || !defined(CD_VER)
 #ifdef USE_IPV6
-    if(IsIPv6(&r->sa_c) )//sa_client.sin_family==AF_INET6)
+    if(IsIPv6(&r->sa_c) )
     {
         if( (lip6=hack6.Find( r->sa_c6.sin6_addr ) ) ) goto lbHF;
-        lip6=hack6.Push(); lip6->Set( r->sa_c6.sin6_addr );  // r->sa_c.sin_addr. S_ADDR;
+        lip6=hack6.Push(); lip6->Set( r->sa_c6.sin6_addr );
     }
     else
 #endif
-    if( (lip=hack.Find(IPv4addr(& r->sa_c ) ) ) ) //r->sa_c.sin_addr. S_ADDR)))
+    if( (lip=hack.Find(IPv4addr(& r->sa_c ) ) ) )
     {
      lbHF:
         if(pwd &&  lip->first !=(ip=MkName(pwd)) ){lip->cnt++; lip->first=ip;}
     }else
     {
-        lip=hack.Push(); lip->ip=IPv4addr(& r->sa_c );  // r->sa_c.sin_addr. S_ADDR;
-
+        lip=hack.Push(); lip->ip=IPv4addr(& r->sa_c );
     }
     if(tuser)
     {lip->cnt|=(0x501*cc)<<5;  }
 
 #endif
   }
- return 0;
+  return 0;
 };
 //-----
 #ifndef CD_VER
@@ -837,25 +779,25 @@ int Req::CallUp(User *puser)
 char * Rnames[]={"port","dnscache","ipv6","hosts","bind",0};
 char * BRnames[]={"bad_","nouph","upproxy","dos_h",0};
 int CfgParam::IsR()
-{int i;
- if( name )
- {for(i=0;Rnames[i];++i)if(strstr(name,Rnames[i]) )
-  {for(i=0;BRnames[i];++i)if(strstr(name,BRnames[i]) ) return 0;
-   return 1;
+{
+  int i;
+  if( name )
+  {for(i=0;Rnames[i];++i)if(strstr(name,Rnames[i]) )
+    {for(i=0;BRnames[i];++i)if(strstr(name,BRnames[i]) ) return 0;
+      return 1;
+    }
+    if( v )
+    {
+      if(max)
+      {
+        if((!*(v)) && strstr(name,"max")) return 1;
+        if((v== (uint *)&time_update) && ((!time_update) || !*v ) ) return 1;
+      }
+      if( v==(uint *) &dns_file) return 1;
+    }
+    else if(name && name[0]=='n' && strstr(name+2,"max") ) return 1;
   }
-  if( v )
-  {
-   if(max)
-   {
-     if((!*(v)) && strstr(name,"max")) return 1;
-     if((v== (uint *)&time_update) && ((!time_update) || !*v ) ) return 1;
-   }
-   if( v==(uint *) &dns_file) return 1;
-  }
-  else if(name && name[0]=='n' && strstr(name+2,"max") ) return 1;
- }
- return 0;
-
+  return 0;
 }
 
 #ifdef USE_SYSPASS
