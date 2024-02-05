@@ -22,7 +22,7 @@
 #
 #
 
-VERSION=3.06.28test2
+VERSION=3.06.28test3
 VERSIONT=3.06.28test
 
 prefix ?=/usr/local/

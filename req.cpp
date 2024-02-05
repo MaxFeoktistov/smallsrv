@@ -493,12 +493,14 @@ bdreq:
     {
         t=out_buf+1024;
         Send(t,sprintf(t,
-  "HTTP/1.0 200 Ok\r\n"
-  "Content-Length: %u\r\n"
-  //"Cache-control: max-age=%u\r\n"
-  "Content-Type: application/dns-message\r\n\r\n", dirlen
-                 ));
+                       "HTTP/1.0 200 Ok\r\n"
+                       "Content-Length: %u\r\n"
+                       "Connection: Keep-Alive\r\n"
+                       //"Cache-control: max-age=%u\r\n"
+                       "Content-Type: application/dns-message\r\n\r\n", dirlen)
+            );
        Send(pst,dirlen);
+       if(KeepAlive) goto ex1;
     }
     else
     {
@@ -942,7 +944,7 @@ lcgi:
  {
    DBGL("KeepAlive enable\n");
 
-   // Wait 0.5 .. 1.5s for next request
+   // Wait 0.5 s for next request
    ii=RESelect(0,500000,1,s);
    if(!ii) {
      DBGL("KeepAlive set");

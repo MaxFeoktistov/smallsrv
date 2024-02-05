@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2020 Maksim Feoktistov.
+ * Copyright (C) 1999-2024 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov
@@ -1280,16 +1280,7 @@ char* CopyQ(char *b,char *t)
 
 ulong D64X(uchar i);
 
-/*
-ulong D64X(uchar i)
-{if(i=='+')return 62;
- if(i=='/')return 63;
- if(i<'0')return 64;
- if(i<='9')return i-'0' + 52;
- if(i<='Z')return i-'A';
- return i-'a' + 26;
-};
-*/
+#if 0
 char* CopyB(char *y,char *t)
 {uint i,j;
   while((i=D64X(*t))<64 /* &&   *t!='?' */)
@@ -1310,6 +1301,10 @@ char* CopyB(char *y,char *t)
   *y=0;
   return y;
 };
+
+#else
+#define CopyB(a,b) Decode64(a,b,256)
+#endif
 
 char* CopyBB(char *y,char *t)
 {int i,j;
