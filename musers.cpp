@@ -475,23 +475,35 @@ int User::Parse()
 
 
 //-------
-int IsSame(char *tt,char *pp)
+char* IsSame(char *tt,char *pp)
 {
-  char *z;
-  z=0;
+  char *z = 0;
+  char a;
   do{
-   if(*tt && !*pp)return 0;
-   if(*tt=='*')
-   { z=++tt;
- lb_wld:
-     while(*++pp!=*tt) if(!*pp)return 0;
-   }
-   else if(*pp++!=*tt++)
-   {if(z && *pp){tt=z; goto lb_wld;}
-    return 0;
-   }
-  }while(*tt);
-  return !*pp;
+    if(*tt && !*pp)return 0;
+    if(*tt=='*')
+    {
+      z=++tt;
+    lb_wld:
+      a=*tt;
+      while(*++pp != a)
+      {
+        if(a <= '0' || a == ':') break;
+        if(!*pp)return 0;
+      }
+    }
+    else if(*pp++ != *tt++)
+    {
+      if(z && *pp)
+      {
+        tt=z;
+        goto lb_wld;
+      }
+      return 0;
+    }
+  }while(*tt >= '0' && *tt!=':');
+  if(*pp) return tt;
+  return 0;
 }
 
 void Req::AddHack(ulong t,int v)
@@ -582,7 +594,7 @@ User   *FindUser(char *bfr,int typ,char *pwd /*=0*/,Req *r) //=0)
   DBGLA("DEBUG 3 %s %s %X %X",tuser->name,bfr,tuser->state,typ);
   if( (tuser->state & UserPARSED) && (tuser->state&typ) )
   {
-    if(IsSame(tuser->name,bfr))
+    if( ! strcmp(tuser->name,bfr)  )
     {
       if(pwd)
       {
@@ -646,8 +658,7 @@ User   *FindUser(char *bfr,int typ,char *pwd /*=0*/,Req *r) //=0)
     }
   }
  }
-#ifdef USE_SYSPASS
-#ifdef SYSUNIX
+#if defined(USE_SYSPASS) && defined(SYSUNIX)
  DBGL("")
  if((!tuser) && (FL3_SYS_USERS & s_flgs[3]) )
  {
@@ -689,7 +700,6 @@ User   *FindUser(char *bfr,int typ,char *pwd /*=0*/,Req *r) //=0)
       return tuser;
     }
  }
-#endif
 #endif
 
 #if !defined(CD_VER)

@@ -928,8 +928,8 @@ lbCon:
      {
        l=pth.MkFName(bb,bfr+5+15);
        if(
-         ((puser->state&UserFTP)!=UserFTP && ! (pth.mode&0x10) )
-         || pth.mode==0xB
+         ((puser->state&UserFTP)!=UserFTP && ! (pth.mode & V_NOFTP) )
+         || pth.mode == V_RWLIM
        )goto lerr550;
        if( (!CheckBadName(bb)) )goto lerr501;
       CheckAccess(bb,2);
@@ -1017,9 +1017,9 @@ lbCon:
     if(oldcmd!=0x72666E72 x4CHAR("rnfr"))
     {SendConstCMD( "503 Bad sequence\r\n"); }
     else
-    {if(pth.mode&0x8)goto lerr550;
+    {if(pth.mode & V_LIMITED)goto lerr550;
      i=pth.MkFName(t=bb+l+1,bfr+5);
-     if(pth.mode==0xB)goto lerr550;
+     if(pth.mode == V_RWLIM)goto lerr550;
      debug("rename to %s",t);
      if( //(i<=SrcDirLen) ||
        (!CheckBadName(t)) )goto lerr501;
@@ -1040,8 +1040,8 @@ lbCon:
    case 0x656C6564 x4CHAR("dele")://22:
     i=pth.MkFName(bb,bfr+5);
     if(
-       ((puser->state&UserFTP)!=UserFTP && ! (pth.mode&0x10) )
-       || pth.mode==0xB
+       ((puser->state&UserFTP)!=UserFTP && ! (pth.mode & V_NOFTP) )
+       || pth.mode == V_RWLIM
       )goto lerr550;
     if( //(i<=SrcDirLen) ||
        (!CheckBadName(bb)) )goto lerr501;
@@ -1070,7 +1070,7 @@ lbCon:
     pth.MkFName(bb,bfr+4);
     if(
        ((puser->state&UserFTP)!=UserFTP)
-       && !(pth.mode&0x10)
+       && !(pth.mode & V_NOFTP)
       )goto lerr550;
 
     if( //(i<=SrcDirLen) ||
@@ -1087,9 +1087,9 @@ lbCon:
     if( //(i<=SrcDirLen) ||
      (!CheckBadName(bb)))goto lerr501;
     if(
-        ((puser->state&UserFTP)!=UserFTP || pth.mode==0xB )&&
+        ((puser->state&UserFTP) != UserFTP || pth.mode == V_RWLIM )&&
         (!(ftp_upload && stristr(bb+SrcDirLen,ftp_upload)))
-        && !(pth.mode&4)
+        && !(pth.mode & V_WRITE)
       )goto lerr550;
     //i=
     CheckAccess(bb,2);
@@ -1172,13 +1172,13 @@ lbCon:
 #endif
    if(cmd==0x72746572 x4CHAR("retr"))
    {if(x==-1)goto lerr501;
-    if( (pth.mode&0x8)?!(pth.mode&2): (i && (UserFTP & ~(puser->state))) )goto lerr550;
+    if( (pth.mode & V_LIMITED)?!(pth.mode & V_READ): (i && (UserFTP & ~(puser->state))) )goto lerr550;
     if(x&FILE_ATTRIBUTE_DIRECTORY)goto lerr501;
     CheckAccess(bb,4);
    }
    sprintf(inf,"%.94s",bb);
    if( cmd==0x726F7473 x4CHAR("stor") || cmd== 0x65707061 x4CHAR("appe") )
-   { if( ((pth.mode&0x8)?!(pth.mode&4):!(puser->state&UserFTPW)) &&  ! i  ) goto lerr550;
+   { if( ((pth.mode & V_LIMITED)?!(pth.mode & V_WRITE):!(puser->state&UserFTPW)) &&  ! i  ) goto lerr550;
      if( x!=-1  &&
          (
           (UserFTP & ~(puser->state)) ||
@@ -1624,7 +1624,7 @@ lbPORT:
    case 0x65746973 x4CHAR("site")://36: //SITE CHMOD 66
     if( (p=stristr(bfr,"chmod ")) && (t=strrchr(p+6,' ')) )
     {l=pth.MkFName(bb,t+1);
-     if( !((pth.mode&0x8)?((pth.mode&6)==6):((puser->state&(UserFTPW|UserFTPR))==(UserFTPW|UserFTPR))
+     if( !((pth.mode & V_LIMITED)?((pth.mode & V_RW) == V_RW):((puser->state&(UserFTPW|UserFTPR))==(UserFTPW|UserFTPR))
           )
        ) goto lerr550;
      if(!CheckBadName(bb) )goto lerr501;

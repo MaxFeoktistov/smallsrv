@@ -313,7 +313,7 @@ int Req::RGetCMD(char *b)
   if(b[i-1]=='\n')b[i-2]=0;
   if(s_flg&FL_FULLLOG)
   {
-    AddToLog(b,s,&sa_c46, (fl&F_SMTP_CL) ? FmtShort:FmtShortR);
+    AddToLog( (fl&F_PASSWORD)? (char *) "**...*":b,s,&sa_c46, (fl&F_SMTP_CL) ? FmtShort:FmtShortR);
   }
   if (fl&F_SMTP_CL) return atoui(b);
   DWORD_PTR(t[-1])=0;
@@ -722,7 +722,11 @@ int Req::SMTPReq()
           }
           if( ( Send(rcode, rcodeLen) ) < 0) goto lbErrSend;
           if(s_flg&FL_FULLLOG)AddToLog(rcode, s, &sa_c46, FmtShrt);
-          if( RGetCMD(bfr) < 0 ) break;
+
+          if(FL1_DELPAS & s_flgs[1]) fl|=F_PASSWORD;
+          i = RGetCMD(bfr);
+          fl &= ~F_PASSWORD;
+          if(i < 0) break;
           p=bfr;
 
           lb_chk:;

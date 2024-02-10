@@ -208,7 +208,7 @@ const char FmtShrt [] ="<<%.256s\r\n";
 const char FmtShrtR[] ="<<%.256s\r\n";
 
 
-char *DLST[]={"\nAuthorization:","\nProxy-Authorization:",">PASS ","/$_admin_$user?n=",0};
+char *DLST[]={"\nAuthorization:","\nProxy-Authorization:",">PASS ","/$_admin_$user?n=","AUTH PLAIN ",0};
 
 char *oldprot=b_prot;
 

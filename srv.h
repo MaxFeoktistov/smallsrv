@@ -163,6 +163,7 @@ struct Req
 #define F_POST 1
 #define F_KEEP_ALIVE  2
 #define F_PHP 4
+#define F_PASSWORD 4
 //#define F_PERL 0x40
 #define F_UPCHUNKED 0x40
 #define F_EXE 0x20
@@ -558,6 +559,17 @@ int PrepCfg(char *fname);
 void InitParam(char *cln);
 typedef ulong WINAPI (*TskSrv)(void *);
 int XRecv(int s1,char *b,ulong l,int f,int);
+
+#define V_ACCESS        1
+#define V_READ          2
+#define V_WRITE         4
+#define V_LIMITED       8
+#define V_DIR           0x10
+#define V_NOHTTP        0x20
+#define V_NOFTP         0x80
+#define V_RW            (V_READ|V_WRITE)
+#define V_RWLIM         (V_LIMITED|V_READ|V_WRITE)
+
 int IsInStrLst(char *pwd,char *t);
 void PrintHelp();
 
@@ -716,11 +728,12 @@ int RemoveExpired();
 void RemoveAndDelKeepAlive(int i);
 void SetKeepAliveSock(int s);
 int WINAPI KeepAliveThread(void *);
+char* IsSame(char *tt,char *pp);
 
 
-int CheckCode(uchar *bfr,uint i,uint j);
-int CheckDate(char *cmdline);
-int CheckReg(uchar *bfr,uint i,uint j,char *pp);
+//int CheckCode(uchar *bfr,uint i,uint j);
+//int CheckDate(char *cmdline);
+//int CheckReg(uchar *bfr,uint i,uint j,char *pp);
 
 #ifndef CD_VER
 

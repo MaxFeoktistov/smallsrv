@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2023 Maksim Feoktistov.
+ * Copyright (C) 1999-2024 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov
@@ -153,40 +153,57 @@ int IsCGI(char *bb,int j)
 #endif
 };
 //---
-int IsInStrLst(char *pwd,char *t)
-{int h;
- union{uint x; uchar xb;};
- char *s;
- s=pwd;
- h=strlen(t);
- while( (pwd=strstr(pwd,t)))
- {if( s==pwd || !(pwd[-1]&~0x2C) )
-  {if( !(pwd[h]&~0x2C) ) return 1;
-   if( (pwd[h]==':') )
-   {x=DWORD_PTR(pwd[h+1])
-#if 0
-    &0xDFDFDF;
-    return (x==0x5257 || x==0x5752)?0xE:(xb==0x52)?0xB:(xb==0x57)?0xC:8;
-#else
-    ;
-    h=8;
-    while(x&~0x2C)
-    {switch(x&0xDF)
-     {
-      case 'F': return 0x80;
-      case 'R': h|=3; break;
-      case 'W': h|=5; break;
-      case 'H': h|=0x20; break;
-      case 'D': h|=0x10; break;
-     }
-     x>>=8;
-    }
-    return h;
-#endif
-   }
+/*
+char *StrTheSame(char *s, char *t)
+{
+  char *r;
+  while(*s)
+  {
+    if( (r = IsSame(s,t)) ) return r;
+    if( !(s = strchr(s,',')) ) return 0;
+    s++;
   }
-  ++pwd;}
- return 0;
+  return 0;
+}
+*/
+
+//---
+
+int IsInStrLst(char *name, char *t)
+{
+  union{uint x; uchar xb;};
+  char *end;
+  int  h;
+
+  while( !(end = IsSame(name,t)) )
+  {
+    if( !(name = strchr(name,',')) ) return 0;
+    name++;
+  }
+
+  if(end)
+  {
+    if( ! (*end &~0x2C) ) return V_ACCESS;
+    if( *end == ':' )
+    {
+      x=DWORD_PTR(*end);
+      h=8;
+      while(x&~0x2C)
+      {
+        switch(x&0xDF)
+        {
+          case 'F': return V_NOFTP;
+          case 'R': h|=V_ACCESS|V_READ; break;
+          case 'W': h|=V_ACCESS|V_WRITE; break;
+          case 'H': h|=V_NOHTTP; break;
+          case 'D': h|=V_DIR; break;
+        }
+        x>>=8;
+      }
+      return h;
+    }
+  }
+  return 0;
 }
 
 #ifdef USE_FUTEX
@@ -518,12 +535,15 @@ bdreq:
 
 // vhdir=a;
  if(a && a->flg)
- {if(!((t=CheckAuth(pwd=xin_buf+0x9000))
-    &&(puser=FindUser(t,255,pwd,this))
-    && (ii=IsInStrLst(a->d+a->flg,t))
-    && (! (ii&0x20) )
-    && ( (ii&7)!=5  )
-  ) )
+ {
+   if(
+      !(
+        (t=CheckAuth(pwd=xin_buf+0x9000))
+        &&(puser=FindUser(t,255,pwd,this))
+        && (ii=IsInStrLst(a->d+a->flg,t))
+        && (! (ii & V_NOHTTP) )
+        && ( (ii&7)!=(V_ACCESS|V_READ)  )
+      ) )
   {
 #ifdef WITHMD5
 //    if(  ( (s_flgs[2] & FL2_MD5PASS) || ! (s_flgs[1]&FL1_CRYPTPWD) ) &&  (s_flgs[2] & FL2_USEMD5D) && !(fl&F_DIGET_UNAVILABLE)  )

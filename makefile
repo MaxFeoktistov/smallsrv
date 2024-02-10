@@ -22,7 +22,7 @@
 #
 #
 
-VERSION=3.06.28test3
+VERSION=3.06.28test4
 VERSIONT=3.06.28test
 
 prefix ?=/usr/local/
@@ -1218,3 +1218,6 @@ deb: sources
 	cd o ; tar -xzf $(src_dir).tar.gz
 	mkdir -p o/$(src_dir)/debian ; sed "s/^Version:.*/Version: $(VERSION)/" debian/control >o/$(src_dir)/debian/control
 	cd o/$(src_dir) ; DEBEMAIL="max@smallsrv.com" ; DEBFULLNAME="Maksim Feoktistov" ; debmake -b "binarypackage:bin" ; debuild -i -us -uc -b
+
+srcdeb: deb
+	cd o/$(src_dir) ; DEBEMAIL="max@smallsrv.com" ; DEBFULLNAME="Maksim Feoktistov" ; debmake -b "binarypackage:bin" ; debuild -i -us -uc -S
