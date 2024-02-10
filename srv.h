@@ -731,10 +731,6 @@ int WINAPI KeepAliveThread(void *);
 char* IsSame(char *tt,char *pp);
 
 
-//int CheckCode(uchar *bfr,uint i,uint j);
-//int CheckDate(char *cmdline);
-//int CheckReg(uchar *bfr,uint i,uint j,char *pp);
-
 #ifndef CD_VER
 
 struct CheckFileTime
