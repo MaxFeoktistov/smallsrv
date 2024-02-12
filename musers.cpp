@@ -478,31 +478,38 @@ int User::Parse()
 char* IsSame(char *tt,char *pp)
 {
   char *z = 0;
-  char a;
+  uchar a,b;
+  a = *tt;
   do{
-    if(*tt && !*pp)return 0;
-    if(*tt=='*')
+    b = *pp++;
+    if( (a >='0' && a!=':') && !b)return 0;
+    if(a=='*')
     {
       z=++tt;
     lb_wld:
       a=*tt;
-      while(*++pp != a)
+      while(b != a)
       {
-        if(a <= '0' || a == ':') break;
-        if(!*pp)return 0;
+        b = *pp++;
+        if(!b)
+        {
+          if( a < '0' || a == ':' ) return tt;
+          return 0;
+        }
       }
     }
-    else if(*pp++ != *tt++)
+    else if(b != a)
     {
-      if(z && *pp)
+      if(z && b)
       {
         tt=z;
         goto lb_wld;
       }
       return 0;
     }
-  }while(*tt >= '0' && *tt!=':');
-  if(*pp) return tt;
+    a=*++tt;
+  }while(a >= '0' && a != ':');
+  if(!*pp) return tt;
   return 0;
 }
 

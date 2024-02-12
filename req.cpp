@@ -166,10 +166,14 @@ int IsInStrLst(char *name, char *t)
   char *end;
   int  h;
 
+  DBGLA("%s %s\r\n",name, t)
+
   while( !(end = IsSame(name,t)) )
   {
     if( !(name = strchr(name,',')) ) return 0;
     name++;
+
+    DBGLA("%s %s\r\n",name, t)
   }
 
   if(end)

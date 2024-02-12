@@ -1278,9 +1278,7 @@ int Req::FTPReq()
                       x=0;
 
                       do{l= Recv(t,BBSIZE);
-                        //XRecv(s2,t,BBSIZE,0,FTPTimeout);
 
-                        //recv(s2,t,BBSIZE,0);
                         if(l<=0)
                         {
                           //         debug("TTXD %d %d s=%d s2=%d i=%d %d %s %X %X",l,BBSIZE,s,s2,i,errno,strerror(errno),bb,t);
