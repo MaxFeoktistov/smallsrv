@@ -164,7 +164,7 @@ int IsInStrLst(char *name, char *t)
 {
   union{uint x; uchar xb;};
   char *end;
-  int  h;
+  int  h = 0;
 
   DBGLA("%s %s\r\n",name, t)
 
@@ -172,19 +172,25 @@ int IsInStrLst(char *name, char *t)
   {
     if( !(name = strchr(name,',')) ) return 0;
     name++;
-
     DBGLA("%s %s\r\n",name, t)
   }
 
   if(end)
   {
-    if( ! (*end &~0x2C) ) return V_ACCESS;
+
+    DBGLA("%s %s\r\n",name, end)
+    h=V_ACCESS;
+    //if( ! (*end &~0x2C) ) return V_ACCESS;
     if( *end == ':' )
     {
-      x=DWORD_PTR(*end);
-      h=8;
-      while(x&~0x2C)
+      x=DWORD_PTR(end[1]);
+
+
+      h=V_LIMITED;
+      while(x&~0xFFFFff2C)
       {
+        DBGLA("%s %X\r\n",end,x)
+
         switch(x&0xDF)
         {
           case 'F': return V_NOFTP;
@@ -195,10 +201,9 @@ int IsInStrLst(char *name, char *t)
         }
         x>>=8;
       }
-      return h;
     }
   }
-  return 0;
+  return h;
 }
 
 #ifdef USE_FUTEX
@@ -460,10 +465,11 @@ int Req::HttpReq()
       goto ex2b;
     }
     if( strin(in_buf+dirlen,"/$_wmail_$") )
-    {if( (s_flgs[2]&FL2_WMTLS && (Snd!=&TLSSend)) ||
-      (! (s_flgs[2] & FL2_WMAIL) ) ||
-      (IsInIPRange(pop_range)<=0 )
-      || IsProxyRange(pop_range) ) HttpReturnError(sACCESS_DE);
+    {
+      if( (s_flgs[2]&FL2_WMTLS && (Snd!=&TLSSend)) ||
+          (! (s_flgs[2] & FL2_WMAIL) ) ||
+          (IsInIPRange(pop_range)<=0 )
+          || IsProxyRange(pop_range) ) HttpReturnError(sACCESS_DE);
       else Wmail();
       goto ex2b;
     }
@@ -519,17 +525,16 @@ int Req::HttpReq()
       goto ex2b;
     }
     #endif
-    DBGL("")
 
     if(a && a->flg)
     {
       if(
         !(
           (t=CheckAuth(pwd=xin_buf+0x9000))
-          &&(puser=FindUser(t,255,pwd,this))
+          && (puser=FindUser(t,255,pwd,this))
           && (ii=IsInStrLst(a->d+a->flg,t))
           && (! (ii & V_NOHTTP) )
-          && ( (ii&7)!=(V_ACCESS|V_READ)  )
+          && ( (ii& (V_ACCESS|V_WRITE|V_READ) )!=(V_ACCESS|V_WRITE)  )
         ) )
       {
         #ifdef WITHMD5

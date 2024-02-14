@@ -482,18 +482,28 @@ char* IsSame(char *tt,char *pp)
   a = *tt;
   do{
     b = *pp++;
-    if( (a >='0' && a!=':') && !b)return 0;
+
+    DBGLA("%u %u %s %s\n",a,b,tt,pp-1)
+
+    if(!b)
+    {
+     if( (a >='0' && a!=':') )return 0;
+     return tt;
+    }
     if(a=='*')
     {
       z=++tt;
     lb_wld:
       a=*tt;
+
+      DBGLA("%X |%s| |%s|\n",a,tt,pp)
       while(b != a)
       {
         b = *pp++;
         if(!b)
         {
           if( a < '0' || a == ':' ) return tt;
+          DBGLA("a=%X %s\n", a,tt)
           return 0;
         }
       }
@@ -508,7 +518,8 @@ char* IsSame(char *tt,char *pp)
       return 0;
     }
     a=*++tt;
-  }while(a >= '0' && a != ':');
+  }while(a=='*' || (a >= '0' && a != ':') );
+  DBGLA("%X |%s| |%s|\n",a,tt,pp)
   if(!*pp) return tt;
   return 0;
 }
