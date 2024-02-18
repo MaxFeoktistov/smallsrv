@@ -44,7 +44,7 @@ void dbgf(char *er,int s);
 void xdie(char *);
 #define die(e) {xdie(e); return -1;}
 
-//#define DEBUG_VERSION 1
+#define DEBUG_VERSION 1
 #ifdef DEBUG_VERSION
 
 #define DBGLS(a)  debug("%s:%u:%s %s\r\n",__FILE__ , __LINE__, __func__, a);
@@ -214,6 +214,7 @@ struct Req
  union{
   char *trn;
   int  trn_sock;
+  Req  *next_doh;
  };
  char **http_var;
  union{

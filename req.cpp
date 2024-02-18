@@ -171,7 +171,7 @@ int IsInStrLst(char *name, char *t)
   while( !(end = IsSame(name,t)) )
   {
     if( !(name = strchr(name,',')) ) return 0;
-    name++;
+    name=SkipSpace(name+1);
     DBGLA("%s %s\r\n",name, t)
   }
 
@@ -180,11 +180,9 @@ int IsInStrLst(char *name, char *t)
 
     DBGLA("%s %s\r\n",name, end)
     h=V_ACCESS;
-    //if( ! (*end &~0x2C) ) return V_ACCESS;
     if( *end == ':' )
     {
       x=DWORD_PTR(end[1]);
-
 
       h=V_LIMITED;
       while(x&~0xFFFFff2C)
@@ -485,10 +483,11 @@ int Req::HttpReq()
         pst=out_buf;
         t= CopyBB(pst,req+4);
         postsize=t-pst;
-        //    debug("DOH:%u %X %X %X %X %s\n",postsize,DWORD_PTR(pst[0]),DWORD_PTR(pst[4]),DWORD_PTR(pst[8]),DWORD_PTR(pst[12]),pst+14);
+        DBGLA("DOH:%u %X %X %X %X %s\n",postsize,DWORD_PTR(pst[0]),DWORD_PTR(pst[4]),DWORD_PTR(pst[8]),DWORD_PTR(pst[12]),pst+14);
       }
       if(postsize<17) goto bdreq;
       dirlen=0;
+      next_doh = 0;
       t=(char *) this;
       _hwrite(doh_w,(char *)&t,sizeof(t));
       while(!dirlen)
@@ -499,7 +498,7 @@ int Req::HttpReq()
         Sleep(50);
         #endif
       }
-      //    debug("DoH ready %d",dirlen);
+      DBGLA("DoH ready %d",dirlen);
       if(dirlen>0)
       {
         t=out_buf+1024;

@@ -190,7 +190,7 @@ const uchar ArrTYPE[]={1,1,5,0,15,0,16,99, 2, 0, 2,  0, 0xC,0,28,0,6};
 //                     A A CNM MX  TXT SPF NS   NSA     PTR       SOA
 
 
-const uchar DNSSupportedTYpes[]={1,2,5,6,12,15,16,28,99};
+const uchar DNSSupportedTYpes[]={1,2,5,6,12,15,16,28,65,99};
 //#define intel16(a)  (((a)>>8ul)|(((a)&0xFF)<<8ul))
 
 #ifdef SYSUNIX
@@ -1084,8 +1084,6 @@ struct DNSReq
 #define dnsstUSOA       0x100
 #define dnsstEDNS       0x200
 
-
-
  int  s_in[5];
  struct
 #ifdef USE_IPV6
@@ -1096,8 +1094,9 @@ struct DNSReq
       sa_cl[5];
  struct timeval stim,ptim;
  ushort in_id[6];
- Req *doh_ptra[5];
-#define doh_ptr doh_ptra[0]
+ //Req *doh_ptra[5];
+ //#define doh_ptr doh_ptra[0]
+ Req *doh_ptr;
 
  ulong  hsh;
  AList alist;
@@ -1198,6 +1197,21 @@ void DNSReq::SendErrReply(d_msg  *pdm,char *bfx)
      SendReply(pdm);
 }
 
+
+void SendDOHReply(Req *doh, char *t, int l)
+{
+  if(doh->next_doh)
+  {
+    if(doh->next_doh != doh) SendDOHReply(doh->next_doh,t,l);
+    doh->next_doh = 0;
+  }
+  if(l>2) memcpy(doh->pst+2,t+2,l-2);
+  doh->dirlen=l;
+#ifdef USE_FUTEX
+  futex((int *)&doh->dirlen,FUTEX_WAKE,1,0,0,0);
+#endif
+}
+
 const uchar edns_record[]=
 {
   0,
@@ -1231,6 +1245,7 @@ void DNSReq::SendReply(d_msg  *pdm)
       }
       pdm->id=in_id[j];
    //   debug("SendReply to %X id=%X l=%u s=%u sudp2=%d",ADDR4(sa_cl), pdm->id,l,s,sudp2);
+#if 0
       if(doh_ptra[j])
       {
         memcpy(doh_ptra[j]->pst,t,l);
@@ -1244,10 +1259,12 @@ void DNSReq::SendReply(d_msg  *pdm)
 
       }
       else
+#endif
       {
 #ifdef _BSD_VA_LIST_
       if(ll) //s==stcp) // !=ssudp) // sdns)
-        BSend(s,t,l);  else
+        BSend(s,t,l);
+      else
 #endif
       sendto(s,t,l,0,(sockaddr *) (sa_cl+j),
 #ifdef USE_IPV6
@@ -1257,6 +1274,11 @@ void DNSReq::SendReply(d_msg  *pdm)
       }
 
      }while(++j < cnt && (!ll) );
+     if(doh_ptr)
+     {
+       SendDOHReply(doh_ptr,(char *)pdm,l);
+       doh_ptr = 0;
+     }
 
    FreeDNSReq();
 
@@ -1962,31 +1984,45 @@ int DNSReq::FindNSResend(int rs, NSRecordLst *ns,char *bfx,int min)
 void DNSReq::FreeDNSReq()
 {
   int i;
+  if(doh_ptr)
+  {
+    SendDOHReply(doh_ptr,0,-1);
+    doh_ptr = 0;
+  }
+  cnt=0;
   if(state)
   {
  //   debug("Free req %u",cdreq);
     state=0;
     if(cdreq)--cdreq;
+
+#if 0
     for(i=0; i<cnt ; i++ )
       if(doh_ptra[i])
       {
          doh_ptra[i]->dirlen=-1;
          doh_ptra[i]=0;
-      }
+#ifdef USE_FUTEX
+         futex((int *)&doh_ptra[i]->dirlen,FUTEX_WAKE,1,0,0,0);
+#endif
 
+      }
+#endif
   }
 }
 
 int CheckDNSDoS(sockaddr_in * sa_c);
 
 const DNSReq* lastDNSReq=dreq+MAX_DNS_REQ;
+int dnsreq_mutex;
+
 DNSReq* GetFreeReq(DNSReq* th,ulong hsh)
 {
    //dreq[MAX_DNS_REQ
  ulong k,bj,i,x;
  DNSReq* r=0;
  DNSReq* pdreq;
-
+ MyLock(dnsreq_mutex);
  k=last_time-5;
 
      if(cdreq>=MAX_DNS_REQ)
@@ -1997,13 +2033,14 @@ DNSReq* GetFreeReq(DNSReq* th,ulong hsh)
      // for(j=0;j<MAX_DNS_REQ;++j)
 
       for(pdreq=dreq;pdreq<lastDNSReq;pdreq++)
-          if(pdreq->state)
+          if(pdreq->state )
       {
-        if(k > pdreq->stim.tv_sec )
+        if(k > pdreq->stim.tv_sec && th!=pdreq )
         {
-         --cdreq;
-         pdreq->cnt=0;
-         pdreq->state=0;
+         pdreq->FreeDNSReq();
+         //--cdreq;
+         //pdreq->cnt=0;
+         //pdreq->state=0;
         }
         else ++x;
       }
@@ -2025,9 +2062,10 @@ DNSReq* GetFreeReq(DNSReq* th,ulong hsh)
        if(pdreq->stim.tv_sec<k)
        {
   // debug("req timeout %d",j);
-        pdreq->cnt =0;
-        pdreq->state=0;
-        if(cdreq)--cdreq;
+        pdreq->FreeDNSReq();
+        //if(cdreq)--cdreq;
+        //pdreq->cnt =0;
+        //pdreq->state=0;
         continue;
        }
        //if(pdreq->stim.tv_sec<(th.stim.tv_sec-5))continue;
@@ -2051,6 +2089,7 @@ DNSReq* GetFreeReq(DNSReq* th,ulong hsh)
              {
                //th->dmmx.flags = 0x0380;
                //th->SendReply(&th->dmmx);
+               MyUnlock(dnsreq_mutex);
                return 0;
              }
              pdreq->alist.a[i]=pdreq->alist.a[ pdreq->alist.n ]  ;
@@ -2060,14 +2099,27 @@ DNSReq* GetFreeReq(DNSReq* th,ulong hsh)
         }
         debug("DNS already try");
 
+        if(th->doh_ptr && th->doh_ptr != pdreq->doh_ptr )
+        {
+          th->doh_ptr->next_doh = pdreq->doh_ptr;
+          pdreq->doh_ptr = th->doh_ptr;
+          MyUnlock(dnsreq_mutex);
+          return 0;
+        }
+
         for(i=0;i<pdreq->cnt ; ++i)
         {
           if(
-            pdreq->in_id[i]==  th->in_id[0] //pdm->id
+            pdreq->in_id[i] ==  th->in_id[0] //pdm->id
              &&
             ADDR4( & th->sa_cl[0]) == ADDR4( & pdreq->sa_cl[i] ) &&
              ((sockaddr_in *)& th->sa_cl[0])->sin_port == ((sockaddr_in *)& pdreq->sa_cl[i])->sin_port
-            ) return 0;
+            )
+          {
+
+            MyUnlock(dnsreq_mutex);
+            return 0;
+          }
 
         }
         debug("DNS another id");
@@ -2077,7 +2129,9 @@ DNSReq* GetFreeReq(DNSReq* th,ulong hsh)
         k=pdreq->cnt++;
         pdreq->in_id[k]=     //pdm->id;
         pdreq->s_in[k]=th->s_in[0] ; //s;
-        pdreq->doh_ptra[k] = th->doh_ptra[0] ;
+
+      //!  pdreq->doh_ptra[k] = th->doh_ptra[0] ;
+
         //if(th->doh_ptr)pdreq->s_in[k]=(int)()
         //if(s==ssudp) //sdns)
         memcpy(pdreq->sa_cl+k,th->sa_cl,sizeof(th->sa_cl[0]));
@@ -2085,6 +2139,8 @@ DNSReq* GetFreeReq(DNSReq* th,ulong hsh)
         //  DWORD_PTR(pdreq->sa_cl[k])=(ulong)-1;
         //  ((ulong *) &(pdreq->sa_cl[k]))[1]=s;
         //}
+
+        MyUnlock(dnsreq_mutex);
         return 0;
        }
 
@@ -2124,6 +2180,8 @@ DNSReq* GetFreeReq(DNSReq* th,ulong hsh)
      cdreq++;
     }
 
+
+    MyUnlock(dnsreq_mutex);
     return r;
 
 
@@ -2144,15 +2202,19 @@ int DNSReq::ReReq(int rs,char *name,int rtyp)
 {
   DNSReq *nxt;
   NSRecordLst  lst;
+  Req *doh;
 
 
      debug("DNS Reqursion get %s %u %u type:%u",name,rcnt,ttcnt,rtyp);
      if( rcnt>3 || ttcnt>24 ) return 0;
 
-     if((nxt=GetFreeReq(this,MkName(name) ) ) )
-     {
+     doh = doh_ptr;
+     doh_ptr = 0;
+     nxt=GetFreeReq(this,MkName(name));
+     doh_ptr = doh;
 
-//       nxt->rcnt++;
+     if( nxt )
+     {
        rcnt++;
        nxt->rcnt=rcnt;
        nxt->lnk=this - dreq;
@@ -2251,10 +2313,10 @@ ulong WINAPI SetDNSServ(void * fwrk)
  int s,ss, //ssudp,
   sudp2=-1,
   stcp=0;
-// ssudp=soc_srv[6 + 9*(((int)fwrk)/9 )] ;
+// ssudp=soc_srv[SRV_SDNS + 9*(((int)fwrk)/9 )] ;
      //sdns;
  //if(((int)fwrk)&1)
- ss=soc_srv[6 + (
+ ss=soc_srv[SRV_SDNS + (
 #ifdef A_64
  *(uchar *) &fwrk
 #else
@@ -2357,7 +2419,7 @@ union{
  FD_ZERO(&er_set);
  j=0;
  pdm= &dmm;
-
+ th.doh_ptr = 0;
 
  if( isTCP )
  {
@@ -2376,7 +2438,7 @@ union{
   0xFF &(uint)fwrk
 #endif
     )/9,1);
-     ss=soc_srv[6 +
+     ss=soc_srv[SRV_SDNS +
 #ifdef A_64
   *(uchar *) &fwrk
 #else
@@ -2404,7 +2466,7 @@ union{
  {
   s=ss; //sdns;
 
-  for(soik=0;(k=soc_srv[6+soik*9])>0 && soik<9 ; ++soik )
+  for(soik=0;(k=soc_srv[SRV_SDNS+soik*MAX_SERV])>0 && soik<9 ; ++soik )
   {
     FD_SET(k,&set);
     //FD_SET(k,&er_set);
@@ -2457,7 +2519,7 @@ union{
  for(soi=0; soi<=soik  ; soi++ )
  {
 
-  s=( isTCP )? stcp : (soi==soik && sudp2>0)? sudp2 : soc_srv[6+soi*9];
+  s=( isTCP )? stcp : (soi==soik && sudp2>0)? sudp2 : soc_srv[SRV_SDNS+soi*MAX_SERV];
 
 //debug("%u soi=%d",s,soi);
 /*  if(FD_ISSET(s,&er_set) )
@@ -2502,7 +2564,7 @@ lb_tcpudp:
     th.doh_ptr=0;
  lbDOH:
 
-//   DDEBUG("DD")
+   DBGLA("DD %d\r\n", s)
 
 
    DWORD_PTR(dmmc[th.l])=0;
@@ -2517,7 +2579,7 @@ lb_tcpudp:
    t=DecodeName(bfx,dmm.buf,(char *)pdm )+4;
    xhst=MkName(bfx);
 
- //debug("3 %d %d %s",s,th.l,bfx);
+   DBGLA("3 %d %d %s",s,th.l,bfx);
 
   // last_time=time(0);
    gettimeofday(&tvlast_time,0);
@@ -2550,7 +2612,7 @@ lb_tcpudp:
            (! memchr((void *)DNSSupportedTYpes,th.typ,sizeof(DNSSupportedTYpes)  ) )
            && CheckDNSDoS((sockaddr_in *) &sa_client) )
     {
-      AddToLogDNS("DoS detected",i,&sa_client,(char *) ((isTCP)?" TCP":(th.doh_ptr)?"DoH":"") );
+      AddToLogDNS(bfx,i,&sa_client,(char *) ((isTCP)?" TCP DoS detected":(th.doh_ptr)?" DoH DoS detected": "DoS detected") );
       continue;
     }
     AddToLogDNS(bfx,i,&sa_client,(char *) ((isTCP)?" TCP":(th.doh_ptr)?"DoH":"") );
@@ -3043,18 +3105,14 @@ lbRedirect:
    if( (s_flgs[2]&FL2_DOH) && FD_ISSET(doh_r, (fd_set *) &set)   )
    {
       s =soc_srv[SDNS_IND];
-#ifdef   SYSUNIX
       FD_CLR(doh_r,(fd_set *) &set);
-#else
-      for(int iji=0; iji<set.fd_count ; iji++ ) if(set.fd_array[iji]==doh_r){set.fd_array[iji]=0; break;  } ;
-#endif
       _hread(doh_r,(char *) &th.doh_ptr,sizeof(th.doh_ptr) );
       th.l=th.doh_ptr->postsize;
       memcpy(dmmc,th.doh_ptr->pst,th.l);
       memcpy(&sa_client,& (th.doh_ptr->sa_c),sizeof(sa_client) );
      // i=sizeof(sa_client);
      // getpeername(th.doh_ptr->s,(sockaddr*) &sa_client,&i);
-
+      DBGLA("DOH size %d s=%d\n", th.l, s)
       goto lbDOH;
    }
 
@@ -3790,7 +3848,7 @@ int ReinitDNSSocket(int k,int tcp)
 {
   int s;
   int n;
-  n=6+k*9;
+  n=SRV_SDNS+k*MAX_SERV;
 
   if(tcp)++n;
   s=soc_srv[n];
@@ -4042,7 +4100,7 @@ try_bind_again:
       CloseSocket(sdn);
      //shutdown( sdnt, 2 );
      //closesocket( (int) sdnt);
-     soc_srv[6+k*9]=0;
+     soc_srv[SRV_SDNS+k*MAX_SERV]=0;
      if(pbnd) continue;
      if(k)break;
      if(sdnt) CloseSocket(sdnt);
@@ -4064,14 +4122,14 @@ try_bind_again:
 #endif
 #endif
 
-  soc_srv[6+k*9]=sdn;
+  soc_srv[SRV_SDNS+k*MAX_SERV]=sdn;
    memcpy(dns_bindaddr+k,&sa_server,sizeof(sa_server6));
 
 
   kk++;
 
 
-//  CreateThread(&secat,0x8000,(TskSrv)SetDNSServ,(void *)(k*9),0,(ulong *)&i);
+//  CreateThread(&secat,0x8000,(TskSrv)SetDNSServ,(void *)(k*MAX_SERV),0,(ulong *)&i);
 // DDEBUG("-")
   if(s_flg&FL_DNSTCP)
   {
@@ -4109,12 +4167,12 @@ try_bind_again2:
    }
    listen(sdnt,3);
 
-   soc_srv[7+k*9]=sdnt;
+   soc_srv[SRV_SDNST+k*MAX_SERV]=sdnt;
 
 #ifdef _BSD_VA_LIST_
   dnstthr=
 #endif
-   CreateThread(&secat,0x8000,(TskSrv)SetDNSServ, (void *) (long) (k*9+1), 0, (u_long *)&i);
+   CreateThread(&secat,0x8000,(TskSrv)SetDNSServ, (void *) (long) (k*MAX_SERV+1), 0, (u_long *)&i);
   }
 //  DDEBUG("3")
 lb_cnt_adaptor:;
