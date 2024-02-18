@@ -1,9 +1,12 @@
-smallsrv (3.06.28test2) unstable; urgency=low
+smallsrv (3.06.28test7) unstable; urgency=low
 
   * Added SMTP authorization
   * Fixed keep-alive bug
+  * Fixed DOH (DNS over HTTP).
+  * Added Keep-Alive support for DOH (DNS over HTTP) requests.
+  * Fixed paterns for users of private virtual directories.
 
- -- Maksim Feoktistov <max@smallsrv.com>  Sat, 03 Feb 2024 20:14:17 +0400
+ -- Maksim Feoktistov <max@smallsrv.com>  Sun, 18 Feb 2024 20:13:00 +0400
 
 smallsrv (3.06.27c) unstable; urgency=low
 
