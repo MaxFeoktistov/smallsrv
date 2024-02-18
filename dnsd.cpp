@@ -3219,6 +3219,8 @@ int LoadDomain(char *file)
     }
     j=FileSize(s); //_llseek(s,0,2); _llseek(s,0,0);
     if(! (hostfile= (char *)DMALLOC(j*2+40) ) )goto er1;
+   _hread(s,hostfile,j);
+   _lclose(s);
     hostfile[j]=0;
     memcpy(hostfile+8+j,hostfile,j+1);
 
