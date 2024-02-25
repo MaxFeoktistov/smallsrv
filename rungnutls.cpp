@@ -324,7 +324,9 @@ typedef int (* TFtransfer)(void *param,void *bfr,int l);
 static TFtransfer FSend,FRecv;
 
 struct OpenSSLConnection
-{int state;
+{
+ int state;
+#define ST_CONNECTION_CLOSED  0x80
  void *CallbackParam;
 #ifdef GTLS
  gnutls_session_t session;
@@ -398,7 +400,7 @@ static int pull_timeout_func(int *s, unsigned int ms)
 {
   int r;
   DBG_STEP()
-#ifndef MINGW //USE_POOL
+#ifndef MINGW
    struct pollfd  pfd;
    pfd.fd=* (int *) s;
    pfd.events=POLLIN;
@@ -406,22 +408,25 @@ static int pull_timeout_func(int *s, unsigned int ms)
 
    r=poll(&pfd,1,ms );
   // printf("poll(%d) %d %d ms\n",*s,r,ms);
+   if(pfd.revents & (POLLERR|POLLNVAL))return -1;
    return r;
-   //poll(&pfd,1,ms );
 #else
 //*
  fd_set set;
+ fd_set er_set;
  timeval tv;
  int ss;
 
  ss=* (int *) s;
  FD_ZERO(&set);
  FD_SET(ss, &set);
+ memcpy(&er_set, &set, sizeof(er_set) );
  tv.tv_sec=ms/1000;
  tv.tv_usec=(ms%1000) * 1000;
- r=select(ss+1,&set,0,0,&tv);
+ r=select(ss+1,&set,0,&er_set, &tv);
  DebugPrintFnc("dbg TLS %X %u %X %d\r\n",s,ss,ms,r);
  DBG_STEP()
+ if(FD_ISSET(ss, &er_set) ) return -1;
  return r;
 // */
 // return 1;
@@ -434,14 +439,12 @@ static int xFSend(void *p,char *b,int l)
 {
  DebugPrintFnc("xFSend %X %X %d\r\n",p,b,l);
  return (FSend)(p,b,l);
-
 }
 
 static int xFRecv(void *p,char *b,int l)
 {
  DebugPrintFnc("xFRecv %X %X %d\r\n",p,b,l);
  return (FRecv)(p,b,l);
-
 }
 #endif
 char copyright[]=
@@ -923,17 +926,58 @@ int SecConnect(struct OpenSSLConnection *s, int anon, char *verfyhost)
   return 1;
 };
 
+
+#define RECV_TIMEOUT_S 61
+
+#ifdef  MINGW
+ulong _PerSecond1E7=10000000;
+inline ulong FileTime2time(FILETIME  &a)
+{
+
+  ulong r,t;
+  asm volatile( "  subl  $0xFDE04000 ,%%eax \n"
+                "  sbbl  $0x14F373B ,%%edx \n"
+                "  cmpl  __PerSecond1E7,%%edx \n"
+                "  jae   1f \n"
+                "  divl __PerSecond1E7 \n"
+                "  imul $51,%%edx \n"
+                "  shrl $9,%%edx \n"
+                "1: \n"
+                :"=&a"(r),"=&d"(t)
+                :"0"(a.dwLowDateTime),"1"(a.dwHighDateTime)
+  );
+  return r;
+}
+
+time_t mg_time(void *)
+{
+  SYSTEMTIME  stime;
+  FILETIME ft;
+  GetLocalTime(&stime);
+  SystemTimeToFileTime(&stime, &ft);
+  return  FileTime2time(ft);
+}
+#undef time
+#define time mg_time
+#endif
+
+
 int SecRecv(struct OpenSSLConnection *s,char *b,int l)
 {
  int r;
- int try_again_limit = 16;
+ time_t  timeout_time = 0;
  DBG_STEP()
  do {
    r = gnutls_record_recv(s->session, b, l);
-   if(r != GNUTLS_E_AGAIN) break;
+   if(r != GNUTLS_E_AGAIN || (s->state & ST_CONNECTION_CLOSED) ) break;
  //  Fprintf("GNUTLS: recv %d E_AGAIN %lX %d\r\n", l, s->CallbackParam, *(int *) s->CallbackParam);
-   pull_timeout_func( (int *) s->CallbackParam, 10000);
- }while(try_again_limit-- >0);
+   if(pull_timeout_func( (int *) s->CallbackParam, 10000) < 0) break;
+   if(!timeout_time)
+   {
+     timeout_time = time(0) + RECV_TIMEOUT_S;
+     continue;
+   }
+ }while( time(0) < timeout_time  );
 
  if(r<0)
  {

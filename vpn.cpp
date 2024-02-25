@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2023 Maksim Feoktistov.
+ * Copyright (C) 1999-2024 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov
@@ -1084,26 +1084,28 @@ int VPNclient::RecvPkt()
 #ifdef VPN_WIN
   if( tap_waitbfr[tun_index] == (pkt+2) ) SynhWait(tun_index);
 #endif
-  if(pos_pkt<MAX_MTU)
+
+  if(MAX_MTU > (uint)pos_pkt)
   {
     fl |= F_JUSTPOOL;
     l=Recv(pkt + pos_pkt, MAX_MTU - pos_pkt);
+    if(l<=0) return -1;
+    pos_pkt += l;
+    if(pos_pkt < 2) return 0;
   }
 //  DBGLA("l=%d pos=%d pkt_len=%d",l, pos_pkt, pkt_len);
-  if(l<=0) return -1;
-  pos_pkt += l;
-  if(pos_pkt < 2) return 0;
 
   if(pkt_len >= MAX_MTU ||
          (pkt_len < ( (fl&F_VPNTAP)? sizeof(ether_header) : sizeof(iphdr) ) )
-         || ((uint)pos_pkt) > MAX_MTU ) {
+         || ((uint)pos_pkt) > MAX_MTU )
+  {
     debug("VPN synchronization error %d %d\r\n",pos_pkt, pkt_len );
     pos_pkt = 0;
     if(fl & F_VPN_LASTSINHERROR) return -1;
     fl |= F_VPN_LASTSINHERROR;
   }
   fl &= ~F_VPN_LASTSINHERROR;
-  while(pos_pkt>2 && pos_pkt >= (ll = pkt_len+2))
+  while(pos_pkt>2 && (uint)pos_pkt >= (ll = pkt_len+2))
   {
 
 #ifdef VPN_WIN
@@ -1208,7 +1210,7 @@ int VPNclient::RecvPkt()
       }
     }
 
-    if(pos_pkt > ll)
+    if((uint)pos_pkt > (uint)ll)
     {
       pos_pkt -= ll;
       memcpy(pkt, pkt+ll, pos_pkt);
@@ -1998,7 +2000,7 @@ ulong WINAPI VPNClient(void *)
           {
             if( (pkt_len=read(vpn_client_fd,pkt+2,MAX_MTU)) <= 0 )
             {
-              //debug("VPN client error %d %s\r\n", errno, strerror(errno));
+              DBGLA("VPN client error %d %s\r\n", errno, strerror(errno))
           err_vpn:
               vpn_client_fd = ReInitTUNTAP("read",vpn.tun_index);
               if(vpn_client_fd < 0)

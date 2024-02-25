@@ -288,6 +288,7 @@ int Req::TLSBegin(OpenSSLConnection *x, int type, char *verfyhost)
   Rcv=(tfRcv) &TLSRecv;
   Adv=x;
   x->CallbackParam=this;
+  x->state = 0;
   DBG_PRINT("TLS request");
   MyLock(TLSmutex);
   if( (type & tbtAccept) ? SecAccept(x) : SecConnect(x,type,verfyhost) )

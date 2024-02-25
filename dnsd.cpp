@@ -1050,7 +1050,7 @@ int DNSReq::NextSend(int rs)
       }
       else
       {
-        ((d_msg *)(dmmx))->  arcount =0;
+        ((d_msg *)(dmmx))-> arcount = 0;
         sendto(rs,dmmx, l,0,(sockaddr *) &nsa_cl, sizeof(sockaddr_in) );
         state|=dnsstWAIT_REPLY;
       }
@@ -1067,7 +1067,7 @@ int DNSReq::NextSend(int rs)
     }
   }
 
-  debug("No unrepled NS");
+  DBGL("No unrepled NS")
   return 0;
 }
 
@@ -2635,11 +2635,12 @@ ulong WINAPI SetDNSServ(void * fwrk)
                           pdreq->SendErrReply(pdm,bfx);
                       }
                     }
+#ifdef DEBUG_VERSION
                     else
                     {
                       debug("Strange state %X ",i);
-
                     }
+#endif
                   }
                 }
               }

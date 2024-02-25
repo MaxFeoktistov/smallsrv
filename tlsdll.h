@@ -26,6 +26,7 @@
 extern "C" {
 struct OpenSSLConnection
 {int state;
+#define ST_CONNECTION_CLOSED  0x80
  void *CallbackParam;
  void *con;
  void *io,*ssl_bio,*sbio;

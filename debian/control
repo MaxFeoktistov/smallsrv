@@ -7,7 +7,7 @@ Standards-Version: 4.5.0
 Homepage: https://smallsrv.com
 
 Package: smallsrv
-Version: 3.06.27
+Version: 3.06.28
 Maintainer: Maksim Feoktistov <max@smallsrv.com>
 Architecture: any
 Multi-Arch: foreign

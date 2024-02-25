@@ -34,7 +34,7 @@
 #define STRVER STRVERVS(SHS_VERSION)  /* DONT_AUTO_CHANGE */
 
 #else
-#define STRVER  "3.06.28test8"   /* DONT_AUTO_CHANGE */
+#define STRVER  "3.06.28test9"   /* DONT_AUTO_CHANGE */
 #endif
 #define sSMALL_HTT "Small HTTP Server ver. " STRVER /* DONT_AUTO_CHANGE */
 

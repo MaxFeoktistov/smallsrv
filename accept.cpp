@@ -741,13 +741,20 @@ int JustSnd(Req *th,const void *b,int l)
 int JustRcv(Req *th,void *b,int l)
 {int r;
 
- if(th->fl & F_JUSTPOOL) th->fl &= ~F_JUSTPOOL;
+ if(th->fl & F_JUSTPOOL)
+ {
+   th->fl &= ~F_JUSTPOOL;
+ }
  else if(RESelect(th->timout,0,1,th->s)<=0)
  {
    DBGLA("Timeout %lX s=%d timout=%d l=%d", (long)th, th->s, th->timout,l)
    return -1;
  }
  if((r=recv(th->s,(char *)b,l,0))>0 )th->Tin+=r;
+ else if(th->Rcv == &TLSRecv)
+ {
+   ((OpenSSLConnection *)th->Adv)->state |= ST_CONNECTION_CLOSED;
+ }
  //DBGLA("%lX s=%d timout=%d l=%d", (long)th, th->s, th->timout,r)
  return r;
 };
