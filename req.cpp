@@ -262,7 +262,7 @@ int Req::HttpReq()
 
 
   LimitBase *lipo,*lneto;
-  proxy_flg=((fl>>16)%9 )==1; /*F_PROXY*/
+  proxy_flg= (ServerNumber()==1); /*F_PROXY*/
   if(  FndLimit(ncntn=(proxy_flg?2:7) ,&lipo,&lneto,&sa_c ) )
   {
     HttpReturnError("Limit overflow");
@@ -637,7 +637,7 @@ int Req::HttpReq()
           #endif
           && (h==0x4D54532E x4CHAR(".STM") ||
           h==0x5448532E x4CHAR(".SHT") ||  h==0x5053412E x4CHAR(".ASP")
-          ||((s_flg&0x80) && (h==0x4D54482E x4CHAR(".HTM")))
+          ||((s_flg & FL_SSIHTM) && (h==0x4D54482E x4CHAR(".HTM")))
           ))
         {
           #ifdef SYSUNIX
@@ -1028,7 +1028,7 @@ int Req::SendDigestAuthReq(char *bfr)
   );
   opaque=MkName(nonce);
 
-  is_proxy=((fl>>16)%9)==1;
+  is_proxy=(1==ServerNumber());
   return Send(bfr,sprintf(bfr,
                           "HTTP/1.0 40%u Unauthorized" CRLF
                           "%s-Authenticate: Digest realm=\"%s\","

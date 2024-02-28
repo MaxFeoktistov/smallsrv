@@ -1,4 +1,4 @@
-smallsrv (3.06.28test8) unstable; urgency=low
+smallsrv (3.06.28) unstable; urgency=low
 
   * Added SMTP authorization
   * Fixed keep-alive bug
@@ -7,8 +7,9 @@ smallsrv (3.06.28test8) unstable; urgency=low
   * Fixed paterns for users of private virtual directories.
   * Fixed VPN.
   * Fixed libsecgnutls.
+  * Fixed SSI.
 
- -- Maksim Feoktistov <max@smallsrv.com>  Sat, 24 Feb 2024 12:37:23 +0400
+ -- Maksim Feoktistov <max@smallsrv.com>  Wed, 28 Feb 2024 09:12:20 +0400
 
 smallsrv (3.06.27c) unstable; urgency=low
 
