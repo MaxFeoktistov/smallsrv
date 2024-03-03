@@ -206,6 +206,10 @@ int IsInStrLst(char *name, char *t)
 
 #ifdef USE_FUTEX
 const  struct timespec timeout_30s={30,50000000};
+#define DOH_TIMEOUT 3
+#else
+#define DOH_SLEEP    50
+#define DOH_TIMEOUT (30500/DOH_SLEEP)
 #endif
 
 int Req::CheckEndChunked()
@@ -490,12 +494,19 @@ int Req::HttpReq()
       next_doh = 0;
       t=(char *) this;
       _hwrite(doh_w,(char *)&t,sizeof(t));
+      ii = 0;
       while(!dirlen)
       {
+        if(ii++ > DOH_TIMEOUT)
+        {
+          AddToLog("DOH close by timeout",s,&sa_c46,FmtShort);
+          DelDOHReq(this);
+          break;
+        }
         #ifdef USE_FUTEX
         futex((int *)&dirlen,FUTEX_WAIT,0,&timeout_30s,0,0);
         #else
-        Sleep(50);
+        Sleep(DOH_SLEEP);
         #endif
       }
       DBGLA("DoH ready %d",dirlen);

@@ -1017,6 +1017,7 @@ char *GetCntr(ulong ip);
 extern int doh_pipe[2];
 #define doh_r doh_pipe[0]
 #define doh_w doh_pipe[1]
+void DelDOHReq(Req *rq);
 
 extern char *anFnd[];
 //------------------------------

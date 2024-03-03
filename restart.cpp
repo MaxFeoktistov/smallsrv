@@ -259,7 +259,7 @@ void Restart()
 
 ulong DTick(ulong tick1, ulong tick2)
 {
-  if(tick1 > tick2) return tick1 - tick2;
+  if(tick1 >= tick2) return tick1 - tick2;
   return (0xFFFFffff - tick2 + tick1);
 }
 

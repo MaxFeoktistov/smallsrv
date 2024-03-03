@@ -1012,8 +1012,12 @@ struct DNSReq
 
 #define MAX_DNS_REQ  96
 DNSReq   dreq[MAX_DNS_REQ+1];
+const DNSReq* lastDNSReq=dreq+MAX_DNS_REQ;
+int dnsreq_mutex;
 ulong cdreq;
 ushort dns_id;
+int DOHmutex;
+
 
 int MxNextSend;
 int DNSReq::NextSend(int rs)
@@ -1080,7 +1084,6 @@ void DNSReq::SendErrReply(d_msg  *pdm,char *bfx)
   SendReply(pdm);
 }
 
-
 void SendDOHReply(Req *doh, char *t, int l)
 {
   if(doh->next_doh)
@@ -1093,6 +1096,33 @@ void SendDOHReply(Req *doh, char *t, int l)
   #ifdef USE_FUTEX
   futex((int *)&doh->dirlen,FUTEX_WAKE,1,0,0,0);
   #endif
+}
+
+void DelDOHReq(Req *rq)
+{
+  DNSReq *pdreq;
+  MyLock(DOHmutex);
+  for(pdreq=dreq; pdreq<lastDNSReq; pdreq++)
+  {
+    Req * rt = pdreq->doh_ptr;
+    if(rt)
+    {
+      if(rt == rq) pdreq->doh_ptr = 0;
+      else
+      {
+        while(rt->next_doh)
+        {
+          if(rt->next_doh == rq)
+          {
+            rt->next_doh = rq->next_doh;
+            break;
+          }
+          rt = rt->next_doh;
+        }
+      }
+    }
+  }
+  MyUnlock(DOHmutex);
 }
 
 const uchar edns_record[]=
@@ -1128,6 +1158,8 @@ void DNSReq::SendReply(d_msg  *pdm)
     }
     pdm->id=in_id[j];
     //   debug("SendReply to %X id=%X l=%u s=%u sudp2=%d",ADDR4(sa_cl), pdm->id,l,s,sudp2);
+    if(!cnt) break;
+
     {
       #ifdef _BSD_VA_LIST_
       if(ll) BSend(s,t,l); else
@@ -1142,8 +1174,10 @@ void DNSReq::SendReply(d_msg  *pdm)
   }while(++j < cnt && (!ll) );
   if(doh_ptr)
   {
+    MyLock(DOHmutex);
     SendDOHReply(doh_ptr,(char *)pdm,l);
     doh_ptr = 0;
+    MyUnlock(DOHmutex);
   }
 
   FreeDNSReq();
@@ -1780,8 +1814,10 @@ void DNSReq::FreeDNSReq()
   int i;
   if(doh_ptr)
   {
+    MyLock(DOHmutex);
     SendDOHReply(doh_ptr,0,-1);
     doh_ptr = 0;
+    MyUnlock(DOHmutex);
   }
   cnt=0;
   if(state)
@@ -1794,8 +1830,6 @@ void DNSReq::FreeDNSReq()
 
 int CheckDNSDoS(sockaddr_in * sa_c);
 
-const DNSReq* lastDNSReq=dreq+MAX_DNS_REQ;
-int dnsreq_mutex;
 
 DNSReq* GetFreeReq(DNSReq* th,ulong hsh)
 {
