@@ -404,29 +404,51 @@ int WINAPI SetServ(uint fnc)
 
   if(max_cln_host)
   {
-   ++no_close_req;
-  {
-   k =   IPv4addr(&sa_client);
-   for(i=0;i<max_tsk;i++)
-   if( ((u_long)(rreq[i])>1) &&
-//       (rreq[i]->sa_c.sin_addr. S_ADDR == sa_client.sin_addr. S_ADDR )
-     (
-       #ifdef USE_IPV6
-       (k == 1)? ( IsIPv6(& rreq[i]->sa_c) && !memcmp( &rreq[i]->sa_c6.sin6_addr, & req.sa_c6.sin6_addr, 16 ) ) :
-       #endif
-       ( IPv4addr(& rreq[i]->sa_c) == k )
-     )
-   )
-   {if((++j)>=max_cln_host)
-    {req.HttpReturnError( sTOO_MANY_ );
-//     setsockopt(req.s,SOL_SOCKET,SO_LINGER,(char *)&lngr,sizeof(lngr));
-     dec_no_close_req();
-     i=-1;
-     goto cnt;
+    ++no_close_req;
+    {
+      k =   IPv4addr(&sa_client);
+      for(i=0;i<max_tsk;i++)  if( ((u_long)(rreq[i])>1) &&
+        //       (rreq[i]->sa_c.sin_addr. S_ADDR == sa_client.sin_addr. S_ADDR )
+        (
+          #ifdef USE_IPV6
+          (k == 1)? ( IsIPv6(& rreq[i]->sa_c) && !memcmp( &rreq[i]->sa_c6.sin6_addr, & req.sa_c6.sin6_addr, 16 ) ) :
+          #endif
+          ( IPv4addr(& rreq[i]->sa_c) == k )
+        )
+      )
+      {
+        if((++j)>=max_cln_host)
+        {
+          req.HttpReturnError( sTOO_MANY_ );
+          //     setsockopt(req.s,SOL_SOCKET,SO_LINGER,(char *)&lngr,sizeof(lngr));
+          dec_no_close_req();
+          i=-1;
+          goto cnt;
+        }
+      }
+      if(KeepAliveCount)
+      {
+        MyLock(KeepAliveMutex);
+        for(i=0; i<KeepAliveCount; )
+        {
+          Req *preq;
+          preq = KeepAliveList[i];
+          if (
+            #ifdef USE_IPV6
+            (k == 1)? ( IsIPv6(& preq->sa_c) && !memcmp( &preq->sa_c6.sin6_addr, & req.sa_c6.sin6_addr, 16 ) ) :
+            #endif
+            ( IPv4addr(&preq->sa_c) == k )
+          )
+          {
+            ++j;
+            if(j>3)RemoveAndDelKeepAlive(i);
+          }
+          else { i++; }
+        }
+        MyUnlock(KeepAliveMutex);
+      }
     }
-   }
-  }
-  dec_no_close_req();
+    dec_no_close_req();
   }
 #elif 0
   if(sa_client.sin_addr. S_ADDR !=0x0100007F)
