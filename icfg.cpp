@@ -447,6 +447,7 @@ RANGES(smtp, CXS(S1t2T_281408, "Us IP ranges (allowed list)"), CXS(S2sIP_RANGESD
  " Separe single IP by comma and IP ranges with hyphens."))
 
 {"smtp_pop_ip",1,FL1_SMTP_AVT,(uint *)0, CXS(S1t2T_3845776, "Temporary add IP to allowed list after POP3 authorization" )},
+{"smtp_authsame",1,FL3_SMTP_AUTHSAME,(uint *)0, CXS(S1T_26690154, "When using SMTP authorization, the sender must be the same as the authorization user." )},
 {"smtp_msg_limit" ,0x1000,0x1C00000,(uint *)&max_msg_size, CXS(S2sLIMIT_OF_1, "Limit message size. (in bytes).")},
 {"smtp_nobreak",0,FL_NOBRKSMTP,(uint *)0, CXS(S2sDONT_BREAK, "Don't break connection, when overflow size limit")},
 {"blacklist" ,0x8000,0,(uint *)&blacklist, CXS(S2sDISABLED_0, "Blacklist of E-mail addresses of spamers."

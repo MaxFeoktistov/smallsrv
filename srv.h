@@ -518,6 +518,7 @@ int FndLimit(int lst,LimitBase **ip, LimitBase **net, sockaddr_in *sa );
 #define FL3_SMTP_TLS        0x00004000
 #define FL3_SMTP_CHKTLS     0x00008000
 #define FL3_SMTP_TLSONLY    0x00010000
+#define FL3_SMTP_AUTHSAME   0x00020000
 
 
 #define USE_TUN       (s_flgs[3] & FL3_VPN_TUN)

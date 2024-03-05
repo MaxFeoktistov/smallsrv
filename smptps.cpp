@@ -803,6 +803,10 @@ int Req::SMTPReq()
             {
               puser_s=FindUser(sender,UserSMTP,0,0);
               *t=0;
+              if( (s_flgs[3]&FL3_SMTP_AUTHSAME) && puser_a )
+              {
+                if( puser_s != puser_a && stricmp(sender, puser_a->name) ) goto ler450;
+              }
               if( ( ! ( (s_flgs[2]& FL2_MLNOIP) || us_ip)) ||
                 ! ( puser_s || ( puser_s=FindUser(sender,UserSMTP,0,0) ) ) )
               {
