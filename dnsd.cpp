@@ -1101,10 +1101,11 @@ void SendDOHReply(Req *doh, char *t, int l)
 void DelDOHReq(Req *rq)
 {
   DNSReq *pdreq;
+  Req * rt;
   MyLock(DOHmutex);
   for(pdreq=dreq; pdreq<lastDNSReq; pdreq++)
   {
-    Req * rt = pdreq->doh_ptr;
+    rt = pdreq->doh_ptr;
     if(rt)
     {
       if(rt == rq) pdreq->doh_ptr = 0;

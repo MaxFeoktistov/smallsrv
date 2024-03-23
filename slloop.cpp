@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2021 Maksim Feoktistov.
+ * Copyright (C) 1999-2024 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov
@@ -474,7 +474,7 @@ fd_set er_set;
       for(k=0; k < MAX_ADAPT; ++k)
         if( (j=soc_srv[i+k*MAX_SERV])>0){
           FD_CLR(j,&set);
-          printf("\rCLR: %d %d %d\n",i,k,j);
+         // printf("\rCLR: %d %d %d\n",i,k,j);
         }
       if(KeepAliveList && ( (SRV_HTTP_MSK|SRV_PROXY_MSK|SRV_SSL_MSK) & (1<<i) ) && max_srv[i] )
       {

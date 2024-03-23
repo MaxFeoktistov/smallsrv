@@ -7,8 +7,7 @@ Standards-Version: 4.5.0
 Homepage: https://smallsrv.com
 
 Package: smallsrv
-Version: 3.06.28
-Maintainer: Maksim Feoktistov <max@smallsrv.com>
+Version: 3.06.29
 Architecture: any
 Multi-Arch: foreign
 Depends: libc6 (>= 2.14), libgnutls30 (>= 3.0.0), libssl1.1 (>= 1.1.0), ${misc:Depends}, ${shlibs:Depends}

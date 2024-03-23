@@ -1,7 +1,17 @@
+smallsrv (3.06.29) unstable; urgency=low
+
+  * Added timeout check for DOH.
+  * When checking the limit for simultaneous connections from the
+    same host, Keep-Alive connections are now also checked and closed.
+  * Added an option to check if the SMTP authorization and the sender
+    match.
+
+ -- Maksim Feoktistov <max@smallsrv.com>  Sat, 23 Mar 2024 09:28:01 +0400
+
 smallsrv (3.06.28) unstable; urgency=low
 
   * Added SMTP authorization
-  * Fixed keep-alive bug
+  * Fixed Keep-Alive bug
   * Fixed DOH (DNS over HTTP).
   * Added Keep-Alive support for DOH (DNS over HTTP) requests.
   * Fixed paterns for users of private virtual directories.
