@@ -1,3 +1,9 @@
+smallsrv (3.06.30test1) unstable; urgency=low
+
+  * Added support for reconnecting to VPN.
+
+ -- Maksim Feoktistov <max@smallsrv.com>  Sun, 14 Apr 2024 11:39:06 +0400
+
 smallsrv (3.06.29) unstable; urgency=low
 
   * Added timeout check for DOH.

@@ -944,11 +944,12 @@ int Req::InsertVPNclient()
   char *rnd, *pwdcode;
   int l;
   User *tuser = 0;
-  char *t;
+  char *t,*t1;
   char *p;
   int isTap;
   ulong ip;
   long long mac;
+  int  reconnect = 0;
 
 
   //DBGL("");
@@ -962,7 +963,7 @@ int Req::InsertVPNclient()
 
    if( ( ! (s_flgs[3] & FL3_VPN_PUBLIC) )  && ! (tuser=ChUser(UserHTTP)) )
    {
-  lbLogout:
+ // lbLogout:
 
       //DBGL("");
 
@@ -986,10 +987,36 @@ int Req::InsertVPNclient()
    }
 
    DBGLS(t);
+   if( (t1=GetVar(http_var,"reconnect")) )
+   {
+     uint id = atouix(t1);
+     for(int i=0; i<vpn_count; i++)
+     {
+       if(id == vpn_list[i]->ipv4)
+       {
+         if(tuser == vpn_list[i]->a_user)
+         {
+           cl = vpn_list[i];
+           maxVPNset.Clear(cl->s);
+           cl->Close();
+           ip = cl->ipv4;
+           reconnect++;
+           debug("Recconect...\r\n");
+           goto lb_reconnect;
+         }
+
+         debug("Bad user for recconect...\r\n");
+
+         break;
+       }
+     }
+     debug("Not found for recconect...\r\n");
+   }
 
 //   cl = new VPNclient;
    cl = (VPNclient *) malloc(sizeof(VPNclient));
    if(!cl) return -1;
+lb_reconnect:
    memcpy(cl, this, sizeof(Req) );
    memcpy(&cl->tls, Adv, sizeof(OpenSSLConnection) );
    cl->Adv = &cl->tls;
@@ -999,35 +1026,37 @@ int Req::InsertVPNclient()
 
    cl->fl = F_VPNTUN << isTap;
    cl->tun_index = isTap;
-
-   ip = strtoul(t, &p, 16);
-   if( (!ip) || (vpn_total_remote_ip[isTap] && ! IsVPN_IP_Free(ip)) )
+   if(!reconnect)
    {
-     if(vpn_first_remote_ip[isTap] && vpn_total_remote_ip[isTap])
+     ip = strtoul(t, &p, 16);
+     if( (!ip) || (vpn_total_remote_ip[isTap] && ! IsVPN_IP_Free(ip)) )
      {
-       if(vpn_next_remote_ip[isTap] < vpn_first_remote_ip[isTap]) vpn_next_remote_ip[isTap] = vpn_first_remote_ip[isTap];
-       ip = vpn_next_remote_ip[isTap];
-       do{
-         if(IsVPN_IP_Free(ip))
-         {
-           vpn_next_remote_ip[isTap] = ip;
-           goto found_free_ip;
-         }
+       if(vpn_first_remote_ip[isTap] && vpn_total_remote_ip[isTap])
+       {
+         if(vpn_next_remote_ip[isTap] < vpn_first_remote_ip[isTap]) vpn_next_remote_ip[isTap] = vpn_first_remote_ip[isTap];
+         ip = vpn_next_remote_ip[isTap];
+         do{
+           if(IsVPN_IP_Free(ip))
+           {
+             vpn_next_remote_ip[isTap] = ip;
+             goto found_free_ip;
+           }
 
-         #ifdef BIG_ENDIAN
-         ip++;
-         if( (ip-vpn_first_remote_ip[isTap]) >= vpn_total_remote_ip[isTap] ) ip = vpn_first_remote_ip[isTap];
-         #else
-         ip = htonl(ip);
-         ip++;
-         if( (ip-htonl(vpn_first_remote_ip[isTap])) >= vpn_total_remote_ip[isTap] ) ip = vpn_first_remote_ip[isTap];
-         else ip = htonl(ip);
-         #endif
+           #ifdef BIG_ENDIAN
+           ip++;
+           if( (ip-vpn_first_remote_ip[isTap]) >= vpn_total_remote_ip[isTap] ) ip = vpn_first_remote_ip[isTap];
+           #else
+           ip = htonl(ip);
+           ip++;
+           if( (ip-htonl(vpn_first_remote_ip[isTap])) >= vpn_total_remote_ip[isTap] ) ip = vpn_first_remote_ip[isTap];
+           else ip = htonl(ip);
+           #endif
 
-       } while( ip != vpn_next_remote_ip[isTap] );
-       ip = 0;
-       debug("Not found free IP for %s\r\n", TUNTAPNames[isTap]);
-     found_free_ip:;
+         } while( ip != vpn_next_remote_ip[isTap] );
+         ip = 0;
+         debug("Not found free IP for %s\r\n", TUNTAPNames[isTap]);
+         found_free_ip:;
+       }
      }
    }
    t=loc + 1024;
@@ -1065,7 +1094,7 @@ int Req::InsertVPNclient()
    cl->pos_pkt = 0;
 
 
-   vpn_list[vpn_count++] = cl;
+   if(! reconnect) vpn_list[vpn_count++] = cl;
    maxVPNset.Set(s);
    SetKeepAliveSock(s);
 
@@ -1683,17 +1712,19 @@ agayn1:
     l = Encode64(bfr + l, bfr + 1400, sprintf(bfr+1400, "%s:%s",vpn_user, vpn_passw ) ) - bfr;
   }
   l=sprintf(bfr,"GET %s HTTP/1.1\r\n"
-  //  "User: %s\r\n"
-  //  "Dg: %X\r\n"
-  //  "Code: %s\r\n"
     "Authorization: %s\r\n"
     "Host: %s\r\n"
     "%s: %X %llX\r\n"
+    "%s"
     "Connection: keep-alive\r\n\r\n", vpncln_name,
     //vpn_user, r, bfr+1124,
     bfr+1024, vpn_remote_host,
     TUNTAPNames[tun_index], vpn_client_ip, vpn_mac[tun_index]
   );
+  if(ipv4)
+  {
+    l+=sprintf(bfr+l-2,"reconnect: %X\r\n\r\n", ipv4) - 2;
+  }
 
   DBGLA("ClSend:%u: %s",l,bfr);
 
@@ -1954,6 +1985,7 @@ ulong WINAPI VPNClient(void *)
 #endif
 
 
+  vpn.ipv4 = 0;
   while(is_no_exit)
   {
     if( (r=vpn.ClientConnect(&vpn.tls)) < 0 )
