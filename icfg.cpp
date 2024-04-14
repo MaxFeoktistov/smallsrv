@@ -540,14 +540,9 @@ SPD(5,tls)
 {"smtp_tls",1,FL1_SMTPTLS,(uint *)0, CXS(S1t2T_2938073, "Enable TLS for POP3/SMTP" )},
 {"ftp_tls",2,FL2_FTPTLS,(uint *)0, CXS(S1t2T_2499029, "Enable TLS for FTP" )},
 
-
-{"tls_lib"  ,256,0,(uint *)&TLSLibrary,
 #ifndef  TLSWODLL
-  CXS(S2sTLS__LIB, "DLL library with TLS/SSL. E.g. libsec111.dll")
-#else
-  0
+{"tls_lib"  ,256,0,(uint *)&TLSLibrary, CXS(S2sTLS__LIB, "DLL library with TLS/SSL. E.g. libsec111.dll") },
 #endif
-},
 
 {"tls_cert_file" ,256,0,(uint *)&s_cert_file, CXS(S2sTLS__SERT, "Certificate file")},
 {"tls_key_file" ,256,0,(uint *)&s_key_file, CXS(S2sTLS__KEYF, "Key file")},
@@ -639,6 +634,11 @@ SPD(5,tls)
 #endif // TLSVPN
 
 #endif //V_FULL
+
+#ifdef  TLSWODLL
+{"tls_lib"  ,256,0,(uint *)&TLSLibrary, 0 },
+#endif
+
 #ifndef FREEVER
 
 {"registr_user",128,0,(uint *)&user_name,0},
