@@ -1101,6 +1101,10 @@ lb_reconnect:
    fl = F_KEEP_ALIVE | F_VPNANY;
    s = -1;
    Adv = 0;
+
+   AddToLog(0, cl->s, & cl->sa_c46, ">>VPN Connection open %s %s %u.%u.%u.%u\r\n", cl->a_user? cl->a_user->name: "",
+            TUNTAPNames[isTap], ip&0xFF, (ip>>8)&0xFF,(ip>>16)&0xFF, ip>>24); // TODO: Big endian fix
+
    return 0;
 }
 
@@ -1591,12 +1595,12 @@ int split(char *src, char *separators, char **result, int max_result)
   int ret = 0;
   while(*src && ret<max_result)
   {
-    *result=src;
+    if(result) *result=src;
     //while( ! strchr(separators, *src ) ) { if(!*src) goto ex2loop; src++ ; }
     if( (!(src = strpbrk(src, separators)) ) || ! *src )  goto ex2loop;
     *src++ = 0;
     while( strchr(separators, *src ) ) { if(!*src) goto ex2loop; src++ ; }
-    result++;
+    if(result) result++;
     ret++;
   }
  ex2loop:
@@ -1715,7 +1719,6 @@ agayn1:
     "Authorization: %s\r\n"
     "Host: %s\r\n"
     "%s: %X %llX\r\n"
-    "%s"
     "Connection: keep-alive\r\n\r\n", vpncln_name,
     //vpn_user, r, bfr+1124,
     bfr+1024, vpn_remote_host,
