@@ -950,6 +950,7 @@ int Req::InsertVPNclient()
   ulong ip;
   long long mac;
   int  reconnect = 0;
+  uint id_ip = 0;
 
 
   //DBGL("");
@@ -989,10 +990,10 @@ int Req::InsertVPNclient()
    DBGLS(t);
    if( (t1=GetVar(http_var,"reconnect")) )
    {
-     uint id = atouix(t1);
+     id_ip = atouix(t1);
      for(int i=0; i<vpn_count; i++)
      {
-       if(id == vpn_list[i]->ipv4)
+       if(id_ip == vpn_list[i]->ipv4)
        {
          if(tuser == vpn_list[i]->a_user)
          {
@@ -1010,6 +1011,7 @@ int Req::InsertVPNclient()
          break;
        }
      }
+
      debug("Not found for recconect...\r\n");
    }
 
@@ -1028,7 +1030,7 @@ lb_reconnect:
    cl->tun_index = isTap;
    if(!reconnect)
    {
-     ip = strtoul(t, &p, 16);
+     ip = (id_ip)? id_ip : strtoul(t, &p, 16);
      if( (!ip) || (vpn_total_remote_ip[isTap] && ! IsVPN_IP_Free(ip)) )
      {
        if(vpn_first_remote_ip[isTap] && vpn_total_remote_ip[isTap])

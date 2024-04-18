@@ -48,7 +48,7 @@
 #endif
 
 #if __USE_FORTIFY_LEVEL != 0
-#error "Bad chk functions will be added to the file"
+#warning "The functions with useless checks tried to be included to the binary"
 #undef __USE_FORTIFY_LEVEL
 #define __USE_FORTIFY_LEVEL 0
 #endif
@@ -101,7 +101,7 @@ extern int __REDIRECT (fcntl32, (int __fd, int __cmd, ...), fcntl);
 #endif
 
 #if __USE_FORTIFY_LEVEL != 0
-#error "Bad _chk functions will be added to the file"
+#warning "The functions with useless checks will be included to the binary"
 #undef __USE_FORTIFY_LEVEL
 #define __USE_FORTIFY_LEVEL 0
 #endif
@@ -115,6 +115,7 @@ extern int __REDIRECT (fcntl32, (int __fd, int __cmd, ...), fcntl);
 #pragma GCC diagnostic ignored "-Wformat-security"
 #pragma GCC diagnostic ignored "-Wformat-extra-args"
 #pragma GCC diagnostic ignored "-Wunused-result"
+#pragma GCC diagnostic ignored "-Wregister"
 #ifndef AT_ARM
 #pragma GCC diagnostic ignored "-Wliteral-suffix"
 #endif
