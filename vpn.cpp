@@ -1071,10 +1071,11 @@ lb_reconnect:
        l += sprintf(t + l,"ip: %X\r\n"
                          "mask: %X\r\n"
                          "gw: %X\r\n"
+                         "mtu: %X\r\n"
        ,ip,
        //vpn_nmask[isTap], //vpn_gw[isTap]
        msk,
-       ConvertIP(tt=tuntap_ipv4[isTap])
+       ConvertIP(tt=tuntap_ipv4[isTap]), vpn_mtu[isTap]
       );
        if(vpn_dns[isTap] && vpn_dns[isTap][0]) {
          l += sprintf(t + l,"dns: %s\r\n", vpn_dns[isTap]);
@@ -1916,7 +1917,14 @@ agayn1:
       ipv4bcast = ipv4 | ~n;
     }
   }
-
+#ifdef FORLINUX
+  t = GetVar(http_var,"mtu");
+  if(t && t[0])
+  {
+    n = atouix(t);
+    if(n > MIN_MTU && n<MAX_MTU) vpn_mtu[2] = n;
+  }
+#endif
 
   tmout = GetTickCount();
 

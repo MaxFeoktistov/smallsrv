@@ -22,7 +22,7 @@
 #
 #
 
-VERSION=3.06.30test4
+VERSION=3.06.30test5
 VERSIONT=3.06.30test
 
 prefix ?=/usr/local/
@@ -47,7 +47,7 @@ INSTALLFROM ?= oo/
 
 G=  -g  -Os
 
-TMPRAM ?= /dev/shm/shttps/o/
+TMPRAM ?= /dev/shm/shttps/
 
 # OPT= -m32 -pipe -falign-loops=0 -falign-jumps=0 -falign-functions=0 -fno-enforce-eh-specs \
 # -fno-verbose-asm -fno-implicit-templates -mno-align-double \
@@ -285,7 +285,7 @@ arm64: n_all
 
 $(TMPRAM)% :
 	mkdir -p $@
-	[ -d $* ] || ln -sf $@ .
+	[ -d $* ] || ln -sf $@ $*
 
 %/of: $(TMPRAM)%
 	mkdir -p $@

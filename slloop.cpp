@@ -443,13 +443,18 @@ fd_set er_set;
 
  if(s_flg&FL_HIDE){s_flg|=FL_NOICON;}
  if(flog)
- {if(stat(flog,&stt)<0 ){
-   if((ll=creat(flog,0600))>=0)
-   {fstat(ll,&stt);
-    _lclose(ll);
+ {
+   struct tm *stm;
+   if(stat(flog,&stt)<0)
+   {
+     if((ll=creat(flog,0600))>=0)
+     {
+       fstat(ll,&stt);
+       _lclose(ll);
+     }
    }
-  }
-  lastday= (localtime((time_t *) & (stt.st_ctime))->tm_mday);
+   stm = localtime( (time_t *) & (stt.st_ctime));
+   if(stm) lastday = stm->tm_mday;
  }
  if( InitApplication() <= 0 )return 0;
 
