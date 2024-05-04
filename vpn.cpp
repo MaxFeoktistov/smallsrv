@@ -1030,7 +1030,8 @@ lb_reconnect:
    cl->tun_index = isTap;
    if(!reconnect)
    {
-     ip = (id_ip)? id_ip : strtoul(t, &p, 16);
+     ip = strtoul(t, &p, 16);
+     if(id_ip) ip = id_ip;
      if( (!ip) || (vpn_total_remote_ip[isTap] && ! IsVPN_IP_Free(ip)) )
      {
        if(vpn_first_remote_ip[isTap] && vpn_total_remote_ip[isTap])
