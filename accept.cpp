@@ -145,7 +145,11 @@ void Req::Close()
 {
   if(s != -1)
   {
-    if(Snd==&TLSSend)SecClose((OpenSSLConnection*)Adv);
+    if(Snd==&TLSSend)
+    {
+      SecClose((OpenSSLConnection*)Adv);
+      Snd=(tfSnd) &JustSnd;
+    }
     CloseSocket(s);
     s = -1;
   }

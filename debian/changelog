@@ -1,10 +1,12 @@
-smallsrv (3.06.30test2) unstable; urgency=low
+smallsrv (3.06.30) unstable; urgency=low
 
   * Added support for reconnecting to VPN.
+  * Added share MTU value for VPN client.
   * Fixed web-administration for Linux versions that build with
     selected security library.
+  * Fixed makefile/makefile.in
 
- -- Maksim Feoktistov <max@smallsrv.com>  Sun, 14 Apr 2024 11:39:06 +0400
+ -- Maksim Feoktistov <max@smallsrv.com>  Wed, 08 May 2024 08:49:19 +0400
 
 smallsrv (3.06.29) unstable; urgency=low
 

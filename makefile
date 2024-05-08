@@ -22,8 +22,8 @@
 #
 #
 
-VERSION=3.06.30test5
-VERSIONT=3.06.30test
+VERSION=3.06.30
+VERSIONT=3.06.30
 
 prefix ?=/usr/local/
 CONFIG_BASE   ?= $(prefix:%/=%)/
@@ -257,7 +257,7 @@ endif
 
 $(OOBJS) $(OOBJS64) $(WINOOBJS): $(GENERATED)
 
-$(GENERATED): $(TMPRAM)o
+# $(GENERATED): $(TMPRAM)o
 
 i32: $(TMPRAM)o o o/httpd.exe o/libsec111.so o/libsecgnutls.so o/sndmsg o/httpd.exgnutls o/httpd.exopenssl
 
@@ -280,7 +280,7 @@ arm64: CROSS_COMPILE:=aarch64-linux-gnu-
 arm64: A_OPT:=-DA_64
 arm64: N_LFAKELIBS:=-Loo/fakelibs
 arm64: N_LFLAGS:=-mlittle-endian -Wl,-Bdynamic
-arm64: oo/fakelibs $(N_FAKELIBS)
+arm64: $(TMPRAM)oo oo/fakelibs $(N_FAKELIBS)
 arm64: n_all
 
 $(TMPRAM)% :
@@ -1159,7 +1159,7 @@ oo/libsec111.so: runssl111.cpp
 oo/sndmsg: oo/sndmsg.o
 	$(A_GCC)  $(G)  $^ -o $@ -lc
 
-oo/fakelibs: $(TMPRAM)oo
+oo/fakelibs:
 	mkdir -p $@
 
 oo/fakelibs/%.so: /usr/lib/x86_64-linux-gnu/%.so

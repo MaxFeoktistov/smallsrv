@@ -947,7 +947,7 @@ int Req::InsertVPNclient()
   char *t,*t1;
   char *p;
   int isTap;
-  ulong ip;
+  ulong ip = 0;
   long long mac;
   int  reconnect = 0;
   uint id_ip = 0;
