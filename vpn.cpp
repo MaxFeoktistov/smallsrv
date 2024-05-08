@@ -1002,24 +1002,29 @@ int Req::InsertVPNclient()
            cl->Close();
            ip = cl->ipv4;
            reconnect++;
-           debug("Recconect...\r\n");
+           debug("Reconnect...\r\n");
            goto lb_reconnect;
          }
 
-         debug("Bad user for recconect...\r\n");
+         debug("Bad user for reconnect...\r\n");
 
          break;
        }
      }
 
-     debug("Not found for recconect...\r\n");
+
+     debug("Not found for reconnect %u.%u.%u.%u...\r\n", id_ip&0xFF, (id_ip>>8)&0xFF, (id_ip>>16)&0xFF, id_ip>>24);
+     if(id_ip < vpn_first_remote_ip[isTap] || id_ip >= (vpn_first_remote_ip[isTap] + vpn_total_remote_ip[isTap]))
+     {
+       id_ip = 0;
+     }
    }
 
 //   cl = new VPNclient;
    cl = (VPNclient *) malloc(sizeof(VPNclient));
    if(!cl) return -1;
 lb_reconnect:
-   memcpy(cl, this, sizeof(Req) );
+   memcpy(cl, this, sizeof(Req));
    memcpy(&cl->tls, Adv, sizeof(OpenSSLConnection) );
    cl->Adv = &cl->tls;
    cl->tls.CallbackParam = cl;
@@ -1814,6 +1819,7 @@ agayn1:
     n=atouix(t); //ConvertIP(t);
    // DBGLA("%X" , n)
     ipv4 = n;
+    if(n) fl |= F_VPN_IPSET;
   }
 #if 0
   memset(&ifr, 0, sizeof(ifr) );
