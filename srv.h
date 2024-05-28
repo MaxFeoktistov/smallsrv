@@ -228,7 +228,7 @@ struct Req
  int dirlen, ntsk, postsize;
 #define dlNOW_SENDING_SIGN 0x12345678
  char *KeepAlive;
- uint Tin,Tout;
+ u64 Tin,Tout;
  ulong bSpd;
  int   event;
  union {
@@ -393,8 +393,10 @@ extern int keepalive_idle;
 #ifdef USE_IPV6
 int IsIPv6(sockaddr_in *sa);
 uint IPv4addr(sockaddr_in *sa);
+int CmpIP(TSOCKADDR *a, TSOCKADDR *b);
 #else
 #define IPv4addr(sa)  ((sa)->sin_addr. S_ADDR)
+int inline CmpIP(TSOCKADDR *a, TSOCKADDR *b){return a->sin_addr. S_ADDR == b->sin_addr. S_ADDR; }
 #endif
 //int FndLimit(int lst,LimitCntr **ip, LimitCntr **net, sockaddr_in *sa );
 int FndLimit(int lst,LimitBase **ip, LimitBase **net, sockaddr_in *sa );
@@ -519,6 +521,9 @@ int FndLimit(int lst,LimitBase **ip, LimitBase **net, sockaddr_in *sa );
 #define FL3_SMTP_CHKTLS     0x00008000
 #define FL3_SMTP_TLSONLY    0x00010000
 #define FL3_SMTP_AUTHSAME   0x00020000
+
+#define FL3_VPN_ULIMIT      0x00040000
+#define FL3_VPN_IPLIMIT     0x00080000
 
 
 #define USE_TUN       (s_flgs[3] & FL3_VPN_TUN)
@@ -674,15 +679,23 @@ extern const char *digetvars[];
           (1<<digtVar_uri     )  | \
           (1<<digtVar_response)  )
 
+
+struct CfgParam;
+typedef int (*onCfgChange_t)(CfgParam *th);
 struct CfgParam
-{char *name;
+{
+ char *name;
  uint min,max,*v;
  char *desc,*adv;
+ void *vv;
+ onCfgChange_t fChange;
 
  int HTMLFormString(char *bfr);
  int TextCfgString(char *bfr);
  int IsR();
 };
+
+int onChangeM2b64(CfgParam *th);
 
 int MyLock(volatile int &x);
 #ifdef USE_FUTEX
@@ -794,6 +807,13 @@ extern char *realm;
 extern char *charset;
 extern char *vpn_name;
 extern char *vpncln_name;
+
+extern uint limitPeriods[3];
+extern uint VPNInLimitMb[3];
+extern uint VPNOutLimitMb[3];
+extern u64 VPNInLimit[3];
+extern u64 VPNOutLimit[3];
+
 
 extern ulong  s_flgs[5],count_dns,cgi_timeout;
 extern u32 ip_cach[];

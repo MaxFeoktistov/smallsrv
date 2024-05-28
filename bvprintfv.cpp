@@ -33,6 +33,10 @@
 
 #include "bvprintf.h"
 
+#ifndef PF_LONG_LONG
+#define PF_LONG_LONG 1
+#endif
+
 extern "C"
 {
 
@@ -81,6 +85,60 @@ char * uitoa(char *t,ulong a,ulong d=1000000000,ulong o=10,char b='a')
  return r;
 };
 #ifdef  PF_LONG_LONG
+
+#ifndef A_64
+u64 my_mulldiv(u64 a, u64 b, u64 *rem)
+{
+  u64 q = 0;
+  u64 r = 0;
+  int i;
+
+
+  if( !(HI_DWORD_PTR(a)|HI_DWORD_PTR(b)) )
+  {
+    q = (uint)a/(uint)b;
+    if(rem) *rem = (uint)a % (uint)b;
+    return q;
+  }
+
+  for(i=63; i>=0; i--)
+  {
+    r <<= 1;
+    r |= (a>>i)&1;
+    if(r >= b) {
+      r -= b;
+      q |= (1ull << i);
+    }
+  };
+  if(rem) *rem = r;
+  return q;
+}
+
+#define ulltoa my_ulltoa
+static char * ulltoa(char *t,unsigned long long a,unsigned long long d=1000000000000000000ll,ulong o=10,char b='a')
+{
+  uint x;
+  char *r=0;
+  while(d)
+  {
+
+    //x=a/d;
+    //a=a%d;
+    x = my_mulldiv(a, d, &a);
+
+    if(x && !r)r=t;
+    if( (x+='0')>'9' )x+=b-'0'-10;
+    *t++=x;
+    //d/=o;
+    d = my_mulldiv(d, o, 0);
+  };
+  *t=0;
+  if(!r)return t-1;
+  return r;
+};
+
+
+#else
 char * ulltoa(char *t,unsigned long long a,unsigned long long d=1000000000000000000ll,ulong o=10,char b='a')
 {
  uint x;
@@ -95,10 +153,13 @@ char * ulltoa(char *t,unsigned long long a,unsigned long long d=1000000000000000
   *t++=x;
   d/=o;
  };
+
  *t=0;
  if(!r)return t-1;
  return r;
 };
+
+#endif
 
 #endif
 
@@ -319,7 +380,8 @@ int BFILE::bvprintf(const char *fmt,va_list vl)
 
 
 #ifdef TEST_BUILD
-//gcc -m32 bvprintfv.cpp -o o/bvprintfv -DTEST_BUILD -DPF_LONG_LONG -DSYSUNIX -DUSEVALIST
+//gcc -m32 -g bvprintfv.cpp -o o/bvprintfv -DTEST_BUILD -DPF_LONG_LONG -DSYSUNIX -DUSEVALIST
+//gcc -m64 -g bvprintfv.cpp -o o/bvprintfv -DTEST_BUILD -DPF_LONG_LONG -DSYSUNIX -DUSEVALIST -Dx86_64 -DNOTINTEL -DA_64
 //-DBPRINTF_INLINE
 //#include <unistd.h>
 //#include <stdlib.h>
@@ -341,12 +403,20 @@ int main()
   char  b[BFR_LIM+0x100];
   bf.Init(0,(PrintFlush)TPrintFlush,b);
   bf.bprintf(
-    "llu:%llu\n"
-    "llX:%llX\n"
-    "llo:%llo\n"
-    ,0x123456789ABCDEF
-    ,0x123456789ABCDEF
-    ,0x123456789ABCDEF
+    "llu:%llu :%llu\n"
+    "llX:%llX :%llX\n"
+    "llo:%llo :%llo\n"
+    ,0x123456789ABCDEF ,0x1234ll
+    ,0x123456789ABCDEF ,0x1234ll
+    ,0x123456789ABCDEF ,0x1234ll
+    );
+  bf.bprintf(
+    "llu:%016llu :%016llu\n"
+    "llX:%016llX :%016llX\n"
+    "llo:%016llo :%016llo\n"
+    ,0x123456789ABCDEF ,0x1234ll
+    ,0x123456789ABCDEF ,0x1234ll
+    ,0x123456789ABCDEF ,0x1234ll
     );
   bf.fflush();
   return 0;

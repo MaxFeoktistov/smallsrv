@@ -344,8 +344,9 @@ int sOutLine::OutConnLine(Req *r, char *alt_text)
     }
     lbIPv6:;
   }
+#if 1
   // Dont_fix_var
-  j+=sprintf(bfr+j,"<tr valign=center><td><font size=2 class=f2>%u) <b>"
+  j+=msprintf(bfr+j,"<tr valign=center><td><font size=2 class=f2>%u) <b>"
   #ifdef USE_IPV6
   "%s"
   #else
@@ -354,7 +355,8 @@ int sOutLine::OutConnLine(Req *r, char *alt_text)
   // Dont_fix_var
   "%s</td><td align=center><font size=2 class=f2><b>%u</b></font>"
   "</td><td align=left><font size=2 class=f2>%d</font>"
-  "</td><td align=left><font size=2 class=f2>%u / %u</font>"
+  "</td><td align=left><font size=2 class=f2>%llu / %llu</font>"
+  // "</td><td align=left><font size=2 class=f2>%u / %u</font>"
   "</td><td align=left><font size=2 class=f2>%s..</font>"
   "</td><td align=left bgcolor=#ff8040><font size=2 class=f2>"
   "<form method=GET action=/$_admin_$break>"
@@ -378,9 +380,13 @@ int sOutLine::OutConnLine(Req *r, char *alt_text)
              contry,
              (ushort)san.sin_port,
              DTick(GetTickCount(),r->tmout), //[i],
-             r->Tin,r->Tout, (alt_text)? alt_text : r->inf,i,r->tmout //[i]
+             //(uint)r->Tin, (uint) r->Tout,
+             r->Tin,r->Tout,
+              (alt_text)? alt_text : r->inf,i,r->tmout //[i]
              ,(s_flg&FL_RADMIN)?"submit":"hidden"
   );
+#endif
+
   if(j>0x4000)
   {if(th->Send(bfr,j)<=0)
     {no_close_req=0;

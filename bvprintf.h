@@ -54,7 +54,7 @@ struct BFILE
  int   bvprintf(const char *fmt, va_list v);
 #define mva_list va_list
 #else
- int   bvprintf(const char *fmt,  void **v) ;
+ int   bvprintf(const char *fmt, void *v) ;
 #undef  mva_list
 #define mva_list void **
 #endif
@@ -96,6 +96,7 @@ int  mvsprintfchk(char *t,char *et,const char *fmt,
 #endif
 );
 int msprintfchk(char *t,char *et,const char *fmt,...);
+int msprintf(char *t, const char *fmt,...);
 /*
 inline int msprintfchk(char *t,char *et,const char *fmt,...)
 {

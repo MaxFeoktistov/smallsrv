@@ -118,3 +118,16 @@ void CloseSocket(int s)
   closesocket(s);
 }
 
+#ifdef USE_IPV6
+int CmpIP(TSOCKADDR *a, TSOCKADDR *b)
+{
+  if(a->sin6_family == AF_INET6) {
+    if(a->sin6_family == AF_INET6) {
+      return !memcmp( a->sin6_addr.s6_addr, b->sin6_addr.s6_addr, 16);
+    }
+    // TODO:  check IPv4 in IPv6 case
+    return 0;
+  }
+  return ((sockaddr_in *) a)->sin_addr. S_ADDR == ((sockaddr_in *)b)->sin_addr. S_ADDR;
+}
+#endif

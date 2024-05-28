@@ -2,7 +2,7 @@
  * Copyright (C) 1999-2022 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
- * Author: Maksim Feoktistov 
+ * Author: Maksim Feoktistov
  *
  *
  * Small HTTP server is free software: you can redistribute it and/or modify it
@@ -15,11 +15,11 @@
  * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see https://www.gnu.org/licenses/ 
+ * along with this program.  If not, see https://www.gnu.org/licenses/
  *
  * Contact addresses for Email:  support@smallsrv.com
  *
- * 
+ *
  */
 
 
@@ -38,20 +38,20 @@ void MyLock(int &x);
 void MyUnlock(int &x)
 {
  x=0;
- futex((int *)&x,FUTEX_WAKE,1,0,0,0);  
+ futex((int *)&x,FUTEX_WAKE,1,0,0,0);
 }
 #else
 inline void MyUnlock(int &x){x=0;}
 #endif
 /*
 void* zalloc(uint a)
-{ 
-  char *r=(char *)  malloc(a); 
-  if(r && a)memset(r,0,a);  
-  return r; 
+{
+  char *r=(char *)  malloc(a);
+  if(r && a)memset(r,0,a);
+  return r;
 }*/
-    
-    
+
+
 } //extern C
 
 int MemMtx;
@@ -92,8 +92,8 @@ pthread_t MyCreateThread(int StackSize, void * ( *ThreadFunction)(void *), void 
 
 int RESelect1(long tv_sec,long tv_usec,int s)
 {
-    
-  
+
+
 #ifdef USE_POOL
    struct pollfd  pfd;
    pfd.fd=s;
@@ -103,18 +103,18 @@ int RESelect1(long tv_sec,long tv_usec,int s)
 //#endif
    ;
    pfd.revents=0;
-   
+
    if( (! poll(&pfd,1,tv_sec*1000+((tv_usec+1023)>>10) )) ||
-        ! (   pfd.revents&POLLIN )  
+        ! (   pfd.revents&POLLIN )
      ) return 0;
    return 1;
-#else    
+#else
  fd_set set;
  if(s&0xFFFF0000)return -1;
  FD_ZERO(&set);
  FD_SET(s, &set);
  return select(s+1,&set,0,0,(timeval*)&tv_sec);
-#endif 
+#endif
 }
 #ifdef USE_POOL
 int REPool(ulong tv_msec,int s,int pflg)
@@ -123,32 +123,32 @@ int REPool(ulong tv_msec,int s,int pflg)
    pfd.fd=s;
    pfd.events=pflg;
    pfd.revents=0;
-   
-   if( (! poll(&pfd,1,tv_msec) ) || ! ( pfd.revents & pflg ) 
+
+   if( (! poll(&pfd,1,tv_msec) ) || ! ( pfd.revents & pflg )
      ) return 0;
    return pfd.revents;
 }
 #endif
 int RESelect2(long tv_sec,long tv_usec,int s,int s2)
 {
-    
+
 #ifdef USE_POOL
    struct pollfd  pfd[2];
 #ifndef POLLRDHUP
-#define POLLRDHUP POLLHUP   
-#endif   
-   
+#define POLLRDHUP POLLHUP
+#endif
+
    pfd[0].fd=s;
    pfd[0].events=POLLIN | POLLHUP| POLLRDHUP ;
-   
+
    pfd[1].fd=s2;
    pfd[1].events=POLLIN | POLLHUP | POLLRDHUP;
-   return  (poll(pfd,2,tv_sec*1000+((tv_usec+1023)>>10) ) < 0)? 0 : 
-     (pfd[0].revents&(POLLIN|POLLHUP|POLLRDHUP))? s  : 
-     (pfd[1].revents&(POLLIN|POLLHUP|POLLRDHUP))? s2 : 0 
+   return  (poll(pfd,2,tv_sec*1000+((tv_usec+1023)>>10) ) < 0)? 0 :
+     (pfd[0].revents&(POLLIN|POLLHUP|POLLRDHUP))? s  :
+     (pfd[1].revents&(POLLIN|POLLHUP|POLLRDHUP))? s2 : 0
    ;
-#else    
-    
+#else
+
  fd_set set;
  if((s|s2)&0xFFFF0000)return -1;
  FD_ZERO(&set);
@@ -157,7 +157,7 @@ int RESelect2(long tv_sec,long tv_usec,int s,int s2)
 // if(s>s2)xchg(s,s2);
 
  return (select(((s>s2)?s:s2)+1,&set,0,0,(timeval*)&tv_sec)>0)? FD_ISSET(s,&set)?s:s2:0;
-#endif 
+#endif
 }
 
 
@@ -178,7 +178,7 @@ cnt:
    if(*tt && (!*pp)  )
    { if(WORD_PTR(*tt)!='*')goto cnt;
      break;
-   } 
+   }
    if(*tt=='*')
    {
      z=++tt;
@@ -213,7 +213,7 @@ cnt:
 
 HANDLE FindFirstFile(char *p,WIN32_FIND_DATA *fd)
 {
-    
+
 // int h;
  DIR * h;
  char *t;
@@ -324,7 +324,7 @@ lbChk:
  }
  return -1;
 
- 
+
 
 
 }
@@ -403,7 +403,7 @@ int GetCDLabel(char *fn,char *tg)
 void * operator new[](unsigned int s)
 {
   char *p=malloc(s);
-  if(p)memset(p,0,s);  
+  if(p)memset(p,0,s);
   return p;
 }
 void operator delete[](void *a)

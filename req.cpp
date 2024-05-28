@@ -980,7 +980,7 @@ int Req::HttpReq()
     ex2a:
     GZEnd();
     if(!ttm)ttm+=GetTickCount()-tick;
-    sprintf(xin_buf,"HTTP  in:%u out:%u %s Time:%u\r\n",Tin,Tout,(a && a->h) ?a->h:"",ttm);
+    msprintf(xin_buf,"HTTP  in:%llu out:%llu %s Time:%u\r\n",Tin,Tout,(a && a->h) ?a->h:"",ttm);
     AddToLog(xin_buf,s,&sa_c46,FmtShort);
   }
   if(lipo && lneto)

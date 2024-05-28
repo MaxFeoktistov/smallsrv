@@ -669,7 +669,10 @@ For GNU TLS and for OpenSSL, the string format is different.
 For OpenSSL, you can see the format of this line <a href="https://www.openssl.org/docs/manmaster/man1/openssl-ciphers.html">here</a> in the CIPHER LIST FORMAT section.
 The default is the following line:
 <pre>
-"ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-RSA-AES256-SHA384:ALL:!DES:!3DES:!RC2"
+ "TLS_RSA_WITH_AES_256_CBC_SHA256:TLS_RSA_WITH_AES_128_CBC_SHA:TLS_AES_256_GCM_SHA384:
+ TLS_CHACHA20_POLY1305_SHA256:TLS_AES_128_GCM_SHA256:TLS_AES_128_CCM_SHA256:ECDHE-RSA-AES256-GCM-SHA384:
+ ECDHE-RSA-AES256-SHA:ECDHE-RSA-AES256-SHA384:TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256:
+ TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256:ALL:!DES:!3DES:!RC2"
 </pre>
 For GnuTLS, see the string format <a href="https://gnutls.org/manual/html_node/Priority-Strings.html">here</a>
 

@@ -1057,7 +1057,7 @@ int Req::SMTPReq()
                 if(l)_hwrite(h,bb,l);
                 CloseHandle((FHANDLE)h);
                 AddSendMessage(i);
-                sprintf(bb,"SMTP: %u user>%s user<%s\r\n",Tin,puser_s?puser_s->name:"*",puser_r?puser_r->name:"*");
+                msprintf(bb,"SMTP: %llu user>%s user<%s\r\n",Tin,puser_s?puser_s->name:"*",puser_r?puser_r->name:"*");
                 AddToLog(bb,s,&sa_c46);
 
                 case 0x74657372 x4CHAR("rset")://4:

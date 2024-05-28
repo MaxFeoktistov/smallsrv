@@ -174,7 +174,7 @@ int Req::POPReq()
       //shutdown(h,2);
       //closesocket(h);
       CloseSocket(h);
-      sprintf((char *)pn,"Proxy in:%u out:%u %s\r\n",Tin,Tout,puser->name);
+      msprintf((char *)pn,"Proxy in:%llu out:%llu %s\r\n",Tin,Tout,puser->name);
       AddToLog((char *)pn,s,&sa_c46,FmtShort);
       goto ex1;
      }

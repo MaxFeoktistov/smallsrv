@@ -778,7 +778,7 @@ int Req::FTPReq()
           }
 #endif
           CloseSocket(w);
-          sprintf(bb,"FTP: proxy\tfor %s %d %d\r\n",puser->name,Tin,Tout);
+          msprintf(bb,"FTP: proxy\tfor %s %lld %lld\r\n",puser->name,Tin,Tout);
           AddToLog(bb,s,&sa_c46);
 
           goto ex1;
@@ -794,7 +794,7 @@ int Req::FTPReq()
         }
         DWORD_PTR(cpath[pth.BSrcDirLen=sprintf(cpath,"%.254s",SrcPath=dir)//+1
         ])=0;
-        sprintf(bb,"FTP: login in %.20s;%.127s\r\n",puser->name,((FL1_DELPAS&s_flgs[1]) && puser->pasw()[0])?"":bfr+5);
+        msprintf(bb,"FTP: login in %.20s;%.127s\r\n",puser->name,((FL1_DELPAS&s_flgs[1]) && puser->pasw()[0])?"":bfr+5);
         AddToLog(bb,s,&sa_c46);
         #ifdef SYSUNIX
         if( (upwd=getpwnam(uname=puser->name)) || (upwd=getpwnam(uname="ftp")) )
@@ -1286,7 +1286,7 @@ int Req::FTPReq()
                         }
                         _hwrite(i,t,l);
                         x+=l;
-                        Tin+=l;
+                        //Tin+=l;
                       }while(1);
                       #ifdef SYSUNIX
                       if(uid>0)fchown(i,uid,gid);

@@ -599,6 +599,16 @@ SPD(5,tls)
 {"tap_remote_max", 0, 1024,(uint *)&vpn_total_remote_ip[1], CXS(S1t2T_8097903, "Total IP addresses to allocate for remote client that connected to Tap. (Optional. Set to 0 to use external DHCP server, or another methods)")},
 {"tap_remote_dns", 0, 1024,(uint *)&vpn_dns[0], CXS(S1t2T_4877845, "DNS servers that will be offered to the TAP client. (Optional) ")},
 
+{"vpn_user_limit",3, FL3_VPN_ULIMIT, (uint *)0, CXS(S1T_11280848, "Set VPN traffic limit per user")},
+{"vpn_ip_limit",3,   FL3_VPN_IPLIMIT, (uint *)0, CXS(S1T_7516624, "Set VPN traffic limit per IP")},
+
+{"vpn_limit_in_h", 0, 0x7FFFFFFF,(uint *) &VPNInLimitMb[0], CXS(S1T_13563803, "Limit of incoming VPN traffic per hour. (Mb)") , 0, &VPNInLimit[0], onChangeM2b64 },
+{"vpn_limit_out_h", 0, 0x7FFFFFFF,(uint *)&VPNOutLimitMb[0], CXS(S1T_13621147, "Limit of outgoing VPN traffic per hour. (Mb)"), 0, &VPNOutLimit[0],onChangeM2b64 },
+{"vpn_limit_in_d", 0, 0x7FFFFFFF,(uint *)&VPNInLimitMb[1], CXS(S1T_13176091, "Limit of incoming VPN traffic per day. (Mb)")  , 0, &VPNInLimit[1], onChangeM2b64},
+{"vpn_limit_out_d", 0, 0x7FFFFFFF,(uint *)&VPNOutLimitMb[1], CXS(S1T_13233435, "Limit of outgoing VPN traffic per day. (Mb)"), 0, &VPNOutLimit[1],onChangeM2b64},
+{"vpn_limit_in_m", 0, 0x7FFFFFFF,(uint *)&VPNInLimitMb[1], CXS(S1T_15886787, "Limit of incoming VPN traffic per mounth. (Mb)")   , 0, &VPNInLimit[2], onChangeM2b64},
+{"vpn_limit_out_m", 0, 0x7FFFFFFF,(uint *)&VPNOutLimitMb[1], CXS(S1T_16813405, "Limit of outgoing VPN traffic per  mounth. (Mb)"), 0, &VPNOutLimit[2],onChangeM2b64},
+
 
 {0,0,0,0, CXS(S1t2T_1039342, "HTTP TLS VPN Client")},
 

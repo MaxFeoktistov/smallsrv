@@ -191,15 +191,7 @@ GetProt();
 //char * t;
 //  t=pprot;
 #endif
- pprot+=
-#ifndef SYSUNIX
- wvsprintf
-#else
-
-
- vsprintf
-#endif
- (pprot+=2,a,
+ pprot += mvsprintfchk(pprot+=2, b_prot+LOG_SIZE ,a,
 #if defined(USEVALIST)
 v
 #else
@@ -285,7 +277,7 @@ void AddToLog(char *t,int s, TSOCKADDR *psa, const char *fmt,...)
    ,pval);
    x=pprot;
    if(t)
-     pprot+=sprintf(pprot,fmt+1,t)-2;
+     pprot+=msprintf(pprot,fmt+1,t)-2;
    else
    {
 #ifdef  USEVALIST

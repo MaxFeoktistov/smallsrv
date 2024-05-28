@@ -403,6 +403,7 @@ void InitParam(char *cln)
  mmsk[0]=0;
 
   for(cp=ConfigParams;cp->desc||cp->name;++cp)
+  {
     if(cp->v )
     {
       i=sprintf(bfr," %s=", cp->name);
@@ -417,6 +418,8 @@ void InitParam(char *cln)
     { sprintf(bfr," %s ",cp->name);
       if( strstr(cln,bfr) ) s_flgs[cp->min]|=cp->max;
     }
+    if(cp->fChange)cp->fChange(cp);
+  }
 
   for(cp=ConfigParams;cp->desc;++cp)
    if( (!(cp->v)) && (!(cp->max)) && (cp->name) )
@@ -518,10 +521,13 @@ void InitParam(char *cln)
   shift=1;
   mask=mmsk;
   for(cp=ConfigParams; cp->desc||cp->name; ++cp)
-   if( cp->v && !(cp->max)  )
-   {if( *mask &shift)*(char**)cp->v=PrepPath(*(char**)cp->v);
-    if(!(shift<<=1)){shift=1; ++mask; } ;
-   }
+  {
+    if( cp->v && !(cp->max)  )
+    {
+      if( *mask &shift)*(char**)cp->v=PrepPath(*(char**)cp->v);
+      if(!(shift<<=1)){shift=1; ++mask; } ;
+    }
+  }
 #ifndef SYSUNIX
   if(pext)
   {ext[0]=PrepPath(pext);
@@ -912,6 +918,11 @@ ExLP3:;
 
 }
 
+int onChangeM2b64(CfgParam *th)
+{
+  *(u64 *)th->vv = 1048576ll * *(uint *)th->v;
+  return 1;
+}
 
 }
 

@@ -109,6 +109,39 @@ struct VPN_TAPPacket
 
 #define BROADCAST_ANY 0xFFFFffff
 
+struct limitPerTime {
+  time_t end;
+  u64   in_bytes;
+  u64   out_bytes;
+};
+
+struct VPNUserLimit
+{
+  VPNUserLimit *next;
+  User *usr;
+  union{
+    sockaddr_in6 sa_c6;
+    sockaddr_in sa_c;
+    TSOCKADDR sa_c46;
+  };
+  limitPerTime lim[3];
+  u64 in_fast;
+  u64 out_fast;
+  /*
+  time_t start_hour;
+  time_t start_day;
+  time_t start_mounth;
+  u64  in_bites;
+  u64  out_bites;
+  u64  in_hour;
+  u64  out_hour;
+  u64  in_day;
+  u64  out_day;
+  u64  in_mounth;
+  u64  out_mounth;
+  */
+};
+
 struct VPNclient : public Req
 {
 
@@ -122,6 +155,7 @@ struct VPNclient : public Req
   uint  ipv4;
   uint  ipv4bcast;
   uint  ipv4gw;
+  VPNUserLimit *limits;
 
 #ifdef USE_IPV6
   in6_addr ipv6[2];
@@ -142,6 +176,9 @@ struct VPNclient : public Req
 #define PKT_BCAST   2
 
   int ClientConnect(OpenSSLConnection *x);
+  int CheckVPNLimits();
+  //int CheckVPNLimit(limitPerTime *lpt, int ind, time_t current);
+  VPNUserLimit *SetLimit();
 
 };
 
@@ -208,6 +245,8 @@ void VPN_Done();
 
 
 ulong WINAPI VPNClient(void *);
+void SaveVPNLimits();
+void LoadVPNLimits();
 
 }
 #endif

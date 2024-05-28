@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2022 Maksim Feoktistov.
+ * Copyright (C) 1999-2024 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov
@@ -67,6 +67,7 @@ void *  memmove(void *_s1, const void *_s2, size_t _n)
 #include <sys/time.h>
 #include <stdlib.h>
 #include <sys/ioctl.h>
+#include <unistd.h>
 #define ioctlsocket ioctl
 
 #endif
@@ -122,7 +123,7 @@ void   free(void *p) { HeapFree(id_heap,0,p); }
 
 static int  hstdout;
 //=(int)GetStdHandle((ulong)STD_OUTPUT_HANDLE);
-static char ddbg[4512];
+//static char ddbg[4512];
 
 //#define  DBG_STEP() _hwrite(hstdout,ddbg,wsprintf(ddbg,"SSLDBG:%u\r\n",__LINE__ )); MessageBox(0,ddbg,"DBG",MB_OK);
 
@@ -286,6 +287,7 @@ void * dbg_realloc(void *p,size_t n,const char *f,int l){
 }
 
 /*
+
 void _cdecl DebugPrintFnc(char *a,...)
 {
      int l;
@@ -313,7 +315,6 @@ void _cdecl DebugPrintFnc(char *a,...)
 
 #define  DebugPrintFnc(a...)
 #define  DebugFnc(a...)
-
 
 typedef int (* TFprintf)(char *param,...);
 
@@ -344,6 +345,28 @@ static X509_STORE *X509_store;
 #else
 #define  BIODATA(t)  (t->ptr)
 #endif
+
+/*
+static char ddbg[4512];
+
+void //_cdecl
+  DebugPrintFnc(char *a,...)
+{
+     int l;
+     va_list v;
+     va_start(v,a);
+     struct timeval tv;
+     gettimeofday(&tv,0);
+ //    _hwrite(hstdout,ddbg,wvsprintf(ddbg,a,(char *)(&a+1) ));
+ //    _hwrite(hstdout,ddbg,wvsprintf(ddbg,a,v ));
+    //l=wvsprintf(ddbg,a,v);
+    //_hwrite(hstdout,ddbg,l);
+    vsprintf(ddbg,a,v);
+    (Fprintf)(":%02u:%02u.%u: %s", (tv.tv_sec/60)%60, tv.tv_sec%60, tv.tv_usec, ddbg);
+    va_end(v);
+}
+// */
+
 
 static int bwrite(BIO *t, const char *b, int l)
 { //(Fprintf)("BIO write %u",l);
@@ -571,7 +594,7 @@ static int set_cert_stuff(SSL_CTX *ctx, char *cert_file, char *key_file)
 
 
 char copyright[]=
-"\r\nSecurety library, based on OpenSSL Library Copyright (c) 1998-2019 The OpenSSL Project\r\n"
+"\r\nSecurety library, based on OpenSSL Library Copyright (c) 1998-2024 The OpenSSL Project\r\n"
 "This product includes software developed by the OpenSSL Projec Copyright (c) 1995-1998 Eric A. Young, Tim J. Hudsont for use in the OpenSSL Toolkit. (http://www.openssl.org/)\r\n"
 "This product includes cryptographic software written by Eric Young (eay@cryptsoft.com).\r\n"
 "This product includes software written by Tim Hudson (tjh@cryptsoft.com).\r\n"
@@ -650,13 +673,36 @@ static int act_con_cnt,reinit_ctx_need;
 //static time_t  con_time[MAX_CON];
 static time_t  reinit_ctx_need_time;
 
-char *priority_str="ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-RSA-AES256-SHA384:ALL:!DES:!3DES:!RC2";
+/*
+
+TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256,
+TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,
+TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256,
+TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
+TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA,TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA,
+TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,
+TLS_RSA_WITH_AES_128_GCM_SHA256,TLS_RSA_WITH_AES_256_GCM_SHA384,
+TLS_RSA_WITH_AES_128_CBC_SHA,TLS_RSA_WITH_AES_256_CBC_SHA,
+TLS_EMPTY_RENEGOTIATION_INFO_SCSV
+
+*/
+
+char *priority_str="TLS_RSA_WITH_AES_256_CBC_SHA256:TLS_RSA_WITH_AES_128_CBC_SHA:TLS_AES_256_GCM_SHA384:"
+ "TLS_CHACHA20_POLY1305_SHA256:TLS_AES_128_GCM_SHA256:TLS_AES_128_CCM_SHA256:ECDHE-RSA-AES256-GCM-SHA384:"
+ "ECDHE-RSA-AES256-SHA:ECDHE-RSA-AES256-SHA384:TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256:TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256:ALL:!DES:!3DES:!RC2";
 
 void SetPriority(char *t)
 {
   priority_str=t;
 }
 
+/*
+int verfy_callback(X509_STORE_CTX *, void *)
+{
+  (Fprintf)("TLS handshake verfy\r\n");
+  return 1;
+}
+*/
 
 int REinitCTX()
 {
@@ -666,12 +712,24 @@ int REinitCTX()
  SSL_CTX_set_quiet_shutdown(ctx,1);
  DBG_STEP()
 // SSL_CTX_set_options(ctx,0);
- SSL_CTX_set_options(ctx,SSL_OP_ALL|SSL_OP_CIPHER_SERVER_PREFERENCE); //SSL_OP_NO_TLSv1
+ SSL_CTX_set_options(ctx,SSL_OP_ALL|SSL_OP_CIPHER_SERVER_PREFERENCE
+   |SSL_OP_ALLOW_UNSAFE_LEGACY_RENEGOTIATION | SSL_OP_ALLOW_NO_DHE_KEX
+); //SSL_OP_NO_TLSv1
  SSL_CTX_set_cipher_list(ctx,priority_str);
  DBG_STEP()
+ SSL_CTX_set_min_proto_version(ctx, SSL3_VERSION);
+// SSL_CTX_set_min_proto_version(ctx, TLS1_VERSION);
+
+#ifdef OSSL_ENABLE_TLS_1_3
+ SSL_CTX_set_max_proto_version(ctx, TLS1_3_VERSION);
+#else
+ SSL_CTX_set_max_proto_version(ctx, TLS1_2_VERSION);
+#endif
+ SSL_CTX_set_security_level(ctx, 0);
 // SSL_CTX_sess_set_cache_size(ctx,512);
 // SSL_CTX_sess_set_cache_size(ctx,0);
  SSL_CTX_set_session_cache_mode(ctx,SSL_SESS_CACHE_OFF);
+ SSL_CTX_set_dh_auto(ctx, 1);
 
  DBG_STEP()
 
@@ -720,7 +778,6 @@ int OsslErrCb(const char *str, size_t len, void *u)
     DBG_STEPA( "%s", (str)?str:"null" )
 //    if(len && str)_hwrite(hstdout,str,len);
     return len;
-
 }
 #define  DBG_ERR(a)  OsslErrCb(a,sizeof(a),0)
 
@@ -809,6 +866,8 @@ int InitLib( TFprintf prnt,TFtransfer fsend,TFtransfer frecv,char *lCApath,char 
 // DBG_STEP()
 //  ctx=SSL_CTX_new(TLSv1_server_method());
   ctx=SSL_CTX_new(TLS_server_method());
+  //ctx=SSL_CTX_new(DTLSv1_2_server_method());
+
 //  DBG_STEP()
  if(!ctx)
  {
@@ -1006,6 +1065,194 @@ struct tm *localtime_r(const time_t *timep, struct tm *result)
       return wvsprintf(t,fmt,l);
   }
 
+  int IsIn(const uchar *f, uchar a)
+  {
+    uchar ff;
+    uchar ff2;
+    while( (ff = *f) != ']' )
+    {
+      if(ff == a) return 1;
+      f++;
+      if(*f == '-')
+      {
+        f++;
+        ff2 = *f;
+        if(ff < a && (ff2 >= a || ff2 == ']') ) return 1;
+        if(ff2 == ']') break;
+        f++;
+      };
+    }
+    return 0;
+  }
+
+#ifndef A_64
+  unsigned long long strtoull(const char *s, char **p, int mod)
+  {
+    int a;
+    long long r=0;
+    if(!mod)
+    {
+      mod = 10;
+      if(*s == 0)
+      {
+        s++;
+        mod = 8;
+        if( (*s|0x20) == 'x')
+        {
+          s++;
+          mod = 16;
+        }
+      }
+      while((a=*s))
+      {
+        a|=0x20;
+        if(a>'9') a-= 'a' - 10;
+        else a -= '0';
+        if(a<0 || a >= mod) break;
+
+        r *= mod;
+        r += a;
+        s++;
+      }
+    }
+    *p =(char *) s;
+    return r;
+  }
+  long long strtoll(const char *s, char **p, int mod)
+  {
+    if(*s == '-') return -strtoull(s+1,p,mod);
+    return strtoull(s, p, mod);
+  }
+#endif
+
+  int __mingw_vsscanf(const char *t, const char *fmt, va_list vl)
+  {
+    int ret = 0;
+    const char *beg = t;
+    char *ffmt;
+    int max;
+    int mod;
+    long  v;
+    long long lv;
+    int is_long;
+    int is_short;
+    int is_skip;
+    int vnot;
+    int j;
+    const char *e;
+
+    union {
+      char *s;
+      long *l;
+      long long *ll;
+      int  *i;
+      short  *si;
+      char  *ci;
+    };
+
+    while(*fmt && *t)
+    {
+      if(*fmt == '%')
+      {
+        fmt++;
+        if(*fmt == '%') goto lbCmp;
+        max = 0x7FFFffff;
+        mod = 0;
+        if(*fmt == '*') {
+          is_skip = 1;
+          ll = &lv;
+        }
+        else
+        {
+          is_skip = 0;
+          s = va_arg(vl, char*);
+        }
+
+        if(*fmt>='0' && *fmt <='9' )
+        {
+          max = strtoul(fmt, (char **) &fmt, 10);
+          if(!fmt) return ret;
+        }
+        is_long = 0;
+        is_short = 0;
+    next_ch:
+        switch(*fmt++)
+        {
+          case 's':
+            e = fmt - 1;
+            fmt = "^ \t\r\n]";
+            if(0) {
+          case '[':
+              e = strchr(fmt, ']');
+              if(!e) return ret;
+            }
+            vnot = 0;
+            if(*fmt == '^') {vnot++; fmt++; }
+
+            for(j=0; j<max && *t; j++)
+            {
+              if(!(IsIn((const uchar *)fmt, *t) ^ vnot) ) break;
+              if(!is_skip) *s = *t;
+              *s++;
+              *t++;
+            }
+            *s = 0;
+            fmt = e + 1;
+            ret += is_skip^1;
+            break;
+          case 'l': fmt++; is_long++; goto next_ch;
+          case 'h': fmt++; is_short++; goto next_ch;
+          case 'x':
+          case 'X': mod = 16; if(0) {
+          case 'o':
+          case 'O': mod = 8;
+          case 'u':
+          case 'p':
+          case 'd':
+          case 'i':
+          case 'z':;
+          }
+
+          #ifndef A_64
+              if(is_long > 1) {
+                 *ll = strtoll(t, (char **) &t,mod);
+              } else
+          #endif
+              {
+                v = strtol(t, (char **) &t,mod);
+                if(!t) return ret;
+                if(is_short>1) *ci = v;
+                else if(is_short) *si = v;
+                #ifdef A_64
+                else if(is_long) *l = v;
+                #endif
+                else  *i = v;
+              }
+              ret += is_skip^1;
+              break;
+          case 'c':
+              *ci = *t++;
+              ret += is_skip^1;
+              break;
+          case 'n':
+              *ci = t - beg;
+              break;
+        }
+      }
+      else if(strchr(" \t\r\n", *fmt) )
+      {
+        while(*t && strchr(" \t\r\n", *t)) t++;
+        fmt++;
+      }
+      else
+      {
+        lbCmp:
+        if(*fmt++ != *t++) return ret;
+      }
+    }
+    return ret;
+  }
+
 // */
 //static
 int PerSecond1E7=10000000l;
@@ -1062,6 +1309,13 @@ int shs_print_cb(const char *str, size_t len, void *bp)
 }
 #endif
 
+#ifdef DEBUG_SSL
+void info_cb(const SSL *ssl, int type, int val)
+{
+   (Fprintf)("TLS mashine state %X %X %X %s", ssl, type, val, SSL_state_string_long(ssl));
+}
+#endif
+
 static int CommonPrepareCon(struct OpenSSLConnection *s, SSL_CTX *ct)
 {
 
@@ -1086,6 +1340,11 @@ static int CommonPrepareCon(struct OpenSSLConnection *s, SSL_CTX *ct)
   s->sbio->flags=0;
 #endif
   SSL_set_bio(s->con,s->sbio,s->sbio);
+#ifdef DEBUG_SSL
+  SSL_set_info_callback(s->con, info_cb);
+#endif
+//  BIO_set_callback(s->sbio, BIO_debug_callback);
+
   return 1;
 }
 
@@ -1102,8 +1361,36 @@ int SecAccept(struct OpenSSLConnection *s)
 */
   if(! CommonPrepareCon(s,ctx)) return 0;
 
+  //sleep(1);
+  //SSL_set_verify(s->con, SSL_VERIFY_NONE, NULL);
+
+  //SSL_CTX_set_cert_verify_callback(ctx, verfy_callback, s);
+
+  SSL_set_security_level(s->con, 0);
+
   SSL_set_accept_state(s->con);
+
   BIO_set_ssl(s->ssl_bio,s->con,BIO_CLOSE);
+
+  //SSL_renegotiate(s->con);
+  if( (r=SSL_do_handshake( s->con ) ) <0 )
+  {
+    int err;
+    err = SSL_get_error(s->con, r);
+    (Fprintf)("TLS handshake error %lX %lX %d %d  Error: %s reason:%s lib:%s hnds_state: %s %d\r\n",
+               s, s->CallbackParam, r, err, ERR_error_string(err, NULL),
+               ERR_reason_error_string(err), ERR_lib_error_string(err),
+               SSL_state_string_long(s->con), SSL_get_state(s->con)
+             );
+
+    //SSL_set_max_proto_version(s->con, TLS1_2_VERSION);
+
+    //SSL_renegotiate(s->con);
+    //if( (r=SSL_do_handshake( s->con ) ) <0 )
+    return 0;
+    //(Fprintf)("TLS handshake second time ok %d %d\r\n",r,err);
+  }
+
 #if 0
   if( (r=SSL_do_handshake( s->con ) ) <0 )
   {

@@ -31,6 +31,9 @@
 #include "mdef.h"
 
 #include "bvprintf.h"
+#ifndef PF_LONG_LONG
+#define PF_LONG_LONG 1
+#endif
 
 extern "C"
 {
@@ -79,23 +82,63 @@ char * uitoa(char *t,ulong a,ulong d=1000000000,ulong o=10,char b='a')
  return r;
 };
 #ifdef  PF_LONG_LONG
+/*
+  (a*2^32 + aa)/b
+  a/b = (a/n*n)/b=(a/n) / (b/n)
+ */
+
+u64 my_mulldiv(u64 a, u64 b, u64 *rem)
+{
+  u64 q = 0;
+  u64 r = 0;
+  int i;
+  /*
+  union {
+    uint  v32[2];
+    u64   v64;
+  };
+  v64 = a;
+#ifndef  NOTINTEL
+  if(v32[1] < b)
+  {
+
+  }
+#endif
+*/
+  for(i=63; i>=0; i--)
+  {
+    r <<= 1;
+    r |= (a>>i)&1;
+    if(r >= b) {
+      r -= b;
+      q |= (1ull << i);
+    }
+  };
+  if(rem) *rem = r;
+  return q;
+
+}
+
 static char * my_ulltoa(char *t,unsigned long long a,unsigned long long d=1000000000000000000ll,ulong o=10,char b='a')
 {
- uint x;
- char *r=0;
- while(d)
- {
+  uint x;
+  char *r=0;
+  while(d)
+  {
 
-  x=a/d;
-  a=a%d;
-  if(x && !r)r=t;
-  if( (x+='0')>'9' )x+=b-'0'-10;
-  *t++=x;
-  d/=o;
- };
- *t=0;
- if(!r)return t-1;
- return r;
+    //x=a/d;
+    //a=a%d;
+    x = my_mulldiv(a, d, &a);
+
+    if(x && !r)r=t;
+    if( (x+='0')>'9' )x+=b-'0'-10;
+    *t++=x;
+    //d/=o;
+    d = my_mulldiv(d, o, 0);
+  };
+  *t=0;
+  if(!r)return t-1;
+  return r;
 };
 
 #endif
@@ -113,17 +156,26 @@ int BFILE::bprintf(const char *fmt,...)
    va_end(a);
    return r;
 #else
-   return bvprintf(fmt,(void **) ((&fmt)+1 )) ;
+   return bvprintf(fmt,(void *) ((&fmt)+1)) ;
 #endif
 
 } ;
 #endif
 
 
-int BFILE::bvprintf(const char *fmt,void **v)
+inline void * mvarg(void **v, int size)
 {
-#undef va_arg
-#define va_arg(a,t) *(((t*)v)++)
+  void *r = *v;
+  * (char **)v += size;
+//  DWORD_PTR(*v) += size;
+  return r;
+}
+
+int BFILE::bvprintf(const char *fmt, void *v)
+{
+#undef mva_arg
+#define mva_arg(a, t) (*(t *)a ++)
+//#define mva_arg(a,t) (*(t*) mvarg((void **) &a, (sizeof(t)+3)&~3 ) )
 
  char *t1,*p,*pp;
 #ifdef  PF_LONG_LONG
@@ -180,28 +232,28 @@ int BFILE::bvprintf(const char *fmt,void **v)
      case '9':  l=atouisc( fmt); fmt--; goto lb0;
      case '.':  w=atouisc( ++fmt); state|=0x200;  fmt--; goto lb0;
 #ifdef  PF_LONG_LONG
-     case 'u':  p=(state&0x10)?my_ulltoa(bb,va_arg(vl,long long) ):uitoa(bb,va_arg(vl,uint) ); if(0){
+     case 'u':  p=(state&0x10)?my_ulltoa(bb,mva_arg(v, u64) ):uitoa(bb,mva_arg(v,uint) ); if(0){
      case 'i':
      case 'd':  if(state&0x10)
                 {
-                    if((lx=va_arg(vl,long long))<0){lx=-lx; state|=0x100; } p=my_ulltoa(bb,lx);
+                    if((lx=mva_arg(v, u64))<0){lx=-lx; state|=0x100; } p=my_ulltoa(bb,lx);
                 }
                 else
                 {
-                    if((x=va_arg(vl,int))<0){x=-x; state|=0x100; } p=uitoa(bb,x);
+                    if((x=mva_arg(v,int))<0){x=-x; state|=0x100; } p=uitoa(bb,x);
                 }
                 if(0){
-     case 'o':  p=(state&0x10)?my_ulltoa(bb,va_arg(vl,long long),01000000000000000000000ll,8 ):uitoa(bb,va_arg(vl,uint),010000000000,8   ); if(0){
-     case 'X':  p=(state&0x10)?my_ulltoa(bb,va_arg(vl,long long),0x1000000000000000ll,16,'A' ):uitoa(bb,va_arg(vl,uint),0x10000000,16,'A'); if(0){
-     case 'x':  p=(state&0x10)?my_ulltoa(bb,va_arg(vl,long long),0x1000000000000000ll,16,'a' ):uitoa(bb,va_arg(vl,uint),0x10000000,16,'a');
+     case 'o':  p=(state&0x10)?my_ulltoa(bb,mva_arg(v,u64),01000000000000000000000ll,8 ):uitoa(bb,mva_arg(v,uint),010000000000,8   ); if(0){
+     case 'X':  p=(state&0x10)?my_ulltoa(bb,mva_arg(v,u64),0x1000000000000000ll,16,'A' ):uitoa(bb,mva_arg(v,uint),0x10000000,16,'A'); if(0){
+     case 'x':  p=(state&0x10)?my_ulltoa(bb,mva_arg(v,u64),0x1000000000000000ll,16,'a' ):uitoa(bb,mva_arg(v,uint),0x10000000,16,'a');
                 }}}};
 #else
-     case 'u':  p=uitoa(bb,(u_long)(*v++) ); if(0){
+     case 'u':  p=uitoa(bb, (*(uint *)v++) ); if(0){
      case 'i':
-     case 'd':  if((x=(long)(*v++))<0){x=-x; state|=0x100; } p=uitoa(bb,x); if(0){
-     case 'o':  p=uitoa(bb,(u_long)(*v++),010000000000,8); if(0){
-     case 'X':  p=uitoa(bb,(u_long)(*v++),0x10000000,16,'A'); if(0){
-     case 'x':  p=uitoa(bb,(u_long)(*v++),0x10000000,16,'a');
+     case 'd':  if((x=(* (uint *) v++))<0){x=-x; state|=0x100; } p=uitoa(bb,x); if(0){
+     case 'o':  p=uitoa(bb,(*(uint *)v++),010000000000,8); if(0){
+     case 'X':  p=uitoa(bb,(*(uint *)v++),0x10000000,16,'A'); if(0){
+     case 'x':  p=uitoa(bb,(*(uint *)v++),0x10000000,16,'a');
                 }}}};
 #endif
                 x=strlen(p);
@@ -223,7 +275,9 @@ int BFILE::bvprintf(const char *fmt,void **v)
               t+=l;
               if(0){
      case 's':
-                if(!(p=(char*) *v++))p="";
+                p= * (char**)v;
+                DWORD_PTR(v) += sizeof(char**);
+                if(!p )p="";
                 if(p<(char *)MIN_PTR)
                 {
                   dprint("bvprintf s error arg=%X at %.32s\n",p,fmt-1);
@@ -325,7 +379,52 @@ int BFILE::bvprintf(const char *fmt,void **v)
 };
 
 
+#ifdef TEST_BUILD
+//gcc -m32 -g bvprintf.cpp -o o/bvprintf -DTEST_BUILD -DPF_LONG_LONG -DSYSUNIX
+//-DUSEVALIST
+//-DBPRINTF_INLINE
+//#include <unistd.h>
+//#include <stdlib.h>
+#include <stdlib.h>
 
+int TPrintFlush(void *,char *s,ulong l)
+{
+  return write(1,s,l);
+}
+
+uint atouisc(const char *&a)
+{register uint r=0,l,n=0;
+ while( (l=*a-'0')<10 ){r=r*10+l;a++; if(n++>11)break; };
+ return r;
+};
+
+int main()
+{
+  BFILE bf;
+  char  b[BFR_LIM+0x100];
+  bf.Init(0,(PrintFlush)TPrintFlush,b);
+  bf.bprintf(
+    "u:%u\n"
+    "X:%X\n"
+    "o:%o\n"
+    ,12345678
+    ,0x12345678
+    ,012345670
+    );
+
+  bf.bprintf(
+    "llu:%llu\n"
+    "llX:%llX\n"
+    "llo:%llo\n"
+    ,12345678901234567
+    ,0x123456789ABCDEF
+    ,01234567012345670
+    );
+  bf.fflush();
+  return 0;
+}
+
+#endif
 
 
 

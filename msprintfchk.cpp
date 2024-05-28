@@ -2,7 +2,7 @@
  * Copyright (C) 1999-2020 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
- * Author: Maksim Feoktistov 
+ * Author: Maksim Feoktistov
  *
  *
  * Small HTTP server is free software: you can redistribute it and/or modify it
@@ -15,11 +15,11 @@
  * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see https://www.gnu.org/licenses/ 
+ * along with this program.  If not, see https://www.gnu.org/licenses/
  *
  * Contact addresses for Email:  support@smallsrv.com
  *
- * 
+ *
  */
 
 
@@ -36,37 +36,37 @@
 
 extern "C"
 {
-    
+
 struct SprintfPars
 {
   char *t;
-  ulong l;  
+  ulong l;
 };
 
 int SPrintChkFlush(SprintfPars *th,char *t,ulong l)
 {
  if(th->l < l)l=th->l;
  if(l>0)
- { 
+ {
    memcpy(th->t,t,l);
    th->l-=l;
    th->t+=l;
  }
- return l;   
+ return l;
 };
 
 int  mvsprintfchk(char *t,char *et,const char *fmt,
     #ifdef USEVALIST
                 va_list v
-#else                
+#else
                 void **v
-#endif                
+#endif
 )
 {
-  SprintfPars th;  
+  SprintfPars th;
   BFILE bf;
   int r;
-  char  b[BFR_LIM+0x100];  
+  char  b[BFR_LIM*2];
   th.t=t;
   th.l=et-t-1;
   bf.Init(&th,(PrintFlush)SPrintChkFlush,b);
@@ -81,18 +81,32 @@ int msprintfchk(char *t,char *et,const char *fmt,...)
 #ifdef USEVALIST
    va_list a;
    int r;
-   
+
    va_start(a, fmt);
    r=mvsprintfchk(t,et,fmt,a);
    va_end(a);
    return r;
-#else     
+#else
    return mvsprintfchk(t,et,fmt,(void **) ((&fmt)+1 ) ) ;
-#endif     
-        
-    
+#endif
+
+
 }
 
+int msprintf(char *t, const char *fmt,...)
+{
+#ifdef USEVALIST
+   va_list a;
+   int r;
+
+   va_start(a, fmt);
+   r = mvsprintfchk(t, t + 0x10000, fmt, a);
+   va_end(a);
+   return r;
+#else
+   return mvsprintfchk(t, t + 0x10000, fmt, (void **) ((&fmt)+1 ) ) ;
+#endif
+}
 
 }
 

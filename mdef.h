@@ -284,6 +284,8 @@ inline ushort fWORD_PTR(uchar *t)
 
 #endif
 
+#define HI_DWORD_PTR(a) (* ((uint *)(&(a)) + 1) )
+
 #define BYTE_PTR(a,n)  (* ((uchar *)(&(a))+n) )
 #define x4CHAR(a)
 #define xC4CHAR(a)

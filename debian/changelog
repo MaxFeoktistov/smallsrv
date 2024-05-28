@@ -1,3 +1,12 @@
+smallsrv (3.06.31test1) unstable; urgency=low
+
+  * Added support for trafic limitation to VPN server.
+  * Changed incoming/outgoing counters to 64bits .
+  * OpenSSL support files changed default max version to 1.2 by default
+    When max version 1.3 Android API client can't handshake.
+
+ -- Maksim Feoktistov <max@smallsrv.com>  Tue, 28 May 2024 11:12:33 +0400
+
 smallsrv (3.06.30) unstable; urgency=low
 
   * Added support for reconnecting to VPN.

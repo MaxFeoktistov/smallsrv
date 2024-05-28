@@ -34,7 +34,7 @@
 
 #endif
 
-const char FmtShortVPN []=">>%.256s VPN   in:%u out:%u time: %us %s\r\n";
+const char FmtShortVPN []=">>%.256s VPN   in:%llu out:%llu time: %us %s\r\n";
 
 
 
@@ -163,6 +163,7 @@ uint client_nmask;
 char *client_dns;
 
 
+VPNUserLimit *vpn_limits;
 
 
 void OnPktFromIf(uchar *pkt, int i);
@@ -366,7 +367,11 @@ int tun_alloc(int index)
     char *t;
 
     if( (fd = open(tundev, O_RDWR | O_CLOEXEC)) < 0 )
-       return -1;
+    {
+       sleep(5);
+       if( (fd = open(tundev, O_RDWR | O_CLOEXEC)) < 0 )
+         return -1;
+    }
     tuntap_fds[index] = fd;
 
     memset(&ifr, 0, sizeof(ifr));
@@ -951,6 +956,7 @@ int Req::InsertVPNclient()
   long long mac;
   int  reconnect = 0;
   uint id_ip = 0;
+  VPNUserLimit *lmt=0;
 
 
   //DBGL("");
@@ -985,6 +991,14 @@ int Req::InsertVPNclient()
    {
      HttpReturnError("Error. Selected VPN type disabled...");
      return -1;
+   }
+
+   if( s_flgs[3] & (FL3_VPN_ULIMIT|FL3_VPN_ULIMIT ) ) {
+     lmt = ((VPNclient *)this)->SetLimit();
+     if(((VPNclient *)this)->CheckVPNLimits()) {
+       HttpReturnError("Limit overflow...");
+       return -1;
+     }
    }
 
    DBGLS(t);
@@ -1030,6 +1044,7 @@ lb_reconnect:
    cl->tls.CallbackParam = cl;
    cl->a_user = tuser;
    SecUpdateCB(&cl->tls);
+   cl->limits = lmt;
 
    cl->fl = F_VPNTUN << isTap;
    cl->tun_index = isTap;
@@ -1527,6 +1542,70 @@ void VPN_Done()
 }
 
 
+uint limitPeriods[]={3600, 86400, 86400*30};
+uint VPNInLimitMb[3];
+uint VPNOutLimitMb[3];
+u64 VPNInLimit[3];
+u64 VPNOutLimit[3];
+
+int VPNclient::CheckVPNLimits()
+{
+  time_t current;
+  u64 li;
+  u64 lo;
+  int i;
+  limitPerTime *lpt;
+  if(!limits) return 0;
+  if(limits->in_fast > Tin && limits->out_fast > Tout) return 0;
+  limits->in_fast = (u64)-1;
+  limits->out_fast = (u64)-1;
+  current = time(0);
+  for(i=0; i<3; i++)
+  {
+    lpt = limits->lim + i;
+    if( (!lpt->end) || current > lpt->end)
+    {
+      lpt->end = current + limitPeriods[i];
+      lpt->out_bytes = Tout;
+      lpt->in_bytes = Tin;
+    }
+    li = lpt->in_bytes + VPNInLimit[i];
+    lo = lpt->out_bytes + VPNOutLimit[i];
+    if(!VPNInLimit[i]) li = (u64)-1;
+    else if(limits->in_fast > li) limits->in_fast = li;
+    if(!VPNOutLimit[i]) lo = (u64)-1;
+    else if(limits->out_fast > lo) limits->out_fast = lo;
+
+    if(Tin > li) return -1;
+    if(Tout > lo) return -1;
+  }
+  return 0;
+}
+
+int vpn_limit_mutex;
+VPNUserLimit *VPNclient::SetLimit()
+{
+  VPNUserLimit* p;
+  MyLock(vpn_limit_mutex);
+  for(p=vpn_limits; p; p=p->next)
+  {
+    if( (s_flgs[3] & FL3_VPN_ULIMIT) && a_user == p->usr ) break;
+    if( (s_flgs[3] & FL3_VPN_IPLIMIT) && CmpIP(&p->sa_c46, &sa_c46) ) break;
+  }
+  if(!p) {
+    p = (VPNUserLimit *) Malloc(sizeof(VPNUserLimit));
+    if(p) {
+      p->usr = a_user;
+      memcpy(&p->sa_c46, &sa_c46, sizeof(p->sa_c46));
+      p->next = vpn_limits;
+      vpn_limits = p;
+    }
+  }
+  MyUnlock(vpn_limit_mutex);
+  //limits = p;
+  return p;
+}
+
 #if 0
 void addRoute(uint dstip, uint dstmsk, uint gw)
 {
@@ -1724,7 +1803,7 @@ agayn1:
     l += sprintf(bfr + l,"Basic ");
     l = Encode64(bfr + l, bfr + 1400, sprintf(bfr+1400, "%s:%s",vpn_user, vpn_passw ) ) - bfr;
   }
-  l=sprintf(bfr,"GET %s HTTP/1.1\r\n"
+  l= msprintf(bfr,"GET %s HTTP/1.1\r\n"
     "Authorization: %s\r\n"
     "Host: %s\r\n"
     "%s: %X %llX\r\n"
