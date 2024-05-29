@@ -1383,6 +1383,7 @@ ulong WINAPI VPN_Thread(void *)
     }
   }
 
+  VPN_Done();
   return 0;
 }
 
@@ -1528,17 +1529,20 @@ void VPN_Done()
 {
   int i;
   MyLock(vpn_mutex);
-
-  for(i=0; i<vpn_count; i++)
-  {
-    CloseSocket(vpn_list[i]->s);
+  if(vpn_list) {
+    for(i=0; i<vpn_count; i++)
+    {
+      CloseSocket(vpn_list[i]->s);
+    }
+    vpn_count = 0;
   }
-  vpn_count = 0;
-  MyUnlock(vpn_mutex);
 
   CloseTunTap();
-  free(vpn_list);
-
+  if(vpn_list) {
+    free(vpn_list);
+    vpn_list = 0;
+  }
+  MyUnlock(vpn_mutex);
 }
 
 
@@ -2163,6 +2167,7 @@ ulong WINAPI VPNClient(void *)
     }
   }
 
+  VPN_Done();
 
   return 0;
 }

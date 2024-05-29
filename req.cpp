@@ -985,7 +985,7 @@ int Req::HttpReq()
   }
   if(lipo && lneto)
   {
-    tick=(Tin+Tout+1023)>>10;
+    tick=(Tin + Tout+1023)>>10;
     lipo->cnt+=tick;
     lneto->cnt+=tick;
     ipcnts[ncntn].d[0].cnt+=tick;
