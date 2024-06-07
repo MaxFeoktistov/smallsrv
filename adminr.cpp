@@ -438,6 +438,9 @@ if(0){
      if((u=GetVar(req_var,"a"))) DelDHCPIP(atoui(u),GetVar(req_var,"d"),GetVar(req_var,"s"));
    case 0x65747473 x4CHAR("stte"):
     OutActualConn(b);
+#ifdef TLSVPN
+    OutVPNLimit(b);
+#endif
     OutVirusList(b);
     for(i=0;i<9; ++i) if(ipcnts[i].n)
       OutSMTPLimit(b,i);

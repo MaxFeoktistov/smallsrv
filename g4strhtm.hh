@@ -4,36 +4,22 @@
 #define g4strhtm_hh
 
 #ifdef MAINSTR
- char S5t2T_4129147[] = "Keep-Alive Sleep";
- char *lS5t2T_4129147 = S5t2T_4129147;
+ char S5T_158416789[] = "\n<h2>VPN Limit status:</h2>\n"
+"<table bgcolor=#cffce0 border=1>"
+"<tr bgcolor=#a0eef8><td align=center><font size=3 class=f3><b>"
+"IP/user</b></font>"
+"</td><td align=center><font size=3 class=f3><b>per hour (Mb)</b></font>"
+"</td><td align=center><font size=3 class=f3><b>per day (Mb)</b></font>"
+"</td><td align=center><font size=3 class=f3><b>per month (Mb)</b></font>"
+"</td><td align=left><font size=2 class=f2> &nbsp;</font>"
+"</td></tr>";
+ char *lS5T_158416789 = S5T_158416789;
 #else
- extern char *lS5t2T_4129147;
- extern char S5t2T_4129147[];
+ extern char *lS5T_158416789;
+ extern char S5T_158416789[];
 #endif
-#define t2T_4129147 lS5t2T_4129147
-#define x_t2T_4129147 S5t2T_4129147
-
-      
-#ifdef MAINSTR
- char S5t2T_4675490[] = "VPN Client: %u.%u.%u.%u";
- char *lS5t2T_4675490 = S5t2T_4675490;
-#else
- extern char *lS5t2T_4675490;
- extern char S5t2T_4675490[];
-#endif
-#define t2T_4675490 lS5t2T_4675490
-#define x_t2T_4675490 S5t2T_4675490
-
-      
-#ifdef MAINSTR
- char S5t2T_467549[] = "TLS VPN:%s: %u.%u.%u.%u";
- char *lS5t2T_467549 = S5t2T_467549;
-#else
- extern char *lS5t2T_467549;
- extern char S5t2T_467549[];
-#endif
-#define t2T_467549 lS5t2T_467549
-#define x_t2T_467549 S5t2T_467549
+#define T_158416789 lS5T_158416789
+#define x_T_158416789 S5T_158416789
 
       
 #ifdef MAINSTR
@@ -50,20 +36,14 @@
 
       
 #ifdef MAINSTR
- char S5t2T_0[] = "<h2>Now connected:</h2><table bgcolor=#cffce0"
-" border=1><tr bgcolor=#a0eef8><td align=center><font size=3 class=f3><b>Remote"
-" IP</b></font></td><td align=center><font size=3 class=f3><b>Port</b></font></td><td"
-" align=left><font size=2 class=f2>Time (ms)</font></td><td align=left><font"
-" size=2 class=f2>in/out (bytes)</font></td><td align=left><font"
-" size=2 class=f2>info</font></td><td align=left><font size=2 class=f2>"
-" &nbsp;</font></td></tr>";
- char *lS5t2T_0 = S5t2T_0;
+ char S5t2T_4129147[] = "Keep-Alive Sleep";
+ char *lS5t2T_4129147 = S5t2T_4129147;
 #else
- extern char *lS5t2T_0;
- extern char S5t2T_0[];
+ extern char *lS5t2T_4129147;
+ extern char S5t2T_4129147[];
 #endif
-#define t2T_0 lS5t2T_0
-#define x_t2T_0 S5t2T_0
+#define t2T_4129147 lS5t2T_4129147
+#define x_t2T_4129147 S5t2T_4129147
 
       
 #ifdef MAINSTR
@@ -96,6 +76,45 @@
 #endif
 #define t2T_622312 lS5t2T_622312
 #define x_t2T_622312 S5t2T_622312
+
+      
+#ifdef MAINSTR
+ char S5t2T_467549[] = "TLS VPN:%s: %u.%u.%u.%u";
+ char *lS5t2T_467549 = S5t2T_467549;
+#else
+ extern char *lS5t2T_467549;
+ extern char S5t2T_467549[];
+#endif
+#define t2T_467549 lS5t2T_467549
+#define x_t2T_467549 S5t2T_467549
+
+      
+#ifdef MAINSTR
+ char S5t2T_0[] = "<h2>Now connected:</h2><table bgcolor=#cffce0"
+" border=1><tr bgcolor=#a0eef8><td align=center><font size=3 class=f3><b>Remote"
+" IP</b></font></td><td align=center><font size=3 class=f3><b>Port</b></font></td><td"
+" align=left><font size=2 class=f2>Time (ms)</font></td><td align=left><font"
+" size=2 class=f2>in/out (bytes)</font></td><td align=left><font"
+" size=2 class=f2>info</font></td><td align=left><font size=2 class=f2>"
+" &nbsp;</font></td></tr>";
+ char *lS5t2T_0 = S5t2T_0;
+#else
+ extern char *lS5t2T_0;
+ extern char S5t2T_0[];
+#endif
+#define t2T_0 lS5t2T_0
+#define x_t2T_0 S5t2T_0
+
+      
+#ifdef MAINSTR
+ char S5t2T_4675490[] = "VPN Client: %u.%u.%u.%u";
+ char *lS5t2T_4675490 = S5t2T_4675490;
+#else
+ extern char *lS5t2T_4675490;
+ extern char S5t2T_4675490[];
+#endif
+#define t2T_4675490 lS5t2T_4675490
+#define x_t2T_4675490 S5t2T_4675490
 
       
 #endif

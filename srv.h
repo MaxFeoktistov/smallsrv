@@ -366,6 +366,7 @@ struct Req
  void Shutdown(){ shutdown(s, 2); } ;
  int ServerNumber(){return flsrv[1]&MAX_SERV_MASK; }
  int SendStr(char *b);
+ int OutVPNLimit(char *bfr);
 
 };
 

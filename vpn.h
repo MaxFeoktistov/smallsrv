@@ -179,6 +179,7 @@ struct VPNclient : public Req
   int CheckVPNLimits();
   //int CheckVPNLimit(limitPerTime *lpt, int ind, time_t current);
   VPNUserLimit *SetLimit();
+  void UpdateLimits();
 
 };
 
@@ -225,6 +226,8 @@ extern int vpn_mtu[3];
 extern int  tuntap_number[3];
 extern char *tundev;
 extern int vpn_client_port;
+extern VPNUserLimit *vpn_limits;
+
 
 
 #ifdef VPN_WIN

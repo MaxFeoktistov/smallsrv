@@ -285,28 +285,28 @@ int BFILE::bvprintf(const char *fmt,va_list vl)
                 x=strlen(p);
                 if(w && x>w) x=w;
                 if(l<x)l=x;
-               bl=(l-x)*((~state)&1);
-               bx=bl+x;
-               for(k=0;k<l;++k)
-               {
+                bl=(l-x)*((~state)&1);
+                bx=bl+x;
+                for(k=0;k<l;++k)
+                {
 #if CRREPL
-                if(*p=='\n')*t++='\r';
+                  if(*p=='\n')*t++='\r';
 #endif
 
-                *t++=(k<bl || k>=bx)?' ':*p++;
-                if( (i=t-bfr)> BFR_LIM )
-                {
-                 ii+=Flush(par,bfr,i);
-                 t=bfr;
+                  *t++=(k<bl || k>=bx)?' ':*p++;
+                  if( (i=t-bfr)> BFR_LIM )
+                  {
+                    ii+=Flush(par,bfr,i);
+                    t=bfr;
+                  }
                 }
-               }
 
-               // memset(t,' ',l);
-               // memcpy(t+(l-x)*((~state)&1),p,x);
-               // t+=l;
-               }
-               ++fmt;
-               break;
+                // memset(t,' ',l);
+                // memcpy(t+(l-x)*((~state)&1),p,x);
+                // t+=l;
+              }
+              ++fmt;
+              break;
 
   #if 0
        case 'p':

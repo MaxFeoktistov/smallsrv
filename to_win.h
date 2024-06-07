@@ -244,8 +244,6 @@ inline ulong FileTime2time(FILETIME  &a)
        cmpl  __PerSecond1E7,%%edx
        jae   1f
        divl __PerSecond1E7
-       imul $51,%%edx
-       shrl $9,%%edx
       1:
      DJGPP_QUOTE :"=&a"(r),"=&d"(t)
       :"0"(a.dwLowDateTime),"1"(a.dwHighDateTime)
@@ -257,8 +255,6 @@ inline ulong FileTime2time(FILETIME  &a)
       "  cmpl  __PerSecond1E7,%%edx \n"
       "  jae   1f \n"
       "  divl __PerSecond1E7 \n"
-      "  imul $51,%%edx \n"
-      "  shrl $9,%%edx \n"
       "1: \n"
       :"=&a"(r),"=&d"(t)
       :"0"(a.dwLowDateTime),"1"(a.dwHighDateTime)
@@ -266,6 +262,17 @@ inline ulong FileTime2time(FILETIME  &a)
 
 #endif
     return r;
+}
+
+inline void time2FileTime(ulong t, FILETIME  &a)
+{
+  asm volatile(
+      " imull  __PerSecond1E7\n"
+      " addl  $0xB6109100, %%eax \n"
+      " adcl  $0x2 ,%%edx \n"
+      :"=&a"(a.dwLowDateTime),"=&d"(a.dwHighDateTime)
+      :"0"(t),"1"(t)
+    );
 }
 
 
@@ -412,6 +419,17 @@ int AddASyncIO(tfASyncIOHelperCB cb, void  *par, HANDLE h);
 #define write(a,b,c) lwrite( (int) a,(char *) (b), c)
 #define lseek llseek
 #define close(a) CloseHandle((HANDLE) (a))
+
+
+#define  tm_sec   wSecond
+#define  tm_wday  wDayOfWeek
+#define  tm_mday  wDay
+#define  tm_mon   wMonth-1
+#define  tm_year  wYear-1900
+#define  tm_hour  wHour
+#define  tm_min   wMinute
+
+
 
 #ifdef DJGPP
 #define Malloc malloc
