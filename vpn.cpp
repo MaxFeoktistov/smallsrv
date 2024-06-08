@@ -921,7 +921,7 @@ void CloseVPNClient(int i)
   maxVPNset.Clear(vpn_list[i]->s);
   //SecClose((OpenSSLConnection*) vpn_list[i]->Adv);
   //CloseSocket(vpn_list[i]->s);
-  vpn_list[i]->UpdateLimits();
+  //vpn_list[i]->UpdateLimits();
   vpn_list[i]->Close();
 
 
@@ -1137,6 +1137,7 @@ lb_reconnect:
 int VPNclient::RecvPkt()
 {
   int l,ll;
+  int lin;
   //HANDLE h;
 //  DBGLA("recv %d", pos_pkt);
 #ifdef VPN_WIN
@@ -1163,6 +1164,7 @@ int VPNclient::RecvPkt()
     fl |= F_VPN_LASTSINHERROR;
   }
   fl &= ~F_VPN_LASTSINHERROR;
+  lin = 0;
   while(pos_pkt>2 && (uint)pos_pkt >= (ll = pkt_len+2))
   {
 
@@ -1178,6 +1180,7 @@ int VPNclient::RecvPkt()
        pos_pkt = 0;
        return 0; // -1;
     }
+    lin += pkt_len + 2;
 
     if(fl & F_VPNTUN)
     {
@@ -1278,6 +1281,7 @@ int VPNclient::RecvPkt()
     VPNreceved_pkt ++;
 
   }
+  if(limits && limits->UpdateIn(lin) )  return 0;
   return 1;
 }
 
@@ -1373,7 +1377,7 @@ ulong WINAPI VPN_Thread(void *)
       for(i=0; i<vpn_count && j>0; i++)
         if( FD_ISSET(vpn_list[i]->s, &set) )
         {
-          if(vpn_list[i]->RecvPkt()<0 || vpn_list[i]->CheckVPNLimits()) CloseVPNClient(i);
+          if(vpn_list[i]->RecvPkt()<0 ) CloseVPNClient(i);
           j--;
         }
         else if( FD_ISSET(vpn_list[i]->s, &er_set) )
@@ -1432,6 +1436,7 @@ int VPN_Init()
 int VPNclient::SendIsUs(uchar *pktl, int tuntap)
 {
   int ret = PKT_NOT_US;
+  int r;
 
   if(!tuntap)
   { // TUN
@@ -1479,7 +1484,8 @@ int VPNclient::SendIsUs(uchar *pktl, int tuntap)
              ) ret = PKT_BCAST;
              else  break;
              }
-             if(Send(pktl, ppkt->len + 2)<=0) ret = -1;
+             if( (r=Send(pktl, ppkt->len + 2))<=0) ret = -1;
+             else if(limits && limits->UpdateOut(r) ) ret = -1;
              break;
         default:
 
@@ -1518,7 +1524,9 @@ int VPNclient::SendIsUs(uchar *pktl, int tuntap)
             mac[0], mac[1],  ppkt->eth.ether_dhost[0] & 0x1);
         return ret;
       }
-      if(Send(pktl, ppkt->len + 2)<=0) ret = -1;
+      if((r=Send(pktl, ppkt->len + 2))<=0) ret = -1;
+      else if(limits && limits->UpdateOut(r) ) ret = -1;
+
 #undef  ppkt
     }
     // TODO: else Tun <=> Tap gate
@@ -1561,37 +1569,62 @@ int VPNclient::CheckVPNLimits()
   int i;
   limitPerTime *lpt;
   if(!limits) return 0;
-  if(limits->in_fast > Tin && limits->out_fast > Tout) return 0;
-  limits->in_fast = (u64)-1;
-  limits->out_fast = (u64)-1;
+  if(limits->UpdateIn(Tin))return -1;
+  if(limits->UpdateOut(Tout))return -1;
+  return 0;
+}
+
+void VPNUserLimit::UpdateFast()
+{
+  time_t current;
+  u64 li;
+  u64 lo;
+  int i;
+  limitPerTime *lpt;
+
+  in_fast = (u64)-1;
+  out_fast = (u64)-1;
   current = time(0);
   for(i=0; i<3; i++)
   {
-    lpt = limits->lim + i;
+    lpt = lim + i;
     if(current > lpt->end)
     {
       lpt->end = current + limitPeriods[i];
       debug("Init end%u %X\r\n",i, lpt->end);
-//       lpt->out_bytes = Tout;
-//       lpt->in_bytes = Tin;
-      lpt->in_bytes = Tin + VPNInLimit[i];
-      lpt->out_bytes = Tout + VPNOutLimit[i];
+      lpt->in_bytes = in + VPNInLimit[i];
+      lpt->out_bytes = out + VPNOutLimit[i];
     }
-    li = lpt->in_bytes;
-    lo = lpt->out_bytes;
-//     li = lpt->in_bytes + VPNInLimit[i];
-//     lo = lpt->out_bytes + VPNOutLimit[i];
 
-    if(!VPNInLimit[i]) li = (u64)-1;
-    else if(limits->in_fast > li) limits->in_fast = li;
-    if(!VPNOutLimit[i]) lo = (u64)-1;
-    else if(limits->out_fast > lo) limits->out_fast = lo;
-
-    if(Tin > li) return -1;
-    if(Tout > lo) return -1;
+    if(VPNInLimit[i]){
+      li = lpt->in_bytes;
+      if(in_fast > li) in_fast = li;
+    }
+    if(VPNOutLimit[i]) {
+      lo = lpt->out_bytes;
+      if(out_fast > lo) out_fast = lo;
+    }
   }
-  return 0;
 }
+
+int VPNUserLimit::UpdateIn(uint l)
+{
+
+  if( (in+=l) < in_fast) return 0;
+  UpdateFast();
+  if(in < in_fast) return 0;
+  return -1;
+}
+
+int VPNUserLimit::UpdateOut(uint l)
+{
+
+  if( (out+=l) < out_fast) return 0;
+  UpdateFast();
+  if(out < out_fast) return 0;
+  return -1;
+}
+
 
 int vpn_limit_mutex;
 VPNUserLimit *VPNclient::SetLimit()
@@ -1617,6 +1650,7 @@ VPNUserLimit *VPNclient::SetLimit()
   return p;
 }
 
+/*
 void VPNclient::UpdateLimits()
 {
   limitPerTime *lpt;
@@ -1628,7 +1662,7 @@ void VPNclient::UpdateLimits()
     lpt->in_bytes -= Tin;
   }
 };
-
+*/
 
 #if 0
 void addRoute(uint dstip, uint dstmsk, uint gw)

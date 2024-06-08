@@ -125,6 +125,8 @@ struct VPNUserLimit
     TSOCKADDR sa_c46;
   };
   limitPerTime lim[3];
+  u64 in;
+  u64 out;
   u64 in_fast;
   u64 out_fast;
   /*
@@ -140,6 +142,10 @@ struct VPNUserLimit
   u64  in_mounth;
   u64  out_mounth;
   */
+
+  void UpdateFast();
+  int UpdateIn(uint l);
+  int UpdateOut(uint l);
 };
 
 struct VPNclient : public Req

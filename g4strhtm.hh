@@ -4,15 +4,16 @@
 #define g4strhtm_hh
 
 #ifdef MAINSTR
- char S5T_158416789[] = "\n<h2>VPN Limit status:</h2>\n"
-"<table bgcolor=#cffce0 border=1>"
-"<tr bgcolor=#a0eef8><td align=center><font size=3 class=f3><b>"
-"IP/user</b></font>"
-"</td><td align=center><font size=3 class=f3><b>per hour (Mb)</b></font>"
-"</td><td align=center><font size=3 class=f3><b>per day (Mb)</b></font>"
-"</td><td align=center><font size=3 class=f3><b>per month (Mb)</b></font>"
-"</td><td align=left><font size=2 class=f2> &nbsp;</font>"
-"</td></tr>";
+ char S5T_158416789[] = "<h2>VPN Limit status:</h2>\n"
+   "<table bgcolor=#cffce0 border=1>"
+   "<tr bgcolor=#a0eef8><td align=center><font size=3 class=f3><b>"
+     "IP/user</b></font>"
+   "</td><td align=center><font size=3 class=f3><b>Total in/out (Mb)</b></font>"
+   "</td><td align=center><font size=3 class=f3><b>left per hour (Mb)</b></font>"
+   "</td><td align=center><font size=3 class=f3><b>left per day (Mb)</b></font>"
+   "</td><td align=center><font size=3 class=f3><b>left per month (Mb)</b></font>"
+   "</td><td align=left><font size=2 class=f2> &nbsp;</font>"
+   "</td></tr>";
  char *lS5T_158416789 = S5T_158416789;
 #else
  extern char *lS5T_158416789;
@@ -21,7 +22,7 @@
 #define T_158416789 lS5T_158416789
 #define x_T_158416789 S5T_158416789
 
-      
+
 #ifdef MAINSTR
  char S5t2T_622313[] = "<td><font size=2 class=f><b><a href=/$_admin_$conf>Setting</a></b></font></td><td><font"
 " size=2 class=f><b><a href=/$_admin_$host>Users & Virtual Hosts</a></b></font></td><td><font"
@@ -34,7 +35,7 @@
 #define t2T_622313 lS5t2T_622313
 #define x_t2T_622313 S5t2T_622313
 
-      
+
 #ifdef MAINSTR
  char S5t2T_4129147[] = "Keep-Alive Sleep";
  char *lS5t2T_4129147 = S5t2T_4129147;
@@ -45,7 +46,7 @@
 #define t2T_4129147 lS5t2T_4129147
 #define x_t2T_4129147 S5t2T_4129147
 
-      
+
 #ifdef MAINSTR
  char S5t2T_622312[] = "HTTP/1.1 200 Ok\r\n"
 "Pragma: no-cache\r\n"
@@ -77,7 +78,7 @@
 #define t2T_622312 lS5t2T_622312
 #define x_t2T_622312 S5t2T_622312
 
-      
+
 #ifdef MAINSTR
  char S5t2T_467549[] = "TLS VPN:%s: %u.%u.%u.%u";
  char *lS5t2T_467549 = S5t2T_467549;
@@ -88,7 +89,7 @@
 #define t2T_467549 lS5t2T_467549
 #define x_t2T_467549 S5t2T_467549
 
-      
+
 #ifdef MAINSTR
  char S5t2T_0[] = "<h2>Now connected:</h2><table bgcolor=#cffce0"
 " border=1><tr bgcolor=#a0eef8><td align=center><font size=3 class=f3><b>Remote"
@@ -105,7 +106,7 @@
 #define t2T_0 lS5t2T_0
 #define x_t2T_0 S5t2T_0
 
-      
+
 #ifdef MAINSTR
  char S5t2T_4675490[] = "VPN Client: %u.%u.%u.%u";
  char *lS5t2T_4675490 = S5t2T_4675490;
@@ -116,5 +117,5 @@
 #define t2T_4675490 lS5t2T_4675490
 #define x_t2T_4675490 S5t2T_4675490
 
-      
+
 #endif

@@ -593,11 +593,11 @@ SPD(5,tls)
 
 {"tun_remote_ip", 20, 0,(uint *)&vpn_first_remote_ipc[0], CXS(S1t2T_7776209, "First IP address to allocate for remote client that connected to Tun. (Optional)")},
 {"tun_remote_max", 0, 1024,(uint *)&vpn_total_remote_ip[0], CXS(S1t2T_8186840, "Total IP addresses to allocate for remote client that connected to Tun. (Optional. Set to 0 to use external DHCP server, or another methods)")},
-{"tun_remote_dns", 0, 1024,(uint *)&vpn_dns[0], CXS(S1t2T_4946453, "DNS servers that will be offered to the TUN client.")},
+{"tun_remote_dns", 250, 0,(uint *)&vpn_dns[0], CXS(S1t2T_4946453, "DNS servers that will be offered to the TUN client.")},
 
 {"tap_remote_ip" ,20, 0,(uint *)&vpn_first_remote_ipc[1], CXS(S1t2T_7690692, "First IP address to allocate for remote client that connected to Tap. (Optional)")},
 {"tap_remote_max", 0, 1024,(uint *)&vpn_total_remote_ip[1], CXS(S1t2T_8097903, "Total IP addresses to allocate for remote client that connected to Tap. (Optional. Set to 0 to use external DHCP server, or another methods)")},
-{"tap_remote_dns", 0, 1024,(uint *)&vpn_dns[0], CXS(S1t2T_4877845, "DNS servers that will be offered to the TAP client. (Optional) ")},
+{"tap_remote_dns", 250, 0,(uint *)&vpn_dns[0], CXS(S1t2T_4877845, "DNS servers that will be offered to the TAP client. (Optional) ")},
 
 {"vpn_user_limit",3, FL3_VPN_ULIMIT, (uint *)0, CXS(S1T_11280848, "Set VPN traffic limit per user")},
 {"vpn_ip_limit",3,   FL3_VPN_IPLIMIT, (uint *)0, CXS(S1T_7516624, "Set VPN traffic limit per IP")},

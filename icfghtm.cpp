@@ -482,7 +482,12 @@ int Req::OutActualConn(char *bfr)
 void OutLimitLine(BFILE *bfl, char *nm, VPNUserLimit* p)
 {
   int i;
-  bfl->bprintf("<tr><td><b> %s </b></td>", nm);
+  uint in = (p->in + 0x7ffffll)>>20;
+  uint out = (p->in + 0x7ffffll)>>20;
+
+  bfl->bprintf("<tr><td><b> %s </b></td>"
+               "<td><b> %u/%u </b></td>"
+               ,nm, in, out);
 
   for(i=0; i<3; i++)
   {
@@ -500,8 +505,8 @@ void OutLimitLine(BFILE *bfl, char *nm, VPNUserLimit* p)
 #endif
     bfl->bprintf(
       "<td>in:<b>%u</b> out:<b>%u</b> up to: %02u/%02u %02u:%02u</td>",
-        (uint)((p->lim[i].in_bytes + 0x7ffffll)>>20) ,
-        (uint)((p->lim[i].out_bytes + 0x7ffffll)>>20),
+        (uint)((p->lim[i].in_bytes + 0x7ffffll)>>20) - in,
+        (uint)((p->lim[i].out_bytes + 0x7ffffll)>>20) - out,
                 ttm->tm_mday, ttm->tm_mon + 1, ttm->tm_hour,ttm->tm_min
              );
   }
@@ -528,13 +533,14 @@ int Req::OutVPNLimit(char *bfr)
     bfl.Init(this,(PrintFlush) Snd, bfr);
 
     bfl.bprintf(
-              CXS(S5T_158416789, "\n<h2>VPN Limit status:</h2>\n"
+              CXS(S5T_158416789, "<h2>VPN Limit status:</h2>\n"
    "<table bgcolor=#cffce0 border=1>"
    "<tr bgcolor=#a0eef8><td align=center><font size=3 class=f3><b>"
      "IP/user</b></font>"
-   "</td><td align=center><font size=3 class=f3><b>per hour (Mb)</b></font>"
-   "</td><td align=center><font size=3 class=f3><b>per day (Mb)</b></font>"
-   "</td><td align=center><font size=3 class=f3><b>per month (Mb)</b></font>"
+   "</td><td align=center><font size=3 class=f3><b>Total in/out (Mb)</b></font>"
+   "</td><td align=center><font size=3 class=f3><b>left per hour (Mb)</b></font>"
+   "</td><td align=center><font size=3 class=f3><b>left per day (Mb)</b></font>"
+   "</td><td align=center><font size=3 class=f3><b>left per month (Mb)</b></font>"
    "</td><td align=left><font size=2 class=f2> &nbsp;</font>"
    "</td></tr>")
     );
