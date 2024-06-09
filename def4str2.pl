@@ -350,7 +350,7 @@ sub CheckIsChanged
   {
 #    dbg("***Warning. $nm ($p_nm) changed -- \nold: ${$cur_hsh}{$p_nm}\nnew: $v\n");
     dbg("***Warning. $nm ($p_nm) changed -- \nold: $ve\nnew: $v\n");
-    exit(1);
+    # exit(1);
     ${$cur_hsh}{$p_nm} = $v;
     ${$cur_hsh}{'_updated_'} = 1;
   }

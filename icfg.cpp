@@ -413,9 +413,9 @@ SPD(4,pop)
 {"pop3_proxy",1,FL1_POPROXY,(uint *)0, CXS(S1t2T_3304985, "Enable POP3 proxy" )},
 
 {"wmail",2,FL2_WMAIL,(uint *)0, CXS(S1t2T_1893843, "Enable Web mail" )},
-{"nowmailsent",1,0,(uint *)0, CXS(S1t2T_2071505, "Don't save messages sent throught Web mail in user's folder" )},
+{"nowmailsent",1,0,(uint *)0, CXS(S1t2T_2071505, "Don't save messages sent through Web mail in user's folder" )},
 {"wmailsent" ,64,0,(uint *)&loc_sent, CXS(S1t2T_2964100, "Subfolder to save sent messages" )},
-{"nowmailtrash",1,0,(uint *)0, CXS(S1t2T_2262526, "Delete messages throught Web mail immediately" )},
+{"nowmailtrash",1,0,(uint *)0, CXS(S1t2T_2262526, "Delete messages through Web mail immediately" )},
 {"wmailtrash" ,64,0,(uint *)&loc_trash, CXS(S1t2T_3387087, "Trash folder to move deleted messages" )},
 {"wmail_utf",2,FL2_WMUTF, (uint *)0, CXS(S1t2T_2791726, "Convert pages to UTF-8" )},
 
@@ -593,11 +593,11 @@ SPD(5,tls)
 
 {"tun_remote_ip", 20, 0,(uint *)&vpn_first_remote_ipc[0], CXS(S1t2T_7776209, "First IP address to allocate for remote client that connected to Tun. (Optional)")},
 {"tun_remote_max", 0, 1024,(uint *)&vpn_total_remote_ip[0], CXS(S1t2T_8186840, "Total IP addresses to allocate for remote client that connected to Tun. (Optional. Set to 0 to use external DHCP server, or another methods)")},
-{"tun_remote_dns", 250, 0,(uint *)&vpn_dns[0], CXS(S1t2T_4946453, "DNS servers that will be offered to the TUN client.")},
+{"tun_remote_dns", 250, 0,(uint *)&vpn_dns[0], CXS(S1t2T_4946453, "DNS servers that will be offered to the TUN client. Through coma (Optional)")},
 
 {"tap_remote_ip" ,20, 0,(uint *)&vpn_first_remote_ipc[1], CXS(S1t2T_7690692, "First IP address to allocate for remote client that connected to Tap. (Optional)")},
 {"tap_remote_max", 0, 1024,(uint *)&vpn_total_remote_ip[1], CXS(S1t2T_8097903, "Total IP addresses to allocate for remote client that connected to Tap. (Optional. Set to 0 to use external DHCP server, or another methods)")},
-{"tap_remote_dns", 250, 0,(uint *)&vpn_dns[0], CXS(S1t2T_4877845, "DNS servers that will be offered to the TAP client. (Optional) ")},
+{"tap_remote_dns", 250, 0,(uint *)&vpn_dns[0], CXS(S1t2T_4877845, "DNS servers that will be offered to the TAP client. Through coma (Optional)")},
 
 {"vpn_user_limit",3, FL3_VPN_ULIMIT, (uint *)0, CXS(S1T_11280848, "Set VPN traffic limit per user")},
 {"vpn_ip_limit",3,   FL3_VPN_IPLIMIT, (uint *)0, CXS(S1T_7516624, "Set VPN traffic limit per IP")},

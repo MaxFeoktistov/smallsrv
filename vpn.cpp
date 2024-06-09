@@ -994,9 +994,11 @@ int Req::InsertVPNclient()
      return -1;
    }
 
-   if( s_flgs[3] & (FL3_VPN_ULIMIT | FL3_VPN_IPLIMIT) ) {
+   if( s_flgs[3] & (FL3_VPN_ULIMIT | FL3_VPN_IPLIMIT) )
+   {
      lmt = ((VPNclient *)this)->SetLimit();
-     if(((VPNclient *)this)->CheckVPNLimits()) {
+     if(lmt->UpdateIn(Tin) || lmt->UpdateOut(Tout) )
+     {
        HttpReturnError("Limit overflow...");
        return -1;
      }
@@ -1099,12 +1101,12 @@ lb_reconnect:
        msk,
        ConvertIP(tt=tuntap_ipv4[isTap]), vpn_mtu[isTap]
       );
-       if(vpn_dns[isTap] && vpn_dns[isTap][0]) {
+      if(vpn_dns[isTap] && strchr(vpn_dns[isTap],'.') ) {
          l += sprintf(t + l,"dns: %s\r\n", vpn_dns[isTap]);
-       cl->ipv4 = ip;
-       cl->ipv4bcast = ip | ~msk; // ~vpn_nmask[isTap];
-       cl->fl |= F_VPN_IPSET;
       }
+      cl->ipv4 = ip;
+      cl->ipv4bcast = ip | ~msk; // ~vpn_nmask[isTap];
+      cl->fl |= F_VPN_IPSET;
    }
    l += sprintf(t + l,"\r\n");
    cl->Send(t,l);
@@ -1561,19 +1563,6 @@ uint VPNOutLimitMb[3];
 u64 VPNInLimit[3];
 u64 VPNOutLimit[3];
 
-int VPNclient::CheckVPNLimits()
-{
-  time_t current;
-  u64 li;
-  u64 lo;
-  int i;
-  limitPerTime *lpt;
-  if(!limits) return 0;
-  if(limits->UpdateIn(Tin))return -1;
-  if(limits->UpdateOut(Tout))return -1;
-  return 0;
-}
-
 void VPNUserLimit::UpdateFast()
 {
   time_t current;
@@ -1625,8 +1614,28 @@ int VPNUserLimit::UpdateOut(uint l)
   return -1;
 }
 
-
 int vpn_limit_mutex;
+
+void ClearLimits(uint end, uint pp)
+{
+  VPNUserLimit* p;
+  int i;
+  MyLock(vpn_limit_mutex);
+  for(p=vpn_limits; p; p=p->next)
+  {
+    if( p->lim[2].end == end && pp == (uint)(long)p )
+    {
+      p->lim[0].end = 0;
+      p->lim[1].end = 0;
+      p->lim[2].end = 0;
+      p->UpdateFast();
+      break;
+    }
+  }
+  MyUnlock(vpn_limit_mutex);
+
+}
+
 VPNUserLimit *VPNclient::SetLimit()
 {
   VPNUserLimit* p;
@@ -1646,7 +1655,7 @@ VPNUserLimit *VPNclient::SetLimit()
     }
   }
   MyUnlock(vpn_limit_mutex);
-  vpn_limits = p;
+ // vpn_limits = p;
   return p;
 }
 
@@ -1861,6 +1870,7 @@ agayn1:
     l += sprintf(bfr + l,"Basic ");
     l = Encode64(bfr + l, bfr + 1400, sprintf(bfr+1400, "%s:%s",vpn_user, vpn_passw ) ) - bfr;
   }
+
   l= msprintf(bfr,"GET %s HTTP/1.1\r\n"
     "Authorization: %s\r\n"
     "Host: %s\r\n"
