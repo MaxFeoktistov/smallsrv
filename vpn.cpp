@@ -1651,11 +1651,10 @@ VPNUserLimit *VPNclient::SetLimit()
       p->usr = a_user;
       memcpy(&p->sa_c46, &sa_c46, sizeof(p->sa_c46));
       p->next = vpn_limits;
-//      vpn_limits = p;
+      vpn_limits = p;
     }
   }
   MyUnlock(vpn_limit_mutex);
- // vpn_limits = p;
   return p;
 }
 

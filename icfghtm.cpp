@@ -494,7 +494,7 @@ void OutLimitLine(BFILE *bfl, char *nm, VPNUserLimit* p)
 #ifdef SYSUNIX
     struct tm *ttm;
 
-    debug("p->lim[i].end%u %X\r\n",i, p->lim[i].end);
+    //debug("p->lim[i].end%u %X\r\n",i, p->lim[i].end);
     ttm=localtime(&p->lim[i].end);
 #else
     SYSTEMTIME sTim2;
