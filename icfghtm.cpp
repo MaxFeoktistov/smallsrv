@@ -483,7 +483,7 @@ void OutLimitLine(BFILE *bfl, char *nm, VPNUserLimit* p)
 {
   int i;
   uint in = (p->in + 0x7ffffll)>>20;
-  uint out = (p->in + 0x7ffffll)>>20;
+  uint out = (p->out + 0x7ffffll)>>20;
 
   bfl->bprintf("<tr><td><b> %s </b></td>"
                "<td><b> %u/%u </b></td>"
