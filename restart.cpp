@@ -682,6 +682,8 @@ int InitApplication()
     pprot+=sprintf(pprot,"**Error. Can't load TLS/SSL library\r\n");
   }
   else
+#else
+  SetPriority(tls_priority);
 #endif
   if(
    InitLib((TFprintf) &tlsdebug, (TFtransfer) (&JustSnd), (TFtransfer) (&JustRcv),

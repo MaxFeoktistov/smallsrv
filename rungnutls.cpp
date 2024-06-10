@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2020 Maksim Feoktistov.
+ * Copyright (C) 1999-2024 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov
@@ -462,12 +462,47 @@ static gnutls_certificate_credentials_t x509_cred;
 static gnutls_priority_t priority_cache;
 //static gnutls_session_t session;
 
+#define CHECK(a)  if( (r=a)<0 ){ Fprintf("GNUTLS Eroror %d (%s) in " #a "\r\n", r, gnutls_strerror(r) );  return 0;}
+
+static int InitPriorityCash()
+{
+  const char *crr = 0;
+  int r;
+  do{
+    if(priority_str && priority_str[0])
+    {
+      Fprintf("priority:%s\r\n",priority_str);
+      if(
+        #ifdef GNUTLS_PRIORITY_INIT_DEF_APPEND
+        (r =gnutls_priority_init2(&priority_cache,
+                              //"%SERVER_PRECEDENCE",
+                              priority_str,
+                              (const char **)  &crr, 0 // GNUTLS_PRIORITY_INIT_DEF_APPEND
+        ))
+        #else
+        (r =gnutls_priority_init(&priority_cache,
+                             //"%SERVER_PRECEDENCE",
+                             priority_str,
+                             (const char **) &crr))
+        #endif
+        >=0)
+      {
+        break;
+
+      }
+      Fprintf("GNUTLS Eroror %d (%s) in gnutls_priority_init2 at '%.32s...'\r\n",r,gnutls_strerror(r), (crr)?crr:""  );
+    }
+    CHECK(gnutls_priority_init(&priority_cache, NULL, NULL));
+  }while(0);
+  return 1;
+}
+
+
 static int REinitCTX()
 {
  int r;
  char *crr;
  reinit_ctx_need=0;
-#define CHECK(a)  if( (r=a)<0 ){ Fprintf("GNUTLS Eroror %d (%s) in " #a ,r,gnutls_strerror(r) );  return 0;}
 
        CHECK(gnutls_certificate_allocate_credentials(&x509_cred));
 
@@ -494,39 +529,12 @@ static int REinitCTX()
          */
 
        if(s_cert_file && s_cert_file[0])
-        CHECK(gnutls_certificate_set_x509_key_file(x509_cred, s_cert_file,
-                                                   s_key_file,
-                                                   GNUTLS_X509_FMT_PEM));
+        CHECK(gnutls_certificate_set_x509_key_file(x509_cred,s_cert_file,s_key_file,GNUTLS_X509_FMT_PEM));
 
 //         CHECK(gnutls_certificate_set_ocsp_status_request_file(x509_cred,
 //                                                               OCSP_STATUS_FILE,
 //                                                               0));
-       do{
-        if(priority_str && priority_str[0])
-        {
-          crr=0;
-          if(
-#ifdef GNUTLS_PRIORITY_INIT_DEF_APPEND
-              gnutls_priority_init2(&priority_cache,
-                                //"%SERVER_PRECEDENCE",
-                                priority_str,
-               (const char **)  &crr, 0 // GNUTLS_PRIORITY_INIT_DEF_APPEND
-                                  )
-#else
-              gnutls_priority_init(&priority_cache,
-                                //"%SERVER_PRECEDENCE",
-                                priority_str,
-              (const char **) &crr)
-#endif
-              >=0)
-          {
-              break;
-
-          }
-          Fprintf("GNUTLS Eroror %d (%s) in gnutls_priority_init2 at '%.32s...'",r,gnutls_strerror(r), (crr)?crr:""  );
-        }
-        CHECK(gnutls_priority_init(&priority_cache, NULL, NULL));
-       }while(0);
+        InitPriorityCash();
         /* Instead of the default options as shown above one could specify
          * additional options such as server precedence in ciphersuite selection
          * as follows:
@@ -541,9 +549,13 @@ static int REinitCTX()
 
 }
 
+
+
 void SetPriority(char *t)
 {
   priority_str=t;
+  if(FSend)  // InitLib already called
+    InitPriorityCash();
 }
 
 int InitLib( TFprintf prnt,TFtransfer fsend,TFtransfer frecv,char *lCApath,char *lCAfile,
@@ -568,6 +580,14 @@ int InitLib( TFprintf prnt,TFtransfer fsend,TFtransfer frecv,char *lCApath,char 
  DBG_STEP()
  FSend=fsend; FRecv=frecv;
  gnutls_global_init();
+
+ /*
+ gnutls_protocol_set_enabled(GNUTLS_TLS1_0,1);
+ gnutls_protocol_set_enabled(GNUTLS_TLS1_1,1);
+ gnutls_protocol_set_enabled(GNUTLS_TLS1_2,1);
+ gnutls_protocol_set_enabled(GNUTLS_TLS1_3,0);
+ */
+
 //TLS_RSA_WITH_AES_256_CBC_SHA
  CApath       =lCApath     ;
  CAfile       =lCAfile     ;
@@ -675,6 +695,7 @@ static void PrepareSession(struct OpenSSLConnection *s)
   gnutls_handshake_set_timeout(s->session,
                                GNUTLS_DEFAULT_HANDSHAKE_TIMEOUT);
   gnutls_record_set_timeout(s->session, 30000);
+  gnutls_session_enable_compatibility_mode(s->session);
 }
 
 int SecAccept(struct OpenSSLConnection *s)
@@ -723,7 +744,7 @@ int SecAccept(struct OpenSSLConnection *s)
 
                      r = gnutls_handshake(s->session);
                 } while(r == GNUTLS_E_AGAIN || r == GNUTLS_E_INTERRUPTED);
-
+//|| r == GNUTLS_E_INAPPROPRIATE_FALLBACK
                 DBG_STEP()
                 if(r<0)
                 {

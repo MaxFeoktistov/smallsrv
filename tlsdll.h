@@ -54,6 +54,7 @@ int SecSend  (OpenSSLConnection *s,char *b,int l);
 int SecClose (OpenSSLConnection *s);
 int SecConnect(OpenSSLConnection *s, int anon, char *verfyhost);
 int SecUpdateCB(OpenSSLConnection *s);
+void SetPriority(char *t);
 #else
 
 extern int (*PInitLib)( TFprintf prnt,TFtransfer fsend,TFtransfer frecv,
