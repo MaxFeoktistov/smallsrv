@@ -2,9 +2,9 @@ smallsrv (3.06.31) unstable; urgency=low
 
   * Added support for trafic limitation to VPN server.
   * Changed incoming/outgoing counters to 64bits .
-  * In the security libraries support files changed default max version
-    to 1.2 by default
-    When max version 1.3 Android API client can't handshake.
+  * In the security libraries support files changed max version
+    to TLS 1.2 by default
+    When max version is TLS 1.3 Android API client can't handshake.
   * Fixed config param VPN DNS
   * Fixed TLS SetPriority for binary with pre-builded security library
   * Added support for DNS-based Named Entity Authentication (DANE)
