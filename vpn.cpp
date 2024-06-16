@@ -984,6 +984,7 @@ int Req::InsertVPNclient()
 #endif
     return -1;
    }
+   a_user = tuser;
 
    DBGL("");
 
@@ -1828,7 +1829,7 @@ agayn1:
   if(s_flgs[3] & FL3_VPN_CHKTLS    ) i |= tbtVerfyRequired;
   if(s_flgs[3] & FL3_VPN_TLSIGNTIME) i |= tbtDontVerfyTyme;
   if(s_flgs[3] & FL3_VPN_TLSSSIGN  ) i |= tbtDontVerfySigner;
-  if(s_flgs[3] & FL3_VPN_TLSSHSTYLE  ) i |= tbtSSHstyleVerfy;
+  if(s_flgs[3] & FL3_VPN_TLSSHSTYLE) i |= tbtSSHstyleVerfy;
 
   if(! TLSBegin(x,i,(s_flgs[3] & FL3_VPN_CHKTLS)? vpn_remote_host : 0 ) )
   {

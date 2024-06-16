@@ -348,29 +348,6 @@ int sOutLine::OutConnLine(Req *r, char *alt_text)
    *   DWORD_PTR(r->inf[0])!=0x544345 x4CHAR("ECT") &&
    *   (t1=strchr(r->inf+1,' '))
    * )*t1=0; */
-/*
-  contry[0]=0;
-  if(cntr_dat)
-  {
-    uint ipv4 = r->sa_c.sin_addr.s_addr;
-    #ifdef USE_IPV6
-    if(r->sa_c6.sin6_family == AF_INET6)
-    {
-      if(
-        r->sa_c6.sin6_addr.s6_addr32[0]!=0 ||
-        r->sa_c6.sin6_addr.s6_addr32[1]!=0 ||
-        r->sa_c6.sin6_addr.s6_addr32[2]!=0xFFFF0000
-      ) goto lbIPv6;
-      ipv4 = r->sa_c6.sin6_addr.s6_addr32[3];
-    }
-    #endif
-    if( (cc=FindCntr(htonl(ipv4) ) ) )
-    {
-      sprintf(contry," (%2.2s)",cc->nm);
-    }
-    lbIPv6:;
-  }
-*/
 #if 1
   // Dont_fix_var
   j+=msprintf(bfr+j,"<tr valign=center><td><font size=2 class=f2>%u) <b>"
@@ -379,7 +356,7 @@ int sOutLine::OutConnLine(Req *r, char *alt_text)
 //  #else
 //  "%u.%u.%u.%u"
 //  #endif
-
+// "%s"
   "</td><td align=center><font size=2 class=f2><b>%u</b></font>"
   "</td><td align=left><font size=2 class=f2>%d</font>"
   "</td><td align=left><font size=2 class=f2>%llu / %llu</font>"
@@ -576,26 +553,6 @@ int Req::OutVPNLimit(char *bfr)
     {
       if( (s_flgs[3] & FL3_VPN_IPLIMIT) )
       {
-/*
-        CntrCode  *cc;
-        int sz;
-        uint ipv4 = p->sa_c.sin_addr.s_addr;
-        sz = IP2S(nm, &(p->sa_c));
-#ifdef USE_IPV6
-        if(p->sa_c.sin_family == AF_INET6)
-        {
-          if(
-            p->sa_c6.sin6_addr.s6_addr32[0]!=0 ||
-            p->sa_c6.sin6_addr.s6_addr32[1]!=0 ||
-            p->sa_c6.sin6_addr.s6_addr32[2]!=0xFFFF0000
-          ) goto lbIPv6;
-          ipv4 = p->sa_c6.sin6_addr.s6_addr32[3];
-        }
-#endif
-        if( (cc=FindCntr(htonl(ipv4) ) ) )
-          sprintf(nm + sz, " (%2.2s)",cc->nm);
-        lbIPv6:
-*/
         IP2Scntr(nm,(sockaddr46_t *) &(p->sa_c));
         OutLimitLine(&bfl, nm, p);
       }

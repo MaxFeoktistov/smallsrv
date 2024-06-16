@@ -10,7 +10,7 @@ smallsrv (3.06.31) unstable; urgency=low
   * Added support for DNS-based Named Entity Authentication (DANE)
     (RFC6698) to the DNS server.
 
- -- Maksim Feoktistov <max@smallsrv.com>  Sat, 15 Jun 2024 18:14:20 +0400
+ -- Maksim Feoktistov <max@smallsrv.com>  Sun, 16 Jun 2024 19:33:41 +0400
 
 smallsrv (3.06.30) unstable; urgency=low
 
