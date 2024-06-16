@@ -659,16 +659,16 @@ $(DIST_DIR):
 
 dist:   $(DIST_DIR) o/dist/license06.txt o/adist/license06.txt $(ODISTFILES) $(OUDISTFILES) $(ADISTFILES) dist64 arm64dist
 	cp o/of/httpd.ex* o/dist/
-	cd o/dist/ ; strip httpd.ex* ; chmod -R go-w,u+rw,a+X * ; chmod  0755 httpd.ex* *.so  sndmsg ; chmod  0600 httpd.cfg ;  rm -f $(DIST_DIR)shttplnx.tgz ; tar --owner=root --group=root -czf $(DIST_DIR)shttplnx.tgz * ; chmod 0644 $(DIST_DIR)shttplnx.tgz
+	cd o/dist/ ; strip httpd.ex* ; chmod -R go-w,u+rw,a+X * ; chmod  0755 httpd.ex* *.so  sndmsg ; chmod  0644 *.1 ; chmod 0600 httpd.cfg ;  rm -f $(DIST_DIR)shttplnx.tgz ; tar --owner=root --group=root -czf $(DIST_DIR)shttplnx.tgz * ; chmod 0644 $(DIST_DIR)shttplnx.tgz
 	cp at/httpd.ex* o/adist/
-	cd o/adist/ ; arm-linux-gnueabi-strip httpd.ex* ; chmod -R go-w *  ; chmod -R a+X * ; chmod  0755 httpd.ex* *.so  sndmsg ; chmod  0600 httpd.cfg ;  rm -f $(DIST_DIR)shttparmlnx.tgz ; tar --owner=root --group=root -czf $(DIST_DIR)shttparmlnx.tgz * ; chmod 0644 $(DIST_DIR)shttparmlnx.tgz
+	cd o/adist/ ; arm-linux-gnueabi-strip httpd.ex* ; chmod -R go-w *  ; chmod -R a+X * ; chmod  0755 httpd.ex* *.so  sndmsg ; chmod  0644 *.1 ; chmod  0600 httpd.cfg ;  rm -f $(DIST_DIR)shttparmlnx.tgz ; tar --owner=root --group=root -czf $(DIST_DIR)shttparmlnx.tgz * ; chmod 0644 $(DIST_DIR)shttparmlnx.tgz
 	cp o/httpd.exe o/distu/
 	cd o/distu/ ; strip httpd.exe ; chmod -R go-w,u+rw,a+X * ; chmod  0755 httpd.exe *.so sndmsg ; chmod  0600 httpd.cfg ;  rm -f $(DIST_DIR)shttplnxu.tgz ; tar --owner=root --group=root -czf $(DIST_DIR)shttplnxu.tgz * ; chmod 0644 $(DIST_DIR)shttplnxu.tgz
 
 
 dist64: o64/dist/libsec111.so o64/dist/libsecgnutls.so o64/distu/libsec111.so o64/distu/libsecgnutls.so $(O64DISTFILES) $(O64UDISTFILES)
 	cp o64/of/httpd.ex* o64/dist/
-	cd o64/dist/ ; strip httpd.ex* ; chmod -R go-w,u+rw,a+X * ; chmod  0755 httpd.ex* *.so  sndmsg ; chmod  0600 httpd.cfg ;  rm -f $(DIST_DIR)shttplnx64.tgz ; tar --owner=root --group=root -czf $(DIST_DIR)shttplnx64.tgz * ; chmod a+rw $(DIST_DIR)shttplnx64.tgz
+	cd o64/dist/ ; strip httpd.ex* ; chmod -R go-w,u+rw,a+X * ; chmod  0755 httpd.ex* *.so  sndmsg ; chmod  0644 *.1 ; chmod 0600 httpd.cfg ;  rm -f $(DIST_DIR)shttplnx64.tgz ; tar --owner=root --group=root -czf $(DIST_DIR)shttplnx64.tgz * ; chmod a+rw $(DIST_DIR)shttplnx64.tgz
 	cp o64/httpd.exe o64/distu/httpd.exe
 	cd o64/distu/ ; strip httpd.exe ; chmod -R go-w,u+rw,a+X * ; chmod  0755 httpd.exe *.so  sndmsg ; chmod  0600 httpd.cfg ;  rm -f $(DIST_DIR)shttplnx64u.tgz ; tar --owner=root --group=root -czf $(DIST_DIR)shttplnx64u.tgz * ; chmod 0644 $(DIST_DIR)shttplnx64u.tgz
 
@@ -680,7 +680,7 @@ arm64dist: oo/dist $(addprefix oo/dist/,$(DISTFILES)) oo.prepare_dist
 
 %.prepare_dist: %/dist %/httpd.exe
 	cp $*/httpd.ex* $*/dist/
-	cd $*/dist/ ; $(CROSS_COMPILE)strip httpd.ex* sndmsg *.so ; chmod -R go-w,u+rw,a+X * ; chmod  0755 httpd.ex* *.so sndmsg; chmod 0600 httpd.cfg
+	cd $*/dist/ ; $(CROSS_COMPILE)strip httpd.ex* sndmsg *.so ; chmod -R go-w,u+rw,a+X * ; chmod  0755 httpd.ex* *.so sndmsg ; chmod  0644 *.1 ; chmod 0600 httpd.cfg
 
 oo/dist/% : oo/%
 	cp $^ $@
