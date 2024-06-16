@@ -287,6 +287,30 @@ void HTMLOutTop(int s)
 //#undef LF
 //#define LF "\n"
 
+int IP2Scntr(char *nm, sockaddr46_t *p)
+{
+  CntrCode  *cc;
+  int sz;
+  uint ipv4 = p->sa_c.sin_addr.s_addr;
+  sz = IP2S(nm, &(p->sa_c));
+  if(cntr_dat)
+  {
+    #ifdef USE_IPV6
+    if(p->sa_c.sin_family == AF_INET6)
+    {
+      if(
+        p->sa_c6.sin6_addr.s6_addr32[0]!=0 ||
+        p->sa_c6.sin6_addr.s6_addr32[1]!=0 ||
+        p->sa_c6.sin6_addr.s6_addr32[2]!=0xFFFF0000
+      ) return sz;
+      ipv4 = p->sa_c6.sin6_addr.s6_addr32[3];
+    }
+    #endif
+    if( (cc=FindCntr(htonl(ipv4) ) ) )
+      sz += sprintf(nm + sz, " (%2.2s)",cc->nm);
+  }
+  return sz;
+}
 
 struct sOutLine
 {
@@ -300,22 +324,23 @@ int sOutLine::OutConnLine(Req *r, char *alt_text)
 {
   #ifdef USE_IPV6
   union{ struct sockaddr_in  san;  struct sockaddr_in6 san6;};
-  char   xs[64];
   #else
   struct sockaddr_in  san;
   #endif
   int ll,l; //=sizeof(sockaddr_in);
   char *t1;
-  CntrCode  *cc;
-  char contry[8];
+  char   xs[72];
+  //CntrCode  *cc;
+  //char contry[8];
 
 
   #ifdef USE_IPV6
     l=sizeof(sockaddr_in6);
-    IP2S(xs, &(r->sa_c));
+    //IP2S(xs, &(r->sa_c));
   #else
     l=sizeof(sockaddr);
   #endif
+  IP2Scntr(xs,(sockaddr46_t *) &(r->sa_c));
   if(getsockname(r->s,(sockaddr *)&san,&l)) return j;
   san.sin_port=htons((ushort)san.sin_port);
   /*
@@ -323,6 +348,7 @@ int sOutLine::OutConnLine(Req *r, char *alt_text)
    *   DWORD_PTR(r->inf[0])!=0x544345 x4CHAR("ECT") &&
    *   (t1=strchr(r->inf+1,' '))
    * )*t1=0; */
+/*
   contry[0]=0;
   if(cntr_dat)
   {
@@ -331,11 +357,11 @@ int sOutLine::OutConnLine(Req *r, char *alt_text)
     if(r->sa_c6.sin6_family == AF_INET6)
     {
       if(
-        r->sa_c6.sin6_addr.s6_addr32[0]==0 &&
-        r->sa_c6.sin6_addr.s6_addr32[1]==0 &&
-        r->sa_c6.sin6_addr.s6_addr32[2]==0xFFFF0000
-      ) ipv4 = r->sa_c6.sin6_addr.s6_addr32[3];
-      else goto lbIPv6;
+        r->sa_c6.sin6_addr.s6_addr32[0]!=0 ||
+        r->sa_c6.sin6_addr.s6_addr32[1]!=0 ||
+        r->sa_c6.sin6_addr.s6_addr32[2]!=0xFFFF0000
+      ) goto lbIPv6;
+      ipv4 = r->sa_c6.sin6_addr.s6_addr32[3];
     }
     #endif
     if( (cc=FindCntr(htonl(ipv4) ) ) )
@@ -344,19 +370,19 @@ int sOutLine::OutConnLine(Req *r, char *alt_text)
     }
     lbIPv6:;
   }
+*/
 #if 1
   // Dont_fix_var
   j+=msprintf(bfr+j,"<tr valign=center><td><font size=2 class=f2>%u) <b>"
-  #ifdef USE_IPV6
+//  #ifdef USE_IPV6
   "%s"
-  #else
-  "%u.%u.%u.%u"
-  #endif
-  // Dont_fix_var
-  "%s</td><td align=center><font size=2 class=f2><b>%u</b></font>"
+//  #else
+//  "%u.%u.%u.%u"
+//  #endif
+
+  "</td><td align=center><font size=2 class=f2><b>%u</b></font>"
   "</td><td align=left><font size=2 class=f2>%d</font>"
   "</td><td align=left><font size=2 class=f2>%llu / %llu</font>"
-  // "</td><td align=left><font size=2 class=f2>%u / %u</font>"
   "</td><td align=left><font size=2 class=f2>%s..</font>"
   "</td><td align=left bgcolor=#ff8040><font size=2 class=f2>"
   "<form method=GET action=/$_admin_$break>"
@@ -366,18 +392,18 @@ int sOutLine::OutConnLine(Req *r, char *alt_text)
   "</form></font>"
   "</td></tr>" HTML_LN
   , k++,
-#ifdef USE_IPV6
+//#ifdef USE_IPV6
   xs,
-#else
-#ifndef SYSUNIX
-  r->sa_c.sin_addr.S_un.S_un_b.s_b1,  r->sa_c.sin_addr.S_un.S_un_b.s_b2,
-  r->sa_c.sin_addr.S_un.S_un_b.s_b3,  r->sa_c.sin_addr.S_un.S_un_b.s_b4,
-#else
-  r->sa_c.sin_addr.s_addr&0xFF ,  BYTE_PTR(r->sa_c.sin_addr.s_addr,1),
-             BYTE_PTR(r->sa_c.sin_addr.s_addr,2),BYTE_PTR(r->sa_c.sin_addr.s_addr,3),
-#endif
-#endif
-             contry,
+//#else
+// #ifndef SYSUNIX
+//   r->sa_c.sin_addr.S_un.S_un_b.s_b1,  r->sa_c.sin_addr.S_un.S_un_b.s_b2,
+//   r->sa_c.sin_addr.S_un.S_un_b.s_b3,  r->sa_c.sin_addr.S_un.S_un_b.s_b4,
+// #else
+//   r->sa_c.sin_addr.s_addr&0xFF ,  BYTE_PTR(r->sa_c.sin_addr.s_addr,1),
+//              BYTE_PTR(r->sa_c.sin_addr.s_addr,2),BYTE_PTR(r->sa_c.sin_addr.s_addr,3),
+// #endif
+// #endif
+//              contry,
              (ushort)san.sin_port,
              DTick(GetTickCount(),r->tmout), //[i],
              //(uint)r->Tin, (uint) r->Tout,
@@ -550,7 +576,27 @@ int Req::OutVPNLimit(char *bfr)
     {
       if( (s_flgs[3] & FL3_VPN_IPLIMIT) )
       {
-        IP2S(nm, &(p->sa_c));
+/*
+        CntrCode  *cc;
+        int sz;
+        uint ipv4 = p->sa_c.sin_addr.s_addr;
+        sz = IP2S(nm, &(p->sa_c));
+#ifdef USE_IPV6
+        if(p->sa_c.sin_family == AF_INET6)
+        {
+          if(
+            p->sa_c6.sin6_addr.s6_addr32[0]!=0 ||
+            p->sa_c6.sin6_addr.s6_addr32[1]!=0 ||
+            p->sa_c6.sin6_addr.s6_addr32[2]!=0xFFFF0000
+          ) goto lbIPv6;
+          ipv4 = p->sa_c6.sin6_addr.s6_addr32[3];
+        }
+#endif
+        if( (cc=FindCntr(htonl(ipv4) ) ) )
+          sprintf(nm + sz, " (%2.2s)",cc->nm);
+        lbIPv6:
+*/
+        IP2Scntr(nm,(sockaddr46_t *) &(p->sa_c));
         OutLimitLine(&bfl, nm, p);
       }
       if((s_flgs[3] & FL3_VPN_ULIMIT) && p->usr)

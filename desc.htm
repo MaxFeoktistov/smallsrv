@@ -1121,6 +1121,7 @@ from 1 to 255.  Lower values are preferred.
 <LI> TXT text
 <LI> SPF text
 <LI> CAA 0 [issue|issuewild] server
+<LI> TLSA <i>usage</i>  <i>selector</i> <i>matching_type</i> <i>data</i>  <sup>* <A HREF=#DANE>See more in TLS caption.</a></sup>
 <LI> TYPE<i>number  \\# length hex hex hex...</i>  - for new, unknow types.
 <br> Other types are ignored.<br>
 Also for PTR requests, if PTR record not found, RDATA for reply server gives from
@@ -1410,10 +1411,62 @@ The server doesn't content real buildin TLS/SSL cryptographic functions,
 but includes interface to connect external TLS/SSL library. You may
 connect <a href=http://www.OpenSSL.org>OpenSSL</a> or
 <a href=http://www.gnutls.org>GNU TLS</a> to the server. Foe Windows version simple
-DLL based on OpenSSL 1.1.1 avilable here:
-<a href=http://smallsrv.com/libsec111.zip >libsec111.zip</a> (OpenSSL included) <br>
+DLL based on OpenSSL 3.2.0 avilable here:
+<a href=http://smallsrv.com/libsec320.zip >libsec320.zip</a> (OpenSSL included) <br>
 DLL based on GnuTLS avilable here:
 <a href=http://smallsrv.com/seclibgnutls.zip >seclibgnutls.zip</a> (GNU TLS required) <br>
+For this  functions required sertificate.<br>
+Easy and free way to get it, is generate self signed sertificate e.g. with help OpenSSL:
+<pre>
+
+openssl genrsa 2048 &gt; ks.key
+openssl req -x509 -new -key ks.key -days 3650 &gt; ks.pem
+
+</pre>
+ks.pem -- is result file that may be used as "Certificate file" <br>
+ks.key -- is result file that may be used as "Key file" <br>
+
+Self-signed certificate will not provide the security guarantees.
+An attacker on intermediate routers can include a bidirectional proxy in your connection, put his certificate in place of yours, and the browser will not be able to recognize that it is not your certificate.<br>
+<a name=DANE></a>
+Some browsers or TLS clients may support the DANE (RFC6698) method for certificate validation. For this method, you need to add specific DNS records for your domain. The format of this entry is:
+<br>
+<tt>_<i>port</i>._<i>base_protocol</i>.host.name IN TLSA <i>usage</i>  <i>selector</i> <i>matching_type</i> <i>data</i></tt>
+<br><br>
+<i>usage</i> for self signed this domain certificate must be <b>3</b>.<br><br>
+<i>selector</i> may be:
+     <li> <b>0</b> -- Full certificate: the Certificate binary structure as defined in RFC5280
+     <li> <b>1</b> -- SubjectPublicKeyInfo: DER-encoded binary structure as defined in RFC5280<br><br>
+<i>matching_type</i> may be:
+      <li> <b>0</b> -- Exact match on selected content
+      <li> <b>1</b> -- SHA-256 hash of selected content RFC6234
+      <li> <b>2</b> -- SHA-512 hash of selected content RFC6234<br>
+      <br>
+<i>data</i> can be generated with help openssl and sha256sum:<br>
+
+Selector=0 (full certificate)
+<pre>
+openssl x509 -in ks.pem -outform der | sha256sum
+</pre>
+
+Selector=1 (subject public key)
+<pre>
+openssl x509 -in ks.pem -pubkey -noout | openssl rsa -pubin -outform der | sha256sum
+</pre>
+<br>
+
+Examples of TLSA DNS records:
+<pre>
+_443._tcp.smallsrv.com. IN TLSA ( 3 0 1 1ebec2c8434a67e0cbf35619819367067d5a852569666d4f6b222f722cc7cb65 )
+_443._tcp.www.smallsrv.com. IN TLSA ( 3 0 1 1ebec2c8434a67e0cbf35619819367067d5a852569666d4f6b222f722cc7cb65 )
+_25._tcp.smallsrv.com. IN TLSA ( 3 0 1 1ebec2c8434a67e0cbf35619819367067d5a852569666d4f6b222f722cc7cb65 )
+_110._tcp.smallsrv.com. IN TLSA ( 3 1 1 5bdd89111e62a72c946d47a91e7a17aec3102d41a2523e04b510a83cebffdf1a )
+</pre>
+
+
+<br>
+
+
 
 <hr><a name=VPN></a><center><br><h2>HTTP TLS VPN server and client</h2></center><p>
 Now this program can create a VPN channel inside an HTTPS connection.

@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 
 #
-# Copyright (C) 1999-2023 Maksim Feoktistov.
+# Copyright (C) 1999-2024 Maksim Feoktistov.
 #
 # This file is part of Small HTTP server project.
 # Author: Maksim Feoktistov
@@ -30,6 +30,7 @@
  $all='';
  $without{'fakelibs'} = 1;
  $without{'debug'} = 1;
+ $without{'TLS_1_3'} = 1;
  $crosspref='';
 
  $sec=' libgnutls.so libssl.so libcrypto.so';
@@ -132,6 +133,7 @@
    --withoutSYSPASS     -- without system password support
    --withoutTelnet      -- without Telnet (Telnet for ARM and other little platforms)
    --commonLog          -- without separate log
+   --withTLS_1_3 -- enable TLS 1.3
    --withoutfakelibs    -- without fakelibs  (with fakelibs the program can run in another Linux systems)
    --withfakelibs       -- with fakelibs  (with fakelibs the program can run in another Linux systems)
    --debug              -- with debug
@@ -169,12 +171,13 @@
        }
 
        printf '
-  This script and Makefile also understands the ARCH, CROSS_COMPILE, DESTDIR environment variables. An example other way to build commands for Arm64:
+  This script and Makefile also understands the ARCH, CROSS_COMPILE, DESTDIR environment variables. An example other way to build for Arm64:
 export ARCH=arm64
 export CROSS_COMPILE=aarch64-linux-gnu-
 %s
 make
-  ',$0 ;
+
+',$0 ;
 
       exit 0;
      }
@@ -304,6 +307,13 @@ make
      if(/--withfakelibs/)
      {
        $without{'fakelibs'} = 0;
+       next L1;
+     }
+
+     if(/--withTLS_1_3/)
+     {
+       $adv .= ' -DWITHTLS1_3';
+       $without{'TLS_1_3'} = 0;
        next L1;
      }
 
@@ -850,7 +860,7 @@ N_DEP := $(N_FAKELIBS)
   Install from:  $INSTALLFROM\n";
 
   my @opt_key = ( $help =~ /without([^ \t\n]+)/gm );
-  foreach $_ (@opt_key, 'debug') {
+  foreach $_ (@opt_key, 'debug', 'TLS_1_3') {
     printf  "  %-14s %s\n", "$_:", $without{$_}? 'disabled':'enabled';
   }
   foreach $_ (keys %var) {

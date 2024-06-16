@@ -1018,6 +1018,7 @@ Reload в своем браузере. Можно включить авторизованый доступ к прокси, и
 <LI> TXT text
 <LI> SPF text
 <LI> CAA 0 [issue|issuewild] server
+<LI> TLSA <i>usage</i>  <i>selector</i> <i>Matching_type</i> <i>data</i>
 <LI> TYPE<i>number  \\# length hex hex hex...</i>  - для новых, не извесных серверу типов.
 
 <br>
@@ -1332,10 +1333,65 @@ ftp://local_user#remote_user:local_password#remote_password@ftp_host/
 но включает интерфейс для подключения внешней TLS/SSL билиотеки.
 Вы можете подключить к серверу <a href=http://www.OpenSSL.org>OpenSSL</a> или
 <a href=http://www.gnutls.org>GNU TLS</a>. Простая DLL базирующаяся
-на OpenSSL 1.1.1 лежит здесь:
-<a href=http://smallsrv.com/libsec111.zip>libsec111.zip</a> OpenSSL включен<br>
+на OpenSSL 3.2.0 лежит здесь:
+<a href=http://smallsrv.com/libsec320.zip>libsec320.zip</a> OpenSSL включен<br>
 DLL базирующаяся на GnuTLS доступна здесь: <a href=http://smallsrv.com/seclibgnutls.zip>seclibgnutls.zip</A>, но для нее потребуется
 еще и <a href=https://gitlab.com/gnutls/gnutls/builds/artifacts/gnutls_3_6_12/download?job=MinGW32.DLLs>GnuTLS w32 доступный на gitlab</a>
+<br>
+Для этой функцииональности необходим сертификат.<br>
+Простой и бесплатный способ получить его — cгенерировать самоподписанный сертификат, например с помощью OpenSSL:
+<pre>
+
+openssl genrsa 2048 &gt; ks.key
+openssl req -x509 -new -key ks.key -days 3650 &gt; ks.pem
+
+</pre>
+
+ks.pem — результирующий файл, который можно использовать как "файл сертификата" <br>
+ks.key — результирующий файл, который можно использовать как "Файл ключа" <br>
+
+Самоподписанный сертификат не обеспечивает гарантий безопасности. Злоумышленник на промежуточных маршрутизаторах может внедрить в ваше соединение двунаправленный прокси, поставить свой сертификат вместо вашего, и браузер не сможет узнать, что это не ваш сертификат.<br>
+<a name=DANE></a>
+Некоторые браузеры или клиенты TLS могут поддерживать метод DANE (RFC 6698) для проверки сертификата. Для этого метода вам необходимо добавить специальные DNS записи для вашего домена. Формат этих записей:<br>
+
+<br>
+<tt>_<i>port</i>._<i>base_protocol</i>.host.name IN TLSA <i>usage</i>  <i>selector</i> <i>matching_type</i> <i>data</i></tt>
+<br><br>
+<i>usage</i> для самозаверяющего сертификата домена должно быть <b>3</b>.<br><br>
+<i>selector</i> может быть:
+ <li> <b>0</b> -- Full certificate: двоичная структура сертификата, как определено в RFC5280.
+ <li> <b>1</b> -- subjectPublicKeyInfo: двоичная структура в кодировке DER, как определено в RFC5280<br><br>
+<i>matching_type</i>  может быть:
+ <li> <b>0</b> -- точное совпадение выбранного контента.
+ <li> <b>1</b> -- хеш SHA-256 выбранного контента RFC6234
+ <li> <b>2</b> -- хеш SHA-512 выбранного контента RFC6234<br>
+ <br>
+
+<i>data</i> может быть сгенерированы с помощью openssl и sha256sum:<br>
+
+Selector=0 (full certificate)
+<pre>
+openssl x509 -in ks.pem -outform der | sha256sum
+</pre>
+
+Selector=1 (subject public key)
+<pre>
+openssl x509 -in ks.pem -pubkey -noout | openssl rsa -pubin -outform der | sha256sum
+</pre>
+<br>
+
+Примеры TLSA DNS-записей :
+<pre>
+_443._tcp.smallsrv.com. IN TLSA ( 3 0 1 1ebec2c8434a67e0cbf35619819367067d5a852569666d4f6b222f722cc7cb65 )
+_443._tcp.www.smallsrv.com. IN TLSA ( 3 0 1 1ebec2c8434a67e0cbf35619819367067d5a852569666d4f6b222f722cc7cb65 )
+_25._tcp.smallsrv.com. IN TLSA ( 3 0 1 1ebec2c8434a67e0cbf35619819367067d5a852569666d4f6b222f722cc7cb65 )
+_110._tcp.smallsrv.com. IN TLSA ( 3 1 1 5bdd89111e62a72c946d47a91e7a17aec3102d41a2523e04b510a83cebffdf1a )
+</pre>
+<br>
+<br>
+
+
+
 
 <hr><a name=VPN></a><center><br><h2>HTTP TLS VPN-сервер и клиент</h2></center><p>
 Теперь эта программа может создавать VPN-канал внутри HTTPS-соединения.

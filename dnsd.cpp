@@ -24,6 +24,7 @@
 
 
 #ifndef SRV_H
+//#define DEBUG_VERSION 1
 #include "srv.h"
 #include "mstring1.h"
 #endif
@@ -179,6 +180,7 @@ struct rrpart {
 #define  rtypeAXFR -4
 #define  rtypeANY  -1
 #define  rtypeCAA  257
+#define  rtypeTLSA 52
 
 
 
@@ -187,7 +189,7 @@ const uchar ArrTYPE[]={1,1,5,0,15,0,16,99, 2, 0, 2,  0, 0xC,0,28,0,6};
 //                     A A CNM MX  TXT SPF NS   NSA     PTR       SOA
 
 
-const uchar DNSSupportedTYpes[]={1,2,5,6,12,15,16,28,65,99};
+const uchar DNSSupportedTYpes[]={1,2,5,6,12,15,16,28,52,65,99};
 //#define intel16(a)  (((a)>>8ul)|(((a)&0xFF)<<8ul))
 
 #ifdef SYSUNIX
@@ -2379,6 +2381,7 @@ ulong WINAPI SetDNSServ(void * fwrk)
               {
                 PrepareDefAReply(t);
 
+                DBGL("dns reply")
                 switch(th.typ)
                 {
                   case rtypeAXFR:
@@ -2388,9 +2391,12 @@ ulong WINAPI SetDNSServ(void * fwrk)
                       t=ptmp+2+(t-dmmc);
                       pdm=(d_msg  *)(ptmp+2);
                       et=ptmp+0x10000;
+                      DBGL("AXFR")
+
                     }
                   case rtypeSOA:
                     if(!fnd.psoa) goto lbErrSend;
+                    DBGL("SOA")
                     hst=fnd.psoa;
                     do
                     {
@@ -2472,6 +2478,7 @@ ulong WINAPI SetDNSServ(void * fwrk)
                lbSend:
 
                   pdreq->l=t-(char *)pdm;
+
                   //debug("send: %u %X %X",pdreq->l,t,(char *)pdm);
                   pdreq->SendReply(pdm);
                   lbEnd:
@@ -2794,6 +2801,30 @@ inline int IsEndOfLine(char t)
     strchr("\r\n;#",t);
 }
 
+int SetHexData(char *s, char *t)
+{
+  int r=0;
+  union {
+    ushort  d;
+    uint  di;
+    char dc[4];
+  };
+
+  di=0;
+  while(*s)
+  {
+    s=SkipSpace(s);
+    if((!*s) || !s[1] )break;
+    if(t) {
+      d = WORD_PTR(*s);
+      *t++ = atouix(dc);
+    }
+    s+=2;
+    r++;
+  }
+  return r;
+}
+
 int NSRecordArray::FillDomain(char *mem,char *dt,CheckPoint *cp)
 {
 
@@ -3026,6 +3057,45 @@ int NSRecordArray::FillDomain(char *mem,char *dt,CheckPoint *cp)
                 IPv6Addr((ushort *)prr->dr,t2);
               }
             }
+            else if( (x|0x20202020) == 0x61736C74 x4CHAR("tlsa")  ) //  TLSA
+            {
+              char *t5, *t6;
+              if( *t2 == '(' )
+              {
+                t6 = strchr(t,')');
+                t2++;
+                if(*t2<=' ')
+                t2 = GetWorld(t);
+              }
+              else
+              {
+                t6=strpbrk(t,"\r\n");
+              }
+
+
+              if( (!t) || ! t6 )
+              {
+                errTLSA:
+                debug("Error in hosts file in TLSA %s", old_name);
+                goto exLD;
+              }
+
+              t3 = GetWorld(t); if( (!t) || ! t3 ) goto errTLSA;
+              t4 = GetWorld(t); if( (!t) || ! t4 ) goto errTLSA;
+              t5 = GetWorld(t); if( (!t) || ! t5 ) goto errTLSA;
+              *t6 = 0;
+              //debug("TLSA %.2s %.2s %.2s %.128s\r\n", t2,t3,t4,t5);
+              prr->Set(old_name,MkName(old_name),rtypeTLSA,ttl?ttl:DNS_TTL, 3 + SetHexData(t5,0) );
+              if(mem)
+              {
+                prr->dr[0] = atoui(t2);
+                prr->dr[1] = atoui(t3);
+                prr->dr[2] = atoui(t4);
+                SetHexData(t5, prr->dr+3);
+              }
+              t = t6 + 1;
+
+            }
             else if( (x|0x202020)==0x616F73 x4CHAR("soa")  ) //SOA
             {
               t3=GetWorld(t);
@@ -3125,7 +3195,7 @@ int NSRecordArray::FillDomain(char *mem,char *dt,CheckPoint *cp)
             else if((x|0x20202020)== 0x45505954 x4CHAR("TYPE")  )
             {
               typ= atoui(t1+4);
-              if(typ>0 && typ<=0xFFFF && typ!= rtypeAXFR  && typ!=rtypeANY && WORD_PTR(*t2) == 0x235C x4CHAR("\#") )
+              if(typ>0 && typ<=0xFFFF && typ!= rtypeAXFR  && typ!=rtypeANY && WORD_PTR(*t2) == 0x235C x4CHAR("\\#") )
               {
                 t3=GetWorld(t);
                 k=atoui(t3);
@@ -3150,12 +3220,12 @@ int NSRecordArray::FillDomain(char *mem,char *dt,CheckPoint *cp)
                     x=')';
                     t4=GetWorld(t);
                   }
-                  if(*t4 == '\n')
+                  //if(*t4 == '\n')
 
-                    if(mem)
-                    {
-                      prr->dr[j]=atouix(t4);
-                    }
+                  if(mem)
+                  {
+                    prr->dr[j]=atouix(t4);
+                  }
                 }
               }
               else
@@ -3201,7 +3271,7 @@ int NSRecordArray::FillDomain(char *mem,char *dt,CheckPoint *cp)
                 typ=rtypeCNAME;
               }else  break;
 
-              prr->Set(old_name,MkName(old_name),typ,ttl?ttl:DNS_TTL, strlen(t2) );
+              prr->Set(old_name, MkName(old_name), typ, ttl?ttl:DNS_TTL, strlen(t2) );
               if(mem)
               {
                 strcpy(prr->dr,t2);
@@ -3744,112 +3814,142 @@ void Secondary::LoadSecondary()
   );
   #endif
 
-  if(
-    (s=socket(AF_INET,SOCK_STREAM,IPPROTO_TCP)) < 0){
+  if((s=socket(AF_INET,SOCK_STREAM,IPPROTO_TCP)) < 0)
+  {
     debug("DNS: Cant get socket %d %s",errno,strerror(errno));
-  return ;
-    };
-    #ifdef SYSUNIX
-    fcntl(s, F_SETFD, fcntl(s, F_GETFD) | FD_CLOEXEC);
-    #endif
+    return ;
+  };
+  #ifdef SYSUNIX
+  fcntl(s, F_SETFD, fcntl(s, F_GETFD) | FD_CLOEXEC);
+  #endif
 
-    if(connect(s,(struct sockaddr *)&sa,sizeof(sa)) < 0) {
-      debug("DNS: Cant connect %d %s",errno,strerror(errno));
-      // shutdown(s, 2);
-      closesocket(s);
-      return ;
-    }
-    m=new char[0x10100];
-    if(!m)
-    {
-      debug("No enought memory %d %s",errno,strerror(errno));
-      return ;
-    }
-    bb=m+2;
-    memcpy(bb,&SOAreq,16);
-    strcpy(dbb->buf+1,host);
-    p=ConvertDomain(dbb->buf,dbb);
-    DWORD_PTR(*p)=0x0100FC00;  //type AXFR IN
-    i=p+4-bb;
-    m[1]=i;
-    if( (send(s,m,i+2,0) ) <=0)
-    {
-      debug("DNS: Error load zone for %s (cant send request) %d %s",host,errno,strerror(errno));
-      goto  err_exit;
-    }
 
-    p=m;
-    j=0;
-    ep=p+0x10000;
-    do{
-      if( (i=XRecv(s,p,ep-p,0,PRXTimeout)) <= 0 )
-      {
-        debug("DNS: Error load zone for %s (cant recv reply) %d %s",host,errno,strerror(errno));
-        goto err_exit;
-      }
-      p+=i;
-      j+=i;
-    }while( p<ep && j<htons(WORD_PTR(*m) ) );
+  DBGLA("a %d", s)
 
-    *p=0;
-    if(dbb->ancount <= 2)
+  if(connect(s,(struct sockaddr *)&sa,sizeof(sa)) < 0) {
+    debug("DNS: Cant connect %d %s",errno,strerror(errno));
+    // shutdown(s, 2);
+    closesocket(s);
+    return ;
+  }
+  m=new char[0x10100];
+  if(!m)
+  {
+    debug("No enought memory %d %s",errno,strerror(errno));
+    return ;
+  }
+  bb=m+2;
+
+  SOAreq.flags=1;
+  SOAreq.qdcount=1;
+
+  memcpy(bb,&SOAreq,16);
+  strcpy(dbb->buf+1,host);
+  p=ConvertDomain(dbb->buf,dbb);
+  DWORD_PTR(*p)=0x0100FC00;  //type AXFR IN
+  i=p + 4 - bb;
+  m[0]=0;
+  m[1]=i;
+  //if( (send(s,m,2,0) ) <=0 || (send(s,m+2,i,0) ) <=0)
+  if( (j = send(s,m,i+2,0) ) <=0)
+  {
+    debug("DNS: Error load zone for %s (cant send request) %d %s",host,errno,strerror(errno));
+    goto  err_exit;
+  }
+
+  DBGLA("a %d %d %d", s, i, j)
+
+  p=m;
+  j=0;
+  ep=p+0x10000;
+  do{
+   DBGLA("b0 %d", s)
+
+   i= // recv(s,p,ep-p,0);
+     XRecv(s,p,ep-p,0,60);
+   DBGLA("Rcv %d",i)
+
+//    if( (i=XRecv(s,p,ep-p,0,60)) <= 0 )
+    if( i <= 0 )
     {
-      err_reply2:
-      debug("DNS: Error load zone for %s (bad reply ancount:%u)",host,dbb->ancount);
+      debug("DNS: Error load zone for %s (cant recv reply) %d %s",host,errno,strerror(errno));
       goto err_exit;
     }
+    DBGLA("Rcv %d",i)
 
-    p=DecodeName(bfr,dbb->buf,(char *)bb );
-    p+=4;
-    t=DecodeName(bfr,p,(char *)bb );
-    if(t[1]!=6)//SOA
-      goto err_reply2;
+    p+=i;
+    j+=i;
+  }while( p<ep && j<htons(WORD_PTR(*m) ) );
 
-    t=DecodeName(bfr,p+10,(char *)bb );
-    t=DecodeName(bfr,t,(char *)bb );
-    lastserial=DWORD_PTR(t[0]);
-    refresh=htonl(DWORD_PTR(t[4]));
-    if(refresh<60)refresh=60;
-    next_chk=cur_time+refresh;
+  DBGL("b")
 
-    debug("DNS: Load primary DNS server for %s Ok.  %u records. Serial:%u. Refresh set to %u\r\n",host,dbb->ancount,lastserial, refresh);
+  *p=0;
+  if(dbb->ancount <= 2)
+  {
+    err_reply2:
+    debug("DNS: Error load zone for %s (bad reply ancount:%u)",host,dbb->ancount);
+    goto err_exit;
+  }
 
-    rr = (NSRecordArray *) DMALLOC( i=(dbb->ancount + 3) *  sizeof(NSRecord) + sizeof(NSRecordArray)  //+ 1028*6
-    );
-    memset(rr,0,i);
+  DBGL("a")
 
-    rr->cnt=dbb->ancount+1;
+  p=DecodeName(bfr,dbb->buf,(char *)bb );
+  p+=4;
+  t=DecodeName(bfr,p,(char *)bb );
+  if(t[1]!=6)//SOA
+  {
+    DBGLA("err soa %u", t[1])
 
-    rr->AddRRfromReply(dbb,p,ep ,0 );
+    goto err_reply2;
+  }
 
-    rr->next=0;
-    if(!parr)
+  t=DecodeName(bfr,p+10,(char *)bb );
+  t=DecodeName(bfr,t,(char *)bb );
+  lastserial=DWORD_PTR(t[0]);
+  refresh=htonl(DWORD_PTR(t[4]));
+  if(refresh<60)refresh=60;
+  next_chk=cur_time+refresh;
+
+  DBGL("a")
+
+  debug("DNS: Load primary DNS server for %s Ok.  %u records. Serial:%u. Refresh set to %u\r\n",host,dbb->ancount,lastserial, refresh);
+
+  rr = (NSRecordArray *) DMALLOC( i=(dbb->ancount + 3) * sizeof(NSRecord) + sizeof(NSRecordArray)  //+ 1028*6
+  );
+  memset(rr,0,i);
+
+  rr->cnt=dbb->ancount+1;
+
+  rr->AddRRfromReply(dbb,p,ep ,0 );
+
+  rr->next=0;
+  if(!parr)
+  {
+    for(rr1=host_rr; rr1->next ; rr1 = rr1->next) ;
+  }
+  else
+  {
+    for(rr1=host_rr; rr1->next  ; rr1 = rr1->next)
     {
-      for(rr1=host_rr; rr1->next ; rr1 = rr1->next) ;
-    }
-    else
-    {
-      for(rr1=host_rr; rr1->next  ; rr1 = rr1->next)
+      if( rr1->next == parr)
       {
-        if( rr1->next == parr)
-        {
-          rr->next = parr->next;
-          rr1->next = rr;
-          Sleep(100); // be sure that nobody dont use this more
-          if(parr->smem)free(parr->smem);
-          free(parr);
-          parr=rr;
-          break;
-        }
+        rr->next = parr->next;
+        rr1->next = rr;
+        Sleep(100); // be sure that nobody dont use this more
+        if(parr->smem)free(parr->smem);
+        free(parr);
+        parr=rr;
+        break;
       }
     }
-    rr1->next = rr;
-    if(fname[0])rr->Save(fname);
+  }
+  rr1->next = rr;
+  if(fname[0])rr->Save(fname);
 
   err_exit:
-    delete m;
-    shutdown(s,2);
-    closesocket(s);
+  delete m;
+  shutdown(s,2);
+  closesocket(s);
 };
 
 void  NSRecordArray::Save(char *fname)
@@ -3861,7 +3961,11 @@ void  NSRecordArray::Save(char *fname)
   ulong x,y;
   ushort *pxar;
   //   if(! (f=fopen(fname,"w")) )return ;
-  if( (h=_lcreat(fname,0)) <0 )return ;
+  if( (h=_lcreat(fname,0)) <0 ) {
+    debug("Can't create file %s %d %s\r\n", fname, errno, strerror(errno));
+    return ;
+  }
+  debug("Save file %s\r\n", fname);
   m= (char *) malloc(0x8000);
 
   if(m)
@@ -3931,6 +4035,16 @@ void  NSRecordArray::Save(char *fname)
           ,htonl(DWORD_PTR(t3[16]))
           );
           break;
+        case rtypeTLSA:
+        {
+          uchar *dr = (uchar *)d[i].dr;
+          t+=sprintf(t," TLSA (%u %u %u ", dr[0], dr[1], dr[2]);
+          for(int j=3; j<d[i].l2; j++)
+            t+=sprintf(t,"%02x", dr[j]);
+          *t++=')';
+        }
+          break;
+
         default:
           t+=sprintf(t," TYPE%u  \\# %u ",d[i].type,y=d[i].l2);
           t3=d[i].dr;

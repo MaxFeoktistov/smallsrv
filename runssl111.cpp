@@ -720,7 +720,7 @@ int REinitCTX()
  SSL_CTX_set_min_proto_version(ctx, SSL3_VERSION);
 // SSL_CTX_set_min_proto_version(ctx, TLS1_VERSION);
 
-#ifdef OSSL_ENABLE_TLS_1_3
+#ifdef WITHTLS1_3
  SSL_CTX_set_max_proto_version(ctx, TLS1_3_VERSION);
 #else
  SSL_CTX_set_max_proto_version(ctx, TLS1_2_VERSION);

@@ -252,9 +252,19 @@ int call_socket2(char *lhstname, int portnum)
 
 int XRecv(int s1,char *b,ulong l,int f,int tmout//=PRXTimeout
          )
-{if(!s1){l=_hread(f,b,l);}
- else{if(RESelect(tmout,0,1,s1)<=0)return -1;
-  l=recv(s1,b,l,0); }
+{
+ if(!s1)
+ {
+   l=_hread(f,b,l);
+ }
+ else
+ {
+   DBGLA("%d %d %d",s1,l,tmout)
+   if(RESelect(tmout,0,1,s1)<=0)return -1;
+   DBGLA("%d %d %d",s1,l,tmout)
+   l=recv(s1,b,l,0);
+
+ }
  return l;
 };
 #define Xsend(a,b,c,d) send(a,b,c,0)

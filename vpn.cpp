@@ -175,7 +175,9 @@ int  RunScript(char *cmd)
 {
 #ifdef VPN_LINUX
   int r = system(cmd);
-  if(r == -1) debug("vpn: Can't run script '%s' error:%d %s\r\n", cmd, errno, strerror(errno) );
+  if(r == -1){
+    if(errno != 10) debug("vpn: Can't run script '%s' error:%d %s\r\n", cmd, errno, strerror(errno) );
+  }
   return r;
 #elif defined(VPN_WIN)
   DBGLS(cmd);
@@ -999,7 +1001,7 @@ int Req::InsertVPNclient()
      lmt = ((VPNclient *)this)->SetLimit();
      if(lmt->UpdateIn(Tin) || lmt->UpdateOut(Tout) )
      {
-       HttpReturnError("Limit overflow...");
+       HttpReturnError("Limit overflow...", 509);
        return -1;
      }
    }
@@ -1580,7 +1582,7 @@ void VPNUserLimit::UpdateFast()
     if(current > lpt->end)
     {
       lpt->end = current + limitPeriods[i];
-      debug("Init end%u %X\r\n",i, lpt->end);
+      //debug("Init end%u %X\r\n",i, lpt->end);
       lpt->in_bytes = in + VPNInLimit[i];
       lpt->out_bytes = out + VPNOutLimit[i];
     }

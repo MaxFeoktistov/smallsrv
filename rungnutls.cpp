@@ -451,7 +451,12 @@ char copyright[]=
 "Securety library, using GnuTLS Library Copyright (c) 1998-2023 The GnuTLS Project\r\n";
 
 
-static char *CApath, *CAfile, * s_cert_file,  * s_key_file, *priority_str;
+static char *CApath, *CAfile, * s_cert_file,  * s_key_file;
+#ifdef WITHTLS_1_3
+static char *priority_str;
+#else
+static char *priority_str = "NORMAL:+ANON-DH:+VERS-TLS1.2:-VERS-TLS1.3";
+#endif
 
 #define MAX_CON 128
 static int act_con_cnt,reinit_ctx_need;

@@ -103,7 +103,7 @@ int RESelect1(long tv_sec,long tv_usec,int s)
 //#endif
    ;
    pfd.revents=0;
-
+   //printf("!!!poll %d %d\n", pfd.fd, tv_sec);
    if( (! poll(&pfd,1,tv_sec*1000+((tv_usec+1023)>>10) )) ||
         ! (   pfd.revents&POLLIN )
      ) return 0;

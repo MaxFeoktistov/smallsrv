@@ -238,12 +238,12 @@ int IPv6S(char *addr6,in6_addr &sin6_addr)
 //  }
 
 }
-void IP2S(char *addr6,sockaddr_in* xsa)
+int IP2S(char *addr6,sockaddr_in* xsa)
 {
 #define XAR  (((sockaddr_in6 *)xsa)->sin6_addr.s6_addr16)
  if(((sockaddr_in6 *)xsa)->sin6_family==AF_INET6)
  {
-    IPv6S(addr6,((sockaddr_in6 *)xsa)->sin6_addr);
+    return IPv6S(addr6,((sockaddr_in6 *)xsa)->sin6_addr);
  /*
   if(
      ((sockaddr_in6 *)xsa)->sin6_addr.s6_addr32[0]==0 &&
@@ -266,8 +266,8 @@ void IP2S(char *addr6,sockaddr_in* xsa)
   }
 */
  }
- else
-   sprintf(addr6,"%u.%u.%u.%u",
+
+ return sprintf(addr6,"%u.%u.%u.%u",
 #ifndef SYSUNIX
    xsa->sin_addr.S_un.S_un_b.s_b1, xsa->sin_addr.S_un.S_un_b.s_b2,
    xsa->sin_addr.S_un.S_un_b.s_b3, xsa->sin_addr.S_un.S_un_b.s_b4

@@ -44,7 +44,7 @@ void dbgf(char *er,int s);
 void xdie(char *);
 #define die(e) {xdie(e); return -1;}
 
-// #define DEBUG_VERSION 1
+//#define DEBUG_VERSION 1
 #ifdef DEBUG_VERSION
 
 #define DBGLS(a)  debug("%s:%u:%s %s\r\n",__FILE__ , __LINE__, __func__, a);
@@ -137,6 +137,14 @@ typedef unsigned int arh_ulong;
 #else
 #define  TSOCKADDR  sockaddr_in
 #endif
+
+typedef union{
+#ifdef USE_IPV6
+    sockaddr_in6 sa_c6;
+#endif
+    sockaddr_in sa_c;
+    TSOCKADDR sa_c46;
+} sockaddr46_t;
 
 struct Req
 {int s;
@@ -973,7 +981,7 @@ extern in6_addr *Range6[MAX_SERV*2];
 #endif
 
 char* IPv6Addr(ushort *t,char *s);
-void IP2S(char *addr6,sockaddr_in* xsa);
+int IP2S(char *addr6,sockaddr_in* xsa);
 int IPv6S(char *addr6,in6_addr &sin6_addr);
 
 
