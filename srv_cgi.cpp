@@ -428,6 +428,7 @@ hwr,hwre
  hrde=DUP2(hrde);
 
   t=strrchr(loc,'\\');
+  if(!t) t = loc;
   t1="";
   if(loc[1]==':' && strchr(loc, ' ') )t1="\"";
   if( ! (fl&F_EXE) )
@@ -616,7 +617,7 @@ hwr,hwre
    else
    {
   // errun:
-     *t='\\';
+  //   if(t) *t='\\';
      sprintf(p+1024,"Error run %s with %s (%s)",loc+dirlen,req,p);
      HttpReturnError(p+1024);
    }
@@ -1105,8 +1106,8 @@ DBG();
        HttpReturnError("Error.Script return nothing\r\n");
      };
     }else{
-    errun:
-      *t='\\';
+    //errun:
+      //if(t) *t = '\\';
       sprintf(p,"Error run %s with %s \r\n",loc+dirlen,req);
       HttpReturnError(p);
     }
