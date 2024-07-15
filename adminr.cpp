@@ -99,6 +99,7 @@ int Req::Admin()
  };
  host_dir *ab;
  int i,j,k;
+ uint who;
 
  DBGLINE
 
@@ -173,7 +174,7 @@ int Req::Admin()
    }
 
   }
-  switch( DWORD_PTR(loc[dirlen+10])  )
+  switch(who = DWORD_PTR(loc[dirlen+10]))
   {
    case 0x666E6F63 x4CHAR("conf") :
     if( req_var != (char**)  &NullLong)
@@ -398,39 +399,50 @@ int Req::Admin()
      }
     }
 if(0){
+   case 0x70766C63 x4CHAR("clvp") :
    case 0x61657262 x4CHAR("brea") :
-     if( (u=GetVar(req_var,"n"))&&(t=GetVar(req_var,"t" )) )
-     {i=atoui(u);
-      j=atoui(t);
-      ++no_close_req;
-      if(i & CONID_KEEPALIVE_MASK)
-      {
-        i&=~CONID_KEEPALIVE_MASK;
-        if(i<KeepAliveCount && KeepAliveList && KeepAliveList[i]->tmout==j)
-        {
-          RemoveAndDelKeepAlive(i);
-        }
-      }
+     if( (u=GetVar(req_var,"n")) && (t=GetVar(req_var,"t" )) )
+     {
+       i=atoui(u);
+       j=atoui(t);
 #ifdef TLSVPN
-      else if(i ==  CONID_VPNCL_VALUE)
-      {
-        if(vpn_cln_connected && vpn_cln_connected->tmout == j)
-          vpn_cln_connected->Shutdown();
-      }
-      else if(i & CONID_VPN_MASK)
-      {
-        i&=~CONID_VPN_MASK;
-        if(i<vpn_count && vpn_list[i]->tmout==j )
-          vpn_list[i]->Shutdown();
-      }
+       if (0x70766C63 x4CHAR("clvp") == who)
+       {
+         ClearLimits(i, j);
+       }
+       else
 #endif
-      else if( (i<max_tsk) &&
-               ((u_long)(rreq[i]) )>1  &&
-               rreq[i]->tmout==j
-             ) rreq[i]->Shutdown();
+       {
+         ++no_close_req;
+         if(i & CONID_KEEPALIVE_MASK)
+         {
+           i&=~CONID_KEEPALIVE_MASK;
+           if(i<KeepAliveCount && KeepAliveList && KeepAliveList[i]->tmout==j)
+           {
+             RemoveAndDelKeepAlive(i);
+           }
+         }
+         #ifdef TLSVPN
+         else if(i ==  CONID_VPNCL_VALUE)
+         {
+           if(vpn_cln_connected && vpn_cln_connected->tmout == j)
+             vpn_cln_connected->Shutdown();
+         }
+         else if(i & CONID_VPN_MASK)
+         {
+           i&=~CONID_VPN_MASK;
+           if(i<vpn_count && vpn_list[i]->tmout==j )
+             vpn_list[i]->Shutdown();
+         }
+         #endif
+         else if( (i<max_tsk) &&
+           ((u_long)(rreq[i]) )>1  &&
+           rreq[i]->tmout==j
+         ) rreq[i]->Shutdown();
 
-      dec_no_close_req();
-      Sleep(50);
+         dec_no_close_req();
+         Sleep(50);
+       }
      }
    }
    case 0x6F676F6C x4CHAR("logo") :

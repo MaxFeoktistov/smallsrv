@@ -256,6 +256,7 @@ void VPN_Done();
 ulong WINAPI VPNClient(void *);
 void SaveVPNLimits();
 void LoadVPNLimits();
+void ClearLimits(uint end, uint pp);
 
 }
 #endif
