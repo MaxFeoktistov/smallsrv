@@ -953,7 +953,7 @@ int Req::InsertVPNclient()
   int l;
   User *tuser = 0;
   char *t,*t1;
-  char *p;
+  char *p = 0;
   int isTap;
   ulong ip = 0;
   long long mac;

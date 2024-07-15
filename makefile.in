@@ -22,7 +22,7 @@
 #
 #
 
-VERSION=3.06.32
+VERSION=3.06.33
 
 prefix ?=/usr/local/
 CONFIG_BASE   ?= $(prefix:%/=%)/

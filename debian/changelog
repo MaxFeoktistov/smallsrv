@@ -1,3 +1,15 @@
+smallsrv (3.06.33) unstable; urgency=low
+
+  * Fixed bug in VPN server
+
+ -- Maksim Feoktistov <max@smallsrv.com>  Mon, 15 Jul 2024 07:33:10 +0400
+
+smallsrv (3.06.32) unstable; urgency=low
+
+  * Fixed bug in CGI
+
+ -- Maksim Feoktistov <max@smallsrv.com>  Sat, 13 Jul 2024 08:31:16 +0400
+
 smallsrv (3.06.31) unstable; urgency=low
 
   * Added support for trafic limitation to VPN server.
