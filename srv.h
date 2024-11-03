@@ -45,11 +45,12 @@ void xdie(char *);
 #define die(e) {xdie(e); return -1;}
 
 //#define DEBUG_VERSION 1
+
 #ifdef DEBUG_VERSION
 
 #define DBGLS(a)  debug("%s:%u:%s %s\r\n",__FILE__ , __LINE__, __func__, a);
 #define DBGL(a)  debug("%s:%u:%s " a "\r\n",__FILE__ , __LINE__, __func__ );
-#define DBGLA(a,b...) debug("%s:%u:%s " a "\r\n",__FILE__ , __LINE__, __func__, b );
+#define DBGLA(a,b...) debug("%s:%u:%s " a "\r\n",__FILE__ , __LINE__, __func__, ## b );
 //printf("%s:%u:%s " a "\r\n",__FILE__ , __LINE__, __func__, b );
 #else
 
@@ -698,6 +699,7 @@ struct CfgParam
  char *desc,*adv;
  void *vv;
  onCfgChange_t fChange;
+ char *comment;
 
  int HTMLFormString(char *bfr);
  int TextCfgString(char *bfr);

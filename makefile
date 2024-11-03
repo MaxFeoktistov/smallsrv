@@ -22,9 +22,9 @@
 #
 #
 
-VERSION=3.06.33
-VERSIONT=3.06.33
-BUDIR=../site/30633/
+VERSION=3.06.34test2
+VERSIONT=3.06.34test
+BUDIR=../site/30634/
 
 prefix ?=/usr/local/
 CONFIG_BASE   ?= $(prefix:%/=%)/
@@ -248,7 +248,6 @@ else
 #o64/libsecgnutls.so o64/libsec.so
 
 #all: wo/tstwin.o
-# all: i64
 
 #all: wo/libsec111.dll
 #all: wo/libsecgnutls.dll
@@ -257,6 +256,8 @@ else
 #all: arm64
 
 #all: wo/libsec321.dll
+
+#all: i64
 all: /dev/shm/shttps/o/1.x o/1.x getstr i32 i64 i32f i64f win arm arm64
 
 endif
@@ -797,7 +798,8 @@ oo/dist: $(TMPRAM)oo
 
 sinst:  o/dist/httpd.exe $(DIST_DIR)shttplnx.tgz $(DIST_DIR)shttplnxu.tgz $(DIST_DIR)shttparmlnx.tgz $(DIST_DIR)shttplnx64.tgz  $(DIST_DIR)shttplnx64u.tgz
 	chmod 0666 wo/shttps*.exe
-	for i in wo/shttps_mg.exe wo/shttpsr_mg.exe $(DIST_DIR)*.tgz o/smallsrv_$(VERSION)_amd64.deb o/smallsrv-$(VERSION).tar.gz $(IWDIST) ; do echo $$i ; cp $$i /mnt/d/var/www/pre/ ; mkdir -p $(BUDIR) ; cp $$i $(BUDIR) ; done
+	mkdir -p $(BUDIR)
+	for i in wo/shttps_mg.exe wo/shttpsr_mg.exe $(DIST_DIR)*.tgz o/smallsrv_$(VERSION)_amd64.deb o/smallsrv-$(VERSION).tar.gz $(IWDIST) ; do echo $$i ; cp $$i /mnt/d/var/www/pre/ ; cp $$i $(BUDIR) ; done
 	if [ "$(VERSION)" != "$(VERSIONT)" ] ; then ln -sf smallsrv_$(VERSION)_amd64.deb /mnt/d/var/www/pre/smallsrv_$(VERSIONT)_amd64.deb ; fi
 
 # 	for i in wo/shttps_mg.exe wo/shttpsr_mg.exe $(DIST_DIR)shttplnx.tgz $(DIST_DIR)shttplnxu.tgz $(DIST_DIR)shttparmlnx.tgz $(DIST_DIR)shttplnx64.tgz $(DIST_DIR)shttplnx64u.tgz ; do cp $$i /mnt/d/var/www/pre/ ; done

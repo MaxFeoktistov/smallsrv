@@ -22,7 +22,7 @@
 #
 #
 
-VERSION=3.06.33
+VERSION=3.06.34test2
 
 prefix ?=/usr/local/
 CONFIG_BASE   ?= $(prefix:%/=%)/
@@ -301,7 +301,7 @@ fakelibsarm/%.so: /usr/lib/i386-linux-gnu/%.so
 	./mkfakelib_arm.pl $< fakelibsarm/ -c
 
 %/libgnutls.so.30: %/libgnutls.so
-	ln -s libgnutls.so $@
+	ln -sf libgnutls.so $@
 
 .cpp.S:
 	   $(GPP) -S -DSYSUNIX -DV_FULL=1 $(G) $(OPT)  $<
@@ -321,10 +321,10 @@ md5:   md5.c
 	gcc -s -pipe -m32 -Os md5.c -DTEST  -DSYSUNIX -DV_FULL=1  -o md5
 
 o/1.x: /dev/shm/shttps/o/1.x
-	ln -sf /dev/shm/shttps/o .
-	ln -sf /dev/shm/shttps/o64 .
-	ln -sf /dev/shm/shttps/wo .
-	ln -sf /dev/shm/shttps/arm .
+	[ -d o ] || ln -sf /dev/shm/shttps/o .
+	[ -d o64 ] || ln -sf /dev/shm/shttps/o64 .
+	[ -d wo ] || ln -sf /dev/shm/shttps/wo .
+	[ -d arm ] || ln -sf /dev/shm/shttps/arm .
 	mkdir -p  o/dist o/distu o/adist/ o64/dist o64/distu o/of o64/of
 	mkdir -p  o/dist/langpacks/en o/adist/langpacks/en o64/dist/langpacks/en o64/distu/langpacks/en
 	mkdir -p  o/dist/langpacks/ru o/adist/langpacks/ru o64/dist/langpacks/ru o64/distu/langpacks/ru
@@ -850,7 +850,7 @@ OBJDIRS_TLS := $(addsuffix tls_,$(OBJDIRS))
 
 ${OBJDIRSNAMES} :
 	mkdir -p ${TMPRAM}/$@
-	ln -s ${TMPRAM}/$@ .
+	[ -d $@ ] || ln -sf ${TMPRAM}/$@ .
 
 $(addsuffix srv0a.o,$(OBJDIRS) $(OBJDIRS_TLS)): g4strc.h srv0a.cpp slloop.cpp srvars.cpp seplog.cpp onelog.cpp
 $(addsuffix adminr.o,$(OBJDIRS) $(OBJDIRS_TLS)): g4strc.h adminr.cpp icfghtm.cpp g4strhtm.hh

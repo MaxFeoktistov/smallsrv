@@ -227,6 +227,8 @@ void CalkPwdMD5D(char **dgv, uint *HA1,char *method, char *HA2Hex)
   MD5_CTX context;
   CvtHex(HA1, HA1Hex);
 // calk HA2
+  DBGLA("method: %s digtVar_uri %s digtVar_nonce:%s", method, dgv[digtVar_uri], dgv[digtVar_nonce])
+
   MD5Init (&context);
   MD5UpdateL (&context, method);
   MD5Update(&context,(uchar *) ":", 1);
@@ -244,6 +246,8 @@ void CalkPwdMD5D(char **dgv, uint *HA1,char *method, char *HA2Hex)
   MD5Update(&context, (uchar *)":", 1);
   if(dgv[digtVar_qop])
   {
+      DBGLA("qop: %s nc: %s cnonce:%s",dgv[digtVar_qop],dgv[digtVar_nc], dgv[digtVar_cnonce] )
+
           MD5UpdateL(&context, dgv[digtVar_nc]);
           MD5Update(&context, (uchar *)":", 1);
           MD5UpdateL(&context, dgv[digtVar_cnonce]);
@@ -262,7 +266,7 @@ int IsPwdMD5D(char **dgv, uint *HA1,char *method)
   char HA2Hex[40];
   CalkPwdMD5D(dgv, HA1, method, HA2Hex);
 
-//  debug("MD5 cmp:%s<>%s|  %s",rez,dgv[digtVar_response],HA1Hex);
+  DBGLA("MD5 cmp:%s<>%s|  %s",rez,dgv[digtVar_response],HA2Hex);
   return !strcmp(HA2Hex,dgv[digtVar_response]) ;
 #undef rez
 #undef rt2
@@ -641,8 +645,8 @@ User   *FindUser(char *bfr,int typ,char *pwd /*=0*/,Req *r) //=0)
           {
             t1="GET";
             if(r->fl&F_POST)t1="POST";
-            if(DWORD_PTR(r->loc) == 0x4E4E4F43 x4CHAR("CONN")  ) t1="CONNECT";
-            if(DWORD_PTR(r->loc) == 0x44414548 x4CHAR("HEAD")  ) t1="HEAD";
+            if(DWORD_PTR(r->loc[0]) == 0x4E4E4F43 x4CHAR("CONN")  ) t1="CONNECT";
+            if(DWORD_PTR(r->loc[0]) == 0x44414548 x4CHAR("HEAD")  ) t1="HEAD";
             if( !(
               (md5pwd)?
               (

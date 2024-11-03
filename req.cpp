@@ -267,6 +267,9 @@ int Req::HttpReq()
 
   LimitBase *lipo,*lneto;
   proxy_flg= (ServerNumber()==1); /*F_PROXY*/
+
+  DBGLA("proxy_flg:%X fl:%X ", proxy_flg, fl)
+
   if(  FndLimit(ncntn=(proxy_flg?2:7) ,&lipo,&lneto,&sa_c ) )
   {
     HttpReturnError("Limit overflow");
@@ -283,6 +286,8 @@ int Req::HttpReq()
   a=0;
   trn=0;
   do{
+    DBGLA("proxy_flg:%X fl:%X ", proxy_flg, fl)
+
     if(!proxy_flg)trn=0;
     else if(trn_sock && RESelect(0,0,1,trn_sock) )
     {
@@ -321,7 +326,7 @@ int Req::HttpReq()
         zlibstate>0 && (t=StrVar(in_buf,"Accept-Encoding")) && stristr(t,"gzip") )
     { fl|=xgz=F_GZ; }
     lbxx:
-    fl=xgz;
+    flsrv[0]=xgz;
     if( strstr(in_buf,"HTTP/1.0") )
     {
       fl|=F_HTTP10;
@@ -399,7 +404,7 @@ int Req::HttpReq()
     #endif
     dirlen=strlen(dir);
     if(dir[dirlen-1]==FSLUSH )dir[--dirlen]=0;
-    fl=xgz;
+    flsrv[0]=xgz;
 
     if( DWORD_PTR(in_buf[0]) == 0x54534F50 x4CHAR("POST") )fl|=1;
 
@@ -954,13 +959,13 @@ int Req::HttpReq()
         DBGL("KeepAlive set");
         fl |= F_KEEP_ALIVE;
         KeepAliveExpired = time(0) + TimeoutKeepAlive;
-        flsrv[1] = SRV_HTTP;
+        flsrv[1] = (proxy_flg)? SRV_PROXY : SRV_HTTP;
       }
     }
     else
     {
       i=20;
-      if( proxy_flg /*fl&F_PROXY */) i=3;
+      if( proxy_flg /*fl&F_PROXY */) i=5;
       do{
         if(--i<=0 || !(waited[(fl>>16)&1]) )goto ex2;
       }while(!(ii=RESelect(0,300000,1,s)));
@@ -973,6 +978,8 @@ int Req::HttpReq()
     if(trn_sock)
     {
       CloseSocket(trn_sock);
+      trn_sock = 0;
+      DBGL("trn")
     }
   }
   else
@@ -1007,6 +1014,8 @@ int Req::SendDigestAuthReq(char *bfr)
   char ipv6[40];
   int is_proxy;
 
+  DBGLA("auth: %X",fl)
+
   if(  ( (s_flgs[1]&FL1_CRYPTPWD) && !(s_flgs[2] & FL2_MD5PASS) ) || (fl&F_DIGET_UNAVILABLE)  || ! (s_flgs[2] & FL2_USEMD5D)   )
   {
     DBGLA("Digest unavilable (%X && %X) || %X || %X", (s_flgs[1]&FL1_CRYPTPWD),  !(s_flgs[2] & FL2_MD5PASS) ,  (fl&F_DIGET_UNAVILABLE)  , ! (s_flgs[2] & FL2_USEMD5D) )
@@ -1040,6 +1049,9 @@ int Req::SendDigestAuthReq(char *bfr)
   opaque=MkName(nonce);
 
   is_proxy=(1==ServerNumber());
+
+  DBGLA("is_proxy=%X",is_proxy)
+
   return Send(bfr,sprintf(bfr,
                           "HTTP/1.0 40%u Unauthorized" CRLF
                           "%s-Authenticate: Digest realm=\"%s\","

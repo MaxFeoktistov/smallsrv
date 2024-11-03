@@ -732,6 +732,7 @@ struct{
  }
  */
   timout=PRXTimeout;
+  DBGLA( "timout %u", timout );
   memset(&zz,0,sizeof(zz));
   http_var=(char **)((ibf=(in_buf=rq)+0x4000)+1024);
   if(!(nocashe=stristr(in_buf,/*"PRAGMA*/": NO-CACHE\r\n" )))
@@ -750,24 +751,35 @@ struct{
    DWORD_PTR(ibf[1024]) =(ulong) "Authorization";
    DWORD_PTR(ibf[1028])=(ulong) (t+sizeof("\nProxy-Authorization:"));
 #endif
+   t6 = strchr(t+1,'\n');
+   loc = in_buf;
    if((t1=CheckAuth(p=ibf+1048))) puser=FindUser(t1,UserHTTP,p,this);
-   /*
-   if((p=strchr(t+12,'\n')))
-   {memcpy(t,p,dirlen-(p-in_buf));
-    dirlen-=p-t;
+
+   if(t6)
+   {
+     memcpy(t,t6,dirlen-(t6-in_buf));
+     dirlen-=t6-t;
+     in_buf[dirlen] = 0;
    };
-   */
-   dirlen=DelStr(t+1,in_buf,dirlen);
+
+   //dirlen=DelStr(t+1,in_buf,dirlen);
+
+   DBGLA("%lX t1:%lX dirlen:%u %s", (long)puser, (long)t1, dirlen, in_buf)
   }
   if( (s_flg&FL_PRXUSER) && !puser)
   {KeepAlive=0;
 #define STRAVTPR "HTTP/1.1 407 deny\r\nProxy-Authenticate: Basic realm=\"Proxy\"\r\nContent-Type: text/plain\r\n\r\nAccess denyed"
+
+    DBGLA("proxy auth basic: (%X ||  !%X) && %X && %X ",
+            (s_flgs[2] & FL2_MD5PASS), (s_flgs[1]&FL1_CRYPTPWD) , (s_flgs[2] & FL2_USEMD5D) , !(fl&F_DIGET_UNAVILABLE) )
+
    return
 #ifdef WITHMD5
       (  ( (s_flgs[2] & FL2_MD5PASS) || ! (s_flgs[1]&FL1_CRYPTPWD) )  &&  (s_flgs[2] & FL2_USEMD5D) && !(fl&F_DIGET_UNAVILABLE) )?
       SendDigestAuthReq(in_buf):
 #endif
       Send(STRAVTPR,sizeof(STRAVTPR)-1);
+
   }
 
   xu=(s_flgs[1]&FL1_BBPROXY)? MkPName(in_buf+6,ibf):
@@ -1071,7 +1083,11 @@ utfAgain:
 }else ibf=in_buf;
 if(DWORD_PTR(*ibf)==0x4E4E4F43 x4CHAR("CONN") )
 {
- if(!up_prox)JustSend("HTTP/1.1 200\r\n\r\n",sizeof("HTTP/1.1 200\r\n\r\n")-1);
+ if(!up_prox) {
+#define CONN_PROXY_REPLY "HTTP/1.1 200\r\nProxy-Connection: Keep-Alive\r\n\r\n"
+   //JustSend("HTTP/1.1 200\r\n\r\n",sizeof("HTTP/1.1 200\r\n\r\n")-1);
+   JustSend(CONN_PROXY_REPLY, sizeof(CONN_PROXY_REPLY)-1);
+ }
  else
  {
 //  l=dirlen;

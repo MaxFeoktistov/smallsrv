@@ -301,6 +301,7 @@ int WINAPI SetServ(uint fnc)
 // debug("Acc1 %d %d %X waited[serv2]=%u max_srv[serv]=%u runed[serv]=%u",serv,serv2,fnc,waited[serv2],max_srv[serv],runed[serv]);
 #ifndef SYSUNIX
  while(is_no_exit){
+  DBGLA("fnc = %X serv:%u", fnc, serv)
   waited[serv2]++;
 #else
   waited[serv]=max_srv[serv]-runed[serv];
@@ -363,9 +364,14 @@ int WINAPI SetServ(uint fnc)
   --waited[serv2];
 #endif
 //debug("Accept %d(port %d) thread:%u",serv,soc_port[serv],count_of_tr);
-  req.fl=fnc&0xFFFF0000;
+  req.fl = serv << 16; // fnc&0xFFFF0000;
+
+  DBGLA("fnc:%X fl:%X port:%u", fnc, req.fl, soc_port[serv])
+
   req.Snd=(tfSnd) &JustSnd;
   req.Rcv=(tfRcv) &JustRcv;
+
+
 
   j=0;
 #ifndef CD_VER
@@ -478,6 +484,7 @@ int WINAPI SetServ(uint fnc)
 #endif
   if( (req.fl & (F_KEEP_ALIVE|F_VPNANY) ) == F_KEEP_ALIVE && req.s != -1)
     TryToAddKeepAlive(&req);
+    DBGLA("Add KeepAlive fnc:%X fl:%X ", fnc, req.fl)
 
 cnt:
   no_close_wait();
@@ -562,7 +569,8 @@ cnt:
     {
       DBGL("");
       AddKeepAlive(preq);
-      memset(& preq->fl, 0, sizeof(Req) - offset(Req,loc) );
+      memset(& preq->timout, 0, sizeof(Req) - offset(Req, timout) );
+      preq->fl &= MAX_SERV_MASK;
     }
     else DeleteKeepAlive(preq);
   }

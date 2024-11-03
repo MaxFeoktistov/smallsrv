@@ -553,6 +553,108 @@ void InitParam(char *cln)
 #undef strstr
 }
 
+char *PrepLine(char *src, char **cmnt)
+{
+  char *t;
+  char *comment = 0;
+  char *e = strchr(src, '\n');
+  char *ee = e;
+  char *q = e;
+  char *qe = src;
+  if(e)
+  {
+    ee++;
+    *e = 0;
+    if( (t = strpbrk(src, "\"\'#")) ) {
+      if( *t != '#') {
+        q = t;
+        qe= strchr_meta(t+1, *t);
+        if(qe) {
+          e = strchr(qe + 1, '\n');
+          if(e)
+          {
+            *e = 0;
+            ee = e + 1;
+          }
+          else
+          {
+            ee = 0;
+            e = qe + 1;
+            goto fndCmnt;
+          }
+        }
+      }
+    }
+
+    t = SkipSpace(ee);
+    if (t && *t == '#' )
+    {
+      comment = ee;
+    }
+    do {
+      ee = strchr(ee + 1, '\n');
+      if(!ee) break;
+      ee++;
+      t = SkipSpace(ee);
+    } while( *t == '#');
+  }
+fndCmnt:
+  if( (t=strchr(qe, '#') ) ) {
+    if(comment) *e = '\n';
+    comment = t + 1;
+    *t = 0;
+  }
+
+
+  for(t=SkipSpace(src);*t;t++)
+  {
+    switch(*t) {
+
+      case ' ':
+      case '\t':
+          if(t<q)  break;
+          if(0) {
+      case '\\':
+        if(t>q) {
+           t++;
+           *src++ = SlashSeq(t);
+           break;
+        }
+      default:;
+          }
+       *src++ = *t;
+    }
+  }
+
+
+  *cmnt = comment;
+  return ee;
+}
+
+#if 0
+char *first_coment = 0;
+void ParseCfg(char * conf_txt)
+{
+  char *e;
+  char *comment=0;
+  int  cnt;
+
+  do {
+    e = PrepLine(conf_txt, &comment);
+    conf_txt = SkipSpace(conf_txt);
+    if(!*conf_txt) break;
+
+    if(FindParam(conf_txt, comment)) cnt++;
+    else if( (!cnt) && !first_coment) first_coment = comment;
+
+    if(!e) break;
+    conf_txt = e + 1;
+  }while(1);
+
+
+}
+#endif
+
 int PrepCfg(char *fname)
 {char *t,*a,*b;
  int i,l,q;
@@ -733,7 +835,14 @@ int DelStr(char *s,char *b,int l)
    l-=p-s;
    b[l]=0;
   }
- };
+ }
+ /*!!?
+ else
+ {
+   *s = 0;
+   l = s - b;
+ }
+ */
  return l;
 }
 ulong _PerSecond1E7=10000000;

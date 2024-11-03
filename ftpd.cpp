@@ -1106,6 +1106,7 @@ int Req::FTPReq()
                 {
                   lerr501:
                   SendConstCMD( "501 bad pathname\r\n");
+				  debug("Bad pathname %.255s", bb);
                   break;
                 }
                 #ifndef SYSUNIX
