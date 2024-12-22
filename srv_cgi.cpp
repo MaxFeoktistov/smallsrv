@@ -343,6 +343,8 @@ hwr,hwre
  long ll,ec,pl=0,cl=0,l,i;
  char *env,*penv,z[300];
  ulong timeout=cgi_timeout+time(0);
+ int http_status = 200;
+
 
  z[0]=0;
  e=z;
@@ -489,7 +491,14 @@ hwr,hwre
         {
           ll=sizeof("HTTP/1.0 200 \r\n")-1;
           tt=0;
-          if(strinnc(p,(char *)"Status: ")){p+=8; l-=8; ll=9; t="HTTP/1.0 ";}
+          if(strinnc(p,(char *)"Status: "))
+          {
+            p+=8;
+            l-=8;
+            ll=9;
+            t="HTTP/1.0 ";
+            http_status = atoui(p);
+          }
           //         else t=( (stristr(p-1,(char *)"\nLocation:"))?(char *)"HTTP/1.0 301\r\n"
           else if(StrVar(p,"Location"))  t=(char *)"HTTP/1.0 301 \r\n";
           else
@@ -565,6 +574,55 @@ hwr,hwre
         }
         lb1:
      //  Sleep(100);
+        if(http_status == 101) // Websocket
+        {
+          do {
+            if(PeekNamedPipe(hrd,0,0,0,(ulong *)&l,0) && l){
+              ReadFile(hrd,p,0x4000,(ulong *)&l,0);
+              Send(p,l);
+            }
+            if( (i=RESelect(0,10000,1,s)) > 0 ) {
+              if( (l = Recv(p,0x4000)) <= 0 ) goto tp2;
+              write(hwr, p, l);
+            }
+
+            if( (s_flgs[2]&(FL2_NOERROUT|FL2_DUBSTDERR)) ) {
+              if(PeekNamedPipe(hrde,0,0,0,(ulong *)&l,0) && l) {
+                l = read(hrde,p,0x4000);
+                if(ll>0) {
+                  if(! (fl&F_NAMEOUTED) )
+                  {
+                    #ifdef SEPLOG
+                    sepLog[CGI_ERR_LOG]->LAddToLog(0,s,&sa_c46,">>%.256s ; %.512s; Websocket\r\n",loc,req?req:"");
+                    #else
+                    AddToLog(loc,s,&sa_c46,FmtShortErr);
+                    #endif
+                    fl|=F_NAMEOUTED;
+                  }
+
+                  if(!(fl&F_ERROUTED))
+                  {
+                    p[l] = 0;
+                    #ifdef SEPLOG
+                    //             sepLog[CGI_ERR_LOG]->Ldebug("%X:%.128s%s\r\n",fl,b, (l>128)?"...":"" );
+                    sepLog[CGI_ERR_LOG]->Ldebug("%.128s%s\r\n",p, (l>128)?"...":"" );
+                    #else
+                    debug("%.128s%s\r\n",p, (l>128)?"...":"" );
+                    #endif
+                    if(ll>128 ) // || Tout>128 )
+                      fl |= F_ERROUTED ;
+                  }
+                }
+              }
+            }
+
+            GetExitCodeProcess(pi.hProcess,(ulong *)&ec);
+          } while(ec==STILL_ACTIVE);
+          break;
+        }
+
+
+
 #ifndef QW1
    if(cl>0) do{
      if(pl>(cl+2))pl=(cl+2);
@@ -755,6 +813,7 @@ int Req::ExecCGIEx()
  char *env,*penv; //,z[300];
  ulong timeout=cgi_timeout+time(0);
  int status;
+ int http_status = 200;
 
 ///!  DEBUG
 
@@ -963,13 +1022,17 @@ PDBG("read %d %d hrd=%d fl=%X",ll,ec,hrd,fl);
         DBG();
 
         ll=sizeof("HTTP/1.0 200 \r\n")-1;
-        if(strinnc(p,(char *)"Status:")){p=SkipSpace(p+7); l-=ll=p-pp; t="HTTP/1.0 ";
-          //DBGL("Status %.20s\r\n",p);
+        if(strinnc(p,(char *)"Status:")) {
+          p=SkipSpace(p+7);
+          l-=ll=p-pp; t="HTTP/1.0 ";
+          http_status = atoui(p);
+          DBGLA("Status %.20s = %u\r\n",p, http_status);
         }
         //           else t=( (stristr(p-1,(char *)"\nLocation:"))?(char *)"HTTP/1.0 301\r\n"
         else if(StrVar(p,"Location"))
         {
           t=(char *)"HTTP/1.0 301 \r\n"; //ll=sizeof("HTTP/1.0 301 \r\n")-1;
+          http_status = 301;
         }
         else
         {
@@ -1024,6 +1087,54 @@ PDBG("read %d %d hrd=%d fl=%X",ll,ec,hrd,fl);
         }
       */
         //  printf("=|%.82s|= %u",p,l);
+        if(http_status == 101) // Websocket
+        {
+          do {
+            if( (i=RESelect2(0,0x10000,hrd,s)) == s ) {
+              if( (l = Recv(p,0x4000)) <= 0 ) goto tp2;
+              write(hwr, p, l);
+            } else if(i == hrd) {
+
+              if( (l = read(hrd,p,0x4000))<=0) goto tp2;
+              Send(p,l);
+            }
+
+            if( (s_flgs[2]&(FL2_NOERROUT|FL2_DUBSTDERR)) ) {
+              if( RESelect(0, 0, 1, hrde)) {
+                l = read(hrde,p,0x4000);
+                if(l>0) {
+                  if(! (fl&F_NAMEOUTED) )
+                  {
+                    #ifdef SEPLOG
+                    sepLog[CGI_ERR_LOG]->LAddToLog(0,s,&sa_c46,">>%.256s ; %.512s; Websocket\r\n",loc,req?req:"");
+                    #else
+                    AddToLog(loc,s,&sa_c46,FmtShortErr);
+                    #endif
+                    fl|=F_NAMEOUTED;
+                  }
+
+                  if(!(fl&F_ERROUTED))
+                  {
+                    p[l] = 0;
+                    #ifdef SEPLOG
+                    //             sepLog[CGI_ERR_LOG]->Ldebug("%X:%.128s%s\r\n",fl,b, (l>128)?"...":"" );
+                    sepLog[CGI_ERR_LOG]->Ldebug("%.128s%s\r\n",p, (l>128)?"...":"" );
+                    #else
+                    debug("%.128s%s\r\n",p, (l>128)?"...":"" );
+                    #endif
+                    if(l>128 ) // || Tout>128 )
+                      fl |= F_ERROUTED ;
+                  }
+                }
+              }
+            }
+
+
+            if( ec>=0 && ec!=child_pid)
+              ec=waitpid(child_pid,(int *)&status,WNOHANG);
+          }while(!ec);
+          break;
+        }
       }
 
 PDBG("%d %d %d hrd=%d fl=%X",ll,l,ec,hrd,fl);

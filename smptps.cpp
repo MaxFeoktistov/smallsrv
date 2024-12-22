@@ -560,7 +560,7 @@ int Req::SMTPReq()
   };
 
   User *puser_a = 0;
-  int rcnt,x,i,h,ll,us_ip,chkl=0,chkspm=0,em;
+  int rcnt, x=0, i, h, ll, us_ip, chkl=0, chkspm=0, em;
 
   int l=sizeof(sockaddr_in);
   SYSTEMTIME stime;

@@ -30,28 +30,28 @@
   
   32-bit:  
   ```
-  ./configure --target=i32  --withoutfakelibs  
-  make  
-  make o/libsec111.so  
-  make o/libsecgnutls.so  
+  ./configure --target=i32  --withoutfakelibs
+  make
+  make o/libsec111.so
+  make o/libsecgnutls.so
   ```  
   Result will be o/httpd.exe o/libsec111.so o/libsecgnutls.so o/sndmsg  
   In the httpd.exe configuration you can select the security library. You can also build binaries with a pre-selected security library:  
   ```
-  make o/httpd.exopenssl  
-  make o/httpd.exgnutls  
+  make o/httpd.exopenssl
+  make o/httpd.exgnutls
   ```
   To install the program use:  
   ```
-  make install  
+  make install
   ```  
   
   64-bit:  
   ```
-  ./configure --target=i64  --withoutfakelibs  
-  make  
-  make o64/libsec111.so  
-  make o64/libsecgnutls.so  
+  ./configure --target=i64  --withoutfakelibs
+  make
+  make o64/libsec111.so
+  make o64/libsecgnutls.so
   ```  
  Result will be o64/httpd.exe o64/libsec111.so o64/libsecgnutls.so o64/sndmsg  
  libsec111.so -- for OpenSSL 1.1.1  
@@ -59,8 +59,8 @@
  required one of them.  
  You can also build binaries with a pre-selected security library:  
   ```
-  make o64/httpd.exopenssl  
-  make o64/httpd.exgnutls  
+  make o64/httpd.exopenssl
+  make o64/httpd.exgnutls
   ```
   To install the program use:  
   ```   
@@ -101,7 +101,7 @@
   ----------------------------------------  
 
   ```
-  ./configure --target=arm64"
+  ./configure --target=arm64
   make
   ```
 

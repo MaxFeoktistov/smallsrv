@@ -266,8 +266,13 @@ int TryToAddKeepAlive(Req *req)
 #ifdef FIX_EXCEPT
 int SetFixExept(Req *preq)
 {
+  int exceptsrv = -1;
   if(! setjmp( preq->jmp_env ) ) { preq->thread_id=GetCurrentThreadId(); return 0; }
-  preq->thread_id=0;
+
+  if(preq) {
+    preq->thread_id=0;
+    exceptsrv = preq->flsrv[1]& MAX_SERV_MASK;
+  }
   if(err_cnt++>3)
   {
     is_no_exit = 0;
@@ -279,7 +284,7 @@ int SetFixExept(Req *preq)
       execl(__argv[0],__argv[0],0);
     exit(0);
   }
-  debug("Try to recovery after exception (%u)\n", preq->flsrv[1]& MAX_SERV_MASK);
+  debug("Try to recovery after exception (%d)\n", exceptsrv);
   return -1;
 }
 #endif
@@ -851,6 +856,29 @@ uint IPv4addr(sockaddr_in *sa)
 }
 #endif
 
+const char * lstNames[]=
+{
+  "SMTP", //0
+  "HTTP", //1
+  "Proxy", //2
+  "FTP in", //3
+  "FTP out", //4
+  "", // 5
+  "", // 6
+  "HTTPS", //7
+  ""
+};
+const char *ListName(uint lst)
+{
+  static char tbfr[16];
+  if(lst >= ARRAY_SIZE(lstNames) )
+  {
+    sprintf(tbfr, "%u", lst);
+    return tbfr;
+  }
+  return lstNames[lst];
+}
+
 int FndLimit(int lst,LimitBase **ip, LimitBase **net, sockaddr_in *sa)
 {ulong x;
 #ifndef CD_VER
@@ -862,7 +890,7 @@ int FndLimit(int lst,LimitBase **ip, LimitBase **net, sockaddr_in *sa)
  if(!ipcnts[lst].n)ipcnts[lst].Push();
  if(ipcnts[lst].d[0].CheckLimit(limit[lst],ltime[lst]))
  {
-   debug("Limit for %u all %u>%u",lst,ipcnts[lst].d[0].cnt,limit[lst]);
+   debug("Limit for %u all %u > %u",lst,ipcnts[lst].d[0].cnt,limit[lst]);
 
  lErrLim:
 
@@ -874,28 +902,38 @@ int FndLimit(int lst,LimitBase **ip, LimitBase **net, sockaddr_in *sa)
 #ifdef USE_IPV6
  if(IsIPv6(sa)) //sa->sin_family==AF_INET6)
  {
-   LimitCntrIPv6 *lip6,*lnet6;
+    LimitCntrIPv6 *lip6,*lnet6;
     if(!(lip6= ipv6cnts[lst].Find(((sockaddr_in6 *) sa)->sin6_addr)))
     {
-        ipv6cnts[lst].FreeOld(x); lip6=ipv6cnts[lst].Push(); lip6->Set( ((sockaddr_in6 *) sa)->sin6_addr );
+        ipv6cnts[lst].FreeOld(x);
+        lip6=ipv6cnts[lst].Push();
+        lip6->Set( ((sockaddr_in6 *) sa)->sin6_addr );
         //lip6= AddToList(lst,sa);
     }
     struct IPv6c n6;
     n6.Set(((sockaddr_in6 *) sa)->sin6_addr );
     n6.ip.s6_addr32[3]&=0xFF;   //0xFF000000;
     if(!(lnet6=ipv6cnts[lst].Find(n6.ip)))
-    { lnet6=ipv6cnts[lst].Push(); lnet6->Set(n6.ip);}
+    {
+      lnet6=ipv6cnts[lst].Push();
+      lnet6->Set(n6.ip);
+    }
     *ip =lip6 ;
     *net=lnet6;
-    if(lnet6->CheckLimit(net_limit[lst],ltime[lst])){
-         debug("Limit for %u IPv6 net %u>%u %u",lst,lnet6->cnt,net_limit[lst],lnet6-ipv6cnts[lst].d);
+    if(lnet6->CheckLimit(net_limit[lst],ltime[lst]))
+    {
+      char bfr[64];
+      IP2S(bfr, sa);
+      debug("Limit for %s [%s] IPv6 net %u > %u %u", ListName(lst), bfr, lnet6->cnt,net_limit[lst],lnet6-ipv6cnts[lst].d);
+      goto lErrLim;
+    }
+    if(lip6->CheckLimit(ip_limit[lst],ltime[lst]))
+    {
+      char bfr[64];
+      IP2S(bfr, sa);
+      debug("Limit for %s [%s] IPv6 addr %u > %u %u", ListName(lst), bfr, lnet6->cnt,ip_limit[lst],lip6-ipv6cnts[lst].d);
 
-        goto lErrLim;}
-    if(lip6->CheckLimit(ip_limit[lst],ltime[lst])){
-
-        debug("Limit for %u IPv6 addr %u>%u %u",lst,lnet6->cnt,ip_limit[lst],lip6-ipv6cnts[lst].d);
-
-        goto lErrLim;
+      goto lErrLim;
     }
     return 0;
  }
@@ -903,25 +941,31 @@ int FndLimit(int lst,LimitBase **ip, LimitBase **net, sockaddr_in *sa)
  int i=IPv4addr(sa); //sa->sin_addr. S_ADDR;
  if(!(lip= ipcnts[lst].Find(i)))
  {
-     ipcnts[lst].FreeOld(x); lip=ipcnts[lst].Push(); lip->ip=i;
-//     lip6= AddToList(lst,sa);
+     ipcnts[lst].FreeOld(x);
+     lip=ipcnts[lst].Push();
+     lip->ip=i;
  }
  i&=0xFFFF;
  if(!(lnet=ipcnts[lst].Find(i)))
- { lnet=ipcnts[lst].Push(); lnet->ip=i;}
+ {
+   lnet=ipcnts[lst].Push();
+   lnet->ip=i;
+ }
  *ip =lip ;
  *net=lnet;
  if(lnet->CheckLimit(net_limit[lst],ltime[lst]))
  {
-
-     debug("Limit for %u IPv4 net %u>%u",lst,lnet->cnt,net_limit[lst]);
-     goto lErrLim;
+   char bfr[64];
+   IP2S(bfr, sa);
+   debug("Limit for %s [%s] IPv4 net %u > %u", ListName(lst), bfr, lnet->cnt, net_limit[lst]);
+   goto lErrLim;
  }
  if(lip->CheckLimit(ip_limit[lst],ltime[lst]))
  {
-       debug("Limit for %u IPv4 addr %u>%u",lst,lip->cnt,ip_limit[lst]);
-
-     goto lErrLim;
+   char bfr[64];
+   IP2S(bfr, sa);
+   debug("Limit for %s [%s] IPv4 addr %u > %u", ListName(lst), bfr,lip->cnt,ip_limit[lst]);
+   goto lErrLim;
  }
 #endif
  return 0;

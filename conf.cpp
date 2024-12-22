@@ -631,8 +631,55 @@ fndCmnt:
   return ee;
 }
 
-#if 0
+#if 1
 char *first_coment = 0;
+
+
+int FindParam(char *conf_txt, char *comment)
+{
+  CfgParam * cp = ConfigParams;
+  char *t;
+  uint  j;
+  for(; cp->desc || cp->name ; cp++ )
+  {
+    if( strin(conf_txt, cp->name) )
+    {
+      t = conf_txt + strlen(cp->name);
+      if(*t < 'A')
+      {
+        if(cp->v)
+        {
+          t = SkipSpace(t);
+          if(*t != '=' ) continue;
+          t = SkipSpace(t+1);
+          if(cp->max)
+          {
+            if( ((j=atoui(t))>=cp->min) && (j<=cp->max) )
+              *(cp->v)=j;
+          }
+          else
+          {
+            *(char **)(cp->v)=t;
+          }
+        }
+        else if(cp->max)
+        {
+          s_flgs[cp->min]|=cp->max;
+        }
+        cp->comment = comment;
+        if(cp->fChange)cp->fChange(cp);
+        return 1;
+      }
+
+    }
+
+  }
+
+  return 0;
+
+}
+
+
 void ParseCfg(char * conf_txt)
 {
   char *e;

@@ -618,7 +618,7 @@ User   *FindUser(char *bfr,int typ,char *pwd /*=0*/,Req *r) //=0)
   {
     if( ! strcmp(tuser->name,bfr)  )
     {
-      if(pwd)
+      if(pwd && r)
       {
         #ifndef WITHMD5
         if( *(t=tuser->pasw()) && ! IsPwdC(t,pwd)  )goto lbBad;
@@ -645,8 +645,10 @@ User   *FindUser(char *bfr,int typ,char *pwd /*=0*/,Req *r) //=0)
           {
             t1="GET";
             if(r->fl&F_POST)t1="POST";
-            if(DWORD_PTR(r->loc[0]) == 0x4E4E4F43 x4CHAR("CONN")  ) t1="CONNECT";
-            if(DWORD_PTR(r->loc[0]) == 0x44414548 x4CHAR("HEAD")  ) t1="HEAD";
+            if(r->loc) {
+              if(DWORD_PTR(r->loc[0]) == 0x4E4E4F43 x4CHAR("CONN")  ) t1="CONNECT";
+              if(DWORD_PTR(r->loc[0]) == 0x44414548 x4CHAR("HEAD")  ) t1="HEAD";
+            }
             if( !(
               (md5pwd)?
               (
@@ -663,7 +665,8 @@ User   *FindUser(char *bfr,int typ,char *pwd /*=0*/,Req *r) //=0)
           }
         }
         #endif
-        r->dir=tuser->dir(t);
+        if (r)
+          r->dir=tuser->dir(t);
         lbFound:;
         #ifdef USE_IPV6
         if( IsIPv6( & r->sa_c ) )
