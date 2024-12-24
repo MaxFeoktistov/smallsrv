@@ -1,15 +1,11 @@
-smallsrv (3.06.34test3) unstable; urgency=low
+smallsrv (3.06.34) unstable; urgency=low
 
+  * Websocket support added to CGI
   * A little change in log
   * Fix bug in authorization
-
- -- Maksim Feoktistov <max@smallsrv.com>  Sun, 22 Dec 2024 11:16:15 +0400
-
-smallsrv (3.06.34test2) unstable; urgency=low
-
   * Fixed Proxy server
 
- -- Maksim Feoktistov <max@smallsrv.com>  Sun, 03 Nov 2024 11:38:16 +0400
+ -- Maksim Feoktistov <max@smallsrv.com>  Mon, 23 Dec 2024 22:52:52 +0400
 
 smallsrv (3.06.33) unstable; urgency=low
 
