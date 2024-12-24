@@ -643,11 +643,13 @@ User   *FindUser(char *bfr,int typ,char *pwd /*=0*/,Req *r) //=0)
           }
           else
           {
-            t1="GET";
-            if(r->fl&F_POST)t1="POST";
-            if(r->loc) {
-              if(DWORD_PTR(r->loc[0]) == 0x4E4E4F43 x4CHAR("CONN")  ) t1="CONNECT";
-              if(DWORD_PTR(r->loc[0]) == 0x44414548 x4CHAR("HEAD")  ) t1="HEAD";
+            if(md5pwd) {
+              t1="GET";
+              if(r->fl&F_POST)t1="POST";
+              if(r->loc) {
+                if(DWORD_PTR(r->loc[0]) == 0x4E4E4F43 x4CHAR("CONN")  ) t1="CONNECT";
+                if(DWORD_PTR(r->loc[0]) == 0x44414548 x4CHAR("HEAD")  ) t1="HEAD";
+              }
             }
             if( !(
               (md5pwd)?

@@ -553,6 +553,10 @@ void InitParam(char *cln)
 #undef strstr
 }
 
+
+#if 0
+// TODO:
+
 char *PrepLine(char *src, char **cmnt)
 {
   char *t;
@@ -631,7 +635,7 @@ fndCmnt:
   return ee;
 }
 
-#if 1
+// TODO:
 char *first_coment = 0;
 
 
@@ -670,9 +674,7 @@ int FindParam(char *conf_txt, char *comment)
         if(cp->fChange)cp->fChange(cp);
         return 1;
       }
-
     }
-
   }
 
   return 0;
