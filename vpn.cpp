@@ -80,7 +80,7 @@ struct AsincReadHelper_t
   int current;
   union {
     short pkt_len;
-    uchar pkt[MAX_MTU];
+    uchar pkt[MAX_MTU+4];
   } u[2];
 };
 static AsincReadHelper_t * AsincReadHelper[3];
@@ -1337,7 +1337,7 @@ ulong WINAPI VPN_Thread(void *)
   int    i,j,l,k,r;
   union {
     short pkt_len;
-    uchar pkt[MAX_MTU];
+    uchar pkt[MAX_MTU + 4];
   };
 
   while(is_no_exit)
@@ -2115,7 +2115,7 @@ ulong WINAPI VPNClient(void *)
   fd_set set, er_set;
   union {
     short pkt_len;
-    uchar pkt[MAX_MTU];
+    uchar pkt[MAX_MTU + 4];
   };
 
   DBGL("")

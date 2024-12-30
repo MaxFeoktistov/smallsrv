@@ -22,9 +22,9 @@
 #
 #
 
-VERSION=3.06.34
-VERSIONT=3.06.34test
-BUDIR=../site/30634/
+VERSION=3.06.35test1
+VERSIONT=3.06.35test
+BUDIR=../site/30635/
 
 prefix ?=/usr/local/
 CONFIG_BASE   ?= $(prefix:%/=%)/
