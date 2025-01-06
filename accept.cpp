@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2023 Maksim Feoktistov.
+ * Copyright (C) 1999-2025 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov
@@ -137,6 +137,7 @@ void RemoveKeepAlive(int i)
     KeepAliveCount --;
     if(i != KeepAliveCount)
       KeepAliveList[i] = KeepAliveList[KeepAliveCount] ;
+    KeepAliveList[KeepAliveCount] = 0;
   }
   if(unlock) MyUnlock(KeepAliveMutex);
 }

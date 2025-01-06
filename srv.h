@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2024 Maksim Feoktistov.
+ * Copyright (C) 1999-2025 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov
@@ -37,6 +37,7 @@
 
 #endif
 
+#define NEWSTRUCT 1
 
 void dbgf(char *er,int s);
 #define dbg(er) dbgf(er,s)
@@ -548,7 +549,7 @@ int FndLimit(int lst,LimitBase **ip, LimitBase **net, sockaddr_in *sa );
 struct host_dir{
  host_dir *next;
  char *d;
-#ifdef A_64
+#ifdef NEWSTRUCT
  char *h;
  int  flg;
 #else
@@ -608,7 +609,7 @@ struct User
 #define FindUserMD5digest 0x10000
 #define FindUserMD5cram   0x20000
 
-#ifdef A_64
+#ifdef NEWSTRUCT
  char *name;
  char *pwd,*ddr;
  int  state;
@@ -631,7 +632,7 @@ struct User
  int FlgString(char *bfr);
  int IsSysUser()
  {
-#ifdef A_64
+#ifdef NEWSTRUCT
    return (state & UserSYSUSER);
 #else
    return name[0] == 1;
@@ -643,7 +644,7 @@ struct User
 #ifdef SYSUNIX
 struct SysUser: public User
 {
-#ifdef A_64
+#ifdef NEWSTRUCT
 #else
  char *pwd,*ddr;
 
@@ -692,6 +693,7 @@ extern const char *digetvars[];
 
 struct CfgParam;
 typedef int (*onCfgChange_t)(CfgParam *th);
+typedef int (*onCfgToStr_t)(CfgParam *th, char *bfr);
 struct CfgParam
 {
  char *name;
@@ -699,6 +701,7 @@ struct CfgParam
  char *desc,*adv;
  void *vv;
  onCfgChange_t fChange;
+ onCfgToStr_t  fToString;
  char *comment;
 
  int HTMLFormString(char *bfr);
@@ -707,6 +710,20 @@ struct CfgParam
 };
 
 int onChangeM2b64(CfgParam *th);
+int onCfgToStrExt(CfgParam *th, char *bfr);
+int onCfgToStrVHost(CfgParam *th, char *bfr);
+int onCfgToStrUser(CfgParam *th, char *bfr);
+int onCfgChangeUser(CfgParam *th);
+int onCfgChangeVHost(CfgParam *th);
+int onCfgChangeDisable(CfgParam *th);
+int onCfgChangeFlag(CfgParam *th);
+int onCfgChangeNoFlag(CfgParam *th);
+int onCfgChangeExt(CfgParam *th);
+int onCfgToStrExt(CfgParam *th, char *bfr);
+
+
+
+
 
 int MyLock(volatile int &x);
 #ifdef USE_FUTEX
@@ -954,6 +971,7 @@ extern ulong trd_id;
 extern int iofs,no_close_req,MutexEr;
 extern int close_wait;
 extern CfgParam ConfigParams[];
+extern CfgParam ConfigParams2[];
 extern short MnuOffset[20];
 extern const ulong *FTPcmd;
 extern const char HTMLDirBody2[];
@@ -963,6 +981,7 @@ char* DecodeName(char *tt,char *s,char *dm);
 char* StrVar(char *p,char *n);
 char* Encode64(char *t,char *s,int cnt);
 char* Decode64(char *t, char *s, int max_size);
+int split(char *src, char *separators, char **result, int max_result);
 
 //#define HTML_LN "\n"
 #define HTML_LN
@@ -1097,6 +1116,11 @@ int LoadLangCfg(char *fname);
 
 
 #define CRLF  "\r\n"
+#ifdef SYSUNIX
+#define LF  "\n"
+#else
+#define LF  "\r\n"
+#endif
 
 struct CntrCode{
  char nm[2];

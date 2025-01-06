@@ -664,15 +664,25 @@ extern "C" int RMain(void *)
    LoadLangCfg("shs_lang.cfg" );
  }
  else if( (p=stristr(t=cmdline,".exe") ) )
- {if(*t=='\"')++t;
-  ll=DWORD_PTR(p[1]);
-  DWORD_PTR(p[1])=0x676663 x4CHAR("cfg");
-  PrepCfg(t);
+ {
+  char *tt;
+  if(*t=='\"') ++t;
+  ll = p - t + 1;
+  if(*t == '"') {
+    t++;
+    ll--;
+  }
+  tt= (char *) malloc(ll + 8);
+  if(!tt) return 1;
+  memcpy(tt, t, ll);
+  DWORD_PTR(tt[ll])=0x676663 x4CHAR("cfg");
+
+  PrepCfg(tt);
 #if defined(CONFIG_CONFIG) && ! defined(CONFIG_CURRENT_DIR)
   if( LoadLangCfg(CONFIG_CONFIG "shs_lang.cfg" ) < 0 )
 #endif
   LoadLangCfg("shs_lang.cfg" );
-  DWORD_PTR(p[1])=ll;
+  //DWORD_PTR(p[1])=ll;
  }
  InitParam(cmdline);
 #if (! defined(CD_VER) ) && (! defined(FREEVER) )

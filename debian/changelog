@@ -1,3 +1,11 @@
+smallsrv (3.06.35test1) unstable; urgency=low
+
+  * Changed load/save configuration. Comments are supported now
+  * A little fix in VPN
+  * Fixed editing configuration from web interface
+
+ -- Maksim Feoktistov <max@smallsrv.com>  Mon, 06 Jan 2025 19:54:25 +0400
+
 smallsrv (3.06.34) unstable; urgency=low
 
   * Websocket support added to CGI

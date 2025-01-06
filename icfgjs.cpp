@@ -2,7 +2,7 @@
  * Copyright (C) 1999-2020 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
- * Author: Maksim Feoktistov 
+ * Author: Maksim Feoktistov
  *
  *
  * Small HTTP server is free software: you can redistribute it and/or modify it
@@ -15,11 +15,11 @@
  * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see https://www.gnu.org/licenses/ 
+ * along with this program.  If not, see https://www.gnu.org/licenses/
  *
  * Contact addresses for Email:  support@smallsrv.com
  *
- * 
+ *
  */
 
 
@@ -62,7 +62,8 @@ const char  UserTblBottom[]=
 "<form method=POST action=/$_admin_$user>"
 "<input type=text name=n maxlength=63 size=12> "
 "</font></td><td align=center><font size=2 class=f2>"
-"<input type=password name=p maxlength=63 size=12> "
+"<input type=password name=p maxlength=63 size=12 id=\"pnew\" > "
+"<input type=checkbox name=vis onclick=\"toglePass(\'pnew\')\">show"
 "</font></td><td align=center><font size=2 class=f2>"
 "<input type=text name=d maxlength=256 size=32>"
 "</font></td><td><font size=2 class=f5>"
@@ -91,18 +92,18 @@ int Req::HTTPOutCfg(BFILE *bf)//char *bfr)
  char *d,*t,tmpx[300],tmpy[300],*cpdesc;
  CfgParam *cp;
  d=def_dir;
-  
-  
+
+
  //j=sprintf(bfr,
  bf->bprintf(          "<a name=t></a><table border=0 bgcolor=#eff0ff width=100%%><tr align=center>");
  for(cp=ConfigParams;cp->desc;++cp)if(!(cp->v || cp->name))
   //j+=sprintf(bfr+j,
      bf->bprintf(  "<td bgcolor=#c0ffff><a href=#%u>%s</a></td>",nn++,cp->desc);
 
-     
+
 
  //j+=sprintf(bfr+j,
- 
+
             bf->bprintf("</tr></table><hr><table border=0 bgcolor=#fff0ff width=100%%><tr align=center>"
  "<td width=25%%><a href=/$_admin_$rest><font color=#FF0000>Restart</font></a></td><td width=25%%><a href=$_admin_$file?s=158>Edit config file</a></td> %s %s </tr></table>"
   " %s %s %s %s <hr>",
@@ -118,17 +119,17 @@ int Req::HTTPOutCfg(BFILE *bf)//char *bfr)
  //strcpy(bfr+j,(char *)ConfigTop); j+=sizeof(ConfigTop);
  bf->bprintf("%s",ConfigTop);
  dprint("DBG:Test4\n");
- 
+
  for(cp=ConfigParams;cp->desc;++cp)
  {
-  cpdesc=cp->desc;   
+  cpdesc=cp->desc;
   if(cp->adv)
   {
-    sprintf(cpdesc=tmpy,cp->desc,cp->adv);  
+    sprintf(cpdesc=tmpy,cp->desc,cp->adv);
   }
-     
+
   if(!(d=strchr(cpdesc,'.')))d=NullString; else *d++=0;
-  
+
 //  dprint("DBG:%u %X %X\n",nn,cp->name,cpdesc);
 #define  END_TD
   if(!(cp->v))
@@ -255,8 +256,9 @@ int Req::HTTPOutHosts(BFILE *bf ) //char *bfr)
 
 int Req::HTTPUserAdd(BFILE *bf)//char *bfr)
 {User *tuser;
- int i,j;
+ int i,k=0;
  char *p;
+ char *show_pass_dis;
  //j=sprintf(bfr,
  bf->bprintf(
 "<h2>Users:</h2>"
@@ -266,6 +268,11 @@ int Req::HTTPUserAdd(BFILE *bf)//char *bfr)
 #ifndef FREEVER
 "<b>%s</b>"
 #endif
+"<script language=javascript><!--\n"
+"function toglePass(id) { "
+" var e = document.getElementById(id); "
+" e.type = (e.type === \"password\") ? \"text\" : \"password\"; };"
+"// -->\n</script>"
 "<table bgcolor=#ccf0ff border=1 cellspacing=1 cellpadding=1>"
 "<tr valign=center bgcolor=#ccfff0>"
 "<td><font size=2 class=f2><b>User</b></font></td>"
@@ -275,14 +282,19 @@ int Req::HTTPUserAdd(BFILE *bf)//char *bfr)
 "</tr>" HTML_LN
 );
  for(tuser=userList;tuser;tuser=tuser->next) if((i=tuser->state)&0x80)
- {p=tuser->pasw();
+ {
+   p=tuser->pasw();
+   show_pass_dis="";
+   if(*p < 2 )
+     show_pass_dis="disabled" ;
   //j+=sprintf(bfr+j,
      bf->bprintf(
   "<tr valign=center><td align=center><font size=2 class=f2>"
   "<form method=POST action=/$_admin_$user>"
   "<input type=hidden name=n value=\"%s\"><b>%s</b>"
   "</font></td><td align=center><font size=2 class=f2>"
-  "<input type=password name=p maxlength=63 size=12 value=\"%s\">"
+  "<input type=password name=p maxlength=63 size=12 value=\"%s\" id=p%u >"
+  "<input type=checkbox name=vis onclick=\"toglePass(\'p%u\')\" %s>show"
   "</font></td><td align=center><font size=2 class=f2>"
   "<input type=text name=d maxlength=256 size=32 value=\"%s\">"
   "</font></td><td><font size=2 class=f5>"
@@ -298,7 +310,9 @@ int Req::HTTPUserAdd(BFILE *bf)//char *bfr)
   "<input type=submit name=s value=Remove onClick=\"form.s1.value='Remove';\"> "
   "<input type=reset value=Reset>"
   "</form></font></td></tr>" HTML_LN,
-  tuser->name,tuser->name,p,tuser->dir(p),
+  tuser->name,tuser->name,p,
+  k,k,show_pass_dis,
+  tuser->dir(p),
   (i&UserFTP)?"checked":NullString,
   (i&UserFTPW)?"checked":NullString,
   (!(i&UserNOCGI))?"checked":NullString,
@@ -308,6 +322,7 @@ int Req::HTTPUserAdd(BFILE *bf)//char *bfr)
   (i&UserHTTP)?"checked":NullString
   );
 
+  k++;
  // if(j>0x4000){if(send(s,bfr,j,0)<=0)return -1; j=0;}
  }
  bf->bprintf(//"%s",

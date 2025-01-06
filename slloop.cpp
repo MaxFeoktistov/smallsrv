@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2024 Maksim Feoktistov.
+ * Copyright (C) 1999-2025 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov
@@ -373,16 +373,25 @@ fd_set er_set;
 #endif
     if( (p=stristr(t=argv[0],".ex") ) )
     {
-      if(*t=='\"')++t;
-      ll=DWORD_PTR(p[1]);
-      DWORD_PTR(p[1])=0x676663 x4CHAR("cfg");
-      if(PrepCfg(t))
+      char *tt;
+
+      ll = p - t + 1;
+      if(*t == '"') {
+        t++;
+        ll--;
+      }
+      tt= (char *) malloc(ll + 8);
+      if(!tt) return 1;
+      memcpy(tt, t, ll);
+      DWORD_PTR(tt[ll])=0x676663 x4CHAR("cfg");
+      if(PrepCfg(tt)) {
+        free(tt);
         if(PrepCfg("httpd.cfg") )
           if( ! PrepCfg("/etc/shttp/httpd.cfg") )
           {
             chdir("/etc/shttp");
           };
-        DWORD_PTR(p[1])=ll;
+      }
     }
  lbSkipCfg:
  InitParam( (char*)argv );
@@ -544,6 +553,7 @@ fd_set er_set;
 
         preq = KeepAliveList[k];
         // DBGLA("ka %d %d",k, preq->s);
+        if (!preq) break;
 
         if(FD_ISSET(preq->s,&er_set))
         {

@@ -32,7 +32,7 @@
 #include <grp.h>
 #endif
 
-#ifndef A_64
+#ifndef NEWSTRUCT
 char *User::dir(char *ps)
 {
  if(*ps==1)return ps+19;
@@ -465,8 +465,9 @@ int User::Parse()
         }while(1);
         l1:;
         state|=UserPARSED;
-        #ifdef A_64
-        pwd=pasw;ddr=dir ;
+        #ifdef NEWSTRUCT
+        pwd=pasw;
+        ddr=dir;
         #endif
         MkDir();
         UpdPwdCrypt(pasw);
@@ -865,7 +866,7 @@ SysUser* AllocSysUser(struct passwd* pEntry, char *pas)
   ret = (SysUser* )malloc(l1+l2+l3+ 3 + sizeof(SysUser) );
   if(ret)
   {
-#ifdef A_64
+#ifdef NEWSTRUCT
     ret->name = ret->nname;
     ret->state = UserSYSUSER | UserPARSED;
 #else

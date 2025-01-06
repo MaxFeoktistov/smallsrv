@@ -22,6 +22,8 @@
  *
  */
 
+#include "srv.h"
+
 #undef LF
 #define LF "\n"
 
@@ -32,7 +34,6 @@
 #define MAINSTR 1
 #include "g4strcwm.h"
 
-#include "srv.h"
 //#include "bvprintf.h"
 
 #ifdef SYSUNIX
@@ -594,6 +595,7 @@ int Req::Wmail(User *usr)
 
 //debug("XDD %X |%.8s|",anFnd[0],anFnd[0]);
 
+  DBGLA("WM")
   rpost=0;
   if((u=GetVar(http_var,"CONTENT_LENGTH")) && (l=atoui(u)) )
   {
@@ -624,6 +626,9 @@ int Req::Wmail(User *usr)
 //  debug("action %u %u");
   if(action<f)return 0;
   ret=action;
+
+  DBGLA("action=%u", action)
+
   if(action==6 && ( (++wmlg_cntr&1) ||   lloutIP!=sa_c.sin_addr. S_ADDR  ) )
   {
     lloutIP=sa_c.sin_addr. S_ADDR;
@@ -639,7 +644,7 @@ int Req::Wmail(User *usr)
   wm->subdir=loc+dirlen+sizeof("/$_wmail_$")-1;
 //debug("subdir |%s|",wm->subdir);
   sprintf(wm->fromm,"%.64s@%.64s",usr->name,smtp_name);
-  if(action<64)
+  if(action<64) {
     //Send(WM_HEAD,sizeof(WM_HEAD)-1 );
 //     wm->S_printf(WM_HEAD, utf?      //(s_flgs[2]&FL2_WMUTF)?
 //      "; charset=utf8":
@@ -650,7 +655,8 @@ int Req::Wmail(User *usr)
 // #endif
 //   );
 
-  WMSendHead(wm,usr->name,utf);
+    WMSendHead(wm,usr->name,utf);
+  }
 
   if(* wm->subdir!='/'   || ! (t= strrchr(wm->subdir +1,'/' ))
     ) {   wm->subdir="";  }
@@ -677,6 +683,8 @@ int Req::Wmail(User *usr)
   wm->puser=usr;
 
   //debug("XDD3 %X |%.8s|",anFnd[0],anFnd[0]);
+
+  DBGLA("action=%u", action)
 
   switch(action)
   {
@@ -707,6 +715,8 @@ int Req::Wmail(User *usr)
      case 26:
      case 27:
      case 28:
+
+         DBGLA("OutList %u", action-25)
 
          wm->OutList(action-25);
          break;
@@ -2237,7 +2247,12 @@ char *lstfname[]=
 "graylist",
 "forward",
 "hostdef",
+#ifdef SYSUNIX
+"httpd.cfg"
+#else
 "http.cfg"
+#endif
+ //,0
 };
 
 char **advname[]=
@@ -2245,10 +2260,11 @@ char **advname[]=
  &blst,
  &glst,
  &graylst,
-// 0,
+ //0,
  &antiv,
  &dns_file,
  &conf_name
+ //,0
 };
 
 char *lstfmt[]=
@@ -2302,6 +2318,7 @@ void WMail::OutList(int nn)
  n=nn&0x3F;
  //debug("%u %u %X",n,nn,*advname[n]);
 
+ DBGLA("Edit file: %d %d", n, nn);
  S_printf((nn&0x80)? alist_comon: llist_comon ,nn+31,lstname[n],lstdesc[n] );
  S_printf(lstfmt[n]);
  S_printf(
@@ -2310,10 +2327,16 @@ void WMail::OutList(int nn)
 "<br><br><center><textarea name=v rows=30 cols=80 >");
  if(nn&0x80)
  {
-  if(! *advname[n] ) goto lbEndListOut ;
+
+   DBGLA("Edit file: %d %d %lX '%s'", n, ARRAY_SIZE(advname), *(advname[n]), *(advname[n]));
+
+  if(n >= ARRAY_SIZE(advname) || ! *(advname[n]) ) goto lbEndListOut ;
   sprintf(bb,"%s", * (advname[n]) );
  }
  else sprintf(bb,"%s" FSLUSHS "%s" , mbox,lstfname[n]);
+
+ DBGLA("Edit file: %s", bb);
+
  if((h=_lopen(bb,0))>=0)
  {
   j=FileSize(h);
@@ -2330,6 +2353,8 @@ void WMail::OutList(int nn)
 // else {   tt=""; }
 
 lbEndListOut:
+
+ DBGLA("elist")
  S_printf("</textarea>" LF
 "<br>" LF );
  S_printf( lstfmtend[n], lstfmtend2[n], sSubmit ); // ,lstname[n],lstdesc[n],tt );
@@ -2346,9 +2371,9 @@ void WMail::SaveList(int nn)
 
  //sprintf(bb,(nn&0x80)? * (advname[n]) : "%s" FSLUSHS "%s" , mbox,lstfname[n]);
  if(nn&0x80)
- {if(! *advname[n] )
+ {if(! *(advname[n]) )
   {
-    *advname[n]=new char[64];
+    *(advname[n])=new char[64];
     sprintf(*advname[n],"common_%s",lstfname[n]);
     ++save;
   }

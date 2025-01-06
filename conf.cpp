@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2022 Maksim Feoktistov.
+ * Copyright (C) 1999-2025 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov
@@ -130,13 +130,22 @@ char * Encode64(char *t,char *s,int cnt)
 };
 
 char * PrepPath(char *p)
-{if(p)
- {register int t;
-  t=*p++;
-  if( t!='\"' && t!='\'' && t!='`' ){--p; t=' ';}
-  if( (xxx=strchr(p,t ) ) )*xxx=0;
- };
- return p;
+{
+  if(p)
+  {
+    register int t;
+    t=*p++;
+    if( t!='\"' && t!='\'' && t!='`' )
+    {
+      --p;
+      xxx=strpbrk(p," \t\r\n");
+    }
+    else
+      xxx=strchr(p,t);
+    if(xxx)*xxx=0;
+    //  if( (xxx=strchr(p,t ) ) )*xxx=0;
+  }
+  return p;
 };
 
 #ifdef SYSUNIX
@@ -380,6 +389,9 @@ void CheckValidCGIIdent()
  if(maxKeepAlive) KeepAliveList = (Req **) malloc( sizeof(Req *) * (maxKeepAlive + 2) );
 
 }
+
+#if 0
+
 //----
 void InitParam(char *cln)
 {
@@ -553,8 +565,9 @@ void InitParam(char *cln)
 #undef strstr
 }
 
+#endif
 
-#if 0
+#if 1
 // TODO:
 
 char *PrepLine(char *src, char **cmnt)
@@ -569,9 +582,11 @@ char *PrepLine(char *src, char **cmnt)
   {
     ee++;
     *e = 0;
-    if( (t = strpbrk(src, "\"\'#")) ) {
+
+    if( (t = strpbrk(src, "\"\'`#")) ) {
       if( *t != '#') {
         q = t;
+        *e='\n';
         qe= strchr_meta(t+1, *t);
         if(qe) {
           e = strchr(qe + 1, '\n');
@@ -587,24 +602,40 @@ char *PrepLine(char *src, char **cmnt)
             goto fndCmnt;
           }
         }
+        else {
+          *e = 0;
+          debug("Unclosed quote %.64s\n", src);
+        }
+
       }
+      else
+        comment = t;
     }
 
     t = SkipSpace(ee);
-    if (t && *t == '#' )
+    while(t && *t == '#')
     {
-      comment = ee;
-    }
-    do {
-      ee = strchr(ee + 1, '\n');
+      if(!comment)
+        comment = t + 1;
+      ee = strchr(t, '\n');
       if(!ee) break;
       ee++;
       t = SkipSpace(ee);
-    } while( *t == '#');
+    }
+    if(ee)
+    {
+      ee[-1] = 0;
+      if(ee[-2] == '\r') ee[-2] = 0;
+    }
+
   }
 fndCmnt:
   if( (t=strchr(qe, '#') ) ) {
-    if(comment) *e = '\n';
+    if(comment) {
+      *e = '\n';
+      if(! e[-1] )
+        e[-1] = '\r';
+    }
     comment = t + 1;
     *t = 0;
   }
@@ -630,6 +661,8 @@ fndCmnt:
     }
   }
 
+  if(e && e[-1] == '\r')
+    e[-1] = 0;
 
   *cmnt = comment;
   return ee;
@@ -639,16 +672,16 @@ fndCmnt:
 char *first_coment = 0;
 
 
-int FindParam(char *conf_txt, char *comment)
+int FindParamCP(char *conf_txt, char *comment, CfgParam * cp)
 {
-  CfgParam * cp = ConfigParams;
   char *t;
   uint  j;
   for(; cp->desc || cp->name ; cp++ )
   {
-    if( strin(conf_txt, cp->name) )
+    if(cp->name && strin(conf_txt, cp->name) )
     {
       t = conf_txt + strlen(cp->name);
+
       if(*t < 'A')
       {
         if(cp->v)
@@ -663,14 +696,23 @@ int FindParam(char *conf_txt, char *comment)
           }
           else
           {
-            *(char **)(cp->v)=t;
+            *(char **)(cp->v) = PrepPath(t);
           }
         }
         else if(cp->max)
         {
-          s_flgs[cp->min]|=cp->max;
+          s_flgs[cp->min] |= cp->max;
         }
-        cp->comment = comment;
+
+        if(cp[1].v || cp[1].name)
+          cp->comment = comment;
+        else if(cp[1].desc && comment)
+        {
+          if (strcmp(comment+1, cp[1].desc)) {
+            cp->comment = comment;
+          }
+          else cp->comment = 0;
+        }
         if(cp->fChange)cp->fChange(cp);
         return 1;
       }
@@ -681,6 +723,29 @@ int FindParam(char *conf_txt, char *comment)
 
 }
 
+int FindParam(char *conf_txt, char *comment)
+{
+  //DBGLA("conf_txt:'%.64s'", conf_txt)
+
+  if (! *conf_txt ) return 0;
+  if(*conf_txt == '@')
+    return PrepCfg(PrepPath(conf_txt+1));
+  if(FindParamCP(conf_txt, comment, ConfigParams))
+    return 1;
+
+#ifdef DEBUG_VERSION
+  int ret;
+
+  ret = FindParamCP(conf_txt, comment, ConfigParams2);
+  if(!ret) {
+    debug("Not found config param:%.64s", conf_txt);
+  }
+  return ret;
+#else
+  return FindParamCP(conf_txt, comment, ConfigParams2);
+#endif
+}
+
 
 void ParseCfg(char * conf_txt)
 {
@@ -688,22 +753,240 @@ void ParseCfg(char * conf_txt)
   char *comment=0;
   int  cnt;
 
-  do {
+  conf_txt = SkipSpace(conf_txt);
+  while(*conf_txt) {
     e = PrepLine(conf_txt, &comment);
-    conf_txt = SkipSpace(conf_txt);
-    if(!*conf_txt) break;
+    //conf_txt = SkipSpace(conf_txt);
+    //if(!*conf_txt) break;
 
     if(FindParam(conf_txt, comment)) cnt++;
     else if( (!cnt) && !first_coment) first_coment = comment;
 
     if(!e) break;
-    conf_txt = e + 1;
-  }while(1);
+    conf_txt = SkipSpace(e); // + 1;
+  }
+
+  CheckValidCGIIdent();
+}
+
+int onCfgToStrVHost(CfgParam *th, char *bfr)
+{
+  int j=0;
+  host_dir *a;
+
+   for(a=hsdr.next;a;a=a->next)
+     j+=sprintf(bfr+j,"hostpath=%s;\"%s\";\"%s\"" LF , a->h,a->d,a->flg?a->d+a->flg:"");
+
+  return j;
+}
+
+int onCfgToStrUser(CfgParam *th, char *bfr)
+{
+  int j=0;
+  User *tuser;
+  int i;
+  char *p;
+
+  for(tuser=userList;tuser;tuser=tuser->next)
+    if((i=tuser->state)&0x80)
+    {
+      p=tuser->pasw();
+      j+=sprintf(bfr+j,"user=%s;",tuser->name);
+      if(s_flgs[1]&FL1_CRYPTPWD && (*p>1)) j=ConvPwd(bfr+j,p)-bfr;
+      else j+=sprintf(bfr+j,(*p==1)?
+                      "%0.0s+%8.8XZ%8.8X":"%s",p,DWORD_PTR(p[1]),DWORD_PTR(p[5]));
+      j+=sprintf(bfr+j,";%s;",tuser->dir(p));
+      j+=tuser->FlgString(bfr+j);
+#ifdef SYSUNIX
+      WORD_PTR(bfr[j]) = '\n';
+      j++;
+#else
+      DWORD_PTR(bfr[j]) = 0x0A0D;
+      j += 2;
+#endif
+    }
+
+  return j;
+}
+
+int onCfgChangeUser(CfgParam *th)
+{
+  //int l = strlen(th->v);
+  User * u;
+//  u = (User *) malloc(sizeof(User) + l + 1);
+  u = (User *) malloc(sizeof(User));
+  if (!u) return -1;
+  u->next = 0;
+  * (User **) th->vv = u;
+  th->vv = & u->next;
+  u->name = *(char **) th->v;
+  u->Parse();
+  return 0;
+}
 
 
+int onCfgChangeVHost(CfgParam *th)
+{
+  host_dir *a;
+  host_dir *b;
+  char *p, *t;
+
+  t = *(char **)th->v;
+  if( *t==';') return 0;
+
+  a = (host_dir *) malloc(sizeof(host_dir) );
+  a->h = t;
+  a->next = 0;
+  * (host_dir **) th->vv = a;
+  th->vv = & a->next;
+
+  if( (t=strchr(t,';') ) )
+  {
+    *t=0;
+    t++;
+    for(b=&hsdr;(b) && (b!=a);b=b->next)
+      if(b->h && ! strcmp(b->h,t) )
+        b->d=t;
+    a->flg=0;
+    if((p=strchr(a->d=PrepPath(t),';'))) *p++=0;
+    if(xxx)t=xxx+1;
+    else return 0;
+    if( (!p) && *t==';')p=t+1;
+    if(p)
+    {
+      p=PrepPath(p);
+      if(*p)a->flg=p - a->d;
+      if(xxx) t = xxx+1;
+    }
+  }
+  return 0;
+}
+
+int onCfgChangeDisable(CfgParam *th)
+{
+  *th[1].v=0;
+  return 0;
+}
+
+int onCfgChangeFlag(CfgParam *th)
+{
+  s_flgs[th->min] |= th->max;
+  return 0;
+}
+
+int onCfgChangeNoFlag(CfgParam *th)
+{
+  s_flgs[th->min] &= ~ th->max;
+  return 0;
+}
+
+
+#ifndef SYSUNIX
+
+int onCfgChangeExt(CfgParam *th)
+{
+  char *pext = * (char **) th->v;
+  int n = split(PrepPath(pext), ";", ext, 10);
+  if(n > 0) ext[n] = 0;
+  return 0;
+}
+
+
+int onCfgToStrExt(CfgParam *th, char *bfr)
+{
+  int j=0;
+  char **tt;
+  if(*ext)
+  {
+    j+=sprintf(bfr+j,"ext=\"");
+    for(tt=ext; *tt; tt+=2) if(*tt[0]=='.')
+      j+=sprintf(bfr+j,"%.4s;%s;",tt[0],tt[1]);
+    DWORD_PTR(bfr[j-1])=0xA0D22 x4CHAR("\"\r\n");
+    j+=2;
+  }
+  return j;
+}
+
+
+void InitParam(char *cln)
+{
+  char *arr[128];
+  int n = split(cln, " \t", arr, 127);
+  int i;
+  int l;
+  char *p;
+  char *t;
+  char *b;
+  char *q;
+  for (i=0; i<n; i++)
+  {
+    b = t = arr[i];
+    while ((p=strpbrk(t,"'\"") ) )
+    {
+      while (! ((q=strchr(p+1, *p))) ) {
+        i++;
+        if(i > n) {
+          debug("Unclosed quote %s\n", t);
+          return;
+        }
+        l=strlen(t);
+        t[l] = ' ';
+      }
+      t = q + 1;
+    }
+    FindParam(b, 0);
+  }
+
+  CheckValidCGIIdent();
+}
+
+#endif
+
+
+#ifdef SYSUNIX
+void InitParam(char *s)
+{
+  char **arg = ((char **)s) + 1;
+  while(*arg)
+  {
+    FindParam(*arg, 0);
+    arg ++;
+  }
+
+  CheckValidCGIIdent();
 }
 #endif
 
+int PrepCfg(char *fname)
+{
+  char *t,*a,*b;
+  int h,l,q;
+
+  DBGLA("Fname: %s", fname)
+  if( ( h=_lopen(fname,0) )>0 )
+  {
+    l=FileSize(h);
+    if (!conf_name)
+      conf_name = fname;
+
+    if(! (t=new char[l+8]) )
+      return -1;
+    if( (t+l)>last_cfg )last_cfg=t+l;
+    *t=' '; t++;
+    _hread(h,t,l);
+    t[l]=0;
+    _lclose(h);
+    ParseCfg(t);
+
+    return 0;
+  }
+  return -1;
+}
+
+
+#endif
+
+#if 0
 int PrepCfg(char *fname)
 {char *t,*a,*b;
  int i,l,q;
@@ -758,15 +1041,32 @@ int PrepCfg(char *fname)
  return -1;
 
 };
+#endif
+
 
 int CfgParam::TextCfgString(char *bfr)
 {
- return
-   (v)?
-    sprintf(bfr,max?"%s=%u\r\n"
-     :(*v)?strchr(*(char **)v,'\"')?"%s=`%s`\r\n":"%s=\"%s\"\r\n":"",name,*(char **)v)
-   :(name)? (s_flgs[min]&max)?sprintf(bfr,"%s\r\n",name):0
-   :sprintf(bfr,"\r\n# %s\r\n",desc);
+ static char * last_comment;
+ int j = (fToString)? fToString(this, bfr) :
+            (v)?
+                sprintf(bfr, max ? "%s=%u" LF
+                                 : (*v) ?
+                                          strchr(*(char **)v,'\"') ?
+                                                                    "%s=`%s`"  LF
+                                                                   :"%s=\"%s\"" LF
+                                        :"",name, *(char **)v )
+               :(name)?
+                       (s_flgs[min]&max)? sprintf(bfr,"%s" LF ,name) : 0
+               : (last_comment && !strcmp(last_comment+1, desc)) ? 0 : sprintf(bfr, LF "# %s" LF ,desc);
+   if (comment)
+   {
+     DBGLA("comment: %s", comment)
+     j+=sprintf(bfr+j, "#%s\n", comment);
+     last_comment = comment;
+   }
+
+   return j;
+
 };
 //-----
 #ifndef CD_VER
@@ -784,30 +1084,52 @@ int User::FlgString(char *bf)
 }
 #endif
 
-void  UpdAbout();
+
+int PrepareTextCfg(char *bfr, CfgParam *cp)
+{
+  int j = 0;
+
+  while(cp->desc || cp->name)
+  {
+    j+=cp->TextCfgString(bfr+j);
+    ++cp;
+  }
+  return j;
+}
+
 void SaveConfigFile(char *bfr,char *fnm)
 {
 #ifndef CD_VER
 
- int j=2,h,i;
+ int h,i;
  host_dir *a;
  char **tt;
  User *tuser;
  char *p;
 
- DWORD_PTR(*bfr)=0x0A0D0A0D;
-#ifndef FREEVER
-// _BSD_VA_LIST_
-#ifndef CD_VER
- UpdAbout();
-#endif
+#ifdef SYSUNIX
+ int j=2;
+ DWORD_PTR(*bfr)=0x0A0D;
+#else
+ int j=1;
+ DWORD_PTR(*bfr)='\n';
 #endif
 
  debug("Save configuration...");
 
- for(CfgParam *cp=ConfigParams;cp->desc||cp->name;++cp)j+=cp->TextCfgString(bfr+j);
+ if (first_coment)
+   j += sprintf(bfr+j, "#%s\n", first_coment);
 
- j+=sprintf(bfr+j,"\r\n# Other\r\n");
+ j += PrepareTextCfg(bfr + j, ConfigParams);
+
+ j += sprintf(bfr+j,  LF "# Other" LF);
+
+ j += PrepareTextCfg(bfr + j, ConfigParams2);
+
+
+
+
+#if 0
  if(mime && mime[0] )j+=sprintf(bfr+j,"mime=%s\r\n",mime);
 
  if(*ext)
@@ -817,8 +1139,10 @@ void SaveConfigFile(char *bfr,char *fnm)
   DWORD_PTR(bfr[j-1])=0xA0D22 x4CHAR("\"\r\n");
   j+=2;
  };
+
  for(a=hsdr.next;a;a=a->next)
   j+=sprintf(bfr+j,"hostpath=%s;\"%s\";\"%s\"\r\n",a->h,a->d,a->flg?a->d+a->flg:"");
+
  for(tuser=userList;tuser;tuser=tuser->next) if((i=tuser->state)&0x80)
  {p=tuser->pasw();
   j+=sprintf(bfr+j,"user=%s;",tuser->name);
@@ -830,8 +1154,16 @@ void SaveConfigFile(char *bfr,char *fnm)
   DWORD_PTR(bfr[j])=0x0A0D;
   j+=2;
  }
- if( (h=_lcreat(fnm,0))>0){ _hwrite(h,bfr,j); _lclose(h);}
+#endif
+
+ if( (h=_lcreat(fnm,0))>0)
+ {
+   _hwrite(h,bfr,j);
+   _lclose(h);
+ }
  else debug( sERROR__CA ,fnm);
+
+
 #endif
 };
 
