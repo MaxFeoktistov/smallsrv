@@ -294,6 +294,10 @@ int GZObj::InitUnpack(transfunc tff,void *pp)
 
 };
 
+
+#pragma GCC diagnostic ignored "-Wpragmas"
+#pragma GCC diagnostic ignored "-Wstringop-overread"
+
 void GZObj::End()
 {int r,l;
  do{

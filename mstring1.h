@@ -91,7 +91,7 @@ void tsttfnc();
 
 //#pragma GCC diagnostic ignored "-Wbuiltin-declaration-mismatch"
 
-inline char *  memchr(const void *_s, int _c, size_t _n)
+inline char *  memchrc(const void *_s, int _c, size_t _n)
 {
   asm volatile(
       " test %%edi,%%edi ; jz 2f ; "
@@ -106,6 +106,9 @@ inline char *  memchr(const void *_s, int _c, size_t _n)
                      );
   return (char *)_s;
 };
+
+#define memchr memchrc
+
 //--------------------------------------------------------------------
 inline int     memcmp(const void *_s1, const void *_s2, size_t _n)
 {
