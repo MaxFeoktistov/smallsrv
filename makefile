@@ -22,7 +22,7 @@
 #
 #
 
-VERSION=3.06.35test1
+VERSION=3.06.35test2
 VERSIONT=3.06.35test
 BUDIR=../site/30635/
 

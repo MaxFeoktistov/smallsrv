@@ -319,6 +319,9 @@ int Req::HttpReq()
       if((pst=strstr(in_buf,"\r\n\r\n")))break;
       if((pst=strstr(in_buf,"\n\n"))){pst+=3; break;}
     }while(1);
+
+    if(!pst) goto bdreq;
+
     postsize=l-(pst-in_buf)-4;
     KeepAlive=stristr(in_buf,"Connection: Keep-Alive");
 
