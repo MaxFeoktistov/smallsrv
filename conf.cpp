@@ -24,7 +24,6 @@
 
 
 #ifndef STRING_CONST_H
-//#include "strc.h"
 
 #include "g4s1.hh"
 #include "g4strc.h"
@@ -1414,7 +1413,7 @@ int onChangeM2b64(CfgParam *th)
   return 1;
 }
 
-}
+} // extern "C"
 
 
 

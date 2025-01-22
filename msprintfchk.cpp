@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2020 Maksim Feoktistov.
+ * Copyright (C) 1999-2025 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov
@@ -46,7 +46,7 @@ struct SprintfPars
 int SPrintChkFlush(SprintfPars *th,char *t,ulong l)
 {
  if(th->l < l)l=th->l;
- if(l>0)
+ if((int)l>0)
  {
    memcpy(th->t,t,l);
    th->l-=l;

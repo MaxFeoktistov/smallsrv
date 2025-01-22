@@ -26,6 +26,8 @@
 #ifndef _string_h_
 #define _string_h_
 
+#pragma GCC diagnostic ignored "-Wpragmas"
+#pragma GCC diagnostic ignored "-Wregister"
 
 #ifdef NOTINTEL
 #include <string.h>
