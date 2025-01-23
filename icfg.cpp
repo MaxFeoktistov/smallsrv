@@ -225,7 +225,7 @@ SPD(0,http)
 {"phpini",256,0,(uint *)&phtml_ini, CXS(S2sPHP_INI_D, "php.ini directory.")},
 #endif
 #if defined(CD_VER) || !defined(SYSUNIX)
-{"nowintypes",0,3,(uint *)0, CXS(S2sDISABLE_T0, "Do not detect CGI application with Windows types."), 0, 0, onCfgChangeDisable},
+{"nowintypes",0,3,(uint *)0, CXS(S2sDISABLE_T0, "Do not detect CGI application with Windows types."), 0, 0 },
 #endif
 {"ssihtm",0,FL_SSIHTM, (uint *)0, CXS(S2sENABLE_TO0, "Enable Server Side Includes (SSI) checking"
 " in HTML files. By default SSI checking in .sht*,.sml*,.asp*"

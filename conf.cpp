@@ -646,16 +646,18 @@ fndCmnt:
 
       case ' ':
       case '\t':
-          if(t<q)  break;
-          if(0) {
+        if(t<q)  break;
+#ifdef SYSUNIX
+        if(0) {
       case '\\':
-        if(t>q) {
-           t++;
-           *src++ = SlashSeq(t);
-           break;
-        }
-      default:;
+          if(t>q) {
+            t++;
+            *src++ = SlashSeq(t);
+            break;
           }
+        }
+#endif
+      default:;
        *src++ = *t;
     }
   }
@@ -863,7 +865,8 @@ int onCfgChangeVHost(CfgParam *th)
 
 int onCfgChangeDisable(CfgParam *th)
 {
-  *th[1].v=0;
+  if(th[1].v)
+    *th[1].v=0;
   return 0;
 }
 
