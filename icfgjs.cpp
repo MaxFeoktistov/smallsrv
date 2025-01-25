@@ -259,6 +259,7 @@ int Req::HTTPUserAdd(BFILE *bf)//char *bfr)
  int i,k=0;
  char *p;
  char *show_pass_dis;
+ char pbfr[40];
  //j=sprintf(bfr,
  bf->bprintf(
 "<h2>Users:</h2>"
@@ -284,9 +285,12 @@ int Req::HTTPUserAdd(BFILE *bf)//char *bfr)
  for(tuser=userList;tuser;tuser=tuser->next) if((i=tuser->state)&0x80)
  {
    p=tuser->pasw();
+
    show_pass_dis="";
-   if(*p < 2 )
+   if(Pass2Txt(pbfr, p)) {
      show_pass_dis="disabled" ;
+     p = pbfr;
+   }
   //j+=sprintf(bfr+j,
      bf->bprintf(
   "<tr valign=center><td align=center><font size=2 class=f2>"

@@ -101,16 +101,28 @@ void ConvPwdMD5L4(uint *t4,char *u,char *pas, char *realmm)
   MD5Final ((uchar *)t4, &context);
 }
 
+int FillMD5Pwd(char *t, uint *dgt)
+{
+#if defined(AT_ARM) || defined(ARCH_REQ_ALIGN)
+  uint adgt[6];
+  if( ((long)dgt) & 3){
+    memcpy(adgt, dgt, 16);
+    dgt = adgt;
+  }
+#endif
+  return sprintf(t,"~%8.8X.%8.8X.%8.8X.%8.8X",dgt[0],dgt[1],dgt[2],dgt[3]);
+}
+
 char* ConvPwdMD5(char *t,char *u,char *pas)
 {
-  uint dgt[6]      ;
+  uint dgt[6];
   ConvPwdMD5L4(dgt,u,pas);
-  return t+=sprintf(t,"~%8.8X.%8.8X.%8.8X.%8.8X",dgt[0],dgt[1],dgt[2],dgt[3]);
+  return t + FillMD5Pwd(t, dgt);
 }
 
 int IsPwdMD5C(char *p, char *pas,char *u)
 {
-  uint dgt[6]      ;
+  uint dgt[6];
   int i;
   ConvPwdMD5L4(dgt,u,pas);
   p++;
@@ -306,13 +318,13 @@ char* ConvPwd(char *t,char *pas)
    aa[1]=ror(x+~r,pas[1]);
   }while(memchr(aa,0,8));
 
-  return t+sprintf(t,"+%8.8XZ%8.8X",aa[0],aa[1]);
+  return t+sprintf(t,"+%8.8X.%8.8X",aa[0],aa[1]);
 }
 
 void UpdPwdCrypt(char *p)
 {
   ulong a,b;
-  if(*p=='+' && p[9]=='Z' && strlen(p)==18 && (a=atouix(p+1)) && (b=atouix(p+10)) )
+  if(*p=='+' && (p[9]=='Z' || p[9]== '.')  && strlen(p)==18 && (a=atouix(p+1)) && (b=atouix(p+10)) )
   {
     *p=1;
     DWORD_PTR(p[1])=a;
@@ -628,9 +640,12 @@ User   *FindUser(char *bfr,int typ,char *pwd /*=0*/,Req *r) //=0)
         if( *(t=tuser->pasw())  )
         {
           DBGLA("DEBUG U %s %s %X %X",tuser->name,t,tuser->state,typ);
-          if(*t==1 && ( md5pwd || (typ & (FindUserMD5cram|FindUserMD5digest) ) ) )
-          {
+
+          if(*t==1)
             r->fl|=F_DIGET_UNAVILABLE;
+
+          if( *t==1 && (md5pwd || (typ & (FindUserMD5cram|FindUserMD5digest) ) ) )
+          {
             debug("Cram and digest unavilable for %s",tuser->name);
             return 0;
           }
@@ -702,7 +717,10 @@ User   *FindUser(char *bfr,int typ,char *pwd /*=0*/,Req *r) //=0)
           return 0;
         }
 
-        if(! suser->IsPwd(pwd)) goto lbBad;
+        if(! suser->IsPwd(pwd)) {
+          r->fl|=F_DIGET_UNAVILABLE;
+          goto lbBad;
+        }
         break;
       }
     }

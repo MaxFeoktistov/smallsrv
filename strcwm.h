@@ -2,7 +2,7 @@
  * Copyright (C) 1999-2020 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
- * Author: Maksim Feoktistov 
+ * Author: Maksim Feoktistov
  *
  *
  * Small HTTP server is free software: you can redistribute it and/or modify it
@@ -15,11 +15,11 @@
  * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see https://www.gnu.org/licenses/ 
+ * along with this program.  If not, see https://www.gnu.org/licenses/
  *
  * Contact addresses for Email:  support@smallsrv.com
  *
- * 
+ *
  */
 
 #ifndef WBSTRING_CONST_H
@@ -36,11 +36,21 @@
 " size=2>Message data</td>"\
 /* <td><font size=2>Remote POP3</td>*/ \
 "</tr>"
-#define s_TD__FONT "<td><font size=2><a href='?s=20&r=%X' > <b>Subject:</b> %s </a><br><table"\
-" width=100%%><tr><td><font size=2><b>From:</b>%s &lt;<a href=\"mailto:%s\""\
-" >%s</a>&gt;</td> <td align=right><font size=2><b>To:</b> %s</td></tr><tr><td><font"\
-" size=2><b>Date:</b> %s </td><td align=right><font size=2><b>Size:</b>"\
-" %u<br></td></tr>"
+#define s_TD__FONT    "<tr><td><font size=2><input type=checkbox name=\"dl%X\" > </td>"\
+                          "<td>"\
+                          "<font size=2><a href='?s=20&r=%X' > <b>Subject:</b> %s </a><br>"\
+                          "<table width=100%%>"\
+                          "<tr>"\
+                            "<td><font size=2>"\
+                              "<b>From:</b>%s &lt;<a href=\"mailto:%s\">%s</a>&gt;"\
+                            "</td>"\
+                            "<td align=right><font size=2><b>To:</b> %s</td>"\
+                          "</tr><tr>"\
+                            "<td><font size=2><b>Date:</b> %s </td>"\
+                            "<td align=right><font size=2><b>Size:</b> %u<br></td>"\
+                          "</tr></table><hr style=\"width:90%%;text-align:center;border: 1px dashed gray\"> %s... </td></tr>"
+
+
 #define s_B__S__B_ "<b>%s</b><br><input type=checkbox name=d%X > Del"
 #define s_BR__INPU "<br><input type=checkbox name=g%X >Get (%uKb)"
 #define s_TD_BGCOL "<td bgcolor=#E0E0E8><b>POP3 server: <br><input"\
@@ -294,7 +304,7 @@
 
 #define sDownload_source "Download source"
 
-#define sDelete "Delete"
+#define sDelete "Delete checked"
 #define sSend "Send"
 #define sDraft "Save draft"
 #define sSubmit "Submit"

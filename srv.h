@@ -441,9 +441,9 @@ int FndLimit(int lst,LimitBase **ip, LimitBase **net, sockaddr_in *sa );
 #define FL_DNSUPLVL        0x10000000
 #define FL_NODIR           0x20000000
 #define FL_PRXUSER         0x40000000
-#define FL_FTPVDIR         0x80000000
+#define FL_FTPVDIR         0x80000000u
 
-#define AFL_NT      0x80000000
+#define AFL_NT      0x80000000u
 #define AFL_ICO     1
 #define AFL_HIDE    2
 #define AFL_RESTART 4
@@ -483,7 +483,7 @@ int FndLimit(int lst,LimitBase **ip, LimitBase **net, sockaddr_in *sa );
 #define FL1_PRXHRD       0x10000000
 #define FL1_CONFIRM      0x20000000
 #define FL1_NOM          0x40000000
-#define FL1_MHST         0x80000000ul
+#define FL1_MHST         0x80000000u
 
 #define FL2_CHKMX        0x100
 #define FL2_NOMFTP       0x200
@@ -852,6 +852,11 @@ int IsPwdAPOP(char *pas,char *dgst,char *s,int ssize);
 void CalkPwdMD5D(char **dgv, uint *HA1,char *method, char *HA2Hex);
 //void CalkHA1(char *u,char *pwd, uchar *HA1);
 void ConvPwdMD5L4(uint *t4,char *u,char *pas, char *realmm=realm);
+char* ConvPwdMD5(char *t,char *u,char *pas);
+int FillMD5Pwd(char *t, uint *dgt);
+int Pass2Txt(char *pbfr, char *t);
+void UpdPwdCrypt(char *p);
+
 extern int dos_protect_speed;
 
 ulong DTick(ulong tick1, ulong tick2);

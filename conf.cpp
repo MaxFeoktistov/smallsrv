@@ -52,6 +52,24 @@ int GetCDLabel(char *fn,char *tg);
 #endif
 char *xxx;
 
+#ifdef DEBUG_VERSION
+#ifndef SYSUNIX
+char xdclb[256];
+void WIN_DBG_print(int l)
+{
+  static int h;
+  if(!h) h=(int)GetStdHandle((ulong)STD_OUTPUT_HANDLE);
+  _hwrite(h,xdclb,l);
+}
+
+#define printf(a...)  WIN_DBG_print(wsprintf(xdclb, a))
+
+#else
+#undef printf
+#endif // SYSUNIX
+#endif //DEBUG_VERSION
+
+
 #ifndef NOATOUI
 uint atoui(const char *a)
 {register uint r=0,l;
@@ -586,7 +604,11 @@ char *PrepLine(char *src, char **cmnt)
       if( *t != '#') {
         q = t;
         *e='\n';
+#ifdef SYSUNIX
         qe= strchr_meta(t+1, *t);
+#else
+        qe= strchr(t+1, *t);
+#endif
         if(qe) {
           e = strchr(qe + 1, '\n');
           if(e)
@@ -677,6 +699,9 @@ int FindParamCP(char *conf_txt, char *comment, CfgParam * cp)
 {
   char *t;
   uint  j;
+
+  //printf("%s - ", conf_txt);
+
   for(; cp->desc || cp->name ; cp++ )
   {
     if(cp->name && strin(conf_txt, cp->name) )
@@ -685,6 +710,8 @@ int FindParamCP(char *conf_txt, char *comment, CfgParam * cp)
 
       if(*t < 'A')
       {
+       // printf("%s\n", cp->name);
+
         if(cp->v)
         {
           t = SkipSpace(t);
@@ -781,11 +808,22 @@ int onCfgToStrVHost(CfgParam *th, char *bfr)
   return j;
 }
 
+
+int Pass2Txt(char *pbfr, char *p)
+{
+  if (*p==2)
+    return FillMD5Pwd(pbfr, (uint *)(p+1));
+  if (*p==1)
+    return sprintf(pbfr, "+%8.8X.%8.8X", DWORD_PTR(p[1]),DWORD_PTR(p[5]));
+  return 0;
+}
+
 int onCfgToStrUser(CfgParam *th, char *bfr)
 {
   int j=0;
   User *tuser;
   int i;
+  int k;
   char *p;
 
   for(tuser=userList;tuser;tuser=tuser->next)
@@ -793,9 +831,12 @@ int onCfgToStrUser(CfgParam *th, char *bfr)
     {
       p=tuser->pasw();
       j+=sprintf(bfr+j,"user=%s;",tuser->name);
-      if(s_flgs[1]&FL1_CRYPTPWD && (*p>1)) j=ConvPwd(bfr+j,p)-bfr;
-      else j+=sprintf(bfr+j,(*p==1)?
-                      "%0.0s+%8.8XZ%8.8X":"%s",p,DWORD_PTR(p[1]),DWORD_PTR(p[5]));
+      k = Pass2Txt(bfr+j, p);
+      if(k) j+=k;
+      else if(s_flgs[1]&FL1_CRYPTPWD) j=ConvPwd(bfr+j,p)-bfr;
+      else if(s_flgs[1]&FL2_MD5PASS) j=ConvPwdMD5(bfr+j,tuser->name,p)- bfr;
+      else j+=sprintf(bfr+j, "%s", p);
+
       j+=sprintf(bfr+j,";%s;",tuser->dir(p));
       j+=tuser->FlgString(bfr+j);
 #ifdef SYSUNIX
@@ -865,8 +906,11 @@ int onCfgChangeVHost(CfgParam *th)
 
 int onCfgChangeDisable(CfgParam *th)
 {
-  if(th[1].v)
+
+  if(th[1].v) {
+    //printf("%s disable %s %X\n", th[0].name, th[1].name, *th[1].v);
     *th[1].v=0;
+  }
   return 0;
 }
 
@@ -889,7 +933,7 @@ int onCfgChangeExt(CfgParam *th)
 {
   char *pext = * (char **) th->v;
   int n = split(PrepPath(pext), ";", ext, 10);
-  if(n > 0) ext[n] = 0;
+  if(n > 0) ext[(n+1) & ~1] = 0;
   return 0;
 }
 
@@ -1150,7 +1194,7 @@ void SaveConfigFile(char *bfr,char *fnm)
   j+=sprintf(bfr+j,"user=%s;",tuser->name);
   if(s_flgs[1]&FL1_CRYPTPWD && (*p>1)) j=ConvPwd(bfr+j,p)-bfr;
   else  j+=sprintf(bfr+j,(*p==1)?
-   "%0.0s+%8.8XZ%8.8X":"%s",p,DWORD_PTR(p[1]),DWORD_PTR(p[5]));
+   "%0.0s+%8.8X.%8.8X":"%s",p,DWORD_PTR(p[1]),DWORD_PTR(p[5]));
   j+=sprintf(bfr+j,";%s;",tuser->dir(p));
   j+=tuser->FlgString(bfr+j);
   DWORD_PTR(bfr[j])=0x0A0D;

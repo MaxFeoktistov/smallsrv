@@ -1,10 +1,13 @@
-smallsrv (3.06.35test1) unstable; urgency=low
+smallsrv (3.06.35test5) unstable; urgency=low
 
-  * Changed load/save configuration. Comments are supported now
+  * Changed loading/saving configuration. Added support for comments
+  * Fixed editing configuration from the web interface
   * A little fix in VPN
-  * Fixed editing configuration from web interface
+  * A little but importen fix in HTTP, and loging
+  * Fixed web mail
+  * Fixed issue when MD5 Digest authentication unavilable for user, because password crypted
 
- -- Maksim Feoktistov <max@smallsrv.com>  Mon, 06 Jan 2025 19:54:25 +0400
+ -- Maksim Feoktistov <max@smallsrv.com>  Sat, 25 Jan 2025 20:33:51 +0400
 
 smallsrv (3.06.34) unstable; urgency=low
 

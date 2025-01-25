@@ -533,6 +533,7 @@ WMail * InitWMail(Req *rr, char *b,int utf)
  WMail *ret;
 
   ret=((WMail *)(void *) b );
+  memset(b, 0, sizeof(WMail));
   ret->r=rr;
   ret->bfl.Init(rr, (utf? (PrintFlush)ConvertUTFSnd : (PrintFlush)rr->Snd),ret->bbfr);
   return  ret;
@@ -577,7 +578,7 @@ int Req::Wmail(User *usr)
   WMail * wm;
   int f=0;
 
-//   debug("Here: 0 %X",usr);
+   DBGLA("Here: 0 %X",usr);
    if(usr)f=0x80;
    else if( ! (usr=ChUser(UserPOP3)) )
    {
@@ -932,6 +933,11 @@ void WMail::ChPwd(User *usr)
 };
 
 
+void RemoveTags(char *t)
+{
+  while((t=strpbrk(t,"<>&")))*t=' ';
+}
+
 void WMail::OutMbox()
 {WIN32_FIND_DATA fnds;
  char tbb[512];
@@ -940,13 +946,13 @@ void WMail::OutMbox()
  int h;
  ulong i,n,j;
  char **ch;
- char *from,*to,*dat,*subj,*t,*fromemail;
+ char *from,*to,*dat,*subj,*t,*fromemail, *text;
  HANDLE hdl;
  // POP3Ac *pc;
  ulong *pl;
 
-  // debug("XDD5 %X |%.8s|",anFnd[0],anFnd[0]);
-
+ //DBGLA("XDD5 %X |%.8s|",anFnd[0],anFnd[0])
+ DBGLA("XDD5 %lX ", s_METHOD_P)
 
  S_printf(
  "Mailbox / <a href=\"javascript:SHTbl('t2');\"><span id=lt2 >[+]</span></a><div id=t2 style=\"display:none;\"><form name=y> <input type=hidden name=s value=8 > <input type=text name=t size=32 maxlength=64> <input type=submit value='Create Folder' > </form></div>  <br> <br> <form name=x %s",
@@ -975,15 +981,17 @@ void WMail::OutMbox()
 // sprintf(tbb,"%s" FSLUSHS "mbox%.128s" FSLUSHS  "*.msg",mbox,subdir);
  sprintf(tbb,"%s" FSLUSHS "mbox%.128s" FSLUSHS  "*",mbox,subdir);
 
- //debug("mb=%s",bb);
+ DBGLA("mb=%s",tbb);
 
  n=0;
  if( ( hdl=FindFirstFile(tbb,&fnds) )!=INVALID_HANDLE_VALUE )
- {d=(ulong *)malloc(0x2008*4*4);
+ {
+   d=(ulong *)malloc(0x2008*4*4);
   bb=(char *)(d+0x2008*3);
   do{
      if(fnds.cFileName[0]!='.' && (fnds.dwFileAttributes&FILE_ATTRIBUTE_DIRECTORY) )
      {
+       DBGLA("%lX %lX", fnds.cFileName, fnds.cFileName)
        S_printf("<a href='%s%s/' >[%s/]</a> &nbsp; ",subdir[0]?"": SCRIPTNAME "/"  ,fnds.cFileName,fnds.cFileName);
      }
      else if(DWORD_PTR(fnds.cFileName[8])=0x67736D2E x4CHAR(".msg")   )
@@ -1012,7 +1020,7 @@ void WMail::OutMbox()
 
   //debug("XDD7 %X |%.8s|",anFnd[0],anFnd[0]);
 
-     //   debug("n=%u",n);
+   DBGLA("n=%u",n);
 
    for(i=0;i<n;++i)
    {sprintf(bb,"%s" FSLUSHS "mbox%.128s" FSLUSHS  "%8.8X.msg",mbox,subdir,d[i+0x2000]);
@@ -1028,6 +1036,9 @@ void WMail::OutMbox()
      if((to  =stristr(bb,"\nTo:"     )))to  +=sizeof("\nTo:"     ); else to  =".";
      if((dat =stristr(bb,"\nDate:"   )))dat +=sizeof("\nDate:"   ); else dat =".";
      if((subj=stristr(bb,"\nSubject:")))subj+=sizeof("\nSubject:"); else subj=".";
+     if(!(text=strstr(bb,"\r\n\r\n")))
+       if(!(text=strstr(bb,"\n\n")))
+         text="";
      if((t=strchr(from,'\n'))){*t=0; /* if( (t-from)>40)DWORD_PTR(from[38])=0x00002E2E x4CHAR("..") ; */
 
       ConvertBQ(from);
@@ -1053,11 +1064,12 @@ void WMail::OutMbox()
       if((t=strchr(fromemail,'>'))) *t=0;
      }else{fromemail=from;  from=""; }
 
-     t=to  ; while( (t=strpbrk(t,"<>")))*t=' ';
-     t=dat ; while( (t=strpbrk(t,"<>")))*t=' ';
-     t=subj; while( (t=strpbrk(t,"<>")))*t=' ';
+     RemoveTags(to  );
+     RemoveTags(dat );
+     RemoveTags(subj);
+     RemoveTags(text);
 
-   //  debug("XDD11 %X |%.8s|",anFnd[0],anFnd[0]);
+     DBGLA("XDD11 %X |%.8s|",anFnd[0],anFnd[0]);
 
      S_printf(
 //       "<tr>"
@@ -1066,12 +1078,32 @@ void WMail::OutMbox()
 //        s_TD__FONT  LF
 //       "</table></td></tr>"
       //"<td><font size=2>"
-       s_TD__FONT
-      ,d[i+0x2000],d[i+0x2000],subj,
-      from,fromemail,fromemail,to,
-      dat,d[0x4000+i]);
 
-     // debug("XDD12 %X |%.8s|",anFnd[0],anFnd[0]);
+
+       s_TD__FONT
+/*
+       "<tr><td><font size=2><input type=checkbox name=\"dl%X\" > </td>"
+           "<td>" LF \
+                       "<font size=2><a href='?s=20&r=%X' > <b>Subject:</b> %s </a><br>" LF \
+                       "<table width=100%%>"  LF \
+                       "<tr>"  LF \
+                         "<td><font size=2>"  LF \
+                           "<b>From:</b>%s &lt;<a href=\"mailto:%s\">%s</a>&gt;"  LF \
+                         "</td>"\
+                         "<td align=right><font size=2><b>To:</b> %s</td>"  LF \
+                       "</tr><tr>"  LF \
+                         "<td><font size=2><b>Date:</b> %s </td>"  LF \
+                         "<td align=right><font size=2><b>Size:</b> %u<br></td>"  LF \
+                       "</tr></table><hr> %s </td></tr>"  LF
+*/
+
+      ,d[i+0x2000]
+      ,d[i+0x2000]
+      ,subj,
+      from,fromemail,fromemail,to,
+      dat,d[0x4000+i], text);
+
+     DBGLA("XDD12 %X |%.8s|",anFnd[0],anFnd[0]);
 
 #if 0
      if(strin(bb,"Received: via pop;") )for(pc=POPlist;pc;pc=pc->next)
@@ -1102,7 +1134,7 @@ void WMail::OutMbox()
    free(d);
  };
  S_printf(
- "</table>"
+ "</table><br>"
  " <input type=submit  value=\""
   "%s" //   sDelete
   "\""
@@ -1642,7 +1674,8 @@ void OMsg::OutMSG()
 // "<form  action=" SCRIPTNAME  s_METHOD_G  SCRIPTNAME  s_METHOD_G1 SCRIPTNAME  s_METHOD_G0
 "<form  "  "%s %s %s" // s_METHOD_G   s_METHOD_G1  s_METHOD_G0
 
-     ,subdir,m,m,m,subj,from,fromemail,dat,m,subj,to,to_email,dat,m
+     ,subdir,m,m
+     //,m, subj,from,fromemail,dat,m,subj,to,to_email,dat,m
      ,sDownload_source,s_METHOD_G,   s_METHOD_G1,  s_METHOD_G0 );
 
   delete bfr;
