@@ -48,7 +48,7 @@
                           "</tr><tr>"\
                             "<td><font size=2><b>Date:</b> %s </td>"\
                             "<td align=right><font size=2><b>Size:</b> %u<br></td>"\
-                          "</tr></table><hr style=\"width:90%%;text-align:center;border: 1px dashed gray\"> %s... </td></tr>"
+                          "</tr></table><hr style=\"width:94%%;text-align:center;border: 1px gray\"> %s... </td></tr>"
 
 
 #define s_B__S__B_ "<b>%s</b><br><input type=checkbox name=d%X > Del"
@@ -207,7 +207,8 @@
 "<h2>Change password:</h2><form name=z method=post> <input type=hidden name=s value=3 >New password: <input type=password name=p size=32 maxlength=32> <input type=submit value='Change' > </form>  <br> <br> "
 
 
-#define s_POP3a1 "<input type=hidden name=s value=7>"\
+#define s_POP3a1 "<form name=nmsg method=post>"\
+"<input type=hidden name=s value=7>"\
 "<table width=100%% border=1 bgcolor=#E0F0E8>"\
 "<tr><td>"\
 "<table>"\
@@ -216,8 +217,7 @@
 "</td></tr><tr><td>"\
 "<b>To: </b></td><td><input type=text name=to maxlength=64 size=50%% value=\"%.64s\" >&lt;<input type=text name=tomail maxlength=64 size=30%% value=\"%.64s\" >&gt;"\
 "</td></tr>"\
-/* "<tr><td>Reply-To: </td><td><input type=text name=reply maxlength=64 size=50%% value=\"%.64s\" >&lt;<input type=text name=reto maxlength=64 size=30%% value=\"%.64s\" >&gt; (may be skiped)"\
-"</td></tr>" */ "<tr><td>"\
+"<tr><td>"\
 "<b>Subject: </b></td><td><input type=text name=subj maxlength=128 size=85%% value=\"%.64s\" >"\
 "</td></tr>"\
 "</table>"\

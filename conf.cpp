@@ -1352,10 +1352,56 @@ int CntLines(char *p,char *e)
   while(p<e && *p)if(*p++=='\n')++r;
   return r;
 }
+
+int CheckLangItem(char *l_old, char *l_new)
+{
+  char *p1, *p2;
+
+  while((p1=strchr(l_old, '%')))
+  {
+    if( (! (p2=strchr(l_new, '%') ) ) )
+    {
+      if(p1[1] == '%')
+      {
+        l_old = p1 + 2;
+        continue;
+      }
+      return 0;
+    }
+    p1++;
+    p2++;
+    if(*p1 != *p2)
+    {
+      if(*p1 == '%') {
+        l_old = p1 + 1;
+        continue;
+      }
+      if(*p2 == '%') {
+        l_new = p2 + 1;
+        continue;
+      }
+      return 0;
+    }
+
+    l_new = p2 + 1;
+    l_old = p1 + 1;
+  }
+
+  while( (p2=strchr(l_new, '%')) )
+  {
+    p2++;
+    if(*p2 != '%') return 0;
+    l_new = p2 + 1;
+  }
+
+  return 1;
+}
+
+
 int LoadLangCfg(char *fname)
 {
 #if 1
- char *t,*a,*b,*p;
+ char *t,*a,*b,*p,*e;
  int i,l,q,line;
  CfgParam *cp;
  if( ( i=_lopen(fname,0) )<=0 )
@@ -1407,6 +1453,7 @@ int LoadLangCfg(char *fname)
      }
      *p=0;
      b=SkipSpace(b+1);
+     if((e=strstr(b,"\n\n"))) *e=0;
 
      for(i=0; LangData[i].name; i++)
      {
@@ -1414,6 +1461,13 @@ int LoadLangCfg(char *fname)
        {
      //    debug("Found le %s=%.20s,%.20s\n",a,b,*LangData[i].t);
          p=*(LangData[i].t);
+
+         if(!CheckLangItem(p, b))
+         {
+           debug("Lang element '%.20s' incompatible with source: original:'%.128s'; new:'%.128s'\n", a, p, b);
+           goto  ExLP2;
+         }
+
          for(cp=ConfigParams; cp->desc||cp->name;++cp)
          {
            if(cp->desc && cp->desc==p && (cp->desc<lang_data || cp->desc>b) ){cp->desc=b ;}
@@ -1429,14 +1483,11 @@ int LoadLangCfg(char *fname)
      debug("Lang element '%.20s' not found\n",a);
 
   ExLP2:
-     p=strstr(b,"\n\n");
-     if(!p)  goto  ExLP3;
-     line+=CntLines(b,p)+2;
-     *p=0;
+     if(!e)  goto  ExLP3;
+     line+=CntLines(b,e)+2;
+     *e=0;
      if(LangData[i].name)    FixSlach(b);
-
-
-     a=p+1;
+     a=e+1;
    }
    else
    {
