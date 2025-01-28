@@ -488,9 +488,11 @@ int WINAPI SetServ(uint fnc)
 #else
   req.HttpReq();
 #endif
-  if( (req.fl & (F_KEEP_ALIVE|F_VPNANY) ) == F_KEEP_ALIVE && req.s != -1)
+  if( ((req.fl & (F_KEEP_ALIVE|F_VPNANY)) == F_KEEP_ALIVE) && req.s != -1)
+  {
+    DBGLA("Add KeepAlive fnc:%X fl:%X\r\n", fnc, req.fl)
     TryToAddKeepAlive(&req);
-    DBGLA("Add KeepAlive fnc:%X fl:%X ", fnc, req.fl)
+  }
 
 cnt:
   no_close_wait();

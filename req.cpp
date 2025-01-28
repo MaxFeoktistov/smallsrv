@@ -604,6 +604,9 @@ int Req::HttpReq()
 
     if((hf=FindFirstFile(in_buf,&fd) )!=INVALID_HANDLE_VALUE)
     {
+
+      DBGLA("found %s", in_buf)
+
       if(templ)
       {
         while(fd.cFileName[0]=='.' && fd.cFileName[1]<'0')
@@ -626,6 +629,9 @@ int Req::HttpReq()
         (s_flgs[1]&FL1_RUNSYSTEM) &&
         (fd.dwFileAttributes&FILE_ATTRIBUTE_SYSTEM)
       )tpp=(char *)1;
+
+      DBGLA("tpp = %X", (long) tpp)
+
       #endif
 
       ii=9;
@@ -695,6 +701,9 @@ int Req::HttpReq()
       )
       {
         lcgi:
+
+        DBGL("CGI")
+
         #ifdef SYSUNIX
         fileStat=&(fd.st);
         #endif
@@ -711,6 +720,7 @@ int Req::HttpReq()
           (fcgi_detect && fcgi_detect[0] &&
           stristr(in_buf, fcgi_detect) != 0  ) )
         {
+          DBGLA("Fast CGI %s", in_buf)
           CallFCGI(in_buf);
         }
         else
@@ -839,6 +849,9 @@ int Req::HttpReq()
           loc=error_file;
           in_buf=xin_buf;
           strcpy(in_buf,error_file);
+          KeepAlive = 0;
+
+          DBGLA("error file %s", error_file)
 
           goto lcnt_trn;
         }
@@ -945,6 +958,9 @@ int Req::HttpReq()
       _lclose(h);
     #undef l
     ex1:;
+
+    DBGLA("exit fl=%X KeepAlive=%lX", fl, (long)KeepAlive )
+
     ttm+=GetTickCount()-tick;
     if( (! KeepAlive) || --KeepAliveCounter<=0 ){
       DBGL("KeepAlive not avilablie\n");

@@ -174,14 +174,14 @@ struct Req
 #define F_KEEP_ALIVE  2
 #define F_PHP 4
 #define F_PASSWORD 4
+#define F_GZ  0x8
 //#define F_PERL 0x40
-#define F_UPCHUNKED 0x40
-#define F_EXE 0x20
 #define F_SKIPHEAD 0x10
+#define F_EXE 0x20
+#define F_UPCHUNKED 0x40
 #define F_LASTLF 0x80
 #define F_PRX 0x100
 #define F_HTTP10 0x200
-#define F_GZ  0x8
 #define F_CHUNKED 0x400
 #define F_DIGET_UNAVILABLE 0x800
 #define F_STDERRSEL 0x1000
