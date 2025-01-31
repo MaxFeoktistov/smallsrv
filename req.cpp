@@ -112,7 +112,7 @@ char* ConvertUtf(char *s,ushort *w)
 char* CheckBadName(char *in_buf)
 {char *t,*p,*pp;
   int ii;
-  for(p=t=in_buf;*t;++t,++p)
+  for(p=t=in_buf; *t; ++t,++p)
     if(*t=='/')
     {
       *p=FSLUSH;
@@ -468,7 +468,8 @@ int Req::HttpReq()
 
     #ifndef CD_VER
     if( strin(in_buf+dirlen,"/$_admin_$") )
-    {if( (s_flgs[1]&FL1_ATLS && (Snd!=&TLSSend)) ||
+    {
+      if( (s_flgs[1]&FL1_ATLS && (Snd!=&TLSSend)) ||
       (IsInIPRange(adm_range)<=0 )
       || IsProxyRange(adm_range) ) HttpReturnError(sACCESS_DE);
       else Admin();
@@ -598,13 +599,14 @@ int Req::HttpReq()
       p+=sprintf(templ=p,"%.63s",def_name);
 
     }
-    lcnt_trn:
+
+ lcnt_trn:
 
     DBGL("")
 
     if((hf=FindFirstFile(in_buf,&fd) )!=INVALID_HANDLE_VALUE)
     {
-
+ lcnt_trn2:
       DBGLA("found %s", in_buf)
 
       if(templ)
@@ -644,7 +646,7 @@ int Req::HttpReq()
         ii=9;
         goto ex2a;
       }
-      else if( (t=strrchr(in_buf,'.')))
+      else if( (t=strrchr(in_buf,'.')) && ! strpbrk(t,"/\\()[]-+,") )
       {
         if(!t[1])goto bdreq;
         h=DWORD_PTR(*t);
@@ -805,8 +807,18 @@ int Req::HttpReq()
           if((t=strchr(in_buf,'.')))
           {
             if( (trn=strchr(t,FSLUSH) ) )
-            { trn[-1]=0; if(templ)*templ=0;
-              goto lcnt_trn;
+            {
+              *trn=0;
+              if((hf=FindFirstFile(in_buf,&fd) )!=INVALID_HANDLE_VALUE)
+              {
+                if (! (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
+                  if(templ)*templ=0;
+                  goto lcnt_trn2;
+                }
+                FindClose(hf);
+              }
+              *trn=FSLUSH;
+              trn = 0;
             };
           }
 

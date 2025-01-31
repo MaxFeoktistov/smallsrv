@@ -533,8 +533,13 @@ static int REinitCTX()
          * functions for more information.
          */
 
-       if(s_cert_file && s_cert_file[0])
-        CHECK(gnutls_certificate_set_x509_key_file(x509_cred,s_cert_file,s_key_file,GNUTLS_X509_FMT_PEM));
+
+       if(s_cert_file && s_cert_file[0] )
+       {
+         if ((!s_key_file) || !s_key_file[0])
+           s_key_file = s_cert_file;
+         CHECK(gnutls_certificate_set_x509_key_file(x509_cred,s_cert_file,s_key_file,GNUTLS_X509_FMT_PEM));
+       }
 
 //         CHECK(gnutls_certificate_set_ocsp_status_request_file(x509_cred,
 //                                                               OCSP_STATUS_FILE,

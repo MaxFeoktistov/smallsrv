@@ -330,7 +330,11 @@ long CALLBACK DefProc(HWND hwnd, UINT msg,UINT wparam, LONG lparam)
      k=GetDlgItemTextLen(hwnd,768);
      p=pu->pasw();
      t=pu->dir(p);
+#ifdef NEWSTRUCT
+     if(strlen(p)>j || strlen(pu->name) > i || strlen(t)>k)
+#else
      if( (((ulong)t -(ulong)pu) +strlen(t) )< (i+j+k+sizeof(*pu) ) )
+#endif
      {pu->state=0;
 
    case 761: //Add u
@@ -338,12 +342,23 @@ long CALLBACK DefProc(HWND hwnd, UINT msg,UINT wparam, LONG lparam)
      j=GetDlgItemTextLen(hwnd,765);
      k=GetDlgItemTextLen(hwnd,768);
      pm=new char[i+j+k+sizeof(*pu)+3 ];
+#ifdef NEWSTRUCT
+     pu->name = pm + sizeof(*pu);
+     pu->pwd = pu->name + i + 1,
+     pu->ddr = pu->pwd + j + 1;
+#endif
      pu->next=userList;
      userList=pu;
      }
-     GetDlgItemText(hwnd,764,pu->name,256);
+#ifdef NEWSTRUCT
+     GetDlgItemText(hwnd,764,pu->name,i+1);
+     GetDlgItemText(hwnd,765,pu->pwd, j+1);
+     GetDlgItemText(hwnd,768,p=pu->ddr,k+1);
+#else
+     GetDlgItemText(hwnd,764,pu->name,256)
      GetDlgItemText(hwnd,765,pu->name+i+1,256);
      GetDlgItemText(hwnd,768,p=pu->name+i+j+2,256);
+#endif
      CreateDirectory(p,&secat);
      i=0x80;
      if( IsDChk(hwnd,770)) i|=UserFTPR ;
@@ -374,13 +389,25 @@ long CALLBACK DefProc(HWND hwnd, UINT msg,UINT wparam, LONG lparam)
     j=GetDlgItemTextLen(hwnd,792);
     k=0;
     if((IsDChk(hwnd,796)))k=GetDlgItemTextLen(hwnd,797);
+#ifdef NEWSTRUCT
+     pm=new char[i + j + k + sizeof(*ph) + 12];
+
+     ph->h=pm + sizeof(*ph);
+     ph->d=pm + sizeof(*ph) + i + 2;
+#else
      pm=new char[i+j+k+12];
      ph->d=pm+10+i;
+#endif
      ph->next=hsdr.next;
      hsdr.next=ph;
-     GetDlgItemText(hwnd,784,ph->h,256);
+     GetDlgItemText(hwnd,784,ph->h, i+1);
+#ifdef NEWSTRUCT
+     GetDlgItemText(hwnd,792,ph->d, j+1);
+     if(k) GetDlgItemText(hwnd,797,ph->d+(ph->flg=j+1),k+1);
+#else
      GetDlgItemText(hwnd,792,ph->d=ph->h+i+1,256);
      if(k)GetDlgItemText(hwnd,797,ph->d+(ph->flg=j+1),256);
+#endif
      if(IsDChk(hwnd,794) && ph->h[0]!='/' )
      {strcpy(fnamebuf+GetWindowsDirectoryA(fnamebuf,256), (s_aflg & 0x80000000)?
        "\\hosts": "\\SYSTEM32\\DRIVERS\\ETC\\hosts"   );
