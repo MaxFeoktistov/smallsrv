@@ -22,7 +22,7 @@
 #
 #
 
-VERSION=3.06.35test9
+VERSION=3.06.35test10
 
 prefix ?=/usr/local/
 CONFIG_BASE   ?= $(prefix:%/=%)/
@@ -667,7 +667,7 @@ ru/shs_lang.cfg : lS1_lf.cfg
 install: # all
 	mkdir -p $(ICONFIG_APPDIR) $(ICONFIG_SHARE) $(ICONFIG_CONFIG) $(ICONFIG_LOG) $(ICONFIG_BASE)/bin $(ICONFIG_BASE)/share/man/man1
 	for i in $(BINFILES) libsecgnutls.so libsec111.so ; do  if [ -e $(INSTALLFROM)$$i ] ; then cp $(INSTALLFROM)$$i $(ICONFIG_APPDIR) ; fi; done
-	for i in httpd.cfg script_examples/*.sh ; do [ -e $(ICONFIG_CONFIG)/$$i ] || cp $$i $(ICONFIG_CONFIG) ; done
+	for i in httpd.cfg  vpnclient.cfg script_examples/*.sh ; do [ -e $(ICONFIG_CONFIG)/$$i ] || cp $$i $(ICONFIG_CONFIG) ; done
 	for i in $(BINFILES) ; do  if [ -e $(ICONFIG_APPDIR)/$$i ] ; then  ln -sf $(CONFIG_APPDIR)/$$i $(ICONFIG_BASE)/bin/ ; fi ; done
 	for i in ru en ; do mkdir -p $(ICONFIG_SHARE)/$$i ; cp $$i/shs_lang.cfg $(ICONFIG_SHARE)/$$i/ ; done
 	for i in license.ssl notes.ssl license06.txt notes.ssl descu.htm ; do cp $$i $(ICONFIG_SHARE) ; done
@@ -675,7 +675,7 @@ install: # all
 	for i in httpd.exgnutls.1 httpd.exopenssl.1 ; do ln -sf httpd.exe.1 $(ICONFIG_BASE)/share/man/man1/$$i ; done
 
 
-DISTFILES=vpn_if_client_down.sh vpn_if_client_up.sh vpn_if_up.sh descu.htm httpd.cfg lang_notes.txt libsec111.so license.ssl notes.ssl libsecgnutls.so  license06.txt langpacks/ru langpacks/ru/shs_lang.cfg langpacks/en langpacks/en/shs_lang.cfg sndmsg httpd.exe.1 sndmsg.1
+DISTFILES=vpn_if_client_down.sh vpn_if_client_up.sh vpn_if_up.sh descu.htm httpd.cfg lang_notes.txt libsec111.so license.ssl notes.ssl libsecgnutls.so  license06.txt langpacks/ru langpacks/ru/shs_lang.cfg langpacks/en langpacks/en/shs_lang.cfg sndmsg httpd.exe.1 sndmsg.1 vpnclient.cfg
 ODISTFILES=$(addprefix o/dist/,$(DISTFILES))
 OUDISTFILES=$(addprefix o/of/dist/,$(DISTFILES))
 ADISTFILES=$(addprefix at/dist/,$(DISTFILES))
@@ -738,8 +738,9 @@ dist_clean:
 #%.prepare_dist: $(BSDIR)%/dist $(BSDIR)%/httpd.exe $(addprefix $(BSDIR)%/dist/,$(DISTFILES))
 
 %.prepare_dist:
+	chmod -R go-w,u+rw,a+X $(BSDIR)$*/dist/*
 	for i in $(BINFILES) ; do if [ -e $(BSDIR)$*/$$i ] ; then cp $(BSDIR)$*/$$i $(BSDIR)$*/dist/ ; $(CROSS_COMPILE)strip $(BSDIR)$*/dist/$$i ; chmod 0755 $(BSDIR)$*/$$i ; fi ; done
-	cd $(BSDIR)$*/dist/ ; $(CROSS_COMPILE)strip sndmsg *.so ; chmod -R go-w,u+rw,a+X * ; chmod  0755 httpd.ex* *.so sndmsg ; chmod 0644 *.1; chmod 0600 httpd.cfg
+	cd $(BSDIR)$*/dist/ ; $(CROSS_COMPILE)strip sndmsg *.so ; chmod  0755 *.so sndmsg ; chmod 0644 *.1; chmod 0600 httpd.cfg
 
 
 
@@ -1165,7 +1166,7 @@ bvprintfv.cpp cstat.cpp get4def.pl ico.h mrc.cpp onelog.cpp regular.h S5_lf.hh s
  desc.htm fcgi.h getstr.cpp isapi.h makefile.dj msprintfchk.cpp pkbig.cpp ress1.s srvdat.cpp strcwm.h to_win.h \
  c4char.pl descr.htm gz.cpp lang_notes.txt makefile.in mstring1.cpp pklz.cpp restart.cpp srv.h strcwmr.h vpn.cpp vpn.h tools.cpp mkfakelib_cros.pl sndmsg.cpp \
  icfg_vpnclient.cpp reqfunc.cpp slloop_vpnclient.cpp srv0a_vpnclient.cpp srvdat_vpnclient.cpp  srvmd5.cpp \
- httpd.exe.1 sndmsg.1 sndmsg_usage.1.in httpd_usage.1.in def4str2.pl httpd.cfg
+ httpd.exe.1 sndmsg.1 sndmsg_usage.1.in httpd_usage.1.in def4str2.pl httpd.cfg vpnclient.cfg
 
 WSRC = $(addprefix winclude/,winsock_IPv6.h zconf.h zlib.h tap-windows.h nethdr.h)
 LSRC = $(addsuffix shs_lang.cfg, ru/ en/)

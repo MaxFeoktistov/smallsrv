@@ -449,7 +449,8 @@ int FndLimit(int lst,LimitBase **ip, LimitBase **net, sockaddr_in *sa );
 #define AFL_RESTART 4
 #define AFL_EXIT    8
 #define AFL_TLS     0x10
-#define AFL_EX2     0x10
+#define AFL_EX2     0x20
+#define AFL_VPNCLN  0x40
 
 #define FL1_FTPSAME      0x1
 #define FL1_SMTPTLS      0x2
@@ -774,7 +775,7 @@ void RemoveAndDelKeepAlive(int i);
 void SetKeepAliveSock(int s);
 int WINAPI KeepAliveThread(void *);
 char* IsSame(char *tt,char *pp);
-
+void UpdateVPNStatInfo(int force);
 
 #ifndef CD_VER
 

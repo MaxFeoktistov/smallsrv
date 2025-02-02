@@ -2136,6 +2136,7 @@ ulong WINAPI VPNClient(void *)
     uchar pkt[MAX_MTU + 4];
   };
 
+  s_aflg |= AFL_VPNCLN;
   DBGL("")
   memset(&vpn,0,sizeof(vpn));
 
@@ -2162,7 +2163,10 @@ ulong WINAPI VPNClient(void *)
 
 #ifndef VPN_WIN
   if(tuntap_fds[vpn.tun_index] < 0 ) tun_alloc(vpn.tun_index);
-  if(tuntap_fds[vpn.tun_index] < 0 )  return -1;
+  if(tuntap_fds[vpn.tun_index] < 0 )  {
+    s_aflg &= ~AFL_VPNCLN;
+    return -1;
+  }
   DBGL("")
 
   vpn_client_fd = tuntap_fds[vpn.tun_index];
@@ -2173,24 +2177,24 @@ ulong WINAPI VPNClient(void *)
 
 
   vpn.ipv4 = 0;
-  while(is_no_exit)
+  while(is_no_exit&1)
   {
     if( (r=vpn.ClientConnect(&vpn.tls)) < 0 )
     {
+        #if defined(VPNCLIENT_ONLY) && ! defined(SYSUNIX)
+        UpdateVPNStatInfo(0);
+        #endif // VPNCLIENT_ONLY
 
       DBGL("")
-
       if(r < -4)
       {
-
         DBGL("client exit");
-
         return -1;
       }
       for(r=0; r<60; r++)
       {
         Sleep(1000);
-        if (!is_no_exit)
+        if (!(is_no_exit&1))
           break;
       }
     }
@@ -2205,11 +2209,15 @@ ulong WINAPI VPNClient(void *)
       if(vpn_client_fd < vpn.s) max_fd = vpn.s;
 #endif
 
-      while(is_no_exit)
+      while(is_no_exit&1)
       {
 #ifndef VPN_WIN
         FD_SET(vpn_client_fd, &set);
         FD_SET(vpn_client_fd, &er_set);
+#else
+        #ifdef VPNCLIENT_ONLY
+        UpdateVPNStatInfo(1);
+        #endif // VPNCLIENT_ONLY
 #endif
         FD_SET(vpn.s, &set);
         FD_SET(vpn.s, &er_set);
@@ -2256,7 +2264,12 @@ ulong WINAPI VPNClient(void *)
     }
   }
 
+  vpn_cln_connected = 0;
+  #if defined(VPNCLIENT_ONLY) && ! defined(SYSUNIX)
+  UpdateVPNStatInfo(1);
+  #endif // VPNCLIENT_ONLY
   VPN_Done();
+  s_aflg &= ~AFL_VPNCLN;
 
   return 0;
 }

@@ -824,6 +824,20 @@ afterTLS:
   mnu3[0].id=(ulong)hmnu;
   hmmnu=MkMnu(mnu4,CreateMenu);
   */
+#ifdef VPNCLIENT_ONLY
+
+        CreateWindowEx(0,"BUTTON", "VPN Connect",
+                        WS_BORDER|WS_CHILD|WS_VISIBLE, 4, 4,132,20, mwnd,(HMENU) 98 ,hinstance, 0);
+
+        CreateWindowEx(0,"BUTTON", "VPN Disconnect",
+                        WS_BORDER|WS_CHILD|WS_VISIBLE, 144,4,132,20, mwnd,(HMENU) 99 ,hinstance, 0);
+
+        CreateWindowEx(WS_EX_CLIENTEDGE,"STATIC", "In: 0  Out:0",
+                        WS_BORDER|WS_CHILD|WS_VISIBLE, 282, 2, rc.right - 282,20, mwnd,(HMENU) 97 ,hinstance, 0);
+
+   rc.top += 28;
+   rc.bottom -= 28;
+#endif // VPNCLIENT_ONLY
   ewnd=CreateWindowEx(WS_EX_CLIENTEDGE,"EDIT",b_prot,
         WS_BORDER|WS_CHILD|WS_VISIBLE|ES_MULTILINE|
         ES_READONLY|WS_VSCROLL,
@@ -834,7 +848,7 @@ afterTLS:
   InsertMenu(GetSystemMenu(mwnd,0),0,MF_POPUP|MF_BYPOSITION|MF_HILITE,(uint)hmnu,"&Server");
 
   nid.hWnd=mwnd; nid.hIcon=hicon;
-  if(! (s_flg&0x10) )s_aflg|=!Shell_NotifyIcon(NIM_ADD,&nid);
+  if(! (s_flg&FL_NOICON) )s_aflg|=!Shell_NotifyIcon(NIM_ADD,&nid);
   SendMessage(ewnd,WM_SETFONT,(ulong)GetStockObject(17),1);
 #if defined(CD_VER) && (! defined(SYSUNIX)) && ! defined(SPECIAL)
 
