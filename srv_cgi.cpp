@@ -168,65 +168,6 @@ int Req::ExecCGI()
 };
 //----
 
-ulong D64X(uchar i)
-{if(i=='+')return 62;
- if(i=='/')return 63;
- if(i<'0')return 64;
- if(i<='9')return i-'0' + 52;
- if(i<='Z')return i-'A';
- return i-'a' + 26;
-};
-
-char * Decode64(char *t, char *s, int max_size)
-{
-  char *y = t;
-  uint i,j;
-
-  while((i=D64X(*s))<64)
-  {
-    s++;
-    if( (j=D64X(*s))>=64 )break;
-    *y=(i<<2)|(j>>4);
-    s++; y++;
-    if( (i=D64X(*s))>=64 )break;
-    *y=(j<<4)|(i>>2);
-    s++; y++;
-    if( (j=D64X(*s))>=64 )break;
-    *y=(i<<6)|(j);
-    s++; y++;
-    if((y-t) >= max_size) return 0;
-  }
-  *y=0;
-  return y;
-}
-
-char * Req::CheckAuth(char *&p)
-{
-  char *t,*z,*y;
-  if( (t= GetVar(http_var,"AUTHORIZATION")) )
-  {
-    z=y=p;
-    //  debug("|%s|",t);
-    if( strin(t,"Basic") )
-    {
-      if(! (Decode64(y, t+6, 256) ) ) return 0;
-      if((y=strchr(z,':'))){*y=0;y++;}else y="";
-      p=y;
-      return z;
-    }
-    else   if( strin(t,"Digest") )
-    {
-      p=t;
-      if((z=strstr(t, "username=\"")))
-      {
-        z+=sizeof("username=");
-        return z;
-      }
-    }
-  }
-  return 0;
-}
-
 #ifndef SYSUNIX
 int MyCreateProcess(char *p,void *env,char *loc, STARTUPINFO *cb,PROCESS_INFORMATION *pi)
 {

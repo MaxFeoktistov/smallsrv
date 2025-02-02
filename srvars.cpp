@@ -163,6 +163,7 @@ int pcnt;
 ulong pval,max_pfile;
 
 #ifndef SYSUNIX
+STARTUPINFO cbFwd;
 HWND mwnd,ewnd;
 //HANDLE hinstance;
 HINSTANCE hinstance;
@@ -378,11 +379,41 @@ Req **KeepAliveList;
 int KeepAliveMutex;
 int TimeoutKeepAlive;
 int keepalive_idle;
+unsigned long NullLong=0;
+
+int no_close_req=0;
+int close_wait;
+
+ulong total_dhcp_ip;
+
+const char *digetvars[]=
+{
+  "username",
+  "nonce",
+  "uri",
+  "qop",
+  "nc",
+  "cnonce",
+  "response",
+  "opaque",
+  0
+};
+
+char *charset="";
 
 #ifdef TLSVPN
 char *vpn_name="/$_vpn_$";
 char *vpncln_name="/$_vpn_$";
 #endif
+
+// Array with error strings
+char *det_var_err[]={"",
+  s__UNINSPE ,
+  s__UNINSPE0 ,
+  s__SSI_VAR ,
+  "",
+  0
+};
 
 
 #ifdef MAX_ASYNC_IO

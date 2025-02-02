@@ -53,9 +53,7 @@ int Req::SendCMDsmtp(char *xxx,int lll)
 #define SendCMD(xxx,lll)  if(req.SendCMDsmtp((xxx),(lll))<=0 )goto brkConn;
 #define SendConstCMD(xxx) SendCMD(xxx,(sizeof(xxx)-1) )
 
-#ifndef SYSUNIX
-STARTUPINFO cbFwd;
-#else
+#ifdef SYSUNIX
 #include<pwd.h>
 #endif
 
@@ -420,7 +418,7 @@ while( is_no_exit )
    ++no_close_req;
    for(i=0;i<max_tsk;i++)
     if( ((u_long)(rreq[i])>1) &&
-          rreq[i]->postsize == n &&         rreq[i]->dirlen==0x29041975)
+          rreq[i]->postsize == n && rreq[i]->dirlen==dlNOW_SENDING_SIGN)
     {
      dec_no_close_req();
      goto lbDxx;

@@ -75,7 +75,8 @@ fb_lnotes[10],fe_lnotes[10],
 fb_s1[10],fe_s1[10],
 fb_s2[10],fe_s2[10],
 fb_s3[10],fe_s3[10],
-fb_s4[10],fe_s4[10]
+fb_s4[10],fe_s4[10],
+fb_vpnc[10], fe_vpnc[10]
 ;
 char *easyfl[]=
 {
@@ -88,6 +89,10 @@ char *easyfl[]=
  "vpn_if_client_up.bat",fb_s2,fe_s2,
  "vpn_if_client_down.bat",fb_s3,fe_s3,
  "http.exe.manifest",fb_s4,fe_s4,
+
+ "vpnclient.exe", fb_vpnc, fe_vpnc,
+ "vpnclient.exe.manifest", fb_s4,fe_s4,
+
 #ifdef RUS
   "shs_lang.cfg",fb_lang,fe_lang,
 #endif

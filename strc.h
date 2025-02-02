@@ -25,7 +25,11 @@
 
 #define STRING_CONST_H
 
+#ifdef VPNCLIENT_ONLY
+#define ABOUT_STR "VPN client for " sSMALL_HTT FORLINUX "\r\nby Max Feoktistov\r\nE-mail: support@smallsrv.com\r\n (C) 1999-2025\r\nMD5 cashe function derived from the RSA Data Security, Inc. MD5 Message-Digest Algorithm\r\n" /* DONT_AUTO_CHANGE */
+#else
 #define ABOUT_STR sSMALL_HTT FORLINUX "\r\nby Max Feoktistov\r\nE-mail: support@smallsrv.com\r\n (C) 1999-2025\r\nMD5 cashe function derived from the RSA Data Security, Inc. MD5 Message-Digest Algorithm\r\n" /* DONT_AUTO_CHANGE */
+#endif // VPNCLIENT_ONLY
 
 #ifdef SHS_VERSION
 

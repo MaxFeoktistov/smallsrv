@@ -41,9 +41,6 @@
 
 
 
-#ifdef USE_FUTEX
-const  struct timespec timeout_10ms={0,10000000};
-#endif
 struct linger lngr={1,0};
 int MutexEr;
 int SrvChecker[16];
@@ -58,63 +55,6 @@ int (Req::*FWrk[])()=
 #endif
 };
 #endif
-int no_close_req=0;
-int close_wait;
-int err_cnt;
-
-void no_close_wait()
-{
-  int j=0;
-  while(no_close_req>0)
-  {
-#ifdef USE_FUTEX
-    if(++j>100)
-    {
-     no_close_req=0;
-     break;
-    }
-    close_wait++;
-    futex((int *)&no_close_req,FUTEX_WAIT,no_close_req,&timeout_10ms,0,0);
-#else
-    Sleep(1);
-    if(++j>1000)
-    {
-     no_close_req=0;
-     break;
-    }
-#endif
-  }
-}
-
-void dec_no_close_req()
-{
-#ifdef USE_FUTEX
-  if( --no_close_req <= 0)
-  {
-    no_close_req = 0;
-    if(close_wait)
-    {
-      close_wait = 0;
-      futex((int *)&no_close_req,FUTEX_WAKE,1,0,0,0);
-    }
-  }
-#else
-  if(--no_close_req<0)no_close_req = 0;
-#endif
-}
-
-void SetKeepAliveSock(int s)
-{
-  int v;
-  setsockopt(s,SOL_SOCKET,SO_KEEPALIVE,(char *)&one,sizeof(int));
-  if(keepalive_idle)
-  {int v = 3;
-    setsockopt(s, IPPROTO_TCP, TCP_KEEPIDLE,(char *)&keepalive_idle,sizeof(int));
-    setsockopt(s, IPPROTO_TCP, TCP_KEEPINTVL,(char *)&keepalive_idle,sizeof(int));
-    setsockopt(s, IPPROTO_TCP, TCP_KEEPCNT,(char *)&v,sizeof(int));
-  }
-}
-
 
 void AddKeepAlive(Req* preq)
 {
@@ -141,21 +81,6 @@ void RemoveKeepAlive(int i)
   }
   if(unlock) MyUnlock(KeepAliveMutex);
 }
-
-void Req::Close()
-{
-  if(s != -1)
-  {
-    if(Snd==&TLSSend)
-    {
-      SecClose((OpenSSLConnection*)Adv);
-      Snd=(tfSnd) &JustSnd;
-    }
-    CloseSocket(s);
-    s = -1;
-  }
-};
-
 
 void DeleteKeepAlive(Req* preq)
 {
@@ -265,6 +190,8 @@ int TryToAddKeepAlive(Req *req)
 }
 
 #ifdef FIX_EXCEPT
+int err_cnt;
+
 int SetFixExept(Req *preq)
 {
   int exceptsrv = -1;
@@ -289,6 +216,34 @@ int SetFixExept(Req *preq)
   return -1;
 }
 #endif
+
+#ifdef USE_FUTEX
+const  struct timespec timeout_10ms={0,10000000};
+#endif
+
+void no_close_wait()
+{
+  int j=0;
+  while(no_close_req>0)
+  {
+#ifdef USE_FUTEX
+    if(++j>100)
+    {
+     no_close_req=0;
+     break;
+    }
+    close_wait++;
+    futex((int *)&no_close_req,FUTEX_WAIT,no_close_req,&timeout_10ms,0,0);
+#else
+    Sleep(1);
+    if(++j>1000)
+    {
+     no_close_req=0;
+     break;
+    }
+#endif
+  }
+}
 
 int WINAPI SetServ(uint fnc)
 {int clen,j,min_tick,min_tick_tsk;
@@ -692,115 +647,6 @@ int Req::HttpReturnError(char *err,int errcode)
  return 1;
 };
 
-ulong tmSpd;
-int   SpdMut;
-int Req::SleepSpeed()
-{ulong uspd;
- if(!(uspd=ipspeed[flsrv[1]&7]))return 0;
- Req *r;
- ulong sum=0,j;
- ulong tt;
- long x,i,y;
- ulong z;
- //tmSpd=GetTickCount();
- MyLock(SpdMut);
- tt=GetTickCount();
- z=tt-tmSpd;
- if(z>1024 || !tmSpd)tmSpd=tt;
- MyUnlock(SpdMut);
- j=0;
- ++no_close_req;
- for(i=0;i<max_tsk;++i)
-  if( (u_long)(r=rreq[i])>1 )
-  {
-    x=DTick(tt,r->tmout);
-    y=r->Tout;
-    if(x>0x4000)
-    {
-     y-=r->bSpd;
-     if(y<0)y=0; else
-     if(z>1024)
-     {r->bSpd+=MULDIV(z,y,0x4000+z);
-      if((y=r->Tout-r->bSpd)<0)y=0;
-     }
-    }
-    if(r->sa_c.sin_addr.s_addr==sa_c.sin_addr.s_addr)sum+=y;
-    else if(y>0x400)++j;
-  }
-  dec_no_close_req();
- sum>>=8;
- if((x=sum-uspd)>0 && j>=ipspdusr[flsrv[1]&7]){ Sleep(MULDIV(x,0x4000,uspd)); return 1;}
- return 0;
-}
-
-
-int BSend(int s,char *b,int l)
-{int i;
- char *bb=b;
-#ifndef SPECSEND
- while(l>0)
- {if((i=send(s,bb,l,0))<=0) return i;
-  l-=i;
-  DWORD_PTR(bb)+=i;
- }
-#else
- ioctlsocket(s,FIONBIO,(ulong *) &one);
- while(l>0)
- {if(WESelect(120,0,1,s)<=0)break;  //return -1;
-  if((i=send(s,bb,l,0))<=0) return i;
-  l-=i;
-  DWORD_PTR(bb)+=i;
- }
- ioctlsocket(s,FIONBIO,(ulong *) &NullLong);
-#endif
-
- return bb-b;
-}
-
-int JustSnd(Req *th,const void *b,int l)
-{int r;
- char chu[16];
- //DBGLA("%lX %d %d",(long)th, th->s, l)
- th->SleepSpeed();
- if(th->fl & F_CHUNKED && th->Rcv != &TLSRecv )
- {
-   //DBGL("chunked!")
-   if( (r=BSend(th->s,chu,sprintf(chu,"%X\r\n",l) ))<=0 ) return r;
-   th->Tout+=r;
- }
- if((r=BSend(th->s,(char *)b,l))>0)
- {
-    th->Tout+=r;
-    if( th->fl & F_CHUNKED &&  th->Rcv != &TLSRecv)
-    {
-        BSend(th->s,"\r\n",2);
-        th->Tout+=2;
-      //  debug("Chu Send %X %.5s",l,b);
-    }
- }
- return r;
-};
-int JustRcv(Req *th,void *b,int l)
-{int r;
-
- if(th->fl & F_JUSTPOOL)
- {
-   th->fl &= ~F_JUSTPOOL;
- }
- else if(RESelect(th->timout,0,1,th->s)<=0)
- {
-   DBGLA("Timeout %lX s=%d timout=%d l=%d", (long)th, th->s, th->timout,l)
-   return -1;
- }
- if((r=recv(th->s,(char *)b,l,0))>0 )th->Tin+=r;
- else if(th->Rcv == &TLSRecv)
- {
-   ((OpenSSLConnection *)th->Adv)->state |= ST_CONNECTION_CLOSED;
- }
- //DBGLA("%lX s=%d timout=%d l=%d", (long)th, th->s, th->timout,r)
- return r;
-};
-
 
 int Req::IsProxyRange(int a)
 {
@@ -828,36 +674,6 @@ int Req::IsProxyRange(int a)
  dec_no_close_req();
  return 0;
 };
-
-#ifdef USE_IPV6
-int IsIPv6(sockaddr_in *sa)
-{
-   if(sa->sin_family!=AF_INET6) return 0;
-   if(
-      ((sockaddr_in6 *)sa)->sin6_addr.s6_addr32[0]==0 &&
-      ((sockaddr_in6 *)sa)->sin6_addr.s6_addr32[1]==0 &&
-     (
-       ((sockaddr_in6 *)sa)->sin6_addr.s6_addr32[2]==0xFFFF0000
-       //|| ((sockaddr_in6 *)xsa)->sin6_addr.s6_addr16[2]==0
-     )
-   ) return 0;
-   return 1;
-}
-
-uint IPv4addr(sockaddr_in *sa)
-{
-   if(sa->sin_family==AF_INET) return sa->sin_addr. S_ADDR;
-   if(sa->sin_family==AF_INET6 &&
-      ((sockaddr_in6 *)sa)->sin6_addr.s6_addr32[0]==0 &&
-      ((sockaddr_in6 *)sa)->sin6_addr.s6_addr32[1]==0 &&
-     (
-       ((sockaddr_in6 *)sa)->sin6_addr.s6_addr32[2]==0xFFFF0000
-       //|| ((sockaddr_in6 *)xsa)->sin6_addr.s6_addr16[2]==0
-     )
-   ) return        ((sockaddr_in6 *)sa)->sin6_addr.s6_addr32[3];
-   return 1;
-}
-#endif
 
 const char * lstNames[]=
 {

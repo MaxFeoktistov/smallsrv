@@ -64,12 +64,6 @@ int CacheMutex;
 char *proxy_antivirus;
 int proxy_antivirus_port=3310;
 
-ulong MkName(char *t,int brk) //=' ')
-{uint i=0,j=0,k=0;
- for(;*t && *t!=brk;t++){i+=((int)*t)<<(k&0x7); j^=*t; k++;};
- return  (i<<16)|(j<<8)|k;
-};
-
 ulong MkName2(char *t,int brk=' ')
 {uint i=0,k=0; //,j=0
  for(;*t && *t!=brk;t++){i+=((int)*t)<<(k&0x15); // j*=*t;
@@ -115,111 +109,6 @@ void abname(char *t,uint n1,uint n2)
 #include "prxcach.cpp"
 #endif
 
-int anychars(char *name)
-{for(; *name; name++) if(*name>='A') return 1;
- return 0;
-}
-
-int call_socket(char *lhstname, int portnum)
-{
-#ifdef  USE_IPV6
-  union{
-#endif
- struct sockaddr_in sa;
-#ifdef  USE_IPV6
- struct sockaddr_in6 sa6;
-  };
-#endif
-
- struct hostent *hp;
- char *hhh;
- u32 *p,n,a;
- int s;
- memset((char *)&sa,0,
-#ifdef  USE_IPV6
-                      sizeof(sa6));
- if(lhstname[0]=='[' )
- {
-
-   IPv6Addr((ushort *) & sa6.sin6_addr,lhstname+1);
-   sa.sin_family=AF_INET6;
-   s=socket(AF_INET6,SOCK_STREAM,IPPROTO_TCP);
-
- }
- else
-#else
-       sizeof(sa));
-#endif
- {
-   if(anychars(lhstname))
-   {
-     MyLock(ip_cach_mtx);
-     if( !(p=memchr4(ip_cach,n=MkName(lhstname),16) ) )
-     {MyUnlock(ip_cach_mtx);
-//   if(s_aflg&0x80000000)MyLock(hp_mtx);
-//printf("%X lhstname",time(0));
-      hp=gethostbyname(lhstname);
-//printf("%X end get lhstname",time(0));
-//   if(s_aflg&0x80000000)MyUnlock(hp_mtx);
-     if(!hp)
-     {
-   lbErr:
-       debug("Cannot get host by name %s",lhstname);
-       return -1;
-     }
-
-     if( (a=*(ulong *)hp->h_addr) == 0x100007F)
-     {
-       debug("*** localhost  *** %u",hp->h_length); //,hp->h_addr_list[1]);
-       if(!(hp=gethostbyname(lhstname)) ) goto lbErr;
-     }
-   lbQErr:
-     MyLock(ip_cach_mtx);
-     *(p=ip_cach+iip_cach)=n; iip_cach=(iip_cach+1)&15;
-     p[16]=a; // *(ulong *)(hp->h_addr);
-    }
-    sa.sin_addr.s_addr=p[16];
-    if( sa.sin_addr.s_addr == 0x100007F)
-    {
-       debug("***2 localhost  *** %u",p-iip_cach); //,hp->h_addr_list[1]);
-       if((hp=gethostbyname(lhstname)) && (a=*(ulong *)hp->h_addr) != 0x100007F ) goto lbQErr;
-    }
-
-    MyUnlock(ip_cach_mtx);
-   }else sa.sin_addr.s_addr=inet_addr(hhh=lhstname);
-   sa.sin_family=AF_INET;
-   if((s=socket(AF_INET,SOCK_STREAM,IPPROTO_TCP)) <= 0)return -1;
- }
-#ifdef SYSUNIX
-  fcntl(s, F_SETFD, fcntl(s, F_GETFD) | FD_CLOEXEC);
-#endif
- sa.sin_port=htons((ushort)portnum);
- /*
- debug("s=%d %X %X %X [%X:%X:%X:%X:%X:%X:%X:%X]",s,sa.sin_port,sa6.sin6_port,sa.sin_family,
-       ((ushort *) & sa6.sin6_addr)[0],
-       ((ushort *) & sa6.sin6_addr)[1],
-       ((ushort *) & sa6.sin6_addr)[2],
-       ((ushort *) & sa6.sin6_addr)[3],
-       ((ushort *) & sa6.sin6_addr)[4],
-       ((ushort *) & sa6.sin6_addr)[5],
-       ((ushort *) & sa6.sin6_addr)[6],
-       ((ushort *) & sa6.sin6_addr)[7]
-
-      );
- */
- if(connect(s,(struct sockaddr *)&sa,
-#ifdef USE_IPV6
-   (sa.sin_family==AF_INET6)?sizeof(sa6):
-#endif
-    sizeof(sa)) //!=0 )  //
-        < 0)
- {debug("Call to connect to %s failed (%d) " SER ,lhstname, errno Xstrerror(errno));
-//  closesocket(s);
-   CloseSocket(s);
-  return -1;
- }
- return s;
-}
 int call_up(char *lhstname, int portnum)
 {int i,s,j;
  if((s=call_socket(up_proxy,up_proxy_port))>0)

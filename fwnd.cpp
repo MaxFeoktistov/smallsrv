@@ -81,16 +81,17 @@ int IsDChk(HWND hwnd,int d){return SendDlgItemMessage(hwnd,d,BM_GETCHECK,0,0);}
 int GetDlgItemTextLen(HWND hwnd,int d){return SendDlgItemMessage(hwnd,d,WM_GETTEXTLENGTH,0,0);}
 
 long CALLBACK DefProc(HWND hwnd, UINT msg,UINT wparam, LONG lparam)
-{union{
- RECT  xrc;
- char *bfr;
- //APPBARDATA  abd;
- POINT ap;
-  void *pp;
-  host_dir *ph;
-  char *pm;
-  char **pe;
-  User *pu;
+{
+ union{
+    RECT  xrc;
+    char *bfr;
+    //APPBARDATA  abd;
+    POINT ap;
+    void *pp;
+    host_dir *ph;
+    char *pm;
+    char **pe;
+    User *pu;
  };
  int i,j,k,l;
  char *p;
@@ -432,7 +433,10 @@ long CALLBACK DefProc(HWND hwnd, UINT msg,UINT wparam, LONG lparam)
      break;
    case 346: Restart();
    case 345: SMTPCounter=0x7FF; return 1;
+#ifndef VPNCLIENT_ONLY
    case 347: LoadDomainM(); return 1;
+#endif // VPNCLIENT_ONLY
+
 #endif
    case 344: MessageBox(0,about,wnd_name,MB_OK); return 1;
    case 125:// Open Window

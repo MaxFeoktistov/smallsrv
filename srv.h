@@ -545,6 +545,7 @@ int FndLimit(int lst,LimitBase **ip, LimitBase **net, sockaddr_in *sa );
 
 //#define FL2_WMAILSENT   0x8000
 
+#define MAX_VAR_SIZE 512
 
 struct host_dir{
  host_dir *next;
@@ -853,7 +854,18 @@ void CalkPwdMD5D(char **dgv, uint *HA1,char *method, char *HA2Hex);
 //void CalkHA1(char *u,char *pwd, uchar *HA1);
 void ConvPwdMD5L4(uint *t4,char *u,char *pas, char *realmm=realm);
 char* ConvPwdMD5(char *t,char *u,char *pas);
+
 int FillMD5Pwd(char *t, uint *dgt);
+int IsPwdMD5DD(char **dgv, char *u,char *pwd,char *method);
+int IsPwdMD5D(char **dgv, uint *HA1,char *method);
+int IsPwdCRAM(char *pas,char *dgst,char *s,int ssize);
+void GenCRAM_dgst(char *pas,char *dgst,char *s,int ssize);
+void CopyXor64(uchar *t, const char *s, uint pad);
+int IsPwdMD5C(char *p, char *pas,char *u);
+void CvtHex(uint  *cd, char * Hex    );
+void ConvPwdMD5L4(uint *t4,char *u,char *pas, char *realmm);
+void MD5UpdateL(MD5_CTX *c, char *u);
+
 int Pass2Txt(char *pbfr, char *t);
 void UpdPwdCrypt(char *p);
 
@@ -995,6 +1007,9 @@ int IsCGI(char *bb,int j=5);
 char *GetVar(char **varlist,char *var);
 char *GetVarS(char **varlist,char *var);
 char *PrFinVar(char *s,const char *v);
+int GetIndVar(char **varlist,char *v);
+int  CountOfVar(char **varlist);
+
 #define HTMLOutBottom OutBaner
 int IsInIPRange(int lst,ulong ip);
 StatLog *ParseFile(char *log,char *b=0);
@@ -1005,6 +1020,7 @@ extern char *Rangec6[MAX_SERV*2];
 extern in6_addr *Range6[MAX_SERV*2];
 
 #endif
+extern char *det_var_err[];
 
 char* IPv6Addr(ushort *t,char *s);
 int IP2S(char *addr6,sockaddr_in* xsa);
@@ -1218,6 +1234,7 @@ extern int oldchecked,mutex_pcnt;
 extern uint logsigmsk;
 
 void InitSepLog();
+void PreInitSepLog();
 void DoneSepLog();
 void UDoneSepLog();
 extern "C" void edebug(const char *a,...);

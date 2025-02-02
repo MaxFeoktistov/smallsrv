@@ -1266,47 +1266,6 @@ char *GetWorld(char * &s)
   return t;
 }
 
-char* IPv6Addr(ushort *t, char *s)
-{int i,j,k,n;
-  ushort r1[12];
-  char *p;
-  j=0;
-  i=0;
-  k=0;
-  while(*s && i<8)
-  {
-    if(*s==':')
-    {
-      if(s[1]==':' )
-      { s+=2; t[i]=0; k=++i;
-        //     debug("+A %u %.25s ",i,s);
-        continue;}
-        ++s;
-    }
-    if(*s<'0' || (*s|0x20)>'f')break;
-    n=strtoul(s,&p,16);
-    if(s==p)break;
-    if(*p=='.' && i)
-    {n=ConvertIP(s);  //inet_addr(s);
-      DWORD_PTR(t[i])=n;
-      i+=2;
-      break;
-    }
-    s=p;
-    t[i++]=htons(n);
-  }
-  if(i<8 && k)
-  {n=i-1;
-    for(j=7;j>n;--j)
-    {t[j]=t[n];
-      if(n>=k)--n;
-    }
-  }
-  return s;
-}
-
-
-
 char * NSRecord::AddRR(d_msg *dm,char *t,int wc)
 {
   char *p,*s,*x,*z;

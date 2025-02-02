@@ -39,7 +39,6 @@
 
 //const char AuthErr1[]="HTTP/1.0 401\r\nWWW-Authenticate: Basic realm=\"Administration of Small HTTP server\"\r\nContent-Type: text/html\r\n\r\n<center><h2>Authorization request<br><a href=/$_admin_$stat>Login</a></h2></center>";
 //const char AuthErr[]="HTTP/1.0 401\r\nWWW-Authenticate: Basic realm=\"Authorization request\"\r\nContent-Type: text/plain\r\n\r\nAuthorization request\r\n";
-char *charset="";
 int Req::ChkValidPth(char *p,char *b)
 {
 #ifndef SYSUNIX

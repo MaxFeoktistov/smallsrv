@@ -304,7 +304,9 @@ int IsInIPRR(int r,sockaddr_in *psa_c)
 }
 
 void CheckValidCGIIdent()
-{char *t,*p;
+{
+#ifndef VPNCLIENT_ONLY
+ char *t,*p;
  char bb[256];
  int i;
 #ifndef SYSUNIX
@@ -405,6 +407,7 @@ void CheckValidCGIIdent()
 #endif
  if(maxKeepAlive) KeepAliveList = (Req **) malloc( sizeof(Req *) * (maxKeepAlive + 2) );
 
+#endif // VPNCLIENT_ONLY
 }
 
 #if 0
@@ -797,6 +800,7 @@ void ParseCfg(char * conf_txt)
   CheckValidCGIIdent();
 }
 
+#ifndef VPNCLIENT_ONLY
 int onCfgToStrVHost(CfgParam *th, char *bfr)
 {
   int j=0;
@@ -903,6 +907,8 @@ int onCfgChangeVHost(CfgParam *th)
   }
   return 0;
 }
+
+#endif //VPNCLIENT_ONLY
 
 int onCfgChangeDisable(CfgParam *th)
 {
@@ -1251,6 +1257,32 @@ char * SaveCfgFile(char *b)
  return conf_name;
 }
 
+
+char * Rnames[]={"port","dnscache","ipv6","hosts","bind",0};
+char * BRnames[]={"bad_","nouph","upproxy","dos_h",0};
+int CfgParam::IsR()
+{
+  int i;
+  if( name )
+  {for(i=0;Rnames[i];++i)if(strstr(name,Rnames[i]) )
+    {for(i=0;BRnames[i];++i)if(strstr(name,BRnames[i]) ) return 0;
+      return 1;
+    }
+    if( v )
+    {
+      if(max)
+      {
+        if((!*(v)) && strstr(name,"max")) return 1;
+        if((v== (uint *)&time_update) && ((!time_update) || !*v ) ) return 1;
+      }
+      if( v==(uint *) &dns_file) return 1;
+    }
+    else if(name && name[0]=='n' && strstr(name+2,"max") ) return 1;
+  }
+  return 0;
+}
+
+
 int DelStr(char *s,char *b,int l)
 {char *p;
  int  ll;
@@ -1473,8 +1505,10 @@ int LoadLangCfg(char *fname)
            if(cp->desc && cp->desc==p && (cp->desc<lang_data || cp->desc>b) ){cp->desc=b ;}
            if(cp->adv && cp->adv==p && (cp->adv<lang_data || cp->adv > b)){cp->adv=b ;}
          }
+#ifndef VPNCLIENT_ONLY
          for(int j=0; anFnd[j] ; j++ )
             if(anFnd[j] == p)  anFnd[j]=b;
+#endif
          *(LangData[i].t)=b;
 
          goto  ExLP2;

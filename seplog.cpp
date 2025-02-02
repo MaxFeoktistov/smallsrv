@@ -124,6 +124,10 @@ void TLog::LAddToLog(char *t,int s, TSOCKADDR *psa, const char *fmt,...)
 #undef san
 };
 
+void PreInitSepLog()
+{
+  for(int i=0;i<ARRAY_SIZE(sepLog);i++) sepLog[i]=&gLog;
+}
 void InitSepLog()
 {
  //TLog *p;
@@ -140,7 +144,8 @@ void InitSepLog()
 
     return ;
   }
-  for(i=0;i<ARRAY_SIZE(sepLog);i++) sepLog[i]=&gLog;
+  PreInitSepLog();
+
 
   if( FL2_SEPARATELOG & s_flgs[2]     )
   {

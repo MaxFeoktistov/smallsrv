@@ -2,7 +2,7 @@
  * Copyright (C) 1999-2023 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
- * Author: Maksim Feoktistov 
+ * Author: Maksim Feoktistov
  *
  *
  * Small HTTP server is free software: you can redistribute it and/or modify it
@@ -15,11 +15,11 @@
  * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see https://www.gnu.org/licenses/ 
+ * along with this program.  If not, see https://www.gnu.org/licenses/
  *
  * Contact addresses for Email:  support@smallsrv.com
  *
- * 
+ *
  */
 
 #ifndef SRV_H
@@ -48,7 +48,8 @@ int DHCPMutex, sizeSize,dhcp_need_save;
 
 
 
-ulong first_dhcp_ip,total_dhcp_ip,last_dhcp_ip,allocated_dhcp_ip, gateway,netmask,dhcp_dns[3];
+ulong first_dhcp_ip,last_dhcp_ip,allocated_dhcp_ip, gateway,netmask,dhcp_dns[3];
+//ulong first_dhcp_ip,total_dhcp_ip,last_dhcp_ip,allocated_dhcp_ip, gateway,netmask,dhcp_dns[3];
 char *DhcpServerName="SmallSrv.local";
 char *dhcp_addr="192.168.0.1";
 char *first_dhcpc="192.168.0.20";
@@ -100,7 +101,7 @@ ulong NextDHCPIP()
   return next_dhcp_ip;
 lbExlp:;
  }while(++j<total_dhcp_ip);
- return 0; 
+ return 0;
 }
 
 void SaveDHCP()
@@ -108,13 +109,13 @@ void SaveDHCP()
  int h;
  DHCPbase *d;
  if(dhcp_need_save)
- {    
+ {
         if((h=_lcreat(dhcp_fname,0))>0)
         {
           for(d=dhcp_ar;d;d=d->next)if(!(d->flg&dhcpDeleted) )_hwrite(h,(char *)d,sizeof(*d));
          _lclose(h);
         }
-    dhcp_need_save=0;     
+    dhcp_need_save=0;
  }
 }
 
@@ -130,7 +131,7 @@ int Req::ShowDHCP(char *b)
  char *p;
  int l,i;
  char addr[52];
- 
+
 #ifdef  SYSUNIX
  struct tm *ttm;
 #else
@@ -139,8 +140,8 @@ int Req::ShowDHCP(char *b)
  FILETIME   ft;
  long long  lft;
  };
-#endif 
- 
+#endif
+
  p=b+sprintf(b,DHCP_TBL_HEAD);
  for(d=dhcp_ar;d;d=d->next)
  {
@@ -155,7 +156,7 @@ int Req::ShowDHCP(char *b)
 #else
     lft=(ulong long)d->t *10000000LL + 0xFDE04000LL ;
     FileTimeToSystemTime(&ft,&stm);
-#endif    
+#endif
     p+=sprintf(p,
      "<tr>"
      "<td>%u.%u.%u.%u</td>"
@@ -265,12 +266,12 @@ int UDPSrvSock(int port,char *adapter)
  #ifdef SYSUNIX
  fcntl(s, F_SETFD, fcntl(s, F_GETFD) | FD_CLOEXEC);
  #endif
- 
+
   setsockopt(s,SOL_SOCKET,SO_REUSEADDR,(char *)&one,sizeof(one));
   setsockopt(s,SOL_SOCKET,SO_BROADCAST,(char *)&one,sizeof(one));
   sa_server.sin_addr.s_addr=ConvertIP(adapter);  //htonl(INADDR_ANY);
   sa_server.sin_port=htons(port);
-try_bind_again:  
+try_bind_again:
  if(bind(s,(struct sockaddr *) &sa_server, sizeof(sa_server) )
    )
    {
@@ -330,7 +331,7 @@ uchar DHCP_opt[]={
 0x3A ,0x04 ,0x1F ,0xFF ,0xFF ,0xFE,
 0x3B ,0x04 ,0x1F ,0xFF ,0xFF ,0xFF,
 0x33 ,0x04 ,0xFF ,0xFF ,0xFF ,0xFF
-,0x36 ,0x04 
+,0x36 ,0x04
 };
 
 ulong next_dhcp_save;
@@ -354,7 +355,7 @@ ulong WINAPI DHCPServ(void * fwrk)
     _lwrite(i,(char *)&pkt,l);
     _lclose(i);
   // */
-    pkt.op=2; 
+    pkt.op=2;
     ppb=&dhcp_ar;
     pbrl=0;
     tim=time(0);
@@ -518,7 +519,7 @@ lbFound:
 
      pkt.vend[l++]=0xFF;
      DWORD_PTR(sa_client.sin_addr.s_addr)=inet_addr(hhh=dhcp_bcast);
-    pkt.flags=0; 
+    pkt.flags=0;
     l+=offset(dhcpPacket,vend);
    // debug("DHCP %u offs %u",l,offset(dhcpPacket,vend));
     /*
@@ -536,17 +537,17 @@ lbFound:
     if(!next_dhcp_save)next_dhcp_save=tim + DHCP_SAVE_INTERVAL;
     else if(next_dhcp_save<tim)
     {
-       SaveDHCP(); 
-       next_dhcp_save=tim + DHCP_SAVE_INTERVAL; 
-    }    
+       SaveDHCP();
+       next_dhcp_save=tim + DHCP_SAVE_INTERVAL;
+    }
    }
   }
-  
+
   if(next_dhcp_save)
   {
-    SaveDHCP(); 
+    SaveDHCP();
     next_dhcp_save = 0;
-  }    
-  
+  }
+
   return 0;
 }

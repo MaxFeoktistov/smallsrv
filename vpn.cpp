@@ -946,6 +946,8 @@ int IsVPN_IP_Free(uint ip)
   return 1;
 }
 ///////////////////
+
+#ifndef VPNCLIENT_ONLY
 int Req::InsertVPNclient()
 {
   VPNclient *cl;
@@ -1137,7 +1139,7 @@ lb_reconnect:
 
    return 0;
 }
-
+#endif //VPNCLIENT_ONLY
 
 int VPNclient::RecvPkt()
 {
@@ -1286,7 +1288,9 @@ int VPNclient::RecvPkt()
     VPNreceved_pkt ++;
 
   }
+#ifndef VPNCLIENT_ONLY
   if(limits && limits->UpdateIn(lin) )  return 0;
+#endif //VPNCLIENT_ONLY
   return 1;
 }
 
@@ -1328,6 +1332,8 @@ void OnPktFromIf(uchar *pkt, int i)
     VPNsendet_pkt ++;
   }
 }
+
+#ifndef VPNCLIENT_ONLY
 
 ulong WINAPI VPN_Thread(void *)
 {
@@ -1396,7 +1402,7 @@ ulong WINAPI VPN_Thread(void *)
   VPN_Done();
   return 0;
 }
-
+#endif
 
 void  CloseTunTap()
 {
@@ -1407,6 +1413,8 @@ void  CloseTunTap()
      tuntap_fds[i] = INVALID_HANDLE_VALUE;
   }
 }
+
+#ifndef VPNCLIENT_ONLY
 
 int VPN_Init()
 {
@@ -1437,6 +1445,8 @@ int VPN_Init()
 
   return (int) CreateThread(&secat,0x5000 + MAX_MTU,(TskSrv)VPN_Thread, (void *)0, 0, &trd_id);
 }
+
+#endif //VPNCLIENT_ONLY
 
 int VPNclient::SendIsUs(uchar *pktl, int tuntap)
 {
@@ -1490,7 +1500,9 @@ int VPNclient::SendIsUs(uchar *pktl, int tuntap)
              else  break;
              }
              if( (r=Send(pktl, ppkt->len + 2))<=0) ret = -1;
+#ifndef VPNCLIENT_ONLY
              else if(limits && limits->UpdateOut(r) ) ret = -1;
+#endif //VPNCLIENT_ONLY
              break;
         default:
 
@@ -1530,7 +1542,9 @@ int VPNclient::SendIsUs(uchar *pktl, int tuntap)
         return ret;
       }
       if((r=Send(pktl, ppkt->len + 2))<=0) ret = -1;
+#ifndef VPNCLIENT_ONLY
       else if(limits && limits->UpdateOut(r) ) ret = -1;
+#endif //VPNCLIENT_ONLY
 
 #undef  ppkt
     }
@@ -1538,6 +1552,7 @@ int VPNclient::SendIsUs(uchar *pktl, int tuntap)
   }
   return ret;
 }
+
 
 void VPN_Done()
 {
@@ -1559,6 +1574,7 @@ void VPN_Done()
   MyUnlock(vpn_mutex);
 }
 
+#ifndef VPNCLIENT_ONLY
 
 uint limitPeriods[]={3600, 86400, 86400*30};
 uint VPNInLimitMb[3];
@@ -1660,6 +1676,8 @@ VPNUserLimit *VPNclient::SetLimit()
   MyUnlock(vpn_limit_mutex);
   return p;
 }
+
+#endif // VPNCLIENT_ONLY
 
 /*
 void VPNclient::UpdateLimits()
@@ -2169,7 +2187,12 @@ ulong WINAPI VPNClient(void *)
 
         return -1;
       }
-      Sleep(60000);
+      for(r=0; r<60; r++)
+      {
+        Sleep(1000);
+        if (!is_no_exit)
+          break;
+      }
     }
     else
     {

@@ -44,6 +44,9 @@
 .globl _fe_s1
 .globl _fe_s2
 .globl _fe_s3
+.globl _fb_vpnc
+.globl _fe_vpnc
+
 
 .align 0
 
@@ -83,6 +86,9 @@ _fb_s3:
 .include "vpn_if_client_down.bin"
 _fe_s3:
 
+_fb_vpnc:
+.include "vpnclient.bin"
+_fe_vpnc:
 
 .globl _fb_s4
 .globl _fe_s4

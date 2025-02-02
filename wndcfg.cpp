@@ -249,6 +249,8 @@ HWND CreateWindowExX(
 
 };
 
+#ifndef VPNCLIENT_ONLY
+
 void ReinitListBox(int n,ListNext fln,void *lst)
 {
  char bfr[784];
@@ -492,6 +494,7 @@ int AddCfgListEdit(int pos,char *name,ListNext fln,void *lst,int base,int cntrl,
 
  return pos+n+4;
 }
+#endif // VPNCLIENT_ONLY
 
 #define  HGH 50
 
@@ -599,6 +602,7 @@ void CreatCfgWindow()
        "BUTTON","&Cancel", BS_PUSHBUTTON|WS_CHILD|WS_VISIBLE|WS_TABSTOP, 420, 70+kk,68, 30,
          dwndc,(HMENU)150,hinstance,0);
 
+#ifndef VPNCLIENT_ONLY
 
  kk=AddCfgListEdit(kk+108,mnu3[MNU_CGI].name //"CGI Interpreters"
 #ifdef RUS
@@ -636,6 +640,8 @@ void CreatCfgWindow()
   ,8,"Private",9,"for users (list through comma: name[:R W NOFTP NOHTTP],..)"
  ,0);
 #endif
+
+#endif // VPNCLIENT_ONLY
 
  SetScrollRange(dwndc,SB_VERT,0,kk/*+820*/,0);
  ShowWindow(dwndc,SW_SHOWNORMAL);

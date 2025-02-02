@@ -303,6 +303,8 @@ int Req::TLSBegin(OpenSSLConnection *x, int type, char *verfyhost)
   return 0;
 }
 
+#ifndef VPNCLIENT_ONLY
+
 int Req::TLSReq()
 {
   OpenSSLConnection x;
@@ -344,4 +346,5 @@ int Req::TLSReq()
     return 1;
 };
 
+#endif // VPNCLIENT_ONLY
 
