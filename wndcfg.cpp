@@ -596,10 +596,10 @@ void CreatCfgWindow()
   }
 
   CreateWindowEx(0,
-       "BUTTON","O&k", BS_DEFPUSHBUTTON|WS_CHILD|WS_VISIBLE|WS_TABSTOP, 180, 70+kk,68, 30,
+       "BUTTON","Ok", BS_DEFPUSHBUTTON|WS_CHILD|WS_VISIBLE|WS_TABSTOP, 180, 70+kk,68, 30,
          dwndc,(HMENU)710,hinstance,0);
   CreateWindowEx(0,
-       "BUTTON","&Cancel", BS_PUSHBUTTON|WS_CHILD|WS_VISIBLE|WS_TABSTOP, 420, 70+kk,68, 30,
+       "BUTTON","Cancel", BS_PUSHBUTTON|WS_CHILD|WS_VISIBLE|WS_TABSTOP, 420, 70+kk,68, 30,
          dwndc,(HMENU)150,hinstance,0);
 
 #ifndef VPNCLIENT_ONLY

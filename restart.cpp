@@ -677,64 +677,73 @@ int InitApplication()
    ,smtp_name,out_path,sent_path?sent_path:"",err_path);
    }
 
-#endif // VPNCLIENT_ONLY
+#endif // V_FULL
 
 // debug("*** %X %X ***",s_flgs[1],FL1_SMTPTLS&s_flgs[1]);
 
+//#ifndef VPNCLIENT_ONLY
  if(max_srv[5] || (FL1_SMTPTLS&s_flgs[1]) || (s_flgs[2]&FL2_FTPTLS) || (vpn_remote_host && vpn_remote_host[0]) )
- {
-#ifdef SYSUNIX
-  RelProt();
-  oldprot=pprot;
-#endif
-#ifdef  TLSWODLL
-  SetPriority(tls_priority);
-#else
-  if((!TLSLibrary) || !InitSecDLL())
-  {
-    pprot+=sprintf(pprot,"**Error. Can't load TLS/SSL library\r\n");
-  }
-  else
-#endif
-  if(
-   InitLib((TFprintf) &tlsdebug, (TFtransfer) (&JustSnd), (TFtransfer) (&JustRcv),
-//   InitLib((TFprintf) &debug, (TFtransfer) (&Req::JustSend), (TFtransfer) (&Req::JustRecv),
-//   InitLib((TFprintf) &debug, dynamic_cast<TFtransfer>(&Req::JustSend), (TFtransfer)  static_cast<void *>(&Req::JustRecv),
-   CApath,CAfile,s_cert_file, s_key_file)
-  )
-  {
-#ifndef VPNCLIENT_ONLY
-   if(FL1_SMTPTLS&s_flgs[1])s_aflg|=AFL_TLS;
-   if(max_srv[5])
-   {i+= max_srv[5]=CreateSrv(5);
-    pprot+=sprintf(pprot,
-#ifdef RUS
-"%s порт=%u Количество подключений=%d\r\n"
-#else
- s_S_PORT__
-#endif
-    ,"TLS/SSL",soc_port[5],max_srv[5]);
-    if(s_flgs[2]&(1<<5))
-#ifndef SYSUNIX
-      if(CreateSrv(5+MAX_SERV)>0)
-#endif
-         pprot+=sprintf(pprot-2, " (+IPv6)\r\n" )-2;
-
-   }
 #endif // VPNCLIENT_ONLY
-
-//   else printf("Tls server dont using %X\n",s_flgs[2]);
-  }
-//   else
-//   {
-//     pprot+=sprintf(pprot,"Cant init TLS/SSL library\r\n");
-//   }
-#ifdef SYSUNIX
-  if(oldprot!=pprot)RelProt();
-  GetProt();
+ {
+   //pprot+=sprintf(pprot,"Loading TLS/SSL library...\r\n");
+   #ifdef SYSUNIX
+   RelProt();
+   oldprot=pprot;
+   #endif
+#ifdef  TLSWODLL
+   SetPriority(tls_priority);
+#else
+   if((!TLSLibrary) || !InitSecDLL())
+   {
+     pprot+=sprintf(pprot,"**Error. Can't load TLS/SSL library\r\n");
+   }
+   else
 #endif
+   {
+    // pprot+=sprintf(pprot,"Load TLS/SSL library initting...\r\n");
+
+     if(
+       InitLib((TFprintf) &tlsdebug, (TFtransfer) (&JustSnd), (TFtransfer) (&JustRcv),
+               //   InitLib((TFprintf) &debug, (TFtransfer) (&Req::JustSend), (TFtransfer) (&Req::JustRecv),
+               //   InitLib((TFprintf) &debug, dynamic_cast<TFtransfer>(&Req::JustSend), (TFtransfer)  static_cast<void *>(&Req::JustRecv),
+               CApath,CAfile,s_cert_file, s_key_file)
+     )
+     {
+       pprot+=sprintf(pprot,"TLS/SSL library loadded\r\n");
+       #ifndef VPNCLIENT_ONLY
+       if(FL1_SMTPTLS&s_flgs[1])s_aflg|=AFL_TLS;
+       if(max_srv[5])
+       {
+         i+= max_srv[5]=CreateSrv(5);
+         pprot+=sprintf(pprot,
+                        #ifdef RUS
+                        "%s порт=%u Количество подключений=%d\r\n"
+                        #else
+                        s_S_PORT__
+                        #endif
+                        ,"TLS/SSL",soc_port[5],max_srv[5]);
+         if(s_flgs[2]&(1<<5))
+           #ifndef SYSUNIX
+           if(CreateSrv(5+MAX_SERV)>0)
+           #endif
+             pprot+=sprintf(pprot-2, " (+IPv6)\r\n" )-2;
+
+       }
+       #endif // VPNCLIENT_ONLY
+
+       //   else printf("Tls server dont using %X\n",s_flgs[2]);
+     }
+     else
+     {
+       pprot+=sprintf(pprot,"Cant init TLS/SSL library\r\n");
+     }
+   }
+     #ifdef SYSUNIX
+     if(oldprot!=pprot)RelProt();
+     GetProt();
+     #endif
  }
-afterTLS:
+ afterTLS:
  sprintf(sprt80 ,"%u",http_port);
  sprintf(sprt443,"%u",ssl_port);
 
@@ -761,7 +770,8 @@ afterTLS:
     DWORD_PTR(*pprot)= 0x0A0D;
     pprot+=2;
   };
-#endif
+#endif //DDNS
+
 #ifndef VPNCLIENT_ONLY
   if((dns_file) && InitDnsSrv() )
   { pprot+=sprintf(pprot,
@@ -771,7 +781,7 @@ afterTLS:
  sDNS_IS_EN
 #endif
 ,count_dns );
-#endif
+//#endif
 #ifndef SYSUNIX
    mnu2[11].flg=0;
 #endif
@@ -788,7 +798,7 @@ afterTLS:
 #endif
 ,total_dhcp_ip );
   }
-#endif
+#endif // V_FILL
 #endif // VPNCLIENT_ONLY
 
 #ifdef TLSVPN
