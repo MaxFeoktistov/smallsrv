@@ -69,6 +69,7 @@ const char * TUNTAPNames[3] = {"tun","tap","tap"};
 
 #ifdef VPN_WIN
 char * vpnIfNames[3];
+char * vpnIfNamesW[3];
 char *tundev="tap0901";
 
 struct AsincReadHelper_t
@@ -180,7 +181,10 @@ int  RunScript(char *cmd)
   }
   return r;
 #elif defined(VPN_WIN)
+  int r;
+
   DBGLS(cmd);
+#if 1
   char *p;
   char dir[256];
   strncpy(dir,cmdline,254);
@@ -193,10 +197,23 @@ int  RunScript(char *cmd)
   {
     GetCurrentDirectory(255,dir);
   }
-
-  int r;
   r = (int) ShellExecute(0,"runas","cmd.exe",cmd, dir,
+                              (s_flgs[3]&FL3_VPN_SCRKEEP)? SW_SHOWNORMAL : SW_HIDE);
+#else
+
+  ushort dir[256];
+  GetCurrentDirectoryW(255, (LPWSTR) dir);
+
+  //ushort wrunas[10];
+  //ushort wcmdexe[10];
+
+  //utf2unicode((uchar *) "runas", wrunas);
+  //utf2unicode((uchar *) "cmd.exe", wcmdexe);
+
+  r = (int) ShellExecuteW(0, L"runas", L"cmd.exe", (LPCWSTR) cmd, (LPCWSTR) dir,
                              (s_flgs[3]&FL3_VPN_SCRKEEP)? SW_SHOWNORMAL : SW_HIDE);
+#endif
+
 #if 0
   p=strchr(cmd,' ');
   if(!p) p="";
@@ -238,13 +255,17 @@ int RunDownScript(int index, int ip)
     char  *qt="";
     if(vpn_scripts_down[index][0] != '"' && strchr(vpn_scripts_down[index],' ') ) qt="\"";
 
+#if 0 //def UNICODECMD
+    //utf2unicode((uchar *)"/S /%c %s%s%s \"%S\" %u.%u.%u.%u", wfmt);
+    wsprintfW((LPWSTR)cmd, L"/S /%c %s%s%s \"%S\" %u.%u.%u.%u",
+#else
     sprintf(cmd, "/S /%c %s%s%s \"%s\" %u.%u.%u.%u",
+#endif
             ((s_flgs[3]&FL3_VPN_SCRKEEP)? 'K':'C'),
             qt,vpn_scripts_down[index],qt,
             vpnIfNames[index],
-            ip>>24, (ip>>16)&0xFF, (ip>>8)&0xFF, ip&0xFF,
-            client_ip
-    );
+            ip>>24, (ip>>16)&0xFF, (ip>>8)&0xFF, ip&0xFF);
+
 #else
 #error "TODO: "
 #endif
@@ -509,7 +530,7 @@ int get_guid(int index, char *ret_bfr)
                 len = sizeof(name_data);
                 status = RegQueryValueExW( connection_key, L"Name", NULL, &data_type, (LPBYTE) name_data, &len);
                 RegCloseKey(connection_key);
-                //DBGLA("Open key ok, QueryValue = %X", status)
+                DBGLA("Open key ok, QueryValue = %X len=%u %X %X", status, len, DWORD_PTR(name_data[0]), DWORD_PTR(name_data[1]) )
 
                 if (status != ERROR_SUCCESS || data_type != REG_SZ)
                 {
@@ -517,23 +538,29 @@ int get_guid(int index, char *ret_bfr)
                 }
                 else
                 {
-                  WideCharToMultiByte(CP_UTF8, 0, (WCHAR *)name_data, -1, name, sizeof(name), NULL, NULL);
+
+                  //WideCharToMultiByte(CP_UTF8, 0, (WCHAR *)name_data, -1, name, sizeof(name), NULL, NULL);
+                  WideCharToMultiByte(CP_ACP, 0, (WCHAR *)name_data, -1, name, sizeof(name), NULL, NULL);
 
                   DBGLA("name = '%s'", name)
 
                   if( vpnIfNames[index] && vpnIfNames[index][0] &&
                      ( !strcasecmp((char *)name, vpnIfNames[index]) ) )
                   {
-                    strncpy(ret_bfr, (char *) net_cfg_instance_id, 256);
+                    strncpy(ret_bfr, (char *)net_cfg_instance_id , 256);
                     r = 1;
                     break;
                   }
                   if(ii == tuntap_number[index])
                   {
                     len = strlen(name);
-                    vpnIfNames[index] = (char *) malloc(len+2);
+                    vpnIfNames[index] = (char *) malloc(len+2+257);
+                    vpnIfNamesW[index] = vpnIfNames[index] + len + 2;
                     strcpy(vpnIfNames[index],name);
                     strncpy(ret_bfr, (char *) net_cfg_instance_id, 256);
+                    memcpy(vpnIfNamesW[index], name_data, len);
+                    //vpnIfNamesW[index][len] = 0;
+
                     r = 1;
                     break;
                   }
@@ -816,7 +843,16 @@ int tun_up(uint index, uint ip, uint mask, uint gw, char *dns)
         IP2S(client_ip+1, &vpn_cln_connected->sa_c);
       }
       if(vpn_scripts_up[index][0] != '"' && strchr(vpn_scripts_up[index],' ') ) qt="\"";
+#if 0 //def UNICODECMD
+       //ushort wfmt[96];
+       //utf2unicode((uchar *) "/S /%c %s%s%s \"%S\" %u.%u.%u.%u %u.%u.%u.%u %u.%u.%u.%u \"%s\"%s", wfmt);
+
+       wsprintfW((LPWSTR) cmd, //(LPCWSTR) wfmt,
+                 L"/S /%c %s%s%s \"%S\" %u.%u.%u.%u %u.%u.%u.%u %u.%u.%u.%u \"%s\"%s"
+#else
       sprintf(cmd, "/S /%c %s%s%s \"%s\" %u.%u.%u.%u %u.%u.%u.%u %u.%u.%u.%u \"%s\"%s",
+#endif
+
               ((s_flgs[3]&FL3_VPN_SCRKEEP)? 'K':'C'),
               qt,vpn_scripts_up[index],qt,
               vpnIfNames[index],
@@ -2254,13 +2290,17 @@ ulong WINAPI VPNClient(void *)
               AddToLog(0, vpn.s,&vpn.sa_c46, FmtShortVPN,"VPN client: connection closed. ", vpn.Tin, vpn.Tout, (GetTickCount() - vpn.tmout)/1000, "" );
               //SecClose(&vpn.tls);
               //CloseSocket(vpn.s);
-              vpn.Close();
-              RunDownScript(vpn.tun_index, vpn.ipv4);
+
+//               vpn.Close();
+//               RunDownScript(vpn.tun_index, vpn.ipv4);
               break;
             }
           }
         }
       }
+
+      vpn.Close();
+      RunDownScript(vpn.tun_index, vpn.ipv4);
     }
   }
 

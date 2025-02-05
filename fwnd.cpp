@@ -600,13 +600,13 @@ void UpdateVPNStatInfo(int force)
   {
     if(wstate) return;
     tick = GetTickCount();
-    if(tick<last_updated)
+    if(tick<last_updated || ((tick^last_updated)&0x80000000) )
       return;
     last_updated = tick + 2048;
   }
   v = vpn_cln_connected;
   if(v) {
-    sprintf(bfr, "In: %uKb  Out:%uKb", (v->Tin+511)>>10, (v->Tout+511)>>10);
+    sprintf(bfr, "In: %uKb  Out:%uKb",(uint) ((v->Tin+511)>>10),(uint)( (v->Tout+511)>>10) );
     SetDlgItemText(mwnd, 97, bfr);
   }
   else {

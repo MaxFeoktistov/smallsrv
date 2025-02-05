@@ -4,8 +4,8 @@ rem <interface> <ip>
 
 echo ON
 
-rem Drect yuor original gateway in next line:
-set ORIGINAL_GW=10.0.0.1
+rem !!! Drect yuor original gateway in next line:
+rem set ORIGINAL_GW=192.168.12.5
 
 echo if:%1 ip:%2
 

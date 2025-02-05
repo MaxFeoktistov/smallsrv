@@ -138,8 +138,11 @@ CfgParam ConfigParams[]={
 
 {"tuntap_ip" ,32,0,(uint *)&tuntap_ipv4[2], CXS(S1t2T_4130456, "Set client VPN interface IP address")},
 {"tuntap_nmask" ,32,0,(uint *)&tuntap_ipv4nmask[2], CXS(S1t2T_6268646, "Set  client VPN interface netmask")},
-{"vpncln_script_up" ,255,0,(uint *)&vpn_scripts_up[2], CXS(S1t2T_7330605, "Run init script when VPN connection estabilished")},
-{"vpncln_script_down" ,255,0,(uint *)&vpn_scripts_down[2], CXS(S1t2T_8671725, "Run deinit script when VPN connection closed")},
+{"vpncln_script_up" ,256,0,(uint *)&vpn_scripts_up[2], CXS(S1t2T_7330605, "Run init script when VPN connection estabilished")},
+{"vpncln_script_down" ,256,0,(uint *)&vpn_scripts_down[2], CXS(S1t2T_8671725, "Run deinit script when VPN connection closed")},
+#ifdef VPN_WIN
+{"vpn_script_keep",3, FL3_VPN_SCRKEEP, (uint *)0, CXS(S1t2T_5577742, "Keep open console window after run script for debug" )},
+#endif
 
 {"vpncln_chktls",3, FL3_VPN_CHKTLS    , (uint *)0, CXS(S1t2T_4758472, "Validate remote TLS sertificate, check host name" )},
 {"vpncln_tlsigntime",3, FL3_VPN_TLSIGNTIME, (uint *)0, CXS(S1t2T_7019198, "Don't check remote sertificate time. Ignore expired. (GNUTLS only)" )},

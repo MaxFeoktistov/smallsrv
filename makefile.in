@@ -22,7 +22,7 @@
 #
 #
 
-VERSION=3.06.35test11
+VERSION=3.06.35test12
 
 prefix ?=/usr/local/
 CONFIG_BASE   ?= $(prefix:%/=%)/
@@ -1141,16 +1141,16 @@ clean_n:
 
 
 cleanobj:
-	rm -f $(OOBJS) $(OOBJS64) $(OOBJS64_TLS) $(OOBJS_TLS) $(ATOBJS) $(ATOBJS_TLS) $(addprefix o/,$(SECOBJ)) $(addprefix o64/,$(SECOBJ)) $(addprefix at/,$(SECOBJ)) $(N_OBJS_TLS) $(N_OBJS)
+	rm -f $(OOBJS) $(OOBJS64) $(OOBJS64_TLS) $(OOBJS_TLS) $(ATOBJS) $(ATOBJS_TLS) $(addprefix o/,$(SECOBJ)) $(addprefix o64/,$(SECOBJ)) $(addprefix at/,$(SECOBJ)) $(N_OBJS_TLS) $(N_OBJS) $(OOVPNCL) $(OOVPNCL64) $(N_VPNCL) $(ATVPNCL) $(WINVPNCLOBJ) $(WINOOBJS) $(ARMOBJ)
 
-clean:  clean_n
-	rm -f $(OOBJS) $(OOBJS64) $(ROBJS) $(MIPSOBJ) $(WINOOBJS)  $(ATOBJS) $(ARMOBJ) wo/libsecgnutls.o wo/libsec111.o $(OOBJS64_TLS) $(OOBJS_TLS)  $(ATOBJS_TLS) $(addprefix o/,$(SECOBJ)) $(addprefix o64/,$(SECOBJ)) $(addprefix at/,$(SECOBJ)) $(WINOOBJS)
+clean:  clean_n cleanobj
+	rm -f wo/libsecgnutls.o wo/libsec111.o
 
 cleangen:
 	rm -f $(GENERATED)
 
 cleanall: clean cleangen
-	rm -f o/httpd.exe o64/httpd.exe wo/http.exe http.exe wo/httpg.exe wo/shttps_mg.exe  wo/shttps_mgi.exe  wo/shttpsr_mg.exe  wo/shttpsr_mgi.exe wo/uninst.exe wo/libsecgnutls.dll o/libsec111.so o/libsecgnutls.so o64/httpd.exe o64/libsecgnutls.so o64/libsec111.so at/httpd.exe at/libsec111.so at/libsecgnutls.so
+	rm -f o/httpd.exe o64/httpd.exe wo/http.exe http.exe wo/httpg.exe wo/shttps_mg.exe  wo/shttps_mgi.exe  wo/shttpsr_mg.exe  wo/shttpsr_mgi.exe wo/uninst.exe wo/libsecgnutls.dll o/libsec111.so o/libsecgnutls.so o64/httpd.exe o64/libsecgnutls.so o64/libsec111.so at/httpd.exe at/libsec111.so at/libsecgnutls.so $(addsuffix shs_vpnclient,$(OBJDIRS)) wo/vpnclient
 	if [ "$(TMPRAM)" = "/dev/shm/shttps/o/" ] ; then rm -rf $(TMPRAM) ; fi
 
 SRC = accept.cpp cdde.cpp descu.htm fix_langpack.pl gz.h LICENSE mstring1.h pop3d.cpp secdll.h srv_ssi.cpp strtoul.cpp uninst.cpp \

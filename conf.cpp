@@ -1113,7 +1113,7 @@ int CfgParam::TextCfgString(char *bfr)
    if (comment)
    {
      DBGLA("comment: %s", comment)
-     j+=sprintf(bfr+j, "#%s\n", comment);
+     j+=sprintf(bfr+j, "#%s" LF , comment);
      last_comment = comment;
    }
 
