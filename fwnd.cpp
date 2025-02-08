@@ -213,22 +213,29 @@ long CALLBACK DefProc(HWND hwnd, UINT msg,UINT wparam, LONG lparam)
   case WM_COMMAND:
    switch( (((i=LOWORD(wparam))<800) || (i>=3900) )? i:700+(i&7) )
    {
-     case 98: // VPN Connect
-       is_no_exit = 1;
-       if(!(s_aflg & AFL_VPNCLN))
-       {
-         if(vpn_remote_host && vpn_remote_host[0])
+     case 98: // VPN Connect/Disconnect
+       if(is_no_exit & 1)
+       { // Disconnect
+     case 99:
+         is_no_exit = 2;
+         SetDlgItemText(mwnd, 98, "VPN Connect");
+       }
+       else
+       { // Connect
+         is_no_exit = 1;
+         SetDlgItemText(mwnd, 98, "VPN Disconnect");
+         if(!(s_aflg & AFL_VPNCLN))
          {
-           CreateThread(&secat,(0x5000 + sizeof(VPNclient) + MAX_MTU + 0xFFF)& ~0xFFF ,VPNClient,(void *)0,0,&trd_id);
-           debug("TLS VPN client starting (connect to: %s)\r\n", vpn_remote_host);
-         }
-         else {
-           debug("VPN Remote host not specified...\r\n");
+           if(vpn_remote_host && vpn_remote_host[0])
+           {
+             CreateThread(&secat,(0x5000 + sizeof(VPNclient) + MAX_MTU + 0xFFF)& ~0xFFF ,VPNClient,(void *)0,0,&trd_id);
+             debug("TLS VPN client starting (connect to: %s)\r\n", vpn_remote_host);
+           }
+           else {
+             debug("VPN Remote host not specified...\r\n");
+           }
          }
        }
-       break;
-     case 99: // VPN Disconnect
-       is_no_exit = 2;
        break;
    #ifndef CD_VER
     case 3900:

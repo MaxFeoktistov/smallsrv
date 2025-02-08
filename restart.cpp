@@ -812,12 +812,15 @@ int InitApplication()
   }
 #endif // VPNCLIENT_ONLY
 
+#if defined(SYSUNIX) || !defined(VPNCLIENT_ONLY)
   if(vpn_remote_host && vpn_remote_host[0])
   {
     CreateThread(&secat,(0x5000 + sizeof(VPNclient) + MAX_MTU + 0xFFF)& ~0xFFF ,VPNClient,(void *)0,0,&trd_id);
     pprot+=sprintf(pprot, "TLS VPN client started\r\n" );
   }
 #endif
+
+#endif // TLSVPN
 
 #ifndef SYSUNIX
 #ifndef VPNCLIENT_ONLY
@@ -839,8 +842,8 @@ int InitApplication()
         CreateWindowEx(0,"BUTTON", "VPN Connect",
                         WS_BORDER|WS_CHILD|WS_VISIBLE, 4, 4,132,20, mwnd,(HMENU) 98 ,hinstance, 0);
 
-        CreateWindowEx(0,"BUTTON", "VPN Disconnect",
-                        WS_BORDER|WS_CHILD|WS_VISIBLE, 144,4,132,20, mwnd,(HMENU) 99 ,hinstance, 0);
+        CreateWindowEx(0,"BUTTON", "Settings",
+                        WS_BORDER|WS_CHILD|WS_VISIBLE, 144,4,132,20, mwnd,(HMENU) 126 ,hinstance, 0);
 
         CreateWindowEx(WS_EX_CLIENTEDGE,"STATIC", "In: 0  Out:0",
                         WS_BORDER|WS_CHILD|WS_VISIBLE, 282, 2, rc.right - 282,20, mwnd,(HMENU) 97 ,hinstance, 0);

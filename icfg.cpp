@@ -578,6 +578,12 @@ SPD(5,tls)
 #endif
 {"vpnpub",3, FL3_VPN_PUBLIC, (uint *)0, CXS(S1t2T_2917144, "Public access without password. (Otherwise only users with Proxy access can use this service) " )},
 
+#ifdef  VPN_UPDATE_NET
+
+{"vpnsrv_setip", 3, FL3_VPNSR_FIXIP, (uint *)0, CXS(S1T_15218830, "Set interface IP (must run from Administrator)" )},
+
+#endif // VPN_UPDATE_NET
+
 
 {"tun_ip" ,20,0,(uint *)&tuntap_ipv4[0], CXS(S1t2T_3296505, "Set Tun interface IP address")},
 {"tun_nmask" ,20,0,(uint *)&tuntap_ipv4nmask[0], CXS(S1t2T_5261510, "Set Tun interface netmask")},
@@ -632,6 +638,15 @@ SPD(5,tls)
 
 {"tuntap_ip" ,32,0,(uint *)&tuntap_ipv4[2], CXS(S1t2T_4130456, "Set client VPN interface IP address")},
 {"tuntap_nmask" ,32,0,(uint *)&tuntap_ipv4nmask[2], CXS(S1t2T_6268646, "Set  client VPN interface netmask")},
+
+#ifdef  VPN_UPDATE_NET
+
+{"vpncln_setip", 3, FL3_VPNCL_FIXIP   , (uint *)0, CXS(S1T_15218830, "Set interface IP (must run from Administrator)" )},
+{"vpncln_upd_route", 3, FL3_VPNCL_UPDRT , (uint *)0, CXS(S1T_28625631, "Update route table to redirect all IP4 trafic to VPN (must run from Administrator)" )},
+
+#endif // VPN_UPDATE_NET
+
+
 {"vpncln_script_up" ,256,0,(uint *)&vpn_scripts_up[2], CXS(S1t2T_7330605, "Run init script when VPN connection estabilished")},
 {"vpncln_script_down" ,256,0,(uint *)&vpn_scripts_down[2], CXS(S1t2T_8671725, "Run deinit script when VPN connection closed")},
 

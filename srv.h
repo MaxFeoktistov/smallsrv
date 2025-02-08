@@ -409,6 +409,7 @@ int CmpIP(TSOCKADDR *a, TSOCKADDR *b);
 #define IPv4addr(sa)  ((sa)->sin_addr. S_ADDR)
 int inline CmpIP(TSOCKADDR *a, TSOCKADDR *b){return a->sin_addr. S_ADDR == b->sin_addr. S_ADDR; }
 #endif
+uint GetIPv4(sockaddr_in* xsa);
 //int FndLimit(int lst,LimitCntr **ip, LimitCntr **net, sockaddr_in *sa );
 int FndLimit(int lst,LimitBase **ip, LimitBase **net, sockaddr_in *sa );
 
@@ -537,6 +538,9 @@ int FndLimit(int lst,LimitBase **ip, LimitBase **net, sockaddr_in *sa );
 #define FL3_VPN_ULIMIT      0x00040000
 #define FL3_VPN_IPLIMIT     0x00080000
 
+#define FL3_VPNCL_FIXIP     0x00100000
+#define FL3_VPNCL_UPDRT     0x00200000
+#define FL3_VPNSR_FIXIP     0x00400000
 
 #define USE_TUN       (s_flgs[3] & FL3_VPN_TUN)
 #define USE_TAP       (s_flgs[3] & FL3_VPN_TAP)

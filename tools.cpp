@@ -463,3 +463,20 @@ char * Decode64(char *t, char *s, int max_size)
   *y=0;
   return y;
 }
+
+
+uint GetIPv4(sockaddr_in* xsa)
+{
+ if(((sockaddr_in6 *)xsa)->sin6_family==AF_INET6)
+    return (
+              ((sockaddr_in6 *)xsa)->sin6_addr.s6_addr32[0]==0 &&
+              ((sockaddr_in6 *)xsa)->sin6_addr.s6_addr32[1]==0 &&
+              ((sockaddr_in6 *)xsa)->sin6_addr.s6_addr32[2]==0xFFFF0000
+           )? ((sockaddr_in6 *)xsa)->sin6_addr.s6_addr32[3] : 0;
+
+#ifndef SYSUNIX
+   return xsa->sin_addr.S_un.S_addr;
+#else
+   return xsa->sin_addr.s_addr;
+#endif
+}

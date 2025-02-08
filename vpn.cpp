@@ -21,8 +21,20 @@
  *
  *
  */
+
+
 #include "mstring1.h"
 #include "vpn.h"
+
+
+#if defined(VPN_UPDATE_NET) && defined(VPN_WIN)
+#define in6_addr in6_addr_w
+#define IPv6Addr IPv6Addr_w
+#define _TIME_H_
+#include <iphlpapi.h>
+#undef in6_addr
+#undef IPv6Addr
+#endif
 
 #ifdef SEPLOG
 
@@ -68,9 +80,18 @@ void  *tap_waitbfr[3];
 const char * TUNTAPNames[3] = {"tun","tap","tap"};
 
 #ifdef VPN_WIN
-char * vpnIfNames[3];
 char * vpnIfNamesW[3];
+char * vpnIfNames[3];
+char   vpnIfGuid[3][80];
+int   vpnWinIdx[3] = {-1,-1,-1};
 char *tundev="tap0901";
+#ifdef  VPN_UPDATE_NET
+uint  old_ipv4gw;
+int  old_winIfDefIdx = -1;
+void  *ipentry[3];
+#endif // VPN_UPDATE_NET
+
+
 
 struct AsincReadHelper_t
 {
@@ -545,26 +566,29 @@ int get_guid(int index, char *ret_bfr)
                   DBGLA("name = '%s'", name)
 
                   if( vpnIfNames[index] && vpnIfNames[index][0] &&
-                     ( !strcasecmp((char *)name, vpnIfNames[index]) ) )
+                    ( !strcasecmp((char *)name, vpnIfNames[index]) ) )
                   {
                     strncpy(ret_bfr, (char *)net_cfg_instance_id , 256);
                     r = 1;
-                    break;
-                  }
-                  if(ii == tuntap_number[index])
-                  {
-                    len = strlen(name);
-                    vpnIfNames[index] = (char *) malloc(len+2+257);
-                    vpnIfNamesW[index] = vpnIfNames[index] + len + 2;
-                    strcpy(vpnIfNames[index],name);
-                    strncpy(ret_bfr, (char *) net_cfg_instance_id, 256);
-                    memcpy(vpnIfNamesW[index], name_data, len);
-                    //vpnIfNamesW[index][len] = 0;
+                    //break;
 
-                    r = 1;
-                    break;
+                    if(ii == tuntap_number[index])
+                    {
+                      int llen = strlen(name);
+                      vpnIfNames[index] = (char *) malloc(llen+4+len);
+                      vpnIfNamesW[index] = vpnIfNames[index] + llen + 2;
+                      strcpy(vpnIfNames[index], name);
+                      strncpy(ret_bfr, (char *) net_cfg_instance_id, 256);
+                      memcpy(vpnIfNamesW[index], name_data, len);
+                      vpnIfNamesW[index][len] = 0;
+
+                      DBGLA("index = %u %lX len=%d",index, (long) vpnIfNamesW[index], len)
+
+                      r = 1;
+                      break;
+                    }
+                    ii++;
                   }
-                  ii++;
                 }
               }
               else
@@ -602,7 +626,7 @@ HANDLE win_tun_open(int index)
   HANDLE h;
   DWORD len;
   int i;
-  char guid[256];
+  char *guid = vpnIfGuid[index];
   char path[256];
 
   if(! get_guid(index,guid) )
@@ -750,6 +774,275 @@ static void AddAsincCB(int index)
   }
 }
 
+
+#ifdef  VPN_UPDATE_NET
+
+int GetAdapterIdxFromList(int ifs)
+{
+  IP_ADAPTER_ADDRESSES *p;
+  IP_ADAPTER_ADDRESSES *pp;
+  int ret=-1;
+  ULONG bsize = 0x10000;
+  ULONG r;
+
+  p = (IP_ADAPTER_ADDRESSES *) malloc(0x10000);
+  r = GetAdaptersAddresses(AF_UNSPEC, GAA_FLAG_INCLUDE_PREFIX|GAA_FLAG_SKIP_DNS_SERVER|GAA_FLAG_INCLUDE_ALL_INTERFACES, NULL, p, &bsize);
+  if(r == NO_ERROR) {
+    for(pp = p; p; p=p->Next)
+    {
+      DBGLA("%u %s", p->IfIndex, p->AdapterName);
+      if(!stricmp(p->AdapterName, vpnIfGuid[ifs])) // vpnIfNames[ifs]))
+      {
+        DBGLA("Interface found!!! %u", p->IfIndex)
+        ret = p->IfIndex;
+        break;
+      }
+    }
+  }
+  else
+  {
+    debug("*****ERROR: Can't get list of Windows addapter %d %s %u", r, strerror(r), ifs);
+  }
+
+
+
+  free(pp);
+  return ret;
+
+}
+
+int AddIP2If(int ifs, uint ip, uint mask)
+{
+  ULONG IfIndex;
+  ULONG NTEInstance;
+  int lst;
+
+  DBGLA("%d %X %X %s",ifs, DWORD_PTR(vpnIfNamesW[ifs][0]), DWORD_PTR(vpnIfNamesW[ifs][8]), vpnIfNamesW[ifs])
+  //DBGLA("%d %lX",ifs, (long) vpnIfNamesW[ifs])
+
+  if(vpnWinIdx[ifs] < 0) {
+    IfIndex = GetAdapterIdxFromList(ifs);
+    vpnWinIdx[ifs] = IfIndex;
+  }
+
+  if((int)IfIndex<0 && (lst = GetAdapterIndex((LPWSTR) vpnIfNamesW[ifs] , &IfIndex)) != NO_ERROR)
+  {
+    //lst = GetLastError();
+    debug("*****ERROR: Can't get index of TAP-Windows addapter %d %s %d",lst, strerror(lst), ifs);
+    return -1;
+  }
+
+//  if ((lst = AddIPAddress( (IPAddr) ip, (IPMask) mask, IfIndex,  (PULONG) (ipentry + ifs), &NTEInstance))  != NO_ERROR)
+  if( (lst = AddIPAddress( ip, mask, IfIndex,  (PULONG) (ipentry + ifs), &NTEInstance))  != NO_ERROR)
+  {
+    //lst = GetLastError();
+    debug("Warning: Can't set IP for TAP-Windows addapter %d %s", lst, strerror(lst));
+    return -1;
+  }
+
+  return 0;
+}
+
+int DelIPAddres(int ifs)
+{
+  int lst;
+
+  if(ipentry[ifs])
+  {
+    if((lst = DeleteIPAddress((ULONG)(ipentry[ifs]))) != NO_ERROR)
+    {
+      //lst = GetLastError();
+      debug("*****ERROR: Can't delete IP from TAP-Windows addapter %d %s",lst, strerror(lst));
+      return -1;
+    }
+
+  }
+
+  return 0;
+}
+
+uint UpdateDefaultGW(uint gw, uint vpn_server_ip, int isRemove)
+{
+   MIB_IPFORWARDTABLE  t1;
+   MIB_IPFORWARDTABLE *pt;
+   DWORD dwSize = 0;
+   DWORD dwRetVal = 0;
+   int i;
+   u32 ret = -1;
+   int def_gw_idx = -1;
+   int vpn_server_gw_idx = -1;
+   MIB_IPFORWARDROW Route;
+
+   GetIpForwardTable(&t1, &dwSize, 0);
+   if(!dwSize) {
+     DBGLA("Error get size\n");
+     return -1;
+   }
+
+   pt = (MIB_IPFORWARDTABLE *) malloc(dwSize);
+   if(pt) {
+     if((dwRetVal = GetIpForwardTable(pt, &dwSize, 0)) == NO_ERROR)
+     {
+       for (i = 0; i < (int) pt->dwNumEntries; i++)
+       {
+         if(
+           (!pt->table[i].dwForwardDest) &&
+           (!pt->table[i].dwForwardMask) &&
+           pt->table[i].dwForwardNextHop
+         )
+         {
+           ret = pt->table[i].dwForwardNextHop;
+           def_gw_idx = i;
+           memcpy(&Route, pt->table + i, sizeof(Route));
+
+           if(gw != pt->table[i].dwForwardNextHop && !isRemove)
+           {
+             old_ipv4gw = pt->table[i].dwForwardNextHop;
+             old_winIfDefIdx = pt->table[i].dwForwardIfIndex;
+           }
+
+           DBGLA("Found default GW: ForwardType=%d  dwForwardProto=%u\r\n"
+                 "dwForwardMetric1=%u dwForwardMetric2=%u dwForwardMetric3=%u dwForwardMetric4=%u dwForwardMetric5=%u",
+                 pt->table[i].dwForwardType,
+                 pt->table[i].dwForwardProto,
+                 pt->table[i].dwForwardMetric1,
+                 pt->table[i].dwForwardMetric2,
+                 pt->table[i].dwForwardMetric3,
+                 pt->table[i].dwForwardMetric4,
+                 pt->table[i].dwForwardMetric5
+           )
+           if(vpn_server_gw_idx >= 0)
+             break;
+         }
+         else if(pt->table[i].dwForwardDest == vpn_server_ip) {
+           vpn_server_gw_idx = i;
+
+           DBGLA("Found us GW: ForwardType=%d dwForwardProto=%u\r\n"
+                 "dwForwardMetric1=%u dwForwardMetric2=%u dwForwardMetric3=%u dwForwardMetric4=%u dwForwardMetric5=%u",
+                 pt->table[i].dwForwardType,
+                 pt->table[i].dwForwardProto,
+                 pt->table[i].dwForwardMetric1,
+                 pt->table[i].dwForwardMetric2,
+                 pt->table[i].dwForwardMetric3,
+                 pt->table[i].dwForwardMetric4,
+                 pt->table[i].dwForwardMetric5
+           )
+
+           if(def_gw_idx >= 0)
+             break;
+         }
+       }
+
+       if(def_gw_idx<0) {
+
+         memset(&Route, 0, sizeof(Route));
+         Route.dwForwardNextHop = gw;
+         Route.dwForwardType = MIB_IPROUTE_TYPE_INDIRECT;
+         Route.dwForwardProto = MIB_IPPROTO_NETMGMT;
+         Route.dwForwardMetric1 = 36;
+
+         Route.dwForwardIfIndex = (isRemove)? old_winIfDefIdx : vpnWinIdx[INDEX_CLIENT];
+
+         if(isRemove && old_winIfDefIdx<0) {
+           debug("*****Error: Default GW not found %d %d", pt->dwNumEntries, dwSize);
+           goto lb_free;
+         }
+
+         debug("*****WARNING: Default GW not found %d %d", pt->dwNumEntries, dwSize);
+
+         if((dwRetVal = CreateIpForwardEntry(&Route)) != NO_ERROR)
+         {
+           debug("*****ERROR: Can't add route record for default GW %d %s %d", dwRetVal, strerror(dwRetVal), dwSize);
+         }
+
+         if (isRemove || !vpn_server_ip)
+           goto lb_free;
+       }
+
+       if(vpn_server_ip)
+       {
+         if(vpn_server_gw_idx>=0)
+         {
+           if(isRemove) {
+             if((dwRetVal = DeleteIpForwardEntry(pt->table + vpn_server_gw_idx)) != NO_ERROR)
+             {
+               debug("*****ERROR: Can't delete route record for VPN IP %d %s %d", dwRetVal, strerror(dwRetVal), dwSize);
+             }
+           }
+           else if(pt->table[vpn_server_gw_idx].dwForwardNextHop != old_ipv4gw)
+           {
+             if(def_gw_idx >= 0) {
+
+               MIB_IPFORWARDROW Route2;
+               memcpy(&Route2, pt->table + vpn_server_gw_idx, sizeof(Route2));
+
+               pt->table[vpn_server_gw_idx].dwForwardNextHop = old_ipv4gw;
+               pt->table[vpn_server_gw_idx].dwForwardIfIndex = def_gw_idx;
+
+               if((dwRetVal = SetIpForwardEntry(pt->table + vpn_server_gw_idx)) != NO_ERROR)
+               {
+                 debug("*****Warning: Can't change route record for VPN IP %d %s %d", dwRetVal, strerror(dwRetVal), dwSize);
+                 if((dwRetVal = DeleteIpForwardEntry(&Route2)) != NO_ERROR)
+                   debug("*****ERROR: Can't delete VPN server route record %d %s %d", dwRetVal, strerror(dwRetVal), dwSize);
+                 if((dwRetVal = CreateIpForwardEntry(pt->table + vpn_server_gw_idx)) != NO_ERROR)
+                   debug("*****ERROR: Can't add route record for VPN server  %d %s %d", dwRetVal, strerror(dwRetVal), dwSize);
+               }
+             }
+           }
+         }
+         else
+         {
+           Route.dwForwardMask = ~0;
+           Route.dwForwardDest = vpn_server_ip;
+
+           if((dwRetVal = CreateIpForwardEntry(&Route)) != NO_ERROR)
+           {
+             debug("*****ERROR: Can't add route record for us GW %d %s %d", dwRetVal, strerror(dwRetVal), dwSize);
+             goto lb_free;
+           }
+         }
+       }
+
+       if(def_gw_idx >= 0 && pt->table[def_gw_idx].dwForwardNextHop != gw)
+       {
+         memcpy(&Route, pt->table+def_gw_idx, sizeof(Route));
+
+         pt->table[def_gw_idx].dwForwardIfIndex = (isRemove)? old_winIfDefIdx
+                                                            : vpnWinIdx[INDEX_CLIENT];
+         pt->table[def_gw_idx].dwForwardNextHop = gw;
+
+         if((dwRetVal = SetIpForwardEntry(pt->table + def_gw_idx)) != NO_ERROR)
+         {
+           DBGLA("Warning: Can't change default GW %d %s %d", dwRetVal, strerror(dwRetVal), dwSize);
+
+           if((dwRetVal = DeleteIpForwardEntry(&Route)) != NO_ERROR)
+           {
+             debug("*****ERROR: Can't delete default route record %d %s %d", dwRetVal, strerror(dwRetVal), dwSize);
+           }
+           if((dwRetVal = CreateIpForwardEntry(pt->table + def_gw_idx)) != NO_ERROR)
+           {
+             debug("*****ERROR: Can't add route record for default GW %d %s %d", dwRetVal, strerror(dwRetVal), dwSize);
+           }
+         }
+       }
+     }
+     else
+     {
+       debug("*****ERROR: Can't get route table %d %s %d",dwRetVal, strerror(dwRetVal), dwSize);
+       goto lb_free;
+     }
+
+     lb_free:
+     free(pt);
+   }
+
+   return ret;
+}
+
+
+
+#endif // VPN_UPDATE_NET
+
 int tun_up(uint index, uint ip, uint mask, uint gw, char *dns)
 {
 
@@ -830,6 +1123,25 @@ int tun_up(uint index, uint ip, uint mask, uint gw, char *dns)
       debug("*****Setting device to CONNECTED failed %d %d %s\r\n",r,lst, strerror(lst) );
       return -1;
     }
+
+#ifdef  VPN_UPDATE_NET
+
+
+    if(index==INDEX_CLIENT)
+    {
+      // Client
+      if(s_flgs[3] & FL3_VPNCL_FIXIP)
+        AddIP2If(index, ip, mask);
+      if(gw && s_flgs[3] & FL3_VPNCL_UPDRT)
+        UpdateDefaultGW(gw, GetIPv4(&vpn_cln_connected->sa_c) ,0);
+    }
+    else
+    {
+      if(s_flgs[3] & FL3_VPNSR_FIXIP)
+        AddIP2If(index, ip, mask);
+    }
+
+#endif // VPN_UPDATE_NET
 
     if(vpn_scripts_up[index] && vpn_scripts_up[index][0] )
     {
@@ -2179,7 +2491,7 @@ ulong WINAPI VPNClient(void *)
   //vpn.tun_index=0;
   //if(TAP_SEPARATE)
   {
-    vpn.tun_index=2;
+    vpn.tun_index=INDEX_CLIENT;
     if(TAP_CLIENT){
       vpn.fl = F_VPNTAP;
       TUNTAPNames[2] = "tap";
@@ -2299,8 +2611,16 @@ ulong WINAPI VPNClient(void *)
         }
       }
 
+#ifdef  VPN_UPDATE_NET
+      if(old_ipv4gw) {
+        UpdateDefaultGW(old_ipv4gw, 0 ,1);
+        DelIPAddres(INDEX_CLIENT);
+      }
+#endif // VPN_UPDATE_NET
       vpn.Close();
+
       RunDownScript(vpn.tun_index, vpn.ipv4);
+      debug("VPN client diconnected");
     }
   }
 

@@ -136,6 +136,15 @@ CfgParam ConfigParams[]={
 {"vpn_tapif" ,128,0,(uint *)&vpnIfNames[2], CXS(S1t2T_3952141, "Tap interface name")},
 #endif
 
+
+#ifdef  VPN_UPDATE_NET
+
+{"vpncln_setip", 3, FL3_VPNCL_FIXIP   , (uint *)0, CXS(S1T_15218830, "Set interface IP (must run from Administrator)" )},
+{"vpncln_upd_route", 3, FL3_VPNCL_UPDRT , (uint *)0, CXS(S1T_28625631, "Update route table to redirect all IP4 trafic to VPN (must run from Administrator)" )},
+
+#endif // VPN_UPDATE_NET
+
+
 {"tuntap_ip" ,32,0,(uint *)&tuntap_ipv4[2], CXS(S1t2T_4130456, "Set client VPN interface IP address")},
 {"tuntap_nmask" ,32,0,(uint *)&tuntap_ipv4nmask[2], CXS(S1t2T_6268646, "Set  client VPN interface netmask")},
 {"vpncln_script_up" ,256,0,(uint *)&vpn_scripts_up[2], CXS(S1t2T_7330605, "Run init script when VPN connection estabilished")},

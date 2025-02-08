@@ -22,7 +22,7 @@
 #
 #
 
-VERSION=3.06.35test12
+VERSION=3.06.35test13
 VERSIONT=3.06.35test
 BUDIR=../site/30635/
 
@@ -152,7 +152,7 @@ WINEBIN2S=./bin2s
 
 WINECFLG= -Os -nostdinc -Iwinclude  $(WININC) -mno-align-double -mno-fancy-math-387 -fconserve-space  -fno-rtti -fno-threadsafe-statics -fno-access-control -fno-nonansi-builtins -fno-elide-constructors -fno-enforce-eh-specs -DSERVICE -DFREE_VER  -DFREEVER -DV_FULL=1 -DUSE_IPV6 -DMINGW -DRICON -mwindows -fno-optional-diags -momit-leaf-frame-pointer -mno-red-zone -fno-exceptions  -fno-stack-protector -no-pie -fno-ms-extensions -fno-stack-check -mno-stack-arg-probe -fmax-errors=10 -DSEPLOG -DSELECT1  -DVPN_WIN -DTLSVPN -DWITHMD5 -DSHS_VERSION=$(VERSION) -DUSEVALIST
 
-WINELFLG=  -mwindows $(WINLIB) -luser32 -lkernel32 -lws2_32 -lgdi32 -lshell32 -lcomdlg32  -ladvapi32 -Xlinker --heap  -Xlinker 0x20000000 -Wl,--subsystem,windows  -nostartfiles -nodefaultlibs -Xlinker -Map -Xlinker wo/flxmap  -Xlinker --entry=_start    -fno-optional-diags -momit-leaf-frame-pointer  -mno-red-zone -fno-exceptions  -fno-stack-protector -fno-ms-extensions -no-pie -fno-stack-check -mno-stack-arg-probe
+WINELFLG=  -mwindows $(WINLIB) -luser32 -lkernel32 -lws2_32 -lgdi32 -lshell32 -lcomdlg32  -ladvapi32  -liphlpapi -Xlinker --heap  -Xlinker 0x20000000 -Wl,--subsystem,windows  -nostartfiles -nodefaultlibs -Xlinker -Map -Xlinker wo/flxmap  -Xlinker --entry=_start    -fno-optional-diags -momit-leaf-frame-pointer  -mno-red-zone -fno-exceptions  -fno-stack-protector -fno-ms-extensions -no-pie -fno-stack-check -mno-stack-arg-probe
 
 #WINECFLG=  -nostdinc -Iwinclude  -I$(MGDIR)\\include -I$(MGDIR)\\lib\\gcc\\mingw32\\8.2.0\\include -fno-implicit-templates -mno-align-double -mno-fancy-math-387 -fconserve-space  -fno-rtti -fno-threadsafe-statics -fno-access-control -fno-nonansi-builtins -fno-elide-constructors -fno-enforce-eh-specs -DSERVICE -DFREE_VER  -DFREEVER -DV_FULL=1 -DUSE_IPV6 -DMINGW -DRICON -mwindows -fno-optional-diags -momit-leaf-frame-pointer -mno-red-zone -fno-exceptions  -fno-stack-protector -no-pie -fno-ms-extensions -fno-stack-check -mno-stack-arg-probe
 
@@ -297,7 +297,7 @@ i64f: $(TMPRAM)o64/of o o64 $(FAKELIBS64) o64/of/httpd.exe o64/of/libsecgnutls.s
 
 #o64/httpdu.exe o64/libsecgnutls.so o64/libsec.so o64/libsec111.so o64/libsec.so
 
-arm: $(TMPRAM)at o at at/atobjdir at/httpd.exe at/libsec111.so at/libsecgnutls.so at/httpd.exopenssl at/httpd.exgnutls at/vpnclient at/shs_vpnclient
+arm: $(TMPRAM)at o at at/vpnclient at/atobjdir at/httpd.exe at/libsec111.so at/libsecgnutls.so at/httpd.exopenssl at/httpd.exgnutls at/shs_vpnclient
 
 win: $(TMPRAM)wo o wo wo/http.exe wo/httpg.exe bin2s wo/shttps_mg.exe wo/shttpsr_mg.exe wo/shttps_mgi.exe wo/shttpsr_mgi.exe wo/libsecgnutls.dll wo/vpnclient wo/vpnclient.exe
 
@@ -316,7 +316,7 @@ $(TMPRAM)% :
 %/of: $(TMPRAM)%
 	mkdir -p $@
 
-%/vpnclient: $(TMPRAM)%
+%/vpnclient:
 	mkdir -p $@
 
 o64/of/%.o : o64/of
@@ -364,10 +364,10 @@ r/%.o :  %.cpp
 
 
 wo/%.o :  %.cpp
-	   $(WINEGPP) -c -g $(WINECFLG)  $< -o $@
+	   $(WINEGPP) -c -g $(WINECFLG)  -DVPN_UPDATE_NET $< -o $@
 
 wo/vpnclient/%.o: %.cpp
-	$(WINEGPP) -c -g $(WINECFLG) -DVPNCLIENT_ONLY $< -o $@
+	$(WINEGPP) -c -g $(WINECFLG) -DVPNCLIENT_ONLY -DVPN_UPDATE_NET $< -o $@
 
 wo/sethttp3r.o: sethttp3.cpp
 	   $(WINEGPP) -c -g $(WINECFLG) -DRUS $< -o $@
@@ -796,7 +796,6 @@ $(addsuffix /sndmsg.1,$(PREPAREDISTDIRS)) : sndmsg.1
 
 CURRENT_DIR := $(dir $(abspath $(firstword $(MAKEFILE_LIST))))
 DIST_DIR=$(CURRENT_DIR)o/alldist/
-
 
 $(DIST_DIR):
 	mkdir -p $(DIST_DIR)
@@ -1235,7 +1234,7 @@ $(N_OBJS): $(GENERATED)
 
 n_all: A_GCC=$(CROSS_COMPILE)gcc
 n_all: N_FLAGS = -mlittle-endian -Wno-deprecated-declarations -Wno-conversion  -Wno-write-strings  -fno-access-control  -fno-nonansi-builtins -fno-elide-constructors -fno-enforce-eh-specs   -fno-rtti  -fno-weak -nostdinc++  -Wnoexcept -fno-exceptions -Wno-format -fpermissive -DLINUX -DSYSUNIX -DNOTINTEL -DFREEVER -DTELNET -DUSE_IPV6 -DV_FULL=1 -DUSE_FUTEX -DUSE_POOL -DWITHMD5 -DFIX_EXCEPT -DUSEVALIST -DVPN_LINUX -DTLSVPN -DUSE_SYSPASS -DSHS_VERSION=$(VERSION) $(A_OPT) $(ADVOPT)
-n_all: $(TMPRAM)oo o oo $(N_DEP) oo/httpd.exe oo/sndmsg oo/libsec111.so oo/libsecgnutls.so oo/httpd.exopenssl oo/httpd.exgnutls oo/vpnclient oo/shs_vpnclient
+n_all: $(TMPRAM)oo o oo oo/vpnclient $(N_DEP) oo/httpd.exe oo/sndmsg oo/libsec111.so oo/libsecgnutls.so oo/httpd.exopenssl oo/httpd.exgnutls oo/shs_vpnclient
 
 
 oo/%.o : %.cpp
@@ -1303,7 +1302,7 @@ cleangen:
 	rm -f $(GENERATED)
 
 cleanall: clean cleangen
-	rm -f o/httpd.exe o64/httpd.exe wo/http.exe http.exe wo/httpg.exe wo/shttps_mg.exe  wo/shttps_mgi.exe  wo/shttpsr_mg.exe  wo/shttpsr_mgi.exe wo/uninst.exe wo/libsecgnutls.dll o/libsec111.so o/libsecgnutls.so o64/httpd.exe o64/libsecgnutls.so o64/libsec111.so at/httpd.exe at/libsec111.so at/libsecgnutls.so $(addsuffix shs_vpnclient,$(OBJDIRS)) wo/vpnclient
+	rm -f o/httpd.exe o64/httpd.exe wo/http.exe http.exe wo/httpg.exe wo/shttps_mg.exe  wo/shttps_mgi.exe  wo/shttpsr_mg.exe  wo/shttpsr_mgi.exe wo/uninst.exe wo/libsecgnutls.dll o/libsec111.so o/libsecgnutls.so o64/httpd.exe o64/libsecgnutls.so o64/libsec111.so at/httpd.exe at/libsec111.so at/libsecgnutls.so $(addsuffix shs_vpnclient,$(OBJDIRS)) wo/vpnclient.exe
 	if [ "$(TMPRAM)" = "/dev/shm/shttps/o/" ] ; then rm -rf $(TMPRAM) ; fi
 
 SRC = accept.cpp cdde.cpp descu.htm fix_langpack.pl gz.h LICENSE mstring1.h pop3d.cpp secdll.h srv_ssi.cpp strtoul.cpp uninst.cpp \

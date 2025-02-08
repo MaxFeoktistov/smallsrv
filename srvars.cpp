@@ -157,7 +157,12 @@ ushort CDcnt;
 uchar C3C9cnt,E589cnt;
 
 typedef int (*ReqWork)(int sock);
+
+#if defined(VPNCLIENT_ONLY) && ! defined(SYSUNIX)
+int is_no_exit=2;
+#else
 int is_no_exit=1;
+#endif
 int wstate=1;
 int pcnt;
 ulong pval,max_pfile;

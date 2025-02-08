@@ -34,7 +34,10 @@ mrc_mnu  mnu2[]=
  {0,125,"&Open Window" },
 #ifndef CD_VER
  {0,126,"&Settings..." },
- {0,346,"&Reconnect" },
+// {0,346,"&Reconnect" },
+ {MF_SEPARATOR,1,0},
+ {0,98,"&VPN Client connect" },
+ {0,99,"VPN Client &disconnect" },
 
  {MF_SEPARATOR,1,0},
  {0,352,"Description (&Local)" },
