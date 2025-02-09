@@ -203,6 +203,7 @@ BROWSEINFO binf={0,0,target,"Select target",0,0,0,0};
 char *  cmdInstall="[CreateGroup(\"Small HTTP server\")]\n"
 "[ShowGroup(\"Small HTTP server\",1)]\n"
 "[AddItem(\"%s\\http.exe\",\"Small HTTP server\")]\n"
+"[AddItem(\"%s\\vpnclient.exe\",\"VPN client\")]\n"
 #ifdef RUS
 "[AddItem(\"%s\\desc.htm\",\"Описание\")]\n"
 "[AddItem(\"%s\\license.txt\",\"Лицензия\")]"
@@ -382,7 +383,7 @@ long CALLBACK  dlgFnc(HWND hwnd, UINT msg,UINT wparam, LONG lparam)
      if(IsDChk(hwnd,147)&1)
      {HGLOBAL hgl=GlobalAlloc(GMEM_DDESHARE,1024);
       m=(char *)GlobalLock(hgl);
-      sprintf(m,cmdInstall,target,target,target,target);
+      sprintf(m,cmdInstall,target,target,target,target,target);
       ProgmanMSG(m);
       GlobalUnlock(hgl);
       GlobalFree(hgl);

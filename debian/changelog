@@ -1,4 +1,4 @@
-smallsrv (3.06.35test13) unstable; urgency=low
+smallsrv (3.06.35test14) unstable; urgency=low
 
   * Changed loading/saving configuration. Added support for comments
   * Fixed editing configuration from the web interface
@@ -10,8 +10,9 @@ smallsrv (3.06.35test13) unstable; urgency=low
   * Added checking each variable from language support file for compatible
   * Added a separate VPN client application
   * Some changes in source organisation
+  * Added SIGHUP signal handler to connect or disconnect a VPN client.
 
- -- Maksim Feoktistov <max@smallsrv.com>  Sat, 08 Feb 2025 12:43:15 +0400
+ -- Maksim Feoktistov <max@smallsrv.com>  Sun, 09 Feb 2025 16:35:09 +0400
 
 smallsrv (3.06.34) unstable; urgency=low
 

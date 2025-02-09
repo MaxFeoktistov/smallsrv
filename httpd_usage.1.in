@@ -33,6 +33,12 @@ If the /etc/smallsrv/httpd.cfg is absent the program find it in the current dire
 
 If used `--c config_file` key, the program will be use only this.
 
+[SIGNALS]
+
+SIGHUP --  Toggle VPN client connection (Connect/Disconnect)
+
+SIGUSR1 -- Flush logs to files
+
 [AUTHOR]
 Written by Maksim Feoktistov   <max@smallsrv.com>
 

@@ -104,7 +104,7 @@ CfgParam ConfigParams[]={
 {"hide"  ,0,FL_HIDE,(uint *)0, CXS(S2sMINIMIZE_, "Minimize on startup.")},
 #endif
 
-{0,0,0,0, CXS(S2sTLS__SERV, "TLS/SSL options")},
+{0,0,0,0, "TLS/SSL"},
 
 #ifndef  TLSWODLL
 {"tls_lib"  ,256,0,(uint *)&TLSLibrary, CXS(S2sTLS__LIB, "DLL library with TLS/SSL. E.g. libsec111.dll") },

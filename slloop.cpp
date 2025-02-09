@@ -48,6 +48,16 @@ void  SignalUSR(int)
 }
 
 
+void signalHUP(int )
+{
+  if(is_no_exit)
+  {
+    // Toggle VPN client connection (Connect/Disconnect)
+    is_no_exit = 2 | (is_no_exit^1);
+    signal(SIGHUP, signalHUP);
+  }
+}
+
 #if ! (defined(ANDROID) || defined(LPC_ARM)  || defined(AT_ARM) )
 #include <execinfo.h>
 #else
@@ -250,7 +260,6 @@ lbRestart:
 };
 
 
-
 int last[8]={-1,-1,-1,-1,-1,-1};
 struct rlimit  rlim={0x7FFFFFF,0x7FFFFFF};
 
@@ -430,6 +439,7 @@ fd_set er_set;
  signal(SIGABRT  ,SignalHandler);
  //signal(SIGSEGV,  ErrHandler);
  signal(SIGUSR1  ,SignalUSR);
+ signal(SIGHUP, signalHUP);
  signal(SIGPIPE  ,SIG_IGN);
 // signal(SIGCHILD  ,SignalChild);
 // SIGCANCEL

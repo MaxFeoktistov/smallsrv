@@ -1,0 +1,41 @@
+[NAME]
+shs_vpnclient -- VPN client for Small HTTP Server
+
+[SYNOPSIS]
+shs_vpnclient [--v][--c config_file|@config_file][--h|?] [{Params }]
+
+[DESCRIPTION]
+VPN client for Small HTTP Server
+
+shs_vpnclient.exopenssl is built to work with the OpenSSL security library.
+
+shs_vpnclient.exgnutls is built to work with the GNUTLS security library.
+
+shs_vpnclient allows you to select a security library in the configuration. (lib/smallsrv/libsec111.so or lib/smallsrv/libsecgnutls.so)
+
+[OPTIONS]
+
+[FILES]
+/etc/smallsrv/vpnclient.cfg  -- config file
+
+/etc/smallsrv/shs_lang.cfg -- language pack, may be present as link to /usr/local/share/smallsrv/<lang>/shs_lang.cfg
+
+Without this file English language used.
+
+Names of another files can be changed in vpnclient.cfg
+
+If the /etc/smallsrv/vpnclient.cfg is absent the program find it in the current directory.
+
+If used `--c config_file` key, the program will be use only this.
+
+[AUTHOR]
+Written by Maksim Feoktistov   <max@smallsrv.com>
+
+[REPORTING BUGS]
+Maksim Feoktistov   <max@smallsrv.com>
+
+[SEE ALSO]
+The full description is maintained as a html file in /usr[/local]/share/smallsrv/descu.htm
+Last version at https://smallsrv.com/descu.htm
+
+

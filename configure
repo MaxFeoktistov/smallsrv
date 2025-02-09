@@ -127,7 +127,7 @@
    --armlib="/usr/src/crossarm/lib"
    --withoutIPv6        -- IPv4 only
    --withoutFUTEX       -- do not use futex (Linux specifed feature)
-   --withoutPOOL        -- use select instead pool
+   --withoutPOOL        -- use select instead poll
    --withoutMD5         -- without MD5
    --withoutVPN         -- without VPN
    --withoutSYSPASS     -- without system password support
@@ -690,6 +690,7 @@ N_DEP := $(N_FAKELIBS)
       s/-DVPN[A-Z_]+//g;
       s/-DTLSVPN//g;
       s/ vpn.o//g;
+      s/ shs_vpnclient[^ ]*//g;
     }
     if($without{'SYSPASS'})
     {
@@ -728,11 +729,13 @@ N_DEP := $(N_FAKELIBS)
       s/^i32([f]*\:.*)o[\/of]*?\/libsec111.so(.*)/i32$1 $2/g;
       s/^i32([f]*\:.*)o[\/of]*?\/libsec.so(.*)/i32$1 $2/g;
       s/^i32([f]*\:.*)o[\/of]*?\/httpd.exopenssl(.*)/i32$1 $2/g;
+      s/^i32([f]*\:.*)o[\/of]*?\/shs_vpnclient.openssl(.*)/i32$1 $2/g;
     }
     if($wolibgnutls32)
     {
       s/^i32([f]*\:.*)o[\/of]*?\/libsecgnutls.so(.*)/i32$1 $2/g;
       s/^i32([f]*\:.*)o[\/of]*?\/httpd.exgnutls(.*)/i32$1 $2/g;
+      s/^i32([f]*\:.*)o[\/of]*?\/shs_vpnclient.gnutls(.*)/i32$1 $2/g;
     }
 
     if($woseclib64)
@@ -740,10 +743,13 @@ N_DEP := $(N_FAKELIBS)
       s/^i64([f]?\:.*)o64[\/of]*?\/libsec.so(.*)/i64$1 $2/g;
       s/^i64([f]?\:.*)o64[\/of]*?\/libsec111.so(.*)/i64$1 $2/g;
       s/^i64([f]?\:.*)o64[\/of]*?\/httpd.exopenssl(.*)/i64$1 $2/g;
+      s/^i64([f]*\:.*)o64[\/of]*?\/shs_vpnclient.openssl(.*)/i64$1 $2/g;
     }
     if($wolibgnutls64)
     {
       s/^i64:(.*)o64\/libsecgnutls.so(.*)/i64: $1 $2/g;
+      s/^i64([f]?\:.*)o64[\/of]*?\/httpd.exgnutls(.*)/i64$1 $2/g;
+      s/^i64([f]*\:.*)o64[\/of]*?\/shs_vpnclient.gnutls(.*)/i64$1 $2/g;
     }
     if($i32gnutls30 == 1)
     {
