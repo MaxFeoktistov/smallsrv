@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2024 Maksim Feoktistov.
+ * Copyright (C) 1999-2025 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov
@@ -37,6 +37,7 @@
 
 #endif
 
+#define NEWSTRUCT 1
 
 void dbgf(char *er,int s);
 #define dbg(er) dbgf(er,s)
@@ -173,14 +174,14 @@ struct Req
 #define F_KEEP_ALIVE  2
 #define F_PHP 4
 #define F_PASSWORD 4
+#define F_GZ  0x8
 //#define F_PERL 0x40
-#define F_UPCHUNKED 0x40
-#define F_EXE 0x20
 #define F_SKIPHEAD 0x10
+#define F_EXE 0x20
+#define F_UPCHUNKED 0x40
 #define F_LASTLF 0x80
 #define F_PRX 0x100
 #define F_HTTP10 0x200
-#define F_GZ  0x8
 #define F_CHUNKED 0x400
 #define F_DIGET_UNAVILABLE 0x800
 #define F_STDERRSEL 0x1000
@@ -408,6 +409,7 @@ int CmpIP(TSOCKADDR *a, TSOCKADDR *b);
 #define IPv4addr(sa)  ((sa)->sin_addr. S_ADDR)
 int inline CmpIP(TSOCKADDR *a, TSOCKADDR *b){return a->sin_addr. S_ADDR == b->sin_addr. S_ADDR; }
 #endif
+uint GetIPv4(sockaddr_in* xsa);
 //int FndLimit(int lst,LimitCntr **ip, LimitCntr **net, sockaddr_in *sa );
 int FndLimit(int lst,LimitBase **ip, LimitBase **net, sockaddr_in *sa );
 
@@ -440,15 +442,16 @@ int FndLimit(int lst,LimitBase **ip, LimitBase **net, sockaddr_in *sa );
 #define FL_DNSUPLVL        0x10000000
 #define FL_NODIR           0x20000000
 #define FL_PRXUSER         0x40000000
-#define FL_FTPVDIR         0x80000000
+#define FL_FTPVDIR         0x80000000u
 
-#define AFL_NT      0x80000000
+#define AFL_NT      0x80000000u
 #define AFL_ICO     1
 #define AFL_HIDE    2
 #define AFL_RESTART 4
 #define AFL_EXIT    8
 #define AFL_TLS     0x10
-#define AFL_EX2     0x10
+#define AFL_EX2     0x20
+#define AFL_VPNCLN  0x40
 
 #define FL1_FTPSAME      0x1
 #define FL1_SMTPTLS      0x2
@@ -482,7 +485,7 @@ int FndLimit(int lst,LimitBase **ip, LimitBase **net, sockaddr_in *sa );
 #define FL1_PRXHRD       0x10000000
 #define FL1_CONFIRM      0x20000000
 #define FL1_NOM          0x40000000
-#define FL1_MHST         0x80000000ul
+#define FL1_MHST         0x80000000u
 
 #define FL2_CHKMX        0x100
 #define FL2_NOMFTP       0x200
@@ -535,6 +538,9 @@ int FndLimit(int lst,LimitBase **ip, LimitBase **net, sockaddr_in *sa );
 #define FL3_VPN_ULIMIT      0x00040000
 #define FL3_VPN_IPLIMIT     0x00080000
 
+#define FL3_VPNCL_FIXIP     0x00100000
+#define FL3_VPNCL_UPDRT     0x00200000
+#define FL3_VPNSR_FIXIP     0x00400000
 
 #define USE_TUN       (s_flgs[3] & FL3_VPN_TUN)
 #define USE_TAP       (s_flgs[3] & FL3_VPN_TAP)
@@ -544,11 +550,12 @@ int FndLimit(int lst,LimitBase **ip, LimitBase **net, sockaddr_in *sa );
 
 //#define FL2_WMAILSENT   0x8000
 
+#define MAX_VAR_SIZE 512
 
 struct host_dir{
  host_dir *next;
  char *d;
-#ifdef A_64
+#ifdef NEWSTRUCT
  char *h;
  int  flg;
 #else
@@ -608,7 +615,7 @@ struct User
 #define FindUserMD5digest 0x10000
 #define FindUserMD5cram   0x20000
 
-#ifdef A_64
+#ifdef NEWSTRUCT
  char *name;
  char *pwd,*ddr;
  int  state;
@@ -631,7 +638,7 @@ struct User
  int FlgString(char *bfr);
  int IsSysUser()
  {
-#ifdef A_64
+#ifdef NEWSTRUCT
    return (state & UserSYSUSER);
 #else
    return name[0] == 1;
@@ -643,7 +650,7 @@ struct User
 #ifdef SYSUNIX
 struct SysUser: public User
 {
-#ifdef A_64
+#ifdef NEWSTRUCT
 #else
  char *pwd,*ddr;
 
@@ -692,6 +699,7 @@ extern const char *digetvars[];
 
 struct CfgParam;
 typedef int (*onCfgChange_t)(CfgParam *th);
+typedef int (*onCfgToStr_t)(CfgParam *th, char *bfr);
 struct CfgParam
 {
  char *name;
@@ -699,6 +707,7 @@ struct CfgParam
  char *desc,*adv;
  void *vv;
  onCfgChange_t fChange;
+ onCfgToStr_t  fToString;
  char *comment;
 
  int HTMLFormString(char *bfr);
@@ -707,6 +716,20 @@ struct CfgParam
 };
 
 int onChangeM2b64(CfgParam *th);
+int onCfgToStrExt(CfgParam *th, char *bfr);
+int onCfgToStrVHost(CfgParam *th, char *bfr);
+int onCfgToStrUser(CfgParam *th, char *bfr);
+int onCfgChangeUser(CfgParam *th);
+int onCfgChangeVHost(CfgParam *th);
+int onCfgChangeDisable(CfgParam *th);
+int onCfgChangeFlag(CfgParam *th);
+int onCfgChangeNoFlag(CfgParam *th);
+int onCfgChangeExt(CfgParam *th);
+int onCfgToStrExt(CfgParam *th, char *bfr);
+
+
+
+
 
 int MyLock(volatile int &x);
 #ifdef USE_FUTEX
@@ -756,7 +779,7 @@ void RemoveAndDelKeepAlive(int i);
 void SetKeepAliveSock(int s);
 int WINAPI KeepAliveThread(void *);
 char* IsSame(char *tt,char *pp);
-
+void UpdateVPNStatInfo(int force);
 
 #ifndef CD_VER
 
@@ -835,6 +858,22 @@ int IsPwdAPOP(char *pas,char *dgst,char *s,int ssize);
 void CalkPwdMD5D(char **dgv, uint *HA1,char *method, char *HA2Hex);
 //void CalkHA1(char *u,char *pwd, uchar *HA1);
 void ConvPwdMD5L4(uint *t4,char *u,char *pas, char *realmm=realm);
+char* ConvPwdMD5(char *t,char *u,char *pas);
+
+int FillMD5Pwd(char *t, uint *dgt);
+int IsPwdMD5DD(char **dgv, char *u,char *pwd,char *method);
+int IsPwdMD5D(char **dgv, uint *HA1,char *method);
+int IsPwdCRAM(char *pas,char *dgst,char *s,int ssize);
+void GenCRAM_dgst(char *pas,char *dgst,char *s,int ssize);
+void CopyXor64(uchar *t, const char *s, uint pad);
+int IsPwdMD5C(char *p, char *pas,char *u);
+void CvtHex(uint  *cd, char * Hex    );
+void ConvPwdMD5L4(uint *t4,char *u,char *pas, char *realmm);
+void MD5UpdateL(MD5_CTX *c, char *u);
+
+int Pass2Txt(char *pbfr, char *t);
+void UpdPwdCrypt(char *p);
+
 extern int dos_protect_speed;
 
 ulong DTick(ulong tick1, ulong tick2);
@@ -954,6 +993,7 @@ extern ulong trd_id;
 extern int iofs,no_close_req,MutexEr;
 extern int close_wait;
 extern CfgParam ConfigParams[];
+extern CfgParam ConfigParams2[];
 extern short MnuOffset[20];
 extern const ulong *FTPcmd;
 extern const char HTMLDirBody2[];
@@ -963,6 +1003,7 @@ char* DecodeName(char *tt,char *s,char *dm);
 char* StrVar(char *p,char *n);
 char* Encode64(char *t,char *s,int cnt);
 char* Decode64(char *t, char *s, int max_size);
+int split(char *src, char *separators, char **result, int max_result);
 
 //#define HTML_LN "\n"
 #define HTML_LN
@@ -971,6 +1012,9 @@ int IsCGI(char *bb,int j=5);
 char *GetVar(char **varlist,char *var);
 char *GetVarS(char **varlist,char *var);
 char *PrFinVar(char *s,const char *v);
+int GetIndVar(char **varlist,char *v);
+int  CountOfVar(char **varlist);
+
 #define HTMLOutBottom OutBaner
 int IsInIPRange(int lst,ulong ip);
 StatLog *ParseFile(char *log,char *b=0);
@@ -981,6 +1025,7 @@ extern char *Rangec6[MAX_SERV*2];
 extern in6_addr *Range6[MAX_SERV*2];
 
 #endif
+extern char *det_var_err[];
 
 char* IPv6Addr(ushort *t,char *s);
 int IP2S(char *addr6,sockaddr_in* xsa);
@@ -1097,6 +1142,11 @@ int LoadLangCfg(char *fname);
 
 
 #define CRLF  "\r\n"
+#ifdef SYSUNIX
+#define LF  "\n"
+#else
+#define LF  "\r\n"
+#endif
 
 struct CntrCode{
  char nm[2];
@@ -1189,6 +1239,7 @@ extern int oldchecked,mutex_pcnt;
 extern uint logsigmsk;
 
 void InitSepLog();
+void PreInitSepLog();
 void DoneSepLog();
 void UDoneSepLog();
 extern "C" void edebug(const char *a,...);

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2022 Maksim Feoktistov.
+ * Copyright (C) 1999-2025 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov
@@ -23,18 +23,22 @@
  */
 
 
- #ifndef STRING_CONST_H
- #include "g4strc.h"
- #endif
+#ifndef VPNCLIENT_ONLY
+#define VPNCLIENT_ONLY
+#endif // VPNCLIENT_ONLY
+
+#ifndef STRING_CONST_H
+#include "g4strc.h"
+#endif
 
 #ifdef ARM
 #include <stdarg.h>
-
 #endif
-
 #ifndef SRV_H
 #include "srv.h"
 #endif
+
+#include "vpn.h"
 
 #include "srvars.cpp"
 
@@ -330,20 +334,6 @@ void CloseSocket(int s){shutdown(s,2); closesocket(s);}
 #define closesocket(s) CloseSocket(s)
 */
 
-void StopSocket()
-{int i;
- for(i=0;i<
- /*
-#if defined(USE_IPV6) && ! defined(SYSUNIX)
-    16
-#else
-    8
-#endif
-  */
-   MAX_SOCK  ; i++) if(soc_srv[i]>0){CloseSocket(soc_srv[i]); soc_srv[i]=0; }
-
-
-}
 void CloseServer()
 {int i;
 #ifdef SYSUNIX
@@ -377,26 +367,10 @@ void CloseServer()
  */
 // SaveDNS();
 #endif
- CloseFCGI_tasks();
- if(KeepAliveList)
- {
-   MyLock(KeepAliveMutex);
-   for(i=0; i<KeepAliveCount; i++ )
-   {
-     DeleteKeepAlive(KeepAliveList[i]);
-   }
-   KeepAliveCount=0;
-   MyUnlock(KeepAliveMutex);
- }
-
  CloseService();
- StopSocket();
 
  Sleep(500);
  WSACleanup();
-#if V_FULL
- if(total_dhcp_ip)SaveDHCP();
-#endif
  ExitProcess(0);
 }
 
@@ -492,6 +466,16 @@ void CloseServer()
 
 #endif
 
+
+
+void ReConnect()
+{
+  // Reconnect
+  // TODO
+}
+
+
+
 void PrintHelp()
 {
 #ifndef SYSUNIX
@@ -578,14 +562,14 @@ void PrintHelp()
 extern "C" int RMain(void *);
 
 void WINAPI ServiceStart (DWORD argc, LPTSTR *argv)
-{if(!cmdline)cmdline=argc?argv[0]:(char *)"http.exe";
+{if(!cmdline)cmdline=argc?argv[0]:(char *)"vpnclient.exe";
  CreateThread(&secat,0x5000,(TskSrv)RMain,0,0,&trd_id);
- if((sesh=RegisterServiceCtrlHandler("shttps",NThandler)))
+ if((sesh=RegisterServiceCtrlHandler("svpnclient",NThandler)))
  {SetServiceStatus(sesh, &ServiceStatus);
   debug( sSTART_AS_ );
  }
 };
-SERVICE_TABLE_ENTRY  DispatchTable[]={{"shttps", ServiceStart},{0,0} };
+SERVICE_TABLE_ENTRY  DispatchTable[]={{"svpnclient", ServiceStart},{0,0} };
 #endif
 
 #ifdef MINGW
@@ -655,7 +639,6 @@ extern "C" int RMain(void *)
     *pp=0;
     SetCurrentDirectory(t);
     *pp='\\';
-//    LoadLangCfg("shs_lang.cfg" );
    }
    if(p)*p=ll;
 #if defined(CONFIG_CONFIG) && ! defined(CONFIG_CURRENT_DIR)
@@ -701,25 +684,10 @@ extern "C" int RMain(void *)
  if(flog){ if( (ll=_lopen(flog,1))<0)ll=_lcreat(flog,0);
  _lclose(ll); }
 #endif
-#ifdef CD_VER1
- sprintf(b_prot+0x3000,"%.128s",def_dir);
- if(cddir.d.DirChkLngh|dirchk.DirChkSumX )
- {
-  CalcDirChkSum(b_prot+0x3000);
-  if(
-    dirchk.DirChkLngh!=cddir.d.DirChkLngh ||
-    dirchk.DirChkSumX!=cddir.d.DirChkSumX ||
-    dirchk.DirChkSum2X!=cddir.d.DirChkSum2X
-  )CloseServer();
- }
-#endif
 
 
  while(GetMessage( &msg, NULL, 0, 0 ))
  {
-#if ! defined(FREEVER)
-  if( ( (!dwnd2) || !IsDialogMessage(dwnd2,&msg) ) )
-#endif
   {if( dwndc && IsDialogMessage(dwndc,&msg) )
    {
     if(msg.message!=WM_KEYDOWN)continue;
@@ -750,7 +718,7 @@ extern "C" int RMain(void *)
 };
 #else
 char **__argv;
-#include "slloop.cpp"
+#include "slloop_vpnclient.cpp"
 
 
 #endif

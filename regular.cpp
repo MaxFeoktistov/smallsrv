@@ -2,7 +2,7 @@
  * Copyright (C) 1999-2020 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
- * Author: Maksim Feoktistov 
+ * Author: Maksim Feoktistov
  *
  *
  * Small HTTP server is free software: you can redistribute it and/or modify it
@@ -15,11 +15,11 @@
  * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see https://www.gnu.org/licenses/ 
+ * along with this program.  If not, see https://www.gnu.org/licenses/
  *
  * Contact addresses for Email:  support@smallsrv.com
  *
- * 
+ *
  */
 
 
@@ -38,7 +38,7 @@
 #ifdef SEPLOG
 
 #define redebug  GetLogR(req,3)->Ldebug
-#define tmp_redebug(b,a...) 
+#define tmp_redebug(b,a...)
 //dprint(b "\n" ,a)
 //#define tmp_redebug(a...)  dprint(a)
 //GetLogR(req,3)->Ldebug(a...)
@@ -46,7 +46,7 @@
 #else
 
 #define redebug debug
-#define tmp_redebug(a...) 
+#define tmp_redebug(a...)
 
 #endif
 
@@ -152,8 +152,8 @@ int RegVars::isVar(char *&a,char **xx)
  p=a;
  //redebug("====%X %X {%X,%X,%X,%X} %X",p,xx,*xx,xx[1],xx[2],xx[3],((ulong *)&xx)[-3]);
  // if(*p=='$') tmp_redebug("++==%.8s====",p);
-  
-  if(*xx 
+
+  if(*xx
       && *xx>p // ????
    )
   {
@@ -239,7 +239,7 @@ int RegVars::isVar(char *&a,char **xx)
      if(! ( DWORD_PTR(p[1]) == 0x5F505454 x4CHAR("TTP_") ) )
       t=GetVar(vl1,p+5);
 
-     
+
      if( (!t) && (s_flgs[2]&FL2_DEBUG_RE) ) redebug("Used unknow variable '%.32s'\n",p);
 
      if(e)*e=b;
@@ -500,8 +500,8 @@ ulong isInt(char *a, char &i)
   if(*a)
   {
     i=0;
-    return 0xFFFFffff;    
-  }    
+    return 0xFFFFffff;
+  }
   i=1;
   return r;
 }
@@ -580,84 +580,86 @@ char * RegVars::isFunc(char *ls)
   int  r1,v;
   char bb[512];
 #ifdef SYSUNIX
-  struct stat st;  
+  struct stat st;
 #else
-  WIN32_FIND_DATA fnds;  
+  WIN32_FIND_DATA fnds;
 #endif
   lss=ls;
   if(strin(ls,"exist(") || strin(ls,"fsize(")  || strin(ls,"ftime(")  || strin(ls,"fmode(") )
   {
    ls+=sizeof("exist(") -1;
-     
+
    e=')';
-   if(*ls == '"'){ls++ ; e='"'; }   
+   if(*ls == '"'){ls++ ; e='"'; }
    e1=strchr_meta(ls,e);
    if(!e1)
    {
-  lbExistErr:     
+  lbExistErr:
       redebug("***Error in script. Unclosed function \"%.6s\"...",lss);
       return ls;
-   }   
+   }
    *e1=0;
    if(req && *ls!='/' && (e2=strrchr(req->loc,FSLUSH)) )
    {
-         
-        *e2=0;    
+
+        *e2=0;
         sprintf(bb,"%.255s" FSLUSHS "%.255s" , req->loc, ls);
-        *e2=FSLUSH;    
-   }    
+        *e2=FSLUSH;
+   }
    else
      sprintf(bb,"%.255s" FSLUSHS "%.255s" , req->dir, ls+1);
-   
+
+#ifndef VPNCLIENT_ONLY
    if(!CheckBadName(bb))
    {
        redebug("***Error in script. Bad filename in \"%.6s\"...",lss);
        return ls;
-   }    
-   
+   }
+#endif //VPNCLIENT_ONLY
+
 #ifndef SYSUNIX
-   
+
    r1=     //  (int)(GetFileAttributes(bb));
        (int)FindFirstFile(bb,&fnds);
-   if(r1>=0)FindClose((HANDLE)r1);    
+   if(r1>=0)FindClose((HANDLE)r1);
 #else
    r1=       stat(bb,&st );
-#endif 
+#endif
 
-    ls=e1; 
+    ls=e1;
     *e1=e;
- 
+
     if(e!=')')
     {
      e1=strchr_meta(ls+1,')');
      if(!e1)goto lbExistErr;
-     ls=e1;    
+     ls=e1;
     } ;
-    
+
     e2="%u";
     switch(lss[1])
     {
-        case 'm':  if(r1>=0){ e2="0%9.9o"; 
-#ifdef SYSUNIX            
-            v=st.st_mode;  
+        case 'm':  if(r1>=0){ e2="0%9.9o";
+#ifdef SYSUNIX
+            v=st.st_mode;
 #else
             v= fnds.dwFileAttributes;
-#endif            
-            
+#endif
+
             goto Lc;
-        case 's':  if(r1>=0){ 
-#ifdef SYSUNIX            
+        case 's':  if(r1>=0){
+#ifdef SYSUNIX
             v= st.st_size;
 #else
             v= fnds.nFileSizeLow;
-#endif            
+#endif
              goto Lc;
-        case 't':  if(r1>=0){ 
-#ifdef SYSUNIX            
-            v= st.st_mtime; 
+        case 't':  if(r1>=0){
+#ifdef SYSUNIX
+            v= st.st_mtime;
 #else
             v= FileTime2time(fnds.ftLastWriteTime);
-#endif            
+#endif
         Lc:
          r1=sprintf(bb,e2,v);
          ls=e1-r1+1;
@@ -665,17 +667,17 @@ char * RegVars::isFunc(char *ls)
          memcpy(ls,bb,r1);
          break;
         }  }  }
-      default:    
+      default:
     *e1= (r1>=0)?'1':'0';
     }
-         
-  }    
-  return ls;  
+
+  }
+  return ls;
 }
 
 int RegVars::LogAn(char *ls)
 {
- union {   
+ union {
  int rval;
  char *prval;
  };
@@ -730,7 +732,7 @@ sw:
  }
  else
  {
-  ls=isFunc(ls);   
+  ls=isFunc(ls);
 //  redebug("  %u %u<<<<#%s#>>>>",req_counter,nrv,ls);
   t2=ls-1;
   while( (t2=strpbrk(t2+1,"|&") ) )
@@ -760,7 +762,7 @@ sw:
    { if(t2[-1]=='!' && b=='=') {t2[-1]=0;}
 //     rval=cmp(ls,t2+1+(t2[1]=='=') );
      rval=cmp(ls,isFunc(SkipSpace(t2+1+(t2[1]=='='))) );
-     
+
 //  redebug("|%s| |%s| %u",ls,t2+1+(t2[1]=='='),rval);
      if(!rval)
      {if( t2[1]=='=' || b=='='  )rval=1;}

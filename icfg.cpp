@@ -57,10 +57,11 @@
 #ifdef CD_VER
 char *phtml_ini="";
 #endif
+static char *tmp_var;
 
 #ifdef USE_IPV6
 
-#define OIPV6(n,f) {"no" #n "_bind",1,0,(uint *)0, CXS(S1t2T_4362878, "Bind to all addapters"  )},\
+#define OIPV6(n,f) {"no" #n "_bind",1,0,(uint *)0, CXS(S1t2T_4362878, "Bind to all addapters"  ), 0, 0, onCfgChangeDisable},\
 {#n "_bind",MAX_ADAPT*15,0,(uint *)& (bind_a[f]), CXS(S1t2T_4197922, "IPs and IPv6 to bind, through coma. (0.0.0.0 - bind to all IP; ::0 bind to all IPv6)" )},\
 {#n "ipv6",2,1<<f,(uint *)0, CXS(S1t2T_1259448, "Also work through IPv6" )},
 
@@ -91,7 +92,7 @@ char *phtml_ini="";
 // { #a "_limit" ,0x400,0x40000000,(uint *) (limit+c), CS("Total limit for server (Kb)" )}
 
 #define XLIMIT(a,b,c)  \
-{"no" #a "_ltime",0,0,(uint *)0, CXS(S1t2T_1727805, "No limitation for %s"),b },\
+{"no" #a "_ltime",0,0,(uint *)0, CXS(S1t2T_1727805, "No limitation for %s"),b , 0, onCfgChangeDisable},\
 { #a "_ltime" ,0,0x10000000,(uint *) (ltime+c), CXS(S1t2T_3322121, "Time per that will calculating limits (in seconds)" )},\
 { #a "_ip_limit" ,0x400,0x40000000,(uint *) (ip_limit+c), CXS(S1t2T_5543034, "Limit per IP (Kb)" )},\
 { #a "_net_limit" ,0x400,0x40000000,(uint *) (net_limit+c), CXS(S1t2T_6151093, "Limit per network (Kb)" )}, \
@@ -111,11 +112,11 @@ CfgParam ConfigParams[]={
 #ifndef CD_VER
 {"detail",0,FL_FULLLOG,(uint *)0, CXS(S2sDETAIL_LO, "Create detailed log for POP/SMTP/FTP. (By default only"
 " basic events are added to the log)")},
-{"nolog",1,0,(uint *)0, CXS(S2sDISABLE_S, "Disable saving log.")},
+{"nolog",1,0,(uint *)0, CXS(S2sDISABLE_S, "Disable saving log."), 0, 0, onCfgChangeDisable},
 {"log",256,0,(uint *)&flog, CXS(S2sSTORE_LOG, "Select filename and location of log.")},
 {"logday",0,FL_LOGDAY,(uint *)0, CXS(S2sNEW_LOG_F, "Create a daily log (new log created after each day). It's necessary"
 " to get statistics for a day.")},
-{"nolimitlog",1,0,(uint *)0, CXS(S1t2T_1872208, "Don't trim log lines")},
+{"nolimitlog",1,0,(uint *)0, CXS(S1t2T_1872208, "Don't trim log lines"), 0, 0, onCfgChangeDisable},
 {"limitlog",0,4096,(uint *)&trim_log_lines, CXS(S1t2T_4078374, "Limit the length of the log lines. The length of each line should not exceed this value"  )},
 #ifdef SEPLOG
 {"seplog",2,FL2_SEPARATELOG,(uint *)0, CXS(S1t2T_2946294, "Separate log for each server")},
@@ -125,13 +126,13 @@ CfgParam ConfigParams[]={
 #endif
 
 {"nofrom_same_host",0,0,(uint *)0, CXS(S2sDISABLE_T, "No restrict the number of simultaneous connections from"
-" each host.")},
+" each host."), 0, 0, onCfgChangeDisable},
 {"from_same_host",0,256,(uint *)&max_cln_host, CXS(S2sUSERS_FRO, "Number of simultaneous requests from each host. "
 "(Note: Restriction includes all TCP connections (HTTP,FTP,POP,SMTP,Proxy)")},
 
 {"dos_protect_speed",0,0x10000 ,(uint *)&dos_protect_speed, CXS(S1T_52236673, "Minimum connection speed to detect a DoS attack over a large number of slow connections. (KBytes/minute). Zero to disable checking.") },
 
-#define SPD(a,b) {"no" #b  "_speed",0,0,(uint *)0, CXS(S1t2T_4199171, "Don't restrict speed of outgoing transfer" )},\
+#define SPD(a,b) {"no" #b  "_speed",0,0,(uint *)0, CXS(S1t2T_4199171, "Don't restrict speed of outgoing transfer" ), 0, 0, onCfgChangeDisable},\
 { #b "_speed",0, 0x200000,(uint *) & (ipspeed[a]), CXS(S1t2T_3759240, "Limit for summary speed of outgoing transfer for all connections from the same IP (KBytes/minute)")},\
 { #b "_spdusr",0,0x200000,(uint *) & (ipspdusr[a]),CXS(S1t2T_4406032, "How many another connections must have activity, to check on speed limitation" )},
 
@@ -179,7 +180,7 @@ RANGES(adm,CXS(S2sIP_RANGES1,"IPs from that can administrate this server."
 #endif
 
 {0,0,0,0, CXS(S2sHTTP_SERV, "HTTP server setting")},
-{"nomax",0,0,(uint *)0, CXS(S2sDISABLE_H, "Disable HTTP server.")},
+{"nomax",0,0,(uint *)0, CXS(S2sDISABLE_H, "Disable HTTP server."), 0, 0, onCfgChangeDisable},
 {"max"   ,0,1024   ,(uint *)&max_cln, CXS(S2sHOW_MANY_, "Number of HTTP requests working simultaneous."
 " Approcsimately 20Kb of memory is reserved for each"
 " thread. Usually 12 connections are enought for 3-8"
@@ -224,13 +225,13 @@ SPD(0,http)
 {"phpini",256,0,(uint *)&phtml_ini, CXS(S2sPHP_INI_D, "php.ini directory.")},
 #endif
 #if defined(CD_VER) || !defined(SYSUNIX)
-{"nowintypes",0,3,(uint *)0, CXS(S2sDISABLE_T0, "Do not detect CGI application with Windows types.")},
+{"nowintypes",0,3,(uint *)0, CXS(S2sDISABLE_T0, "Do not detect CGI application with Windows types."), 0, 0 },
 #endif
 {"ssihtm",0,FL_SSIHTM, (uint *)0, CXS(S2sENABLE_TO0, "Enable Server Side Includes (SSI) checking"
 " in HTML files. By default SSI checking in .sht*,.sml*,.asp*"
 " files only.  Warning: SSI processing uses more memory,"
 " and and creates a small delay")},
-{"noshare",1,0,(uint *)0, CXS(S2sDISABLE_S0, "Disable share dir.")},
+{"noshare",1,0,(uint *)0, CXS(S2sDISABLE_S0, "Disable share dir."), 0, 0, onCfgChangeDisable},
 {"share",255,0,(uint *)&doc_dir, CXS(S2sSHARE_DIR, "Share dir. Specify location for CGI"
 " current dir. By default CGI current dir will be the CGI script dir.")},
 {"post_limit",0x800,0x2000000,(uint *)&post_limit, CXS(S2sTHE_LIMIT, "Limit bytes received by POST method to."
@@ -272,10 +273,10 @@ XLIMIT(http,"HTTP",7),
 
 #if V_FULL
 {0,0,0,0, CXS(S2sDNS_SERVE, "DNS server setting")},
-{"nohosts",2,0,(uint *)0, CXS(S2sDISABLE_D, "Disable DNS server.")},
+{"nohosts",2,0,(uint *)0, CXS(S2sDISABLE_D, "Disable DNS server."), 0, 0, onCfgChangeDisable},
 {"hosts",256,0,(uint *)&dns_file, CXS(S2sHOSTS_FIL, "Hosts file. File with hosts names and IP"
 " addresses for DNS server.")},
-{"noreqursion",2,0,(uint *)0, CXS(S2sDISABLE_R, "Disable recursion.")},
+{"noreqursion",2,0,(uint *)0, CXS(S2sDISABLE_R, "Disable recursion."), 0, 0, onCfgChangeDisable},
 {"dnscache",0,0x4000,(uint *)&dns_cach_size, CXS(S1t2T_4067961, "Size of DNS cache (in records)." )},
 {"dnstimeout",100,2000,(uint *)&DnsTms, CXS(S1t2T_3305957, "Timeout, before resend request again. In milliseconds" )},
 OIPV6(dns,SDNS_IND)
@@ -288,11 +289,11 @@ RANGES(dns,CXS(S2sIP_RANGES, "IPs that can access this server."
 " Separe single IP by comma and IP ranges with hyphens."),CXS(S2sIP_RANGESD, "Deny IPs that can't access this server."
 " Separe single IP by comma and IP ranges with hyphens."))
 
-{"nodnscachefile",2,0,(uint *)0, CXS(S2sDON_T_SAV, "Don't save DNS cache on exit.")},
+{"nodnscachefile",2,0,(uint *)0, CXS(S2sDON_T_SAV, "Don't save DNS cache on exit."), 0, 0, onCfgChangeDisable},
 {"dnscachefile",256,0,(uint *)&dnscachefile, CXS(S2sDNS_CACHE, "DNS cache file name.")},
 {"dnsno6",2,FL2_DNSNO6 ,(uint *)0, CXS(S1t2T_2110311, "Don't try to recursive find AAAA records. (for networks that don't use Internet through IPv6)" )},
 
-{"nodns_bld",1,0,(uint *)0, CXS(S1t2T_1641062, "Disable build in DNSBL server" )},
+{"nodns_bld",1,0,(uint *)0, CXS(S1t2T_1641062, "Disable build in DNSBL server" ), 0, 0, onCfgChangeDisable},
 {"dns_bld",63,0,(uint *)&dnsblname, CXS(S1t2T_2559746, "Host name of build in DNSBL server" )},
 {"dns_detect_dos"  ,0,0x1000000,(uint *)&dns_dos_limit, CXS(S1t2T_6448516, "Detect DoS request. Number of DoS-like requests to block IP (0 - disable)")},
 {"dns_dos_hosts",299,0,(uint *)&DNS_DoS_hosts, CXS(S1t2T_5042572, "A space-separated list of bad hostnames. DoS detection names" )},
@@ -309,7 +310,7 @@ RANGES(dns,CXS(S2sIP_RANGES, "IPs that can access this server."
 */
 
 {0,0,0,0, CXS(S2sPROXY_SER, "Proxy server setting")},
-{"noproxy_max",0,0,(uint *)0, CXS(S2sDISABLE_P, "Disable Proxy server.")},
+{"noproxy_max",0,0,(uint *)0, CXS(S2sDISABLE_P, "Disable Proxy server."), 0, 0, onCfgChangeDisable},
 {"proxy_max",0,1024,(uint *)&max_prx, CXS(S2sHOW_MANY_0, "Number of proxy requests working simultaneous.")},
 {"proxy" ,1,0xFFFF,(uint *)&proxy_port, CXS(S2sTCP_IP_PO0, "TCP/IP port for proxy server.")},
 
@@ -318,7 +319,7 @@ OIPV6(proxy,1)
 #ifdef MEMPRX
 {"cache" ,0,0x3FFF, (uint *)&cash_max_kb, CXS(S2sMEMORY_CA, "Memory cache size (Kb). Set zero for disk cache only")},
 #endif
-{"noproxy_dir",0,0,(uint *)0, CXS(S2sDISABLE_T1, "Do not save proxy cache to hard disk.")},
+{"noproxy_dir",0,0,(uint *)0, CXS(S2sDISABLE_T1, "Do not save proxy cache to hard disk."), 0, 0, onCfgChangeDisable},
 {"proxy_dir",255,0,(uint *)&proxy_dir, CXS(S2sCACHE_PRO, "Proxy cache directory.")},
 {"proxy_time",0,0x6000,(uint *)&(proxy_chk.time), CXS(S2sFOR_HOW_M, "Number of days to keep files in cache. (Zero for keep ever)")},
 {"proxy_fsize",0,0x7FFFFFFF,(uint *)&max_pfile, CXS(S1t2T_5252181, "Don't save big files. Limit (bytes)" )},
@@ -338,10 +339,10 @@ RANGES(proxy,CXS(S2sIP_RANGES, "IPs that can access this server."
 {"proxy_tryes",0,0x2000,(uint *)&max_cont_st, CXS(S1t2T_4869017, "Number of tries to resume download file after error" )},
 {"proxy_same",0,1024,(uint *)&cnt_same, CXS(S1t2T_3460001, "Limit for simultaneous requests from the same host to the same URL. Zero for unlimited." )},
 
-{"noupproxy",3,0,(uint *)0, CXS(S2sDON_T_USE, "Do not use higher level proxy server.")},
+{"noupproxy",3,0,(uint *)0, CXS(S2sDON_T_USE, "Do not use higher level proxy server."), 0, 0, onCfgChangeDisable},
 {"upproxy" ,164,0,(uint *)&up_proxy, CXS(S2sUP_LEVEL_, "Higher level proxy server.")},
 {"upproxy_port" ,1,0xFFFF,(uint *)&up_proxy_port, CXS(S2sTCP_IP_PO1, "TCP/IP port on up level proxy server.")},
-{"noup_user",3,0,(uint *)0, CXS(S2sUP_LEVEL_0, "Higher level proxy server does not require authorization.")},
+{"noup_user",3,0,(uint *)0, CXS(S2sUP_LEVEL_0, "Higher level proxy server does not require authorization."), 0, 0, onCfgChangeDisable},
 {"up_user" ,128,0,(uint *)&up_user, CXS(S2sUP_LEVEL_1, "Higher level proxy user:pasword")},
 {"ever_upproxy" ,1,FL1_UPPRX, (uint *)0, CXS(S1t2T_3630380, "For POP3/SMTP/FTP proxy connect through HTTPS higher level proxy.")},
 {"nouphosts" ,4096,0, (uint *)&nohosts, CXS(S1t2T_3118030, "No use higher level proxy for next hosts.")},
@@ -350,7 +351,7 @@ RANGES(proxy,CXS(S2sIP_RANGES, "IPs that can access this server."
 {"proxy_timeout",30,0xFFFFF,(uint *)&PRXTimeout, CXS(S1t2T_5697828, "Proxy session timeout (in second)." )},
 {"proxy_gzip" ,1,FL1_GZPRX, (uint *)0, CXS(S1t2T_3133276, "Request gziped, and self unpack if browser don't support it. (Direct where is Zlib in HTTP part of options)")},
 
-{"noproxy_antivirus",3,0,(uint *)0, CXS(S1t2T_3436009, "Don't use antivirus")},
+{"noproxy_antivirus",3,0,(uint *)0, CXS(S1t2T_3436009, "Don't use antivirus"), 0, 0, onCfgChangeDisable},
 {"proxy_antivirus" ,256,0,(uint *)&proxy_antivirus, CXS(S1t2T_6602174, "Antivirus host (127.0.0.1 for local)"
 //"Antivirus command for check active content (Checked filename will be added to end)"
  )},
@@ -363,7 +364,7 @@ RANGES(proxy,CXS(S2sIP_RANGES, "IPs that can access this server."
 
 
 {0,0,0,0, CXS(S2sFTP_SERVE, "FTP server setting")},
-{"noftp_max",0,0,(uint *)0, CXS(S2sDISABLE_F, "Disable FTP server.")},
+{"noftp_max",0,0,(uint *)0, CXS(S2sDISABLE_F, "Disable FTP server."), 0, 0, onCfgChangeDisable},
 {"ftp_max",0,1024,(uint *)&max_ftp, CXS(S2sHOW_MANY_1, "Number of simultaneous requests.")},
 {"ftp_port",1,0xFFFF,(uint *)&ftp_port, CXS(S2sTCP_IP_PO2, "TCP/IP port for FTP server. Usualy it's 21")},
 {"ftp_timeout",30,0xFFFFF,(uint *)&FTPTimeout, CXS(S2sLIMIT_OF_0, "User session timeout. (in second) "
@@ -375,7 +376,7 @@ RANGES(ftp,CXS(S2sIP_RANGES, "IPs that can access this server."
 " Separe single IP by comma and IP ranges with hyphens."))
 SPD(2,ftp)
 
-{"noftp_pasvp",0,0,(uint *)0, CXS(S1t2T_2064283, "Use any free system provided port for a passive data connection" )},
+{"noftp_pasvp",0,0,(uint *)0, CXS(S1t2T_2064283, "Use any free system provided port for a passive data connection" ), 0, 0, onCfgChangeDisable},
 {"ftp_pasvp",1,0xFFFF,(uint *)&first_pass_port, CXS(S1t2T_5234218, "First FTP port for passive data connection."
 " (Range of used ports will be from and including this port depending on the number of simultanious FTP connections)")},
 
@@ -385,7 +386,7 @@ SPD(2,ftp)
 
 
 {"ftp_wospace",0,FL_FTWOSPACE, (uint *)0, CXS(S2sCONVERT_N, "Convert names with space.")},
-{"noftp_upload",3,0,(uint *)0, CXS(S2sDON_T_USE0, "Don't use upload directory.")},
+{"noftp_upload",3,0,(uint *)0, CXS(S2sDON_T_USE0, "Don't use upload directory."), 0, 0, onCfgChangeDisable},
 {"ftp_upload",128,0,(uint *)&ftp_upload, CXS(S2sNAME_OF_U, "Name of upload subdirectory. If FTP directory"
 " contents this subdirectory, users with \"read only\" access can"
 " still upload files here. E.g. /pub/")},
@@ -398,7 +399,7 @@ XLIMIT(ftpi, CXS(S1t2T_297279, "FTP download"),3),
 XLIMIT(ftpo, CXS(S1t2T_297855, "FTP upload"),4),
 
 {0,0,0,0, CXS(S2sPOP__SERV, "POP3 server setting")},
-{"nopop3_max",0,0,(uint *)0, CXS(S2sDISABLE_P0, "Disable POP3 server.")},
+{"nopop3_max",0,0,(uint *)0, CXS(S2sDISABLE_P0, "Disable POP3 server."), 0, 0, onCfgChangeDisable},
 {"pop3_max"  ,0,1024   ,(uint *)&max_pop, CXS(S2sHOW_MANY_1, "Number of simultaneous requests.")},
 {"pop_port" ,1,0xFFFF,(uint *)&pop_port,     CXS(S2sTCP_IP_PO3, "TCP/IP port for POP3 server. Usually it's 110")},
 {"pop_timeout"  ,30,0xFFFFF,(uint *)&POPTimeout, CXS(S2sPOP__SMTP, "POP3/SMTP session timeout. (in second)."
@@ -413,15 +414,15 @@ SPD(4,pop)
 {"pop3_proxy",1,FL1_POPROXY,(uint *)0, CXS(S1t2T_3304985, "Enable POP3 proxy" )},
 
 {"wmail",2,FL2_WMAIL,(uint *)0, CXS(S1t2T_1893843, "Enable Web mail" )},
-{"nowmailsent",1,0,(uint *)0, CXS(S1t2T_2071505, "Don't save messages sent through Web mail in user's folder" )},
+{"nowmailsent",1,0,(uint *)0, CXS(S1t2T_2071505, "Don't save messages sent through Web mail in user's folder" ), 0, 0, onCfgChangeDisable},
 {"wmailsent" ,64,0,(uint *)&loc_sent, CXS(S1t2T_2964100, "Subfolder to save sent messages" )},
-{"nowmailtrash",1,0,(uint *)0, CXS(S1t2T_2262526, "Delete messages through Web mail immediately" )},
+{"nowmailtrash",1,0,(uint *)0, CXS(S1t2T_2262526, "Delete messages through Web mail immediately" ), 0, 0, onCfgChangeDisable},
 {"wmailtrash" ,64,0,(uint *)&loc_trash, CXS(S1t2T_3387087, "Trash folder to move deleted messages" )},
 {"wmail_utf",2,FL2_WMUTF, (uint *)0, CXS(S1t2T_2791726, "Convert pages to UTF-8" )},
 
 
 {0,0,0,0, CXS(S2sSMTP_SERV, "SMTP server setting")},
-{"nosmtp_max",0,0,(uint *)0, CXS(S2sDISABLE_S1, "Disable SMTP server.")},
+{"nosmtp_max",0,0,(uint *)0, CXS(S2sDISABLE_S1, "Disable SMTP server."), 0, 0, onCfgChangeDisable},
 {"smtp_max"  ,1,1024   ,(uint *)&max_smtp, CXS(S2sHOW_MANY_1, "Number of simultaneous requests.")},
 {"smtp_name" ,128,0,(uint *)&smtp_name, CXS(S2sSMTP_SERV0, "SMTP server name. (Domain name)")},
 OIPV6(smtp,3)
@@ -429,13 +430,13 @@ OIPV6(smtp,3)
 {"smtp_dns" ,16,0,(uint *)&dns_server_for_mail, CXS(S2sDNS_SERVE0, "DNS server to get mail routing info. (May"
 " be your default DNS server)")},
 {"smtp_nomx",1,FL1_MHST,(uint *)0, CXS(S1t2T_2692044, "If mailhost of receptor absent, try host" )},
-{"nosmtpproxy",1,0,(uint *)0, CXS(S1t2T_2158005, "It is normal SMTP relay. (Otherwise it is only SMTP proxy)" )},
+{"nosmtpproxy",1,0,(uint *)0, CXS(S1t2T_2158005, "It is normal SMTP relay. (Otherwise it is only SMTP proxy)" ), 0, 0, onCfgChangeDisable},
 {"smtpproxy" ,128,0,(uint *)&smtproxy , CXS(S1t2T_3232509, "Higher level SMTP. (SMTP proxy mode)" )},
 
 {"smtp_port" ,1,0xFFFF,(uint *)&smtp_port,   CXS(S2sTCP_IP_PO4, "TCP/IP port for SMTP server. Usually it\'s 25")},
 {"smtp_out",255,0,(uint *)&  out_path, CXS(S2sOUTPUT_PA, "Output path. Directory to store messages"
 " before sending. Direct full patch.")},
-{"nosmtp_sent",6,0,(uint *)0, CXS(S2sDISABLE_T2, "Do not save sent messages.")},
+{"nosmtp_sent",6,0,(uint *)0, CXS(S2sDISABLE_T2, "Do not save sent messages."), 0, 0, onCfgChangeDisable},
 {"smtp_sent",255,0,(uint *)&sent_path, CXS(S2sSENT_PATH, "Sent path. Directory to store sent messages")},
 {"sent_time",0,0x6000,(uint *)&(smtp_chk.time), CXS(S2sFOR_HOW_M0, "For how many days sent messages will be saved. (Zero for keep ever)")},
 {"smtp_err",255,0,(uint *)&  err_path, CXS(S2sERROR_PAT, "Error path. Directory to store messages,"
@@ -465,7 +466,7 @@ RANGES(smtp, CXS(S1t2T_281408, "Us IP ranges (allowed list)"), CXS(S2sIP_RANGESD
 {"chklists", 1,FL1_CHKUSR ,(uint *)0, CXS(S1t2T_2692031, "Check \"goodlist\",  \"badlist\" and  \"graylist\" files in user's home directory before receive message" )},
 {"msgspam", 200,0 ,(uint *)&msg_spam, CXS(S1t2T_2571888, "Text that will be retrived in case when message declined. There you also may direct URL to Web form to direct send message" )},
 
-{"noantivirus",1,0,(uint *)0, CXS(S1t2T_2094607, "Do not use script for incomming/outgoing mail" )},
+{"noantivirus",1,0,(uint *)0, CXS(S1t2T_2094607, "Do not use script for incomming/outgoing mail" ), 0, 0, onCfgChangeDisable},
 {"antivirus" ,256,0,(uint *)&antiv , CXS(S1t2T_2616985, "Antivirus script" )},
 {"run_timeout",30,0x100000,(uint *)&ttl_avr, CXS(S2sLIMIT_OF_, "Limit of time for script execution. (in seconds)")},
 {"antispam" ,2048,0,(uint *)&antispam , CXS(S1t2T_2908859, "Break filter (expresion). Variables $msg,$sender,$hello,$control may be checked to stop reciving large message." )},
@@ -496,7 +497,7 @@ XLIMIT(smtp, "SMTP",0),
 
 
 {0,0,0,0, CXS(S1t2T_103934, "DHCP server" )},
-{"nodhcp_max",0,0,(uint *)0, CXS(S1t2T_1814608, "Disable DHCP" )},
+{"nodhcp_max",0,0,(uint *)0, CXS(S1t2T_1814608, "Disable DHCP" ), 0, 0, onCfgChangeDisable},
 {"dhcp_max",0,0xFEFEFE ,(uint *)&total_dhcp_ip, CXS(S1t2T_4657330, "Total IPs avilable to allocate" )},
 {"dhcp_ip",16,0,(uint *)&dhcp_addr, CXS(S1t2T_2534733, "IP address of DHCP server" )},
 {"dhcp_bcast",16,0,(uint *)&dhcp_bcast, CXS(S1t2T_3395438, "LAN broadcast address for DHCP reply" )},
@@ -513,7 +514,7 @@ XLIMIT(smtp, "SMTP",0),
 
 
 {0,0,0,0, CXS(S1t2T_1039340, "Telnet server" )},
-{"notel_max",0,0,(uint *)0, CXS(S1t2T_1671671, "Disable telnet" )},
+{"notel_max",0,0,(uint *)0, CXS(S1t2T_1671671, "Disable telnet" ), 0, 0, onCfgChangeDisable},
 {"tel_max"  ,0,1024,(uint *)&max_tel, CXS(S2sHOW_MANY_1, "Number of simultaneous requests.")},
 {"tel_port" ,1,0xFFFF,(uint *)&tel_port, CXS(S1t2T_3432320, "Telnet port" )},
 
@@ -528,7 +529,7 @@ SPD(6,tel)
 
 
 {0,0,0,0, CXS(S2sTLS__SERV, "TLS/SSL server")},
-{"notls_max",0,0,(uint *)0, CXS(S2sDISABLE_TLS, "Disable TLS/SSL server")},
+{"notls_max",0,0,(uint *)0, CXS(S2sDISABLE_TLS, "Disable TLS/SSL server"), 0, 0, onCfgChangeDisable},
 {"tls_max"  ,0,1024,(uint *)&max_ssl, CXS(S2sHOW_MANY_1, "Number of simultaneous requests.")},
 {"tls_port" ,1,0xFFFF,(uint *)&ssl_port,     CXS(S2sTCP_IP_TLS, "TCP/IP port for TLS/SSL server. Usually it's 443")},
 
@@ -557,7 +558,7 @@ SPD(5,tls)
 #ifdef TLSVPN
 
 {0,0,0,0, CXS(S1t2T_1039341, "HTTP TLS VPN Server")},
-{"notlsvpn",0,0,(uint *)0, CXS(S1t2T_1568467, "Disable TLS VPN" )},
+{"notlsvpn",0,0,(uint *)0, CXS(S1t2T_1568467, "Disable TLS VPN" ), 0, 0, onCfgChangeDisable},
 {"tlsvpn_max",0,1024,(uint *)&vpn_max, CXS(S1t2T_3299313, "Maximum number of TLS VPN connections working simultaneous.")},
 
 {"vpn_url" ,128,0,(uint *)&vpn_name, CXS(S1t2T_2629668, "TLS VPN URL name (direct only local part of URL e.g. \"/$_vpn_$\"). HTTPS requests to this URL will be redirected to VPN ")},
@@ -577,6 +578,12 @@ SPD(5,tls)
 #endif
 {"vpnpub",3, FL3_VPN_PUBLIC, (uint *)0, CXS(S1t2T_2917144, "Public access without password. (Otherwise only users with Proxy access can use this service) " )},
 
+#ifdef  VPN_UPDATE_NET
+
+{"vpnsrv_setip", 3, FL3_VPNSR_FIXIP, (uint *)0, CXS(S1T_15218830, "Set interface IP (must run from Administrator)" )},
+
+#endif // VPN_UPDATE_NET
+
 
 {"tun_ip" ,20,0,(uint *)&tuntap_ipv4[0], CXS(S1t2T_3296505, "Set Tun interface IP address")},
 {"tun_nmask" ,20,0,(uint *)&tuntap_ipv4nmask[0], CXS(S1t2T_5261510, "Set Tun interface netmask")},
@@ -584,8 +591,8 @@ SPD(5,tls)
 {"tap_ip" ,20,0,(uint *)&tuntap_ipv4[1], CXS(S1t2T_3238348, "Set Tap interface IP address")},
 {"tap_nmask" ,20,0,(uint *)&tuntap_ipv4nmask[1], CXS(S1t2T_5189673, "Set Tap interface netmask")},
 
-{"tun_script_up" ,255,0,(uint *)&vpn_scripts_up[0], CXS(S1t2T_6317118, "Run init script for Tun device")},
-{"tap_script_up" ,255,0,(uint *)&vpn_scripts_up[1], CXS(S1t2T_6240151, "Run init script for Tap device")},
+{"tun_script_up" ,256,0,(uint *)&vpn_scripts_up[0], CXS(S1t2T_6317118, "Run init script for Tun device")},
+{"tap_script_up" ,256,0,(uint *)&vpn_scripts_up[1], CXS(S1t2T_6240151, "Run init script for Tap device")},
 
 #ifdef VPN_WIN
 {"vpn_script_keep",3, FL3_VPN_SCRKEEP, (uint *)0, CXS(S1t2T_5577742, "Keep open console window after run script for debug" )},
@@ -631,21 +638,29 @@ SPD(5,tls)
 
 {"tuntap_ip" ,32,0,(uint *)&tuntap_ipv4[2], CXS(S1t2T_4130456, "Set client VPN interface IP address")},
 {"tuntap_nmask" ,32,0,(uint *)&tuntap_ipv4nmask[2], CXS(S1t2T_6268646, "Set  client VPN interface netmask")},
-{"vpncln_script_up" ,255,0,(uint *)&vpn_scripts_up[2], CXS(S1t2T_7330605, "Run init script when VPN connection estabilished")},
-{"vpncln_script_down" ,255,0,(uint *)&vpn_scripts_down[2], CXS(S1t2T_8671725, "Run deinit script when VPN connection closed")},
+
+#ifdef  VPN_UPDATE_NET
+
+{"vpncln_setip", 3, FL3_VPNCL_FIXIP   , (uint *)0, CXS(S1T_15218830, "Set interface IP (must run from Administrator)" )},
+{"vpncln_upd_route", 3, FL3_VPNCL_UPDRT , (uint *)0, CXS(S1T_28625631, "Update route table to redirect all IP4 trafic to VPN (must run from Administrator)" )},
+
+#endif // VPN_UPDATE_NET
+
+
+{"vpncln_script_up" ,256,0,(uint *)&vpn_scripts_up[2], CXS(S1t2T_7330605, "Run init script when VPN connection estabilished")},
+{"vpncln_script_down" ,256,0,(uint *)&vpn_scripts_down[2], CXS(S1t2T_8671725, "Run deinit script when VPN connection closed")},
 
 {"vpncln_chktls",3, FL3_VPN_CHKTLS    , (uint *)0, CXS(S1t2T_4758472, "Validate remote TLS sertificate, check host name" )},
 {"vpncln_tlsigntime",3, FL3_VPN_TLSIGNTIME, (uint *)0, CXS(S1t2T_7019198, "Don't check remote sertificate time. Ignore expired. (GNUTLS only)" )},
 {"vpncln_tlsssign",3, FL3_VPN_TLSSSIGN  , (uint *)0, CXS(S1t2T_5926682, "Accept self signed sertificate. (GNUTLS only)" )},
 {"vpncln_tlssshstyle",3, FL3_VPN_TLSSHSTYLE  , (uint *)0, CXS(S1t2T_7549822, "SSH style of sertificate validate. (GNUTLS only. Public keys of new untracted remote will be stored in ~/.gnutls/known_hosts)" )},
 
-
-
 #endif // TLSVPN
 
 #endif //V_FULL
 
 #ifdef  TLSWODLL
+/* Load/save TLSLibrary for compatible with common version, but not show it in web configuration */
 {"tls_lib"  ,256,0,(uint *)&TLSLibrary, 0 },
 #endif
 
@@ -657,4 +672,19 @@ SPD(5,tls)
 #endif
 
 {0,0,0,(uint *)0,0}
+};
+
+CfgParam ConfigParams2[]={
+
+#ifndef SYSUNIX
+{"ext" ,512,0,(uint *)&tmp_var, CXS(S1T_6102090, "Scripts: .ext;executable"), 0, 0, onCfgChangeExt, onCfgToStrExt},
+#endif // SYSUNIX
+
+{"mime" ,1024,0,(uint *)&mime, CXS(S1T_7077961, "Mime types .ext;mime"), 0},
+
+{"hostpath" ,512,0,(uint *)&tmp_var, CXS(S1T_6883182, "Virtual host or directory"),0, &hsdr, onCfgChangeVHost, onCfgToStrVHost},
+{"user" ,512,0,(uint *)&tmp_var, CXS(S1T_4384, "User"), 0, &userList , onCfgChangeUser, onCfgToStrUser},
+
+{0,0,0,(uint *)0,0}
+
 };

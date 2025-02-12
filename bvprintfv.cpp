@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2020 Maksim Feoktistov.
+ * Copyright (C) 1999-2025 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov
@@ -293,11 +293,23 @@ int BFILE::bvprintf(const char *fmt,va_list vl)
                   if(*p=='\n')*t++='\r';
 #endif
 
-                  *t++=(k<bl || k>=bx)?' ':*p++;
-                  if( (i=t-bfr)> BFR_LIM )
+                  if(k<bl || k>=bx) {
+                    *t++=' ';
+                  }
+                  else {
+                    if(!*p) {
+                      break;
+                    }
+                    *t++ = *p++;
+                  }
+
+                  if( (i=t-bfr) >= BFR_LIM )
                   {
-                    ii+=Flush(par,bfr,i);
-                    t=bfr;
+                    x = Flush(par, bfr, i);
+                    ii += x;
+                    t = bfr;
+                    if(i != x)
+                      goto exLoop;
                   }
                 }
 
@@ -358,13 +370,18 @@ int BFILE::bvprintf(const char *fmt,va_list vl)
 #endif
    *t++=*fmt++;
   }
+
   if( (i=t-bfr)>BFR_LIM )
   {
-   ii+=Flush(par,bfr,i);
-   t=bfr;
+    x = Flush(par, bfr, i);
+    ii += x;
+    t = bfr;
+    if(i != x)
+      break;
   }
  }
 
+ exLoop:
  /*
  if( (i=t-bfr) )
  {

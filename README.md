@@ -17,7 +17,7 @@
   --------------------
   For Debian-style distribution, you may prepare the system with the command:  
   ```
-  apt install  gcc g++ make libc6-dev libc6-dev-i386 gcc-multilib g++-multilib gnutls-dev libssl-dev
+  apt install  gcc g++ make libc6-dev libc6-dev-i386 gcc-multilib g++-multilib gnutls-dev libssl-dev libz-dev
   ```  
   For another cases install the same package with way recomendet for your distribution.  
   libc6-dev-i386 required to build 32-bit version under 64-bit system  
@@ -30,16 +30,16 @@
   
   32-bit:  
   ```
-  ./configure --target=i32  --withoutfakelibs
-  make
-  make o/libsec111.so
-  make o/libsecgnutls.so
+  ./configure --target=i32  --withoutfakelibs  
+  make  
+  make o/libsec111.so  
+  make o/libsecgnutls.so  
   ```  
   Result will be o/httpd.exe o/libsec111.so o/libsecgnutls.so o/sndmsg  
   In the httpd.exe configuration you can select the security library. You can also build binaries with a pre-selected security library:  
   ```
-  make o/httpd.exopenssl
-  make o/httpd.exgnutls
+  make o/httpd.exopenssl  
+  make o/httpd.exgnutls  
   ```
   To install the program use:  
   ```
@@ -48,10 +48,10 @@
   
   64-bit:  
   ```
-  ./configure --target=i64  --withoutfakelibs
-  make
-  make o64/libsec111.so
-  make o64/libsecgnutls.so
+  ./configure --target=i64  --withoutfakelibs  
+  make  
+  make o64/libsec111.so  
+  make o64/libsecgnutls.so  
   ```  
  Result will be o64/httpd.exe o64/libsec111.so o64/libsecgnutls.so o64/sndmsg  
  libsec111.so -- for OpenSSL 1.1.1  
@@ -59,18 +59,18 @@
  required one of them.  
  You can also build binaries with a pre-selected security library:  
   ```
-  make o64/httpd.exopenssl
-  make o64/httpd.exgnutls
+  make o64/httpd.exopenssl  
+  make o64/httpd.exgnutls  
   ```
   To install the program use:  
   ```   
-  make install
+  make install  
   ```  
   
 
  If you just run  
  ```
-  ./configure
+  ./configure  
  ```  
  without any keys, it will try to detect the current architecture and create a Makefile for it or, if detection fails, for all available targets.  
   
@@ -79,8 +79,8 @@
  
  Even if you are configure a Makefile without fake libraries, you can build them with:  
  ```
- make i32f
- make i64f
+ make i32f  
+ make i64f  
  ```  
  Binaries without dynamic object versions will be in `o/of/`  or `o64/of`  
 
@@ -89,10 +89,8 @@
   ----------------------------------------------------------  
 
   ```
-  ./configure --target=arm  --armgcc="arm-linux-gnueabi-gcc"  \
-              --arminclude="/usr/src/crossarm/include" \
-              --armlib="/usr/src/crossarm/lib"
-  make
+  ./configure --target=arm  --armgcc="arm-linux-gnueabi-gcc" --arminclude="/usr/src/crossarm/include" --armlib="/usr/src/crossarm/lib"  
+  make  
   ```  
   Direct your pathes instead /usr/src/crossarm/...  
 
@@ -101,9 +99,9 @@
   ----------------------------------------  
 
   ```
-  ./configure --target=arm64
+  ./configure --target=arm64  
   make
-  ```
+  ```  
 
   Cross build Linux version for architecture that not defined in Makefile:  
   ------------------------------------------------------------------------  
@@ -112,12 +110,12 @@
   This script and Makefile understands the ARCH, CROSS_COMPILE, DESTDIR environment variables.  
 
   ```
-  export DESTDIR=/dev/shm/arm64_root/
-  export ARCH=arm64
-  export CROSS_COMPILE=aarch64-linux-gnu-
-  ./configure
-  make
-  make install
+  export DESTDIR=/dev/shm/arm64_root/  
+  export ARCH=arm64  
+  export CROSS_COMPILE=aarch64-linux-gnu-  
+  ./configure  
+  make  
+  make install  
   ```  
 
   Build Windows version under Linux:  
@@ -136,12 +134,12 @@
 
   Run the commands:  
   ```
-  ./configure --target=win \
-              --winsslinclude="/usr/src/openssl/include" --winssllib="/usr/src/openssl/lib" \
-              --wingnutlsinclude="/usr/src/gnutls/include" --wingnutlslib="/usr/src/gnutls/lib"
-  make
-  make wo/libsec111.dll
-  make wo/libsecgnutls.dll
+  ./configure --target=win \  
+              --winsslinclude="/usr/src/openssl/include" --winssllib="/usr/src/openssl/lib" \  
+              --wingnutlsinclude="/usr/src/gnutls/include" --wingnutlslib="/usr/src/gnutls/lib"  
+  make  
+  make wo/libsec111.dll  
+  make wo/libsecgnutls.dll  
   ```  
 
  Direct your pathes to Windows libraries instead /usr/src/...  
@@ -155,14 +153,14 @@
  Required MinGW and Perl for Windows  
 
   ```
-  ./configure    --wingcc="c:\\MINGW\\bin\\gcc.exe" \
-                 --windir="c:\\MINGW" \
-                 --target=win \
-                 --winsslinclude="c:\\openssl\\include"  --winssllib="c:\\openssl\\lib" \
-                 --wingnutlsinclude="c:\\gnutls\\include" --wingnutlslib="c:\\gnutls\\lib"
-  make
-  make wo/libsec111.dll
-  make wo/libsecgnutls.dll
+  ./configure    --wingcc="c:\\MINGW\\bin\\gcc.exe" \  
+                 --windir="c:\\MINGW" \  
+                 --target=win \  
+                 --winsslinclude="c:\\openssl\\include"  --winssllib="c:\\openssl\\lib" \  
+                 --wingnutlsinclude="c:\\gnutls\\include" --wingnutlslib="c:\\gnutls\\lib"  
+  make  
+  make wo/libsec111.dll  
+  make wo/libsecgnutls.dll  
   ```  
  Direct your pathes instead c:\\...  
 

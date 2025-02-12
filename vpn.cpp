@@ -21,8 +21,20 @@
  *
  *
  */
+
+
 #include "mstring1.h"
 #include "vpn.h"
+
+
+#if defined(VPN_UPDATE_NET) && defined(VPN_WIN)
+#define in6_addr in6_addr_w
+#define IPv6Addr IPv6Addr_w
+#define _TIME_H_
+#include <iphlpapi.h>
+#undef in6_addr
+#undef IPv6Addr
+#endif
 
 #ifdef SEPLOG
 
@@ -68,8 +80,18 @@ void  *tap_waitbfr[3];
 const char * TUNTAPNames[3] = {"tun","tap","tap"};
 
 #ifdef VPN_WIN
+char * vpnIfNamesW[3];
 char * vpnIfNames[3];
+char   vpnIfGuid[3][80];
+int   vpnWinIdx[3] = {-1,-1,-1};
 char *tundev="tap0901";
+#ifdef  VPN_UPDATE_NET
+uint  old_ipv4gw;
+int  old_winIfDefIdx = -1;
+void  *ipentry[3];
+#endif // VPN_UPDATE_NET
+
+
 
 struct AsincReadHelper_t
 {
@@ -80,7 +102,7 @@ struct AsincReadHelper_t
   int current;
   union {
     short pkt_len;
-    uchar pkt[MAX_MTU];
+    uchar pkt[MAX_MTU+4];
   } u[2];
 };
 static AsincReadHelper_t * AsincReadHelper[3];
@@ -128,12 +150,13 @@ uint vpn_allocated_remote_ip;
 char *vpn_dns[2] = {"192.168.111.1, 8.8.8.8, 4.4.4.4","192.168.112.1, 8.8.8.8, 4.4.4.4"};
 char *vpn_scripts_up[3]
 #ifdef VPN_WIN
- = { "vpn_if_up.bat", "vpn_if_up.bat", "vpn_if_client_up.bat"}
+ = { "vpn_if_up.bat", "vpn_if_up.bat" //"vpn_if_client_up.bat"
+   }
 #endif
 ;
 char *vpn_scripts_down[3]
 #ifdef VPN_WIN
-= {0,0, "vpn_if_client_down.bat"}
+//= {0,0, "vpn_if_client_down.bat"}
 #endif
 ;
 VPNclient * vpn_cln_connected;
@@ -169,8 +192,6 @@ VPNUserLimit *vpn_limits;
 void OnPktFromIf(uchar *pkt, int i);
 int tun_up(uint index, uint ip, uint mask, uint gw, char *dns);
 
-
-
 int  RunScript(char *cmd)
 {
 #ifdef VPN_LINUX
@@ -180,7 +201,10 @@ int  RunScript(char *cmd)
   }
   return r;
 #elif defined(VPN_WIN)
+  int r;
+
   DBGLS(cmd);
+#if 1
   char *p;
   char dir[256];
   strncpy(dir,cmdline,254);
@@ -193,10 +217,23 @@ int  RunScript(char *cmd)
   {
     GetCurrentDirectory(255,dir);
   }
-
-  int r;
   r = (int) ShellExecute(0,"runas","cmd.exe",cmd, dir,
+                              (s_flgs[3]&FL3_VPN_SCRKEEP)? SW_SHOWNORMAL : SW_HIDE);
+#else
+
+  ushort dir[256];
+  GetCurrentDirectoryW(255, (LPWSTR) dir);
+
+  //ushort wrunas[10];
+  //ushort wcmdexe[10];
+
+  //utf2unicode((uchar *) "runas", wrunas);
+  //utf2unicode((uchar *) "cmd.exe", wcmdexe);
+
+  r = (int) ShellExecuteW(0, L"runas", L"cmd.exe", (LPCWSTR) cmd, (LPCWSTR) dir,
                              (s_flgs[3]&FL3_VPN_SCRKEEP)? SW_SHOWNORMAL : SW_HIDE);
+#endif
+
 #if 0
   p=strchr(cmd,' ');
   if(!p) p="";
@@ -238,13 +275,17 @@ int RunDownScript(int index, int ip)
     char  *qt="";
     if(vpn_scripts_down[index][0] != '"' && strchr(vpn_scripts_down[index],' ') ) qt="\"";
 
+#if 0 //def UNICODECMD
+    //utf2unicode((uchar *)"/S /%c %s%s%s \"%S\" %u.%u.%u.%u", wfmt);
+    wsprintfW((LPWSTR)cmd, L"/S /%c %s%s%s \"%S\" %u.%u.%u.%u",
+#else
     sprintf(cmd, "/S /%c %s%s%s \"%s\" %u.%u.%u.%u",
+#endif
             ((s_flgs[3]&FL3_VPN_SCRKEEP)? 'K':'C'),
             qt,vpn_scripts_down[index],qt,
             vpnIfNames[index],
-            ip>>24, (ip>>16)&0xFF, (ip>>8)&0xFF, ip&0xFF,
-            client_ip
-    );
+            ip>>24, (ip>>16)&0xFF, (ip>>8)&0xFF, ip&0xFF);
+
 #else
 #error "TODO: "
 #endif
@@ -353,7 +394,6 @@ int tun_up(uint index, uint ip, uint mask, uint gw, char *dns )
   }
 
   return r;
-
 }
 #endif
 
@@ -509,7 +549,7 @@ int get_guid(int index, char *ret_bfr)
                 len = sizeof(name_data);
                 status = RegQueryValueExW( connection_key, L"Name", NULL, &data_type, (LPBYTE) name_data, &len);
                 RegCloseKey(connection_key);
-                //DBGLA("Open key ok, QueryValue = %X", status)
+                DBGLA("Open key ok, QueryValue = %X len=%u %X %X", status, len, DWORD_PTR(name_data[0]), DWORD_PTR(name_data[1]) )
 
                 if (status != ERROR_SUCCESS || data_type != REG_SZ)
                 {
@@ -517,27 +557,36 @@ int get_guid(int index, char *ret_bfr)
                 }
                 else
                 {
-                  WideCharToMultiByte(CP_UTF8, 0, (WCHAR *)name_data, -1, name, sizeof(name), NULL, NULL);
+
+                  //WideCharToMultiByte(CP_UTF8, 0, (WCHAR *)name_data, -1, name, sizeof(name), NULL, NULL);
+                  WideCharToMultiByte(CP_ACP, 0, (WCHAR *)name_data, -1, name, sizeof(name), NULL, NULL);
 
                   DBGLA("name = '%s'", name)
 
                   if( vpnIfNames[index] && vpnIfNames[index][0] &&
-                     ( !strcasecmp((char *)name, vpnIfNames[index]) ) )
+                    ( !strcasecmp((char *)name, vpnIfNames[index]) ) )
                   {
-                    strncpy(ret_bfr, (char *) net_cfg_instance_id, 256);
+                    strncpy(ret_bfr, (char *)net_cfg_instance_id , 256);
                     r = 1;
-                    break;
+                    //break;
+
+                    if(ii == tuntap_number[index])
+                    {
+                      int llen = strlen(name);
+                      vpnIfNames[index] = (char *) malloc(llen+4+len);
+                      vpnIfNamesW[index] = vpnIfNames[index] + llen + 2;
+                      strcpy(vpnIfNames[index], name);
+                      strncpy(ret_bfr, (char *) net_cfg_instance_id, 256);
+                      memcpy(vpnIfNamesW[index], name_data, len);
+                      vpnIfNamesW[index][len] = 0;
+
+                      DBGLA("index = %u %lX len=%d",index, (long) vpnIfNamesW[index], len)
+
+                      r = 1;
+                      break;
+                    }
+                    ii++;
                   }
-                  if(ii == tuntap_number[index])
-                  {
-                    len = strlen(name);
-                    vpnIfNames[index] = (char *) malloc(len+2);
-                    strcpy(vpnIfNames[index],name);
-                    strncpy(ret_bfr, (char *) net_cfg_instance_id, 256);
-                    r = 1;
-                    break;
-                  }
-                  ii++;
                 }
               }
               else
@@ -575,7 +624,7 @@ HANDLE win_tun_open(int index)
   HANDLE h;
   DWORD len;
   int i;
-  char guid[256];
+  char *guid = vpnIfGuid[index];
   char path[256];
 
   if(! get_guid(index,guid) )
@@ -723,6 +772,273 @@ static void AddAsincCB(int index)
   }
 }
 
+
+#ifdef  VPN_UPDATE_NET
+
+int GetAdapterIdxFromList(int ifs)
+{
+  IP_ADAPTER_ADDRESSES *p;
+  IP_ADAPTER_ADDRESSES *pp;
+  int ret=-1;
+  ULONG bsize = 0x10000;
+  ULONG r;
+
+  p = (IP_ADAPTER_ADDRESSES *) malloc(0x10000);
+  r = GetAdaptersAddresses(AF_UNSPEC, GAA_FLAG_INCLUDE_PREFIX|GAA_FLAG_SKIP_DNS_SERVER|GAA_FLAG_INCLUDE_ALL_INTERFACES, NULL, p, &bsize);
+  if(r == NO_ERROR) {
+    for(pp = p; p; p=p->Next)
+    {
+      DBGLA("%u %s", p->IfIndex, p->AdapterName);
+      if(!stricmp(p->AdapterName, vpnIfGuid[ifs])) // vpnIfNames[ifs]))
+      {
+        DBGLA("Interface found!!! %u", p->IfIndex)
+        ret = p->IfIndex;
+        break;
+      }
+    }
+  }
+  else
+  {
+    debug("*****ERROR: Can't get list of Windows addapter %d %s %u", r, strerror(r), ifs);
+  }
+
+
+
+  free(pp);
+  return ret;
+
+}
+
+int AddIP2If(int ifs, uint ip, uint mask)
+{
+  ULONG IfIndex;
+  ULONG NTEInstance;
+  int lst;
+
+  DBGLA("%d %X %X %s",ifs, DWORD_PTR(vpnIfNamesW[ifs][0]), DWORD_PTR(vpnIfNamesW[ifs][8]), vpnIfNamesW[ifs])
+  //DBGLA("%d %lX",ifs, (long) vpnIfNamesW[ifs])
+
+  if(vpnWinIdx[ifs] < 0) {
+    IfIndex = GetAdapterIdxFromList(ifs);
+    vpnWinIdx[ifs] = IfIndex;
+  }
+
+  if((int)IfIndex<0 && (lst = GetAdapterIndex((LPWSTR) vpnIfNamesW[ifs] , &IfIndex)) != NO_ERROR)
+  {
+    //lst = GetLastError();
+    debug("*****ERROR: Can't get index of TAP-Windows addapter %d %s %d",lst, strerror(lst), ifs);
+    return -1;
+  }
+
+  if( (lst = AddIPAddress( ip, mask, IfIndex,  (PULONG) (ipentry + ifs), &NTEInstance))  != NO_ERROR)
+  {
+    debug("Warning: Can't set IP for TAP-Windows addapter %d %s", lst, strerror(lst));
+    return -1;
+  }
+
+  return 0;
+}
+
+int DelIPAddres(int ifs)
+{
+  int lst;
+
+  if(ipentry[ifs])
+  {
+    if((lst = DeleteIPAddress((ULONG)(ipentry[ifs]))) != NO_ERROR)
+    {
+      //lst = GetLastError();
+      debug("*****ERROR: Can't delete IP from TAP-Windows addapter %d %s",lst, strerror(lst));
+      return -1;
+    }
+
+  }
+
+  return 0;
+}
+
+uint UpdateDefaultGW(uint gw, uint vpn_server_ip, int isRemove)
+{
+   MIB_IPFORWARDTABLE  t1;
+   MIB_IPFORWARDTABLE *pt;
+   DWORD dwSize = 0;
+   DWORD dwRetVal = 0;
+   int i;
+   u32 ret = -1;
+   int def_gw_idx = -1;
+   int vpn_server_gw_idx = -1;
+   MIB_IPFORWARDROW Route;
+
+   GetIpForwardTable(&t1, &dwSize, 0);
+   if(!dwSize) {
+     DBGLA("Error get size\n");
+     return -1;
+   }
+
+   pt = (MIB_IPFORWARDTABLE *) malloc(dwSize);
+   if(pt) {
+     if((dwRetVal = GetIpForwardTable(pt, &dwSize, 0)) == NO_ERROR)
+     {
+       for (i = 0; i < (int) pt->dwNumEntries; i++)
+       {
+         if(
+           (!pt->table[i].dwForwardDest) &&
+           (!pt->table[i].dwForwardMask) &&
+           pt->table[i].dwForwardNextHop
+         )
+         {
+           ret = pt->table[i].dwForwardNextHop;
+           def_gw_idx = i;
+           memcpy(&Route, pt->table + i, sizeof(Route));
+
+           if(gw != pt->table[i].dwForwardNextHop && !isRemove)
+           {
+             old_ipv4gw = pt->table[i].dwForwardNextHop;
+             old_winIfDefIdx = pt->table[i].dwForwardIfIndex;
+           }
+
+           DBGLA("Found default GW: ForwardType=%d  dwForwardProto=%u\r\n"
+                 "dwForwardMetric1=%u dwForwardMetric2=%u dwForwardMetric3=%u dwForwardMetric4=%u dwForwardMetric5=%u",
+                 pt->table[i].dwForwardType,
+                 pt->table[i].dwForwardProto,
+                 pt->table[i].dwForwardMetric1,
+                 pt->table[i].dwForwardMetric2,
+                 pt->table[i].dwForwardMetric3,
+                 pt->table[i].dwForwardMetric4,
+                 pt->table[i].dwForwardMetric5
+           )
+           if(vpn_server_gw_idx >= 0)
+             break;
+         }
+         else if(pt->table[i].dwForwardDest == vpn_server_ip) {
+           vpn_server_gw_idx = i;
+
+           DBGLA("Found us GW: ForwardType=%d dwForwardProto=%u\r\n"
+                 "dwForwardMetric1=%u dwForwardMetric2=%u dwForwardMetric3=%u dwForwardMetric4=%u dwForwardMetric5=%u",
+                 pt->table[i].dwForwardType,
+                 pt->table[i].dwForwardProto,
+                 pt->table[i].dwForwardMetric1,
+                 pt->table[i].dwForwardMetric2,
+                 pt->table[i].dwForwardMetric3,
+                 pt->table[i].dwForwardMetric4,
+                 pt->table[i].dwForwardMetric5
+           )
+
+           if(def_gw_idx >= 0)
+             break;
+         }
+       }
+
+       if(def_gw_idx<0) {
+
+         memset(&Route, 0, sizeof(Route));
+         Route.dwForwardNextHop = gw;
+         Route.dwForwardType = MIB_IPROUTE_TYPE_INDIRECT;
+         Route.dwForwardProto = MIB_IPPROTO_NETMGMT;
+         Route.dwForwardMetric1 = 36;
+
+         Route.dwForwardIfIndex = (isRemove)? old_winIfDefIdx : vpnWinIdx[INDEX_CLIENT];
+
+         if(isRemove && old_winIfDefIdx<0) {
+           debug("*****Error: Default GW not found %d %d", pt->dwNumEntries, dwSize);
+           goto lb_free;
+         }
+
+         debug("*****WARNING: Default GW not found %d %d", pt->dwNumEntries, dwSize);
+
+         if((dwRetVal = CreateIpForwardEntry(&Route)) != NO_ERROR)
+         {
+           debug("*****ERROR: Can't add route record for default GW %d %s %d", dwRetVal, strerror(dwRetVal), dwSize);
+         }
+
+         if (isRemove || !vpn_server_ip)
+           goto lb_free;
+       }
+
+       if(vpn_server_ip)
+       {
+         if(vpn_server_gw_idx>=0)
+         {
+           if(isRemove) {
+             if((dwRetVal = DeleteIpForwardEntry(pt->table + vpn_server_gw_idx)) != NO_ERROR)
+             {
+               debug("*****ERROR: Can't delete route record for VPN IP %d %s %d", dwRetVal, strerror(dwRetVal), dwSize);
+             }
+           }
+           else if(pt->table[vpn_server_gw_idx].dwForwardNextHop != old_ipv4gw)
+           {
+             if(def_gw_idx >= 0) {
+
+               MIB_IPFORWARDROW Route2;
+               memcpy(&Route2, pt->table + vpn_server_gw_idx, sizeof(Route2));
+
+               pt->table[vpn_server_gw_idx].dwForwardNextHop = old_ipv4gw;
+               pt->table[vpn_server_gw_idx].dwForwardIfIndex = def_gw_idx;
+
+               if((dwRetVal = SetIpForwardEntry(pt->table + vpn_server_gw_idx)) != NO_ERROR)
+               {
+                 debug("*****Warning: Can't change route record for VPN IP %d %s %d", dwRetVal, strerror(dwRetVal), dwSize);
+                 if((dwRetVal = DeleteIpForwardEntry(&Route2)) != NO_ERROR)
+                   debug("*****ERROR: Can't delete VPN server route record %d %s %d", dwRetVal, strerror(dwRetVal), dwSize);
+                 if((dwRetVal = CreateIpForwardEntry(pt->table + vpn_server_gw_idx)) != NO_ERROR)
+                   debug("*****ERROR: Can't add route record for VPN server  %d %s %d", dwRetVal, strerror(dwRetVal), dwSize);
+               }
+             }
+           }
+         }
+         else
+         {
+           Route.dwForwardMask = ~0;
+           Route.dwForwardDest = vpn_server_ip;
+
+           if((dwRetVal = CreateIpForwardEntry(&Route)) != NO_ERROR)
+           {
+             debug("*****ERROR: Can't add route record for us GW %d %s %d", dwRetVal, strerror(dwRetVal), dwSize);
+             goto lb_free;
+           }
+         }
+       }
+
+       if(def_gw_idx >= 0 && pt->table[def_gw_idx].dwForwardNextHop != gw)
+       {
+         memcpy(&Route, pt->table+def_gw_idx, sizeof(Route));
+
+         pt->table[def_gw_idx].dwForwardIfIndex = (isRemove)? old_winIfDefIdx
+                                                            : vpnWinIdx[INDEX_CLIENT];
+         pt->table[def_gw_idx].dwForwardNextHop = gw;
+
+         if((dwRetVal = SetIpForwardEntry(pt->table + def_gw_idx)) != NO_ERROR)
+         {
+           DBGLA("Warning: Can't change default GW %d %s %d", dwRetVal, strerror(dwRetVal), dwSize);
+
+           if((dwRetVal = DeleteIpForwardEntry(&Route)) != NO_ERROR)
+           {
+             debug("*****ERROR: Can't delete default route record %d %s %d", dwRetVal, strerror(dwRetVal), dwSize);
+           }
+           if((dwRetVal = CreateIpForwardEntry(pt->table + def_gw_idx)) != NO_ERROR)
+           {
+             debug("*****ERROR: Can't add route record for default GW %d %s %d", dwRetVal, strerror(dwRetVal), dwSize);
+           }
+         }
+       }
+     }
+     else
+     {
+       debug("*****ERROR: Can't get route table %d %s %d",dwRetVal, strerror(dwRetVal), dwSize);
+       goto lb_free;
+     }
+
+     lb_free:
+     free(pt);
+   }
+
+   return ret;
+}
+
+
+
+#endif // VPN_UPDATE_NET
+
 int tun_up(uint index, uint ip, uint mask, uint gw, char *dns)
 {
 
@@ -804,6 +1120,25 @@ int tun_up(uint index, uint ip, uint mask, uint gw, char *dns)
       return -1;
     }
 
+#ifdef  VPN_UPDATE_NET
+
+
+    if(index==INDEX_CLIENT)
+    {
+      // Client
+      if(s_flgs[3] & FL3_VPNCL_FIXIP)
+        AddIP2If(index, ip, mask);
+      if(gw && s_flgs[3] & FL3_VPNCL_UPDRT)
+        UpdateDefaultGW(gw, GetIPv4(&vpn_cln_connected->sa_c) ,0);
+    }
+    else
+    {
+      if(s_flgs[3] & FL3_VPNSR_FIXIP)
+        AddIP2If(index, ip, mask);
+    }
+
+#endif // VPN_UPDATE_NET
+
     if(vpn_scripts_up[index] && vpn_scripts_up[index][0] )
     {
       char  *qt=NullString;
@@ -816,7 +1151,16 @@ int tun_up(uint index, uint ip, uint mask, uint gw, char *dns)
         IP2S(client_ip+1, &vpn_cln_connected->sa_c);
       }
       if(vpn_scripts_up[index][0] != '"' && strchr(vpn_scripts_up[index],' ') ) qt="\"";
+#if 0 //def UNICODECMD
+       //ushort wfmt[96];
+       //utf2unicode((uchar *) "/S /%c %s%s%s \"%S\" %u.%u.%u.%u %u.%u.%u.%u %u.%u.%u.%u \"%s\"%s", wfmt);
+
+       wsprintfW((LPWSTR) cmd, //(LPCWSTR) wfmt,
+                 L"/S /%c %s%s%s \"%S\" %u.%u.%u.%u %u.%u.%u.%u %u.%u.%u.%u \"%s\"%s"
+#else
       sprintf(cmd, "/S /%c %s%s%s \"%s\" %u.%u.%u.%u %u.%u.%u.%u %u.%u.%u.%u \"%s\"%s",
+#endif
+
               ((s_flgs[3]&FL3_VPN_SCRKEEP)? 'K':'C'),
               qt,vpn_scripts_up[index],qt,
               vpnIfNames[index],
@@ -830,6 +1174,7 @@ int tun_up(uint index, uint ip, uint mask, uint gw, char *dns)
 
       RunScript(cmd);
     }
+
     AddAsincCB(index);
     return r;
 }
@@ -946,6 +1291,8 @@ int IsVPN_IP_Free(uint ip)
   return 1;
 }
 ///////////////////
+
+#ifndef VPNCLIENT_ONLY
 int Req::InsertVPNclient()
 {
   VPNclient *cl;
@@ -1137,7 +1484,7 @@ lb_reconnect:
 
    return 0;
 }
-
+#endif //VPNCLIENT_ONLY
 
 int VPNclient::RecvPkt()
 {
@@ -1286,7 +1633,9 @@ int VPNclient::RecvPkt()
     VPNreceved_pkt ++;
 
   }
+#ifndef VPNCLIENT_ONLY
   if(limits && limits->UpdateIn(lin) )  return 0;
+#endif //VPNCLIENT_ONLY
   return 1;
 }
 
@@ -1329,6 +1678,8 @@ void OnPktFromIf(uchar *pkt, int i)
   }
 }
 
+#ifndef VPNCLIENT_ONLY
+
 ulong WINAPI VPN_Thread(void *)
 {
   fd_set set;
@@ -1337,7 +1688,7 @@ ulong WINAPI VPN_Thread(void *)
   int    i,j,l,k,r;
   union {
     short pkt_len;
-    uchar pkt[MAX_MTU];
+    uchar pkt[MAX_MTU + 4];
   };
 
   while(is_no_exit)
@@ -1396,7 +1747,7 @@ ulong WINAPI VPN_Thread(void *)
   VPN_Done();
   return 0;
 }
-
+#endif
 
 void  CloseTunTap()
 {
@@ -1407,6 +1758,8 @@ void  CloseTunTap()
      tuntap_fds[i] = INVALID_HANDLE_VALUE;
   }
 }
+
+#ifndef VPNCLIENT_ONLY
 
 int VPN_Init()
 {
@@ -1437,6 +1790,8 @@ int VPN_Init()
 
   return (int) CreateThread(&secat,0x5000 + MAX_MTU,(TskSrv)VPN_Thread, (void *)0, 0, &trd_id);
 }
+
+#endif //VPNCLIENT_ONLY
 
 int VPNclient::SendIsUs(uchar *pktl, int tuntap)
 {
@@ -1490,7 +1845,9 @@ int VPNclient::SendIsUs(uchar *pktl, int tuntap)
              else  break;
              }
              if( (r=Send(pktl, ppkt->len + 2))<=0) ret = -1;
+#ifndef VPNCLIENT_ONLY
              else if(limits && limits->UpdateOut(r) ) ret = -1;
+#endif //VPNCLIENT_ONLY
              break;
         default:
 
@@ -1530,7 +1887,9 @@ int VPNclient::SendIsUs(uchar *pktl, int tuntap)
         return ret;
       }
       if((r=Send(pktl, ppkt->len + 2))<=0) ret = -1;
+#ifndef VPNCLIENT_ONLY
       else if(limits && limits->UpdateOut(r) ) ret = -1;
+#endif //VPNCLIENT_ONLY
 
 #undef  ppkt
     }
@@ -1538,6 +1897,7 @@ int VPNclient::SendIsUs(uchar *pktl, int tuntap)
   }
   return ret;
 }
+
 
 void VPN_Done()
 {
@@ -1559,6 +1919,7 @@ void VPN_Done()
   MyUnlock(vpn_mutex);
 }
 
+#ifndef VPNCLIENT_ONLY
 
 uint limitPeriods[]={3600, 86400, 86400*30};
 uint VPNInLimitMb[3];
@@ -1660,6 +2021,8 @@ VPNUserLimit *VPNclient::SetLimit()
   MyUnlock(vpn_limit_mutex);
   return p;
 }
+
+#endif // VPNCLIENT_ONLY
 
 /*
 void VPNclient::UpdateLimits()
@@ -2115,16 +2478,17 @@ ulong WINAPI VPNClient(void *)
   fd_set set, er_set;
   union {
     short pkt_len;
-    uchar pkt[MAX_MTU];
+    uchar pkt[MAX_MTU + 4];
   };
 
+  s_aflg |= AFL_VPNCLN;
   DBGL("")
   memset(&vpn,0,sizeof(vpn));
 
   //vpn.tun_index=0;
   //if(TAP_SEPARATE)
   {
-    vpn.tun_index=2;
+    vpn.tun_index=INDEX_CLIENT;
     if(TAP_CLIENT){
       vpn.fl = F_VPNTAP;
       TUNTAPNames[2] = "tap";
@@ -2144,7 +2508,10 @@ ulong WINAPI VPNClient(void *)
 
 #ifndef VPN_WIN
   if(tuntap_fds[vpn.tun_index] < 0 ) tun_alloc(vpn.tun_index);
-  if(tuntap_fds[vpn.tun_index] < 0 )  return -1;
+  if(tuntap_fds[vpn.tun_index] < 0 )  {
+    s_aflg &= ~AFL_VPNCLN;
+    return -1;
+  }
   DBGL("")
 
   vpn_client_fd = tuntap_fds[vpn.tun_index];
@@ -2155,21 +2522,26 @@ ulong WINAPI VPNClient(void *)
 
 
   vpn.ipv4 = 0;
-  while(is_no_exit)
+  while(is_no_exit&1)
   {
     if( (r=vpn.ClientConnect(&vpn.tls)) < 0 )
     {
+        #if defined(VPNCLIENT_ONLY) && ! defined(SYSUNIX)
+        UpdateVPNStatInfo(0);
+        #endif // VPNCLIENT_ONLY
 
       DBGL("")
-
       if(r < -4)
       {
-
         DBGL("client exit");
-
         return -1;
       }
-      Sleep(60000);
+      for(r=0; r<60; r++)
+      {
+        Sleep(1000);
+        if (!(is_no_exit&1))
+          break;
+      }
     }
     else
     {
@@ -2182,11 +2554,15 @@ ulong WINAPI VPNClient(void *)
       if(vpn_client_fd < vpn.s) max_fd = vpn.s;
 #endif
 
-      while(is_no_exit)
+      while(is_no_exit&1)
       {
 #ifndef VPN_WIN
         FD_SET(vpn_client_fd, &set);
         FD_SET(vpn_client_fd, &er_set);
+#else
+        #ifdef VPNCLIENT_ONLY
+        UpdateVPNStatInfo(1);
+        #endif // VPNCLIENT_ONLY
 #endif
         FD_SET(vpn.s, &set);
         FD_SET(vpn.s, &er_set);
@@ -2223,17 +2599,34 @@ ulong WINAPI VPNClient(void *)
               AddToLog(0, vpn.s,&vpn.sa_c46, FmtShortVPN,"VPN client: connection closed. ", vpn.Tin, vpn.Tout, (GetTickCount() - vpn.tmout)/1000, "" );
               //SecClose(&vpn.tls);
               //CloseSocket(vpn.s);
-              vpn.Close();
-              RunDownScript(vpn.tun_index, vpn.ipv4);
+
+//               vpn.Close();
+//               RunDownScript(vpn.tun_index, vpn.ipv4);
               break;
             }
           }
         }
       }
+
+#ifdef  VPN_UPDATE_NET
+      if(old_ipv4gw) {
+        UpdateDefaultGW(old_ipv4gw, 0 ,1);
+        DelIPAddres(INDEX_CLIENT);
+      }
+#endif // VPN_UPDATE_NET
+      vpn.Close();
+
+      RunDownScript(vpn.tun_index, vpn.ipv4);
+      debug("VPN client diconnected");
     }
   }
 
+  vpn_cln_connected = 0;
+  #if defined(VPNCLIENT_ONLY) && ! defined(SYSUNIX)
+  UpdateVPNStatInfo(1);
+  #endif // VPNCLIENT_ONLY
   VPN_Done();
+  s_aflg &= ~AFL_VPNCLN;
 
   return 0;
 }

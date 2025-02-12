@@ -48,7 +48,7 @@
 
 char *CApath,
      *CAfile,
-     *s_cert_file="server.pem",
+     *s_cert_file="temp_sert.pem",
      *s_key_file //="s1024key.pem"
 ;
 char *TLSLibrary=
@@ -303,6 +303,8 @@ int Req::TLSBegin(OpenSSLConnection *x, int type, char *verfyhost)
   return 0;
 }
 
+#ifndef VPNCLIENT_ONLY
+
 int Req::TLSReq()
 {
   OpenSSLConnection x;
@@ -344,4 +346,5 @@ int Req::TLSReq()
     return 1;
 };
 
+#endif // VPNCLIENT_ONLY
 

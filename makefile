@@ -1,5 +1,5 @@
 #
-# Copyright (C) 1999-2024 Maksim Feoktistov.
+# Copyright (C) 1999-2025 Maksim Feoktistov.
 #
 # This file is part of Small HTTP server project.
 # Author: Maksim Feoktistov
@@ -22,9 +22,9 @@
 #
 #
 
-VERSION=3.06.34
-VERSIONT=3.06.34test
-BUDIR=../site/30634/
+VERSION=3.06.35
+VERSIONT=3.06.35test
+BUDIR=../site/30635/
 
 prefix ?=/usr/local/
 CONFIG_BASE   ?= $(prefix:%/=%)/
@@ -70,6 +70,11 @@ OPT= -pipe  \
  -DUSE_IPV6 -DUSE_FUTEX -DUSE_POOL -fno-exceptions  -Wno-deprecated -Wno-address-of-packed-member -fno-bounds-check -fno-tree-bit-ccp -fno-builtin -mno-red-zone -DFREEVER  -DWITHMD5 -DFIX_EXCEPT -DPF_LONG_LONG \
   -DUSEVALIST -DSEPLOG $(ADVOPT) -DVPN_LINUX -DTLSVPN -DUSE_SYSPASS -DSHS_VERSION=$(VERSION)
 
+OPTCVPN= -pipe  \
+  -fno-stack-protector -fno-stack-check -fno-verbose-asm -fno-nonansi-builtins -fno-access-control  -fno-optional-diags -momit-leaf-frame-pointer\
+ -DUSE_IPV6 -DUSE_FUTEX -DUSE_POOL -fno-exceptions  -Wno-deprecated -Wno-address-of-packed-member -fno-bounds-check -fno-tree-bit-ccp -fno-builtin -mno-red-zone -DFREEVER  -DWITHMD5 -DFIX_EXCEPT -DPF_LONG_LONG \
+  -DUSEVALIST $(ADVOPT) -DVPN_LINUX -DTLSVPN -DUSE_SYSPASS -DSHS_VERSION=$(VERSION)
+
 OPTTLS= $(OPT) -DTLSWODLL
 
 #-fdelete-null-pointer-checks  -fdelayed-branch  -fdelete-dead-exceptions
@@ -79,6 +84,7 @@ OPTTLS= $(OPT) -DTLSWODLL
 
 
 OPT64=  -Dx86_64 -DNOTINTEL -DA_64 $(OPT)
+OPT64CVPN=  -Dx86_64 -DNOTINTEL -DA_64 $(OPTCVPN)
 OPT64TLS= $(OPT64) -DTLSWODLL
 
 GPP=gcc -m32
@@ -146,7 +152,7 @@ WINEBIN2S=./bin2s
 
 WINECFLG= -Os -nostdinc -Iwinclude  $(WININC) -mno-align-double -mno-fancy-math-387 -fconserve-space  -fno-rtti -fno-threadsafe-statics -fno-access-control -fno-nonansi-builtins -fno-elide-constructors -fno-enforce-eh-specs -DSERVICE -DFREE_VER  -DFREEVER -DV_FULL=1 -DUSE_IPV6 -DMINGW -DRICON -mwindows -fno-optional-diags -momit-leaf-frame-pointer -mno-red-zone -fno-exceptions  -fno-stack-protector -no-pie -fno-ms-extensions -fno-stack-check -mno-stack-arg-probe -fmax-errors=10 -DSEPLOG -DSELECT1  -DVPN_WIN -DTLSVPN -DWITHMD5 -DSHS_VERSION=$(VERSION) -DUSEVALIST
 
-WINELFLG=  -mwindows $(WINLIB) -luser32 -lkernel32 -lws2_32 -lgdi32 -lshell32 -lcomdlg32  -ladvapi32 -Xlinker --heap  -Xlinker 0x20000000 -Wl,--subsystem,windows  -nostartfiles -nodefaultlibs -Xlinker -Map -Xlinker wo/flxmap  -Xlinker --entry=_start    -fno-optional-diags -momit-leaf-frame-pointer  -mno-red-zone -fno-exceptions  -fno-stack-protector -fno-ms-extensions -no-pie -fno-stack-check -mno-stack-arg-probe
+WINELFLG=  -mwindows $(WINLIB) -luser32 -lkernel32 -lws2_32 -lgdi32 -lshell32 -lcomdlg32  -ladvapi32  -liphlpapi -Xlinker --heap  -Xlinker 0x20000000 -Wl,--subsystem,windows  -nostartfiles -nodefaultlibs -Xlinker -Map -Xlinker wo/flxmap  -Xlinker --entry=_start    -fno-optional-diags -momit-leaf-frame-pointer  -mno-red-zone -fno-exceptions  -fno-stack-protector -fno-ms-extensions -no-pie -fno-stack-check -mno-stack-arg-probe
 
 #WINECFLG=  -nostdinc -Iwinclude  -I$(MGDIR)\\include -I$(MGDIR)\\lib\\gcc\\mingw32\\8.2.0\\include -fno-implicit-templates -mno-align-double -mno-fancy-math-387 -fconserve-space  -fno-rtti -fno-threadsafe-statics -fno-access-control -fno-nonansi-builtins -fno-elide-constructors -fno-enforce-eh-specs -DSERVICE -DFREE_VER  -DFREEVER -DV_FULL=1 -DUSE_IPV6 -DMINGW -DRICON -mwindows -fno-optional-diags -momit-leaf-frame-pointer -mno-red-zone -fno-exceptions  -fno-stack-protector -no-pie -fno-ms-extensions -fno-stack-check -mno-stack-arg-probe
 
@@ -181,9 +187,6 @@ WIN64ELFLG=  -mwindows $(WIN64LIB) -luser32 -lkernel32 -lws2_32 -lgdi32 -lshell3
 
 
 
-
-
-
 LOPT=   -dynamic-linker   -Xlinker -Map -Xlinker o/flxmap  -nodefaultlibs
 LOPT64=   -dynamic-linker   -Xlinker -Map -Xlinker o64/flxmap  -nodefaultlibs
 
@@ -191,19 +194,29 @@ LIB= $(LIBDIR32) -lpthread  $(LIBDIR32) -ldl $(LIBDIR32) -lc $(LIBDIR32) -lgcc -
 LIB64= $(LIBDIR64) -lpthread  $(LIBDIR64) -ldl $(LIBDIR64) -lc  $(LIBDIR32) -lgcc -lc_nonshared $(LIBDIR32) -lcrypt
 LIB64u=  -ldl -lpthread  -lc -lgcc -lc_nonshared -lcrypt
 
-BINFILES := httpd.exe httpd.exopenssl httpd.exgnutls sndmsg
+BINFILES := httpd.exe sndmsg shs_vpnclient
+BINFILESF := httpd.exe httpd.exopenssl httpd.exgnutls sndmsg shs_vpnclient shs_vpnclient.openssl shs_vpnclient.gnutls
 
 
 #LIB= -lpthread -ldl -lc -lc_nonshared
 #LIB64= -lpthread -ldl -lc -lc_nonshared
 
 
-COBJS= o/to_linux.o o/bvprintfv.o
-COBJS64= o64/to_linux.o
+CCOBJS= to_linux.o bvprintfv.o
+COBJS= $(addprefix o/, $(CCOBJS))
+COBJS64= $(addprefix o64/, $(CCOBJS))
 
-AOBJS=mstring1.o srv0a.o srv_ssi.o srv_cgi.o req.o accept.o tools.o adminr.o restart.o proxy.o musers.o conf.o icfg.o stat.o icfgjs.o ftpd.o smptps.o smtpcl.o mailip.o dnsd.o tlsm.o gz.o dhcpd.o wmbx.o md5.o msprintfchk.o fcgi.o vpn.o
+AOBJS=mstring1.o srv0a.o srv_ssi.o srv_cgi.o req.o accept.o tools.o adminr.o restart.o proxy.o musers.o conf.o icfg.o stat.o icfgjs.o ftpd.o smptps.o smtpcl.o mailip.o dnsd.o tlsm.o gz.o dhcpd.o wmbx.o md5.o msprintfchk.o fcgi.o vpn.o reqfunc.o srvmd5.o
 
-AOBJS64=srv0a.o srv_ssi.o srv_cgi.o req.o accept.o tools.o adminr.o restart.o proxy.o musers.o conf.o icfg.o stat.o icfgjs.o ftpd.o smptps.o smtpcl.o mailip.o dnsd.o tlsm.o gz.o dhcpd.o wmbx.o bvprintfv.o md5.o msprintfchk.o fcgi.o vpn.o
+AOBJS64=srv0a.o srv_ssi.o srv_cgi.o req.o accept.o tools.o adminr.o restart.o proxy.o musers.o conf.o icfg.o stat.o icfgjs.o ftpd.o smptps.o smtpcl.o mailip.o dnsd.o tlsm.o gz.o dhcpd.o wmbx.o md5.o msprintfchk.o fcgi.o vpn.o reqfunc.o srvmd5.o
+
+CVPNCLOBJ := srv0a_vpnclient.o tools.o icfg_vpnclient.o md5.o msprintfchk.o srvmd5.o
+
+VVPNCLOBJ := conf.o tlsm.o vpn.o regular.o reqfunc.o
+
+BVPNCLOBJ := $(CVPNCLOBJ) $(addprefix vpnclient/, $(VVPNCLOBJ))
+
+VPNCLOBJ=$(CCOBJS) $(BVPNCLOBJ)
 
 POBJS=$(AOBJS)
 # telnet.o
@@ -211,10 +224,18 @@ OBJS=$(COBJS) $(POBJS)
 
 
 OOBJS=$(COBJS) $(addprefix o/,$(POBJS))
+OOVPNCL=$(addprefix o/,$(VPNCLOBJ) mstring1.o)
+OOVPNCL_TLS=$(COBJS) o/mstring1.o $(addprefix o/tls_,$(CVPNCLOBJ)) $(addprefix o/vpnclient/tls_,$(VVPNCLOBJ))
 
 OOBJS64=$(COBJS64) $(addprefix o64/,$(AOBJS64))
 
+OOVPNCL64=$(addprefix o64/,$(VPNCLOBJ))
+OOVPNCL64_TLS=$(COBJS64) $(addprefix o64/tls_,$(CVPNCLOBJ)) $(addprefix o64/vpnclient/tls_,$(VVPNCLOBJ))
+
 WINOOBJS= wo/fwnd.o $(addprefix wo/,$(AOBJS)) wo/bvprintfv.o wo/srvdat.o wo/isapi.o wo/qsort.o wo/updr.res
+
+WINVPNCLOBJ=wo/vpnclient/fwnd.o wo/mstring1.o wo/vpnclient/restart.o $(addprefix wo/,$(BVPNCLOBJ)) wo/bvprintfv.o wo/srvdat_vpnclient.o wo/qsort.o wo/updr.res
+
 
 #GENERATED=S2_lf.hh lS2_lf.cfg g4strc.h S3_lf.hh lS3_lf.cfg g4strcwm.h t2icfg.cpp S1_lf.hh lS1_lf.cfg g4s1.hh o/s1.hh
 GENERATED=S2_lf.hh lS2_lf.cfg g4strc.h S3_lf.hh lS3_lf.cfg g4strcwm.h
@@ -258,6 +279,10 @@ else
 #all: wo/libsec321.dll
 
 #all: i64
+#all: win
+#all: o64/vpnclient o64/shs_vpnclient
+#all: wo/vpnclient.exe
+
 all: /dev/shm/shttps/o/1.x o/1.x getstr i32 i64 i32f i64f win arm arm64
 
 endif
@@ -267,21 +292,19 @@ $(OOBJS) $(OOBJS64) $(WINOOBJS): $(GENERATED)
 
 # $(GENERATED): $(TMPRAM)o
 
-i32: $(TMPRAM)o o o/httpd.exe o/libsec111.so o/libsecgnutls.so o/sndmsg o/httpd.exgnutls o/httpd.exopenssl
+i32: $(TMPRAM)o o o/httpd.exe o/libsec111.so o/libsecgnutls.so o/sndmsg o/httpd.exgnutls o/httpd.exopenssl o/vpnclient o/shs_vpnclient o/shs_vpnclient.openssl o/shs_vpnclient.gnutls
 
-i64: $(TMPRAM)o64 o o64 o64/httpd.exe o64/libsecgnutls.so o64/libsec111.so o64/sndmsg o64/httpd.exgnutls o64/httpd.exopenssl
+i64: $(TMPRAM)o64 o o64 o64/httpd.exe o64/libsecgnutls.so o64/libsec111.so o64/sndmsg o64/httpd.exgnutls o64/httpd.exopenssl o64/vpnclient o64/shs_vpnclient o64/shs_vpnclient.openssl o64/shs_vpnclient.gnutls
 
-i32f: $(TMPRAM)o/of o $(FAKELIBS) o/of/httpd.exe o/of/libsec111.so o/of/libsecgnutls.so o/of/httpd.exgnutls o/of/httpd.exopenssl o/of/sndmsg
+i32f: $(TMPRAM)o/of o $(FAKELIBS) o/of/httpd.exe o/of/libsec111.so o/of/libsecgnutls.so o/of/httpd.exgnutls o/of/httpd.exopenssl o/of/sndmsg o/vpnclient o/of/shs_vpnclient o/of/shs_vpnclient.openssl o/of/shs_vpnclient.gnutls
 
-#o/libsecgnutls.so o/libsec.so o/libsec111.so
-
-i64f: $(TMPRAM)o64/of o o64 $(FAKELIBS64) o64/of/httpd.exe o64/of/libsecgnutls.so o64/of/libsec111.so o64/of/httpd.exgnutls o64/of/httpd.exopenssl o64/of/sndmsg
+i64f: $(TMPRAM)o64/of o o64 $(FAKELIBS64) o64/of/httpd.exe o64/of/libsecgnutls.so o64/of/libsec111.so o64/of/httpd.exgnutls o64/of/httpd.exopenssl o64/of/sndmsg  o64/vpnclient o64/of/shs_vpnclient o64/of/shs_vpnclient.openssl o64/of/shs_vpnclient.gnutls
 
 #o64/httpdu.exe o64/libsecgnutls.so o64/libsec.so o64/libsec111.so o64/libsec.so
 
-arm: $(TMPRAM)at o at at/atobjdir at/httpd.exe at/libsec111.so at/libsecgnutls.so at/httpd.exopenssl at/httpd.exgnutls
+arm: $(TMPRAM)at o at at/vpnclient at/atobjdir at/httpd.exe at/libsec111.so at/libsecgnutls.so at/httpd.exopenssl at/httpd.exgnutls at/shs_vpnclient
 
-win: $(TMPRAM)wo o wo wo/http.exe wo/httpg.exe bin2s wo/shttps_mg.exe wo/shttpsr_mg.exe wo/shttps_mgi.exe wo/shttpsr_mgi.exe wo/libsecgnutls.dll
+win: $(TMPRAM)wo o wo wo/http.exe wo/httpg.exe bin2s wo/shttps_mg.exe wo/shttpsr_mg.exe wo/shttps_mgi.exe wo/shttpsr_mgi.exe wo/libsecgnutls.dll wo/vpnclient wo/vpnclient.exe
 
 
 arm64: CROSS_COMPILE:=aarch64-linux-gnu-
@@ -296,6 +319,9 @@ $(TMPRAM)% :
 	[ -d $* ] || ln -sf $@ $*
 
 %/of: $(TMPRAM)%
+	mkdir -p $@
+
+%/vpnclient:
 	mkdir -p $@
 
 o64/of/%.o : o64/of
@@ -315,6 +341,11 @@ o/%.o :  %.c
 o/tls_%.o :  %.c
 	   $(GCC) -c -DSYSUNIX -DV_FULL=1 $(G) $(OPTTLS)  $< -o $@
 
+o/vpnclient/%.o : %.cpp
+	   $(GPP) -c -DSYSUNIX -DVPNCLIENT_ONLY $(G) $(OPT)  $< -o $@
+
+o/vpnclient/tls_%.o : %.cpp
+	   $(GPP) -c -DSYSUNIX -DVPNCLIENT_ONLY $(G) $(OPTTLS)  $< -o $@
 
 o64/%.o :  %.cpp
 	   $(GPP64) -c -Dx86_64 -DNOTINTEL -DSYSUNIX -DV_FULL=1 $(G) $(OPT64)  $< -o $@
@@ -323,21 +354,27 @@ o64/%.o :  %.cpp
 o64/%.o :  %.c
 	   $(GCC64) -c -Dx86_64 -DNOTINTEL -DSYSUNIX -DV_FULL=1 $(G) $(OPT64)  $< -o $@
 
-
 o64/tls_%.o :  %.cpp
 	   $(GPP64) -c -Dx86_64 -DNOTINTEL -DSYSUNIX -DV_FULL=1 $(G) $(OPT64TLS)  $< -o $@
-
 
 o64/tls_%.o :  %.c
 	   $(GCC64) -c -Dx86_64 -DNOTINTEL -DSYSUNIX -DV_FULL=1 $(G) $(OPT64TLS)  $< -o $@
 
+o64/vpnclient/%.o: %.cpp
+	$(GPP64) -c -Dx86_64 -DNOTINTEL -DSYSUNIX -DVPNCLIENT_ONLY  $(G) $(OPT64)  $< -o $@
+
+o64/vpnclient/tls_%.o :  %.cpp
+	   $(GPP64) -c -Dx86_64 -DNOTINTEL -DSYSUNIX -DVPNCLIENT_ONLY -DV_FULL=1 $(G) $(OPT64TLS)  $< -o $@
 
 r/%.o :  %.cpp
 	   $(GPP) -c -DSYSUNIX -DV_FULL=1 $(G) $(OPT) -DRUS  $< -o $@
 
 
 wo/%.o :  %.cpp
-	   $(WINEGPP) -c -g $(WINECFLG)  $< -o $@
+	   $(WINEGPP) -c -g $(WINECFLG)  -DVPN_UPDATE_NET $< -o $@
+
+wo/vpnclient/%.o: %.cpp
+	$(WINEGPP) -c -g $(WINECFLG) -DVPNCLIENT_ONLY -DVPN_UPDATE_NET $< -o $@
 
 wo/sethttp3r.o: sethttp3.cpp
 	   $(WINEGPP) -c -g $(WINECFLG) -DRUS $< -o $@
@@ -418,9 +455,9 @@ o/1.x: /dev/shm/shttps/o/1.x
 	ln -sf /dev/shm/shttps/o64 .
 	ln -sf /dev/shm/shttps/wo .
 	ln -sf /dev/shm/shttps/arm .
-	mkdir -p  o/dist o/distu o/adist/ o64/dist o64/distu o/of o64/of
-	mkdir -p  o/dist/langpacks/en o/adist/langpacks/en o64/dist/langpacks/en o64/distu/langpacks/en
-	mkdir -p  o/dist/langpacks/ru o/adist/langpacks/ru o64/dist/langpacks/ru o64/distu/langpacks/ru
+	mkdir -p  o/dist o/of/dist at/dist/ o64/dist o64/of/dist o/of o64/of
+	mkdir -p  o/dist/langpacks/en at/dist/langpacks/en o64/dist/langpacks/en o64/of/dist/langpacks/en
+	mkdir -p  o/dist/langpacks/ru at/dist/langpacks/ru o64/dist/langpacks/ru o64/of/dist/langpacks/ru
 
 /dev/shm/shttps/o/1.x :
 	mkdir -p /dev/shm/shttps/o /dev/shm/shttps/o64 /dev/shm/shttps/wo /dev/shm/shttps/arm ; echo 1 >$@
@@ -431,19 +468,37 @@ o/httpd.exe: $(OOBJS)
 o/of/httpd.exe: $(OOBJS)
 	$(GCC)  $(G)  $(OOBJS) -o $@  $(LOPT) $(LIBF)
 
-
 o/httpd.exopenssl: $(OOBJS_TLS) o/runssl111.o
 	$(GCC)  $(G)  $^ -o $@ -Wl,--copy-dt-needed-entries $(LOPT) $(LIB) $(LIBDIR32) -lssl -lcrypto
 
 o/of/httpd.exopenssl: $(OOBJS_TLS) o/runssl111.o
 	$(GCC)  $(G)  $^ -o $@  $(LOPT) $(LIBF) $(LIBDIR32F) -lssl  $(LIBDIR32F) -lcrypto
 
-
 o/httpd.exgnutls: $(OOBJS_TLS) o/rungnutls.o
 	$(GCC)  $(G)  $^ -o $@ -Wl,--copy-dt-needed-entries $(LOPT) $(LIB) $(LIBDIR32) -lgnutls
 
 o/of/httpd.exgnutls: $(OOBJS_TLS) o/rungnutls.o
 	$(GCC)  $(G)  $^ -o $@  $(LOPT) $(LIBF)  $(LIBDIR32F) -l:libgnutls.so.30
+
+o/shs_vpnclient: $(OOVPNCL)
+	$(GCC)  $(G)  $^ -o $@  $(LOPT) $(LIB)
+
+o/of/shs_vpnclient: $(OOVPNCL)
+	$(GCC)  $(G)  $^ -o $@  $(LOPT) $(LIBF)
+
+o/shs_vpnclient.openssl: $(OOVPNCL_TLS) o/runssl111.o
+	$(GCC)  $(G)  $^ -o $@ -Wl,--copy-dt-needed-entries $(LOPT) $(LIB) $(LIBDIR32) -lssl -lcrypto
+
+o/shs_vpnclient.gnutls: $(OOVPNCL_TLS) o/rungnutls.o
+	$(GCC)  $(G)  $^ -o $@ -Wl,--copy-dt-needed-entries $(LOPT) $(LIB) $(LIBDIR32) -lgnutls
+
+o/of/shs_vpnclient.openssl: $(OOVPNCL_TLS) o/runssl111.o
+	$(GCC)  $(G)  $^ -o $@ -Wl,--copy-dt-needed-entries $(LOPT) $(LIBF) -lssl $(LIBDIR32F) -lcrypto
+
+o/of/shs_vpnclient.gnutls: $(OOVPNCL_TLS) o/rungnutls.o
+	$(GCC)  $(G)  $^ -o $@ -Wl,--copy-dt-needed-entries $(LOPT) $(LIBF) $(LIBDIR32F) -l:libgnutls.so.30
+
+
 
 
 tclean:
@@ -454,7 +509,6 @@ o64/httpd.exe: $(OOBJS64)
 
 o64/of/httpd.exe: $(OOBJS64)
 	$(GCC64)  $(G)  $(OOBJS64) -o $@  $(LOPT64) $(LIB64F)
-
 
 o64/httpd.exopenssl: $(OOBJS64_TLS) o64/runssl111.o
 	$(GCC64)  $(G)  $^ -o $@  -Wl,--copy-dt-needed-entries $(LOPT64) $(LIB64) $(LIBDIR64) -lssl $(LIBDIR64F) -lcrypto
@@ -470,12 +524,34 @@ o64/of/httpd.exgnutls: $(OOBJS64_TLS) o64/rungnutls.o
 	$(GCC64)  $(G)  $^ -o $@  $(LOPT64) $(LIB64F) $(LIBDIR64F) -l:libgnutls.so.30
 
 
+o64/shs_vpnclient: $(OOVPNCL64)
+	$(GCC64)  $(G)  $(OOVPNCL64) -o $@  $(LOPT64) $(LIB64)
+
+o64/of/shs_vpnclient: $(OOVPNCL64)
+	$(GCC64)  $(G)  $^ -o $@ $(LOPT64) $(LIB64F)
+
+o64/shs_vpnclient.openssl: $(OOVPNCL64_TLS) o64/runssl111.o
+	$(GCC64)  $(G)  $^ -o $@ -Wl,--copy-dt-needed-entries $(LOPT64) $(LIB64) $(LIBDIR64) -lssl -lcrypto
+
+o64/shs_vpnclient.gnutls: $(OOVPNCL64_TLS) o64/rungnutls.o
+	$(GCC64)  $(G)  $^ -o $@ -Wl,--copy-dt-needed-entries $(LOPT64) $(LIB64) $(LIBDIR64) -lgnutls
+
+o64/of/shs_vpnclient.openssl: $(OOVPNCL64_TLS) o64/runssl111.o
+	$(GCC64)  $(G)  $^ -o $@ -Wl,--copy-dt-needed-entries $(LOPT64) $(LIB64F) -lssl $(LIBDIR64F) -lcrypto
+
+o64/of/shs_vpnclient.gnutls: $(OOVPNCL64_TLS) o64/rungnutls.o
+	$(GCC64)  $(G)  $^ -o $@ -Wl,--copy-dt-needed-entries $(LOPT64) $(LIB64F) $(LIBDIR64F) -l:libgnutls.so.30
+
+
 
 wo/http.exe: $(WINOOBJS)
 	$(WINEGCC) -s  $(WINOOBJS) -o $@ $(WINELFLG)
 
 wo/httpg.exe: $(WINOOBJS)
 	$(WINEGCC) -g  $(WINOOBJS) -o $@ $(WINELFLG)
+
+wo/vpnclient.exe: $(WINVPNCLOBJ)
+	$(WINEGCC) -s  $^ -o $@ $(WINELFLG)
 
 o/sndmsg: o/sndmsg.o o/mstring1.o
 	$(GCC)  $(G)  $^ -o $@  $(LOPT) $(LIB)
@@ -519,18 +595,16 @@ wo/shttpsr_mgi.exe: wo/stpdtari.o wo/sethttp3ri.o wo/mstring1.o wo/updr.res
 wo/uninst.exe: wo/uninst.o
 	$(WINEGCC)  -s  $^ -o $@  -nodefaultlibs -L$(MGDIR)\\lib -luser32 -lkernel32 -lgdi32 -lcomdlg32 -ladvapi32 -lshell32 -Wl,--subsystem,windows -nostartfiles  -Xlinker -Map -Xlinker wo/flxmaps  -Xlinker --entry=_start  -nostartfiles -Xlinker -Map -Xlinker wo/flxmap  -Xlinker --entry=_start    -fno-optional-diags -momit-leaf-frame-pointer  -mno-red-zone -fno-exceptions  -fno-stack-protector -fno-ms-extensions -no-pie -fno-stack-check -mno-stack-arg-probe
 
-
-
-wo/stpdta.o: wo/stpdta.s wo/uninst.bin wo/http.bin wo/ind1.bin wo/eshs_lang.bin wo/shs_lang.bin wo/lnotes.bin wo/lic.bin wo/vpn_if_up.bin wo/vpn_if_client_up.bin wo/vpn_if_client_down.bin wo/manifest.bin
+wo/stpdta.o: wo/stpdta.s wo/uninst.bin wo/http.bin wo/ind1.bin wo/eshs_lang.bin wo/shs_lang.bin wo/lnotes.bin wo/lic.bin wo/vpn_if_up.bin wo/vpn_if_client_up.bin wo/vpn_if_client_down.bin wo/manifest.bin wo/vpnclient.bin wo/temp_sert.bin
 	 cd wo ;  $(WINEAS)  stpdta.s -o stpdta.o
 
-wo/stpdtar.o: wo/stpdtar.s wo/uninst.bin wo/http.bin wo/ind1r.bin wo/eshs_lang.bin wo/shs_lang.bin wo/lnotes.bin wo/licr.bin wo/vpn_if_up.bin wo/vpn_if_client_up.bin wo/vpn_if_client_down.bin wo/manifest.bin
+wo/stpdtar.o: wo/stpdtar.s wo/uninst.bin wo/http.bin wo/ind1r.bin wo/eshs_lang.bin wo/shs_lang.bin wo/lnotes.bin wo/licr.bin wo/vpn_if_up.bin wo/vpn_if_client_up.bin wo/vpn_if_client_down.bin wo/manifest.bin wo/vpnclient.bin wo/temp_sert.bin
 	 cd wo ;  $(WINEAS)  stpdtar.s -o stpdtar.o
 
-wo/stpdtai.o: wo/stpdtai.s wo/uninst.bin wo/http.bin wo/ind1.bin wo/eshs_lang.bin wo/shs_lang.bin wo/lnotes.bin wo/lic.bin wo/ipbase.s wo/vpn_if_up.bin wo/vpn_if_client_up.bin wo/vpn_if_client_down.bin wo/manifest.bin
+wo/stpdtai.o: wo/stpdtai.s wo/uninst.bin wo/http.bin wo/ind1.bin wo/eshs_lang.bin wo/shs_lang.bin wo/lnotes.bin wo/lic.bin wo/ipbase.s wo/vpn_if_up.bin wo/vpn_if_client_up.bin wo/vpn_if_client_down.bin wo/manifest.bin wo/vpnclient.bin wo/temp_sert.bin
 	 cd wo ;  $(WINEAS)  stpdtai.s -o stpdtai.o
 
-wo/stpdtari.o: wo/stpdtari.s wo/uninst.bin wo/http.bin wo/ind1r.bin wo/eshs_lang.bin wo/shs_lang.bin wo/lnotes.bin wo/licr.bin wo/ipbase.s wo/vpn_if_up.bin wo/vpn_if_client_up.bin wo/vpn_if_client_down.bin wo/manifest.bin
+wo/stpdtari.o: wo/stpdtari.s wo/uninst.bin wo/http.bin wo/ind1r.bin wo/eshs_lang.bin wo/shs_lang.bin wo/lnotes.bin wo/licr.bin wo/ipbase.s wo/vpn_if_up.bin wo/vpn_if_client_up.bin wo/vpn_if_client_down.bin wo/manifest.bin wo/vpnclient.bin wo/temp_sert.bin
 	 cd wo ;  $(WINEAS)  stpdtari.s -o stpdtari.o
 
 wo/stpdta.s: stpdta.s
@@ -581,6 +655,8 @@ wo/lnotes.bin :  lang_notes.txt
 wo/ipbase.s : ipbase.bin
 	$(WINEBIN2S)  $< $@
 
+wo/temp_sert.bin : o/stemp_sert.pem
+	$(WINEBIN2S)  $< $@
 
 # o/t2icfg.o: t2icfg.cpp g4s1.hh
 
@@ -673,19 +749,19 @@ o64/dist/%.so: o64/of/%.so
 o64/dist/libsecgnutls.so: o64/libsecgnutls.so
 	cp -f $^ $@
 
-o64/distu/libsec.so: o64/libsec.so
+o64/of/dist/libsec.so: o64/libsec.so
 	cp -f $^ $@
 
-o64/distu/%.so: o64/%.so
+o64/of/dist/%.so: o64/%.so
 	cp -f $^ $@
 
-o/distu/%.so: o/%.so
+o/of/dist/%.so: o/%.so
 	cp -f $^ $@
 
-o64/distu/libsecgnutls.so: o64/libsecgnutls.so
+o64/of/dist/libsecgnutls.so: o64/libsecgnutls.so
 	cp -f $^ $@
 
-o/dist/descu.htm o/adist/descu.htm o64/dist/descu.htm o64/distu/descu.htm: descu.htm
+o/dist/descu.htm at/dist/descu.htm o64/dist/descu.htm o64/of/dist/descu.htm: descu.htm
 	cp -f $^ $@
 
 o/dist/%.sh: script_examples/%.sh
@@ -694,25 +770,25 @@ o/dist/%.sh: script_examples/%.sh
 oo/dist/%.sh: script_examples/%.sh
 	cp -f $^ $@
 
-o/distu/%.sh: script_examples/%.sh
+o/of/dist/%.sh: script_examples/%.sh
 	cp -f $^ $@
 
-o/adist/%.sh: script_examples/%.sh
+at/dist/%.sh: script_examples/%.sh
 	cp -f $^ $@
 
 o64/dist/%.sh: script_examples/%.sh
 	cp -f $^ $@
 
-o64/distu/%.sh: script_examples/%.sh
+o64/of/dist/%.sh: script_examples/%.sh
 	cp -f $^ $@
 
-o/dist/license06.txt o/adist/license06.txt o64/dist/license06.txt o64/distu/license06.txt: license06.txt
+o/dist/license06.txt at/dist/license06.txt o64/dist/license06.txt o64/of/dist/license06.txt: license06.txt
 	cp -f $^ $@
 
-o/dist/notes.ssl o/adist/notes.ssl o64/dist/notes.ssl o64/distu/notes.ssl: notes.ssl
+o/dist/notes.ssl at/dist/notes.ssl o64/dist/notes.ssl o64/of/dist/notes.ssl: notes.ssl
 	cp -f $^ $@
 
-o/adist/%.so: at/%.so
+at/dist/%.so: at/%.so
 	cp -f $^ $@
 
 
@@ -725,27 +801,29 @@ ru/shs_lang.cfg : lS1_lf.cfg
 
 install: # all
 	mkdir -p $(ICONFIG_APPDIR) $(ICONFIG_SHARE) $(ICONFIG_CONFIG) $(ICONFIG_LOG) $(ICONFIG_BASE)/bin $(ICONFIG_BASE)/share/man/man1
-	for i in $(BINFILES) libsecgnutls.so libsec111.so ; do  if [ -e $(INSTALLFROM)$$i ] ; then cp $(INSTALLFROM)$$i $(ICONFIG_APPDIR) ; fi; done
-	for i in httpd.cfg script_examples/*.sh ; do [ -e $(ICONFIG_CONFIG)/$$i ] || cp $$i $(ICONFIG_CONFIG) ; done
-	for i in $(BINFILES) ; do  if [ -e $(ICONFIG_APPDIR)/$$i ] ; then  ln -sf $(CONFIG_APPDIR)/$$i $(ICONFIG_BASE)/bin/ ; fi ; done
+	for i in $(BINFILESF) libsecgnutls.so libsec111.so ; do  if [ -e $(INSTALLFROM)$$i ] ; then cp $(INSTALLFROM)$$i $(ICONFIG_APPDIR) ; fi; done
+	for i in httpd.cfg vpnclient.cfg script_examples/*.sh ; do [ -e $(ICONFIG_CONFIG)/$$i ] || cp $$i $(ICONFIG_CONFIG) ; done
+	for i in $(BINFILESF) ; do  if [ -e $(ICONFIG_APPDIR)/$$i ] ; then  ln -sf $(CONFIG_APPDIR)/$$i $(ICONFIG_BASE)/bin/ ; fi ; done
 	for i in ru en ; do mkdir -p $(ICONFIG_SHARE)/$$i ; cp $$i/shs_lang.cfg $(ICONFIG_SHARE)/$$i/ ; done
 	for i in license.ssl notes.ssl license06.txt notes.ssl descu.htm ; do cp $$i $(ICONFIG_SHARE) ; done
-	for i in httpd.exe.1 sndmsg.1 ; do cp $$i $(ICONFIG_BASE)/share/man/man1/ ; done
+	for i in httpd.exe.1 sndmsg.1 shs_vpnclient.1 ; do cp $$i $(ICONFIG_BASE)/share/man/man1/ ; done
 	for i in httpd.exgnutls.1 httpd.exopenssl.1 ; do ln -sf httpd.exe.1 $(ICONFIG_BASE)/share/man/man1/$$i ; done
+	for i in shs_vpnclient.gnutls.1 shs_vpnclient.openssl.1 ; do ln -sf shs_vpnclient.1 $(ICONFIG_BASE)/share/man/man1/$$i ; done
+	if [ -r o/stemp_sert.pem ] ; then cp o/stemp_sert.pem $(ICONFIG_CONFIG)/temp_sert.pem ; elif [ o/gtemp_sert.pem ] ; then cp o/gtemp_sert.pem $(ICONFIG_CONFIG)/temp_sert.pem ; fi;
 
 
-DISTFILES=vpn_if_client_down.sh vpn_if_client_up.sh vpn_if_up.sh descu.htm httpd.cfg lang_notes.txt libsec111.so license.ssl notes.ssl libsecgnutls.so  license06.txt langpacks/ru langpacks/ru/shs_lang.cfg langpacks/en langpacks/en/shs_lang.cfg sndmsg httpd.exe.1 sndmsg.1
+DISTFILES=vpn_if_client_down.sh vpn_if_client_up.sh vpn_if_up.sh descu.htm httpd.cfg lang_notes.txt libsec111.so license.ssl notes.ssl libsecgnutls.so  license06.txt langpacks/ru langpacks/ru/shs_lang.cfg langpacks/en langpacks/en/shs_lang.cfg sndmsg httpd.exe.1 sndmsg.1 shs_vpnclient.1 vpnclient.cfg  temp_sert.pem
 ODISTFILES=$(addprefix o/dist/,$(DISTFILES))
-OUDISTFILES=$(addprefix o/distu/,$(DISTFILES))
-ADISTFILES=$(addprefix o/adist/,$(DISTFILES))
-O64DISTFILES=$(addprefix o64/dist/,$(DISTFILES))
-O64UDISTFILES=$(addprefix o64/distu/,$(DISTFILES))
+OUDISTFILES=$(addprefix o/of/dist/,$(DISTFILES))
+ADISTFILES=$(addprefix at/dist/,$(DISTFILES))
+O64DISTFILES=$(addprefix o64/of/dist/,$(DISTFILES))
+O64UDISTFILES=$(addprefix o64/dist/,$(DISTFILES))
 OODISTFILES=$(addprefix oo/dist/,$(DISTFILES))
 
-PREPAREDISTDIRS= o/dist o/distu o/adist o64/dist o64/distu oo/dist
+PREPAREDISTDIRS= o/dist o/of/dist at/dist o64/dist o64/of/dist oo/dist
 
-dist_dirs: $(PREPAREDISTDIRS)
-	mkdir -p $(PREPAREDISTDIRS)
+$(PREPAREDISTDIRS):
+	mkdir -p $@
 
 $(addsuffix /httpd.exe.1,$(PREPAREDISTDIRS)) : httpd.exe.1
 	cp $^ $@
@@ -753,50 +831,75 @@ $(addsuffix /httpd.exe.1,$(PREPAREDISTDIRS)) : httpd.exe.1
 $(addsuffix /sndmsg.1,$(PREPAREDISTDIRS)) : sndmsg.1
 	cp $^ $@
 
+$(addsuffix /shs_vpnclient.1,$(PREPAREDISTDIRS)) : shs_vpnclient.1
+	cp $^ $@
+
 CURRENT_DIR := $(dir $(abspath $(firstword $(MAKEFILE_LIST))))
 DIST_DIR=$(CURRENT_DIR)o/alldist/
-
 
 $(DIST_DIR):
 	mkdir -p $(DIST_DIR)
 
-# dist:   o/dist/libsec.so o/dist/libsec111.so o/dist/license06.txt o/adist/license06.txt o/dist/libsecgnutls.so o/dist/langpacks/ru/shs_lang.cfg o/dist/langpacks/en/shs_lang.cfg o/dist/descu.htm o/adist/
+TAR_KEY:=-cJf
+TAR_EXT:=txz
 
-dist:   $(DIST_DIR) o/dist/license06.txt o/adist/license06.txt $(ODISTFILES) $(OUDISTFILES) $(ADISTFILES) dist64 arm64dist
-	cp o/of/httpd.ex* o/dist/
-	cd o/dist/ ; strip httpd.ex* ; chmod -R go-w,u+rw,a+X * ; chmod 0755 httpd.ex* *.so sndmsg ; chmod 0644 *.1 ; chmod  0600 httpd.cfg ;  rm -f $(DIST_DIR)shttplnx.tgz ; tar --owner=root --group=root -czf $(DIST_DIR)shttplnx.tgz * ; chmod 0644 $(DIST_DIR)shttplnx.tgz
-	cp at/httpd.ex* o/adist/
-	cd o/adist/ ; arm-linux-gnueabi-strip httpd.ex* ; chmod -R go-w *  ; chmod -R a+X * ; chmod  0755 httpd.ex* *.so  sndmsg ; chmod 0644 *.1 ; chmod  0600 httpd.cfg ;  rm -f $(DIST_DIR)shttparmlnx.tgz ; tar --owner=root --group=root -czf $(DIST_DIR)shttparmlnx.tgz * ; chmod 0644 $(DIST_DIR)shttparmlnx.tgz
-	cp o/httpd.exe o/distu/
-	cd o/distu/ ; strip httpd.exe ; chmod -R go-w,u+rw,a+X * ; chmod  0755 httpd.exe *.so sndmsg ; chmod  0600 httpd.cfg ;  rm -f $(DIST_DIR)shttplnxu.tgz ; tar --owner=root --group=root -czf $(DIST_DIR)shttplnxu.tgz * ; chmod 0644 $(DIST_DIR)shttplnxu.tgz
+dist: $(PREPAREDISTDIRS) $(ODISTFILES) $(OUDISTFILES) $(ADISTFILES) $(O64DISTFILES) $(O64UDISTFILES) $(OODISTFILES) $(DIST_DIR) distu distof atdist dist64 dist64of arm64dist
 
-#dist64: o64/dist/libsec.so o64/dist/libsec111.so o64/dist/libsecgnutls.so o64/distu/libsec.so o64/distu/libsecgnutls.so o64/dist/langpacks/ru/shs_lang.cfg o64/dist/langpacks/en/shs_lang.cfg
+distu: BSNAME:=shttplnxu
+distu: o.prepare_dist
 
+distof: BINFILES:=$(BINFILESF)
+distof: BSNAME:=shttplnx
+distof: o/of.prepare_dist
 
-dist64: o64/dist/libsec111.so o64/dist/libsecgnutls.so o64/distu/libsec111.so o64/distu/libsecgnutls.so $(O64DISTFILES) $(O64UDISTFILES)
-	cp o64/of/httpd.ex* o64/dist/
-	cd o64/dist/ ; strip httpd.ex* ; chmod -R go-w,u+rw,a+X * ; chmod  0755 httpd.ex* *.so  sndmsg ; chmod 0644 *.1 ; chmod  0600 httpd.cfg ;  rm -f $(DIST_DIR)shttplnx64.tgz ; tar --owner=root --group=root -czf $(DIST_DIR)shttplnx64.tgz * ; chmod a+rw $(DIST_DIR)shttplnx64.tgz
-	cp o64/httpd.exe o64/distu/httpd.exe
-	cd o64/distu/ ; strip httpd.exe ; chmod -R go-w,u+rw,a+X * ; chmod  0755 httpd.exe *.so  sndmsg ; chmod  0600 httpd.cfg ;  rm -f $(DIST_DIR)shttplnx64u.tgz ; tar --owner=root --group=root -czf $(DIST_DIR)shttplnx64u.tgz * ; chmod 0644 $(DIST_DIR)shttplnx64u.tgz
+atdist: CROSS_COMPILE:=arm-linux-gnueabi-
+atdist: BSNAME:=shttparmlnx
+atdist: at.prepare_dist
 
+dist64: BSNAME:=shttplnx64u
+dist64: o64.prepare_dist
+
+dist64of: BSNAME:=shttplnx64
+dist64of: BINFILES:=$(BINFILESF)
+dist64of: o64/of.prepare_dist
 
 arm64dist: arm64
+arm64dist: BINFILES:=$(BINFILESF)
+arm64dist: BSNAME:=shttparm64lnx
 arm64dist: CROSS_COMPILE:=aarch64-linux-gnu-
-arm64dist: arm64 oo/dist $(addprefix oo/dist/,$(DISTFILES)) oo.prepare_dist
-	rm -f $(DIST_DIR)shttparm64lnx.tgz
-	cd oo/dist ; tar --owner=root --group=root -czf $(DIST_DIR)shttparm64lnx.tgz * ; chmod 0644 $(DIST_DIR)shttparm64lnx.tgz
+arm64dist: oo/dist oo.prepare_dist
 
-%.prepare_dist: %/dist %/httpd.exe
-	cp $*/httpd.ex* $*/dist/
-	cd $*/dist/ ; $(CROSS_COMPILE)strip httpd.ex* sndmsg *.so ; chmod -R go-w,u+rw,a+X * ; chmod  0755 httpd.ex* *.so sndmsg ; chmod 0644 *.1; chmod 0600 httpd.cfg
+dist_clean:
+	for i in $(PREPAREDISTDIRS) ; do for j in $(BINFILESF) ; do rm -f $$i/$$j ; done ; done
+
+
+# %.prepare_dist: %/dist %/httpd.exe $(addprefix %/dist/,$(DISTFILES))
+# 	for i in $(BINFILES) ; do if [ -e $*/$$i ] ; then cp $*/$$i $*/dist/ ; $(CROSS_COMPILE)strip $*/$$i ; chmod 0755 $*/$$i ; fi ; done
+# 	cd $*/dist/ ; $(CROSS_COMPILE)strip sndmsg *.so ; chmod -R go-w,u+rw,a+X * ; chmod  0755 httpd.ex* *.so sndmsg ; chmod 0644 *.1; chmod 0600 httpd.cfg
+
+
+#%.prepare_dist: $(BSDIR)%/dist $(BSDIR)%/httpd.exe $(addprefix $(BSDIR)%/dist/,$(DISTFILES))
+
+%.prepare_dist:
+	chmod -R go-w,u+rw,a+X $(BSDIR)$*/dist/*
+	for i in $(BINFILES) ; do if [ -e $(BSDIR)$*/$$i ] ; then cp $(BSDIR)$*/$$i $(BSDIR)$*/dist/ ; $(CROSS_COMPILE)strip $(BSDIR)$*/dist/$$i ; chmod 0755 $(BSDIR)$*/$$i ; fi ; done ; rm -f $(DIST_DIR)/$(BSNAME).*
+	cd $(BSDIR)$*/dist/ ; $(CROSS_COMPILE)strip sndmsg *.so ; chmod  0755 *.so sndmsg ; chmod 0644 *.1; chmod 0600 httpd.cfg ; tar --owner=root --group=root $(TAR_KEY) $(DIST_DIR)/$(BSNAME).$(TAR_EXT) * ;	chmod 0644 $(DIST_DIR)/$(BSNAME).$(TAR_EXT)
+
+
+
+# %/of.prepare_dist: %/of/dist %/of/httpd.exe $(addprefix %/of/dist/,$(DISTFILES))
+# 	for i in $(BINFILES) ; do if [ -e $*/of/$$i ] ; then cp $*/of/$$i $*/of/dist/ ; $(CROSS_COMPILE)strip $*/of/$$i ; chmod 0755 $*/of/$$i ; fi ; done
+# 	cd $*/of/dist/ ; $(CROSS_COMPILE)strip sndmsg *.so ; chmod -R go-w,u+rw,a+X * ; chmod  0755 httpd.ex* *.so sndmsg ; chmod 0644 *.1; chmod 0600 httpd.cfg
+#
+
 
 oo/dist/% : oo/%
 	cp $^ $@
 
-oo/dist: $(TMPRAM)oo
-	mkdir -p $@
+# oo/dist: $(TMPRAM)oo
+# 	mkdir -p $@
 
-sinst:  o/dist/httpd.exe $(DIST_DIR)shttplnx.tgz $(DIST_DIR)shttplnxu.tgz $(DIST_DIR)shttparmlnx.tgz $(DIST_DIR)shttplnx64.tgz  $(DIST_DIR)shttplnx64u.tgz
+sinst: o/dist/httpd.exe $(DIST_DIR)shttplnx.tgz $(DIST_DIR)shttplnxu.tgz $(DIST_DIR)shttparmlnx.tgz $(DIST_DIR)shttplnx64.tgz  $(DIST_DIR)shttplnx64u.tgz
 	chmod 0666 wo/shttps*.exe
 	mkdir -p $(BUDIR)
 	for i in wo/shttps_mg.exe wo/shttpsr_mg.exe $(DIST_DIR)*.tgz o/smallsrv_$(VERSION)_amd64.deb o/smallsrv-$(VERSION).tar.gz $(IWDIST) ; do echo $$i ; cp $$i /mnt/d/var/www/pre/ ; cp $$i $(BUDIR) ; done
@@ -805,7 +908,7 @@ sinst:  o/dist/httpd.exe $(DIST_DIR)shttplnx.tgz $(DIST_DIR)shttplnxu.tgz $(DIST
 # 	for i in wo/shttps_mg.exe wo/shttpsr_mg.exe $(DIST_DIR)shttplnx.tgz $(DIST_DIR)shttplnxu.tgz $(DIST_DIR)shttparmlnx.tgz $(DIST_DIR)shttplnx64.tgz $(DIST_DIR)shttplnx64u.tgz ; do cp $$i /mnt/d/var/www/pre/ ; done
 
 # 	mv /mnt/d/shttps/httpd.exe /mnt/d/shttps/oldhttpd_$(shell date "+%F_%R").exe
-# 	cp o/distu/httpd.exe /mnt/d/shttps/
+# 	cp o/of/dist/httpd.exe /mnt/d/shttps/
 
 sinste:  o/dist/httpd.exe $(DIST_DIR)shttplnx.tgz $(DIST_DIR)shttplnx64.tgz
 	chmod 0666 wo/shttps*.exe
@@ -830,7 +933,7 @@ sinstf:  o/dist/httpd.exe $(DIST_DIR)shttplnx.tgz $(DIST_DIR)shttparmlnx.tgz $(D
 	chmod 0666 wo/shttps*.exe
 	for i in wo/shttps_mg.exe wo/shttpsr_mg.exe wo/shttps_mgi.exe wo/shttpsr_mgi.exe $(DIST_DIR)shttplnx.tgz $(DIST_DIR)shttparmlnx.tgz $(DIST_DIR)shttplnx64.tgz $(DIST_DIR)shttplnx64u.tgz $(DIST_DIR)shttplnx64u.tgz shttp_src.tgz ; do cp $$i /mnt/d/var/www/pre/ ; done
 	mv /mnt/d/shttps/httpd.exe /mnt/d/shttps/oldhttpd.exe
-	cp o/distu/httpd.exe /mnt/d/shttps/
+	cp o/of/dist/httpd.exe /mnt/d/shttps/
 	for i in indexr.htm index.htm shttp3e.xml shttp3.xml ; do cp $$i /mnt/d/var/www/ ; done
 
 %/langpacks/en:
@@ -848,6 +951,8 @@ sinstf:  o/dist/httpd.exe $(DIST_DIR)shttplnx.tgz $(DIST_DIR)shttparmlnx.tgz $(D
 o%/license.ssl: lbins/license.ssl
 	cp -f $< $@
 
+%/dist/license.ssl: lbins/license.ssl
+	cp -f $< $@
 
 %/license06.txt: license06.txt
 	cp -f $< $@
@@ -864,7 +969,16 @@ o%/license.ssl: lbins/license.ssl
 o%/httpd.cfg: lbins/httpd.cfg
 	cp -f $< $@
 
-o64/distu/sndmsg: lbins/o64u/sndmsg
+%/of/dist/httpd.cfg: lbins/httpd.cfg
+	cp -f $< $@
+
+%/vpnclient.cfg: vpnclient.cfg
+	cp -f $< $@
+
+%/dist/httpd.cfg: lbins/httpd.cfg
+	cp -f $< $@
+
+o64/of/dist/sndmsg: lbins/o64u/sndmsg
 	cp -f $< $@
 
 o64/dist/sndmsg: lbins/o64/sndmsg
@@ -873,10 +987,10 @@ o64/dist/sndmsg: lbins/o64/sndmsg
 o/dist/sndmsg: lbins/o/sndmsg
 	cp -f $< $@
 
-o/distu/sndmsg: lbins/u/sndmsg
+o/of/dist/sndmsg: lbins/u/sndmsg
 	cp -f $< $@
 
-o/adist/sndmsg: lbins/arm/sndmsg
+at/dist/sndmsg: lbins/arm/sndmsg
 	cp -f $< $@
 
 o/libsec.so: runssl.cpp
@@ -981,6 +1095,7 @@ wo/libsecgnutls.o: rungnutls.cpp
 
 
 GNUTSLLIBDIR=/usr/src/gnutls-3.6.0-w32/lib
+# GNUTSLLIBDIR=/home/max/i/s/debug/3.8.4/lib
 
 
 wo/libsecgnutls.dll: wo/libsecgnutls.o
@@ -997,6 +1112,8 @@ ${OBJDIRSNAMES} :
 	ln -s ${TMPRAM}/$@ .
 
 $(addsuffix srv0a.o,$(OBJDIRS) $(OBJDIRS_TLS)): g4strc.h srv0a.cpp slloop.cpp srvars.cpp seplog.cpp onelog.cpp
+$(addsuffix srv0a_vpnclient.o,$(OBJDIRS) $(OBJDIRS_TLS)): g4strc.h srv0a.cpp slloop_vpnclient.cpp srvars.cpp seplog.cpp onelog.cpp
+$(addsuffix conf_vpnclient.o,$(OBJDIRS) $(OBJDIRS_TLS)): g4strc.h conf.cpp
 $(addsuffix adminr.o,$(OBJDIRS) $(OBJDIRS_TLS)): g4strc.h adminr.cpp icfghtm.cpp g4strhtm.hh
 $(addsuffix stat.o,$(OBJDIRS) $(OBJDIRS_TLS)): g4strc.h stat.cpp cstat.cpp statusr.cpp
 $(addsuffix smptps.o,$(OBJDIRS) $(OBJDIRS_TLS)): g4strc.h smptps.cpp pop3d.cpp
@@ -1107,15 +1224,19 @@ ATFLAGS= -mlittle-endian -marm  -mcpu=arm926ej-s -mthumb-interwork  -msoft-float
 #   -fno-implicit-templates -fno-implicit-inline-templates  -fno-for-scope-fnothrow-opt  -fno-pretty-templates
 
 
-ATOBJS0=to_linux.o srv0a.o srv_ssi.o srv_cgi.o req.o accept.o tools.o adminr.o restart.o proxy.o musers.o conf.o icfg.o stat.o icfgjs.o ftpd.o smptps.o smtpcl.o mailip.o dnsd.o tlsm.o gz.o dhcpd.o wmbx.o bvprintfv.o telnet.o md5.o msprintfchk.o fcgi.o vpn.o
+ATOBJS0=to_linux.o srv0a.o srv_ssi.o srv_cgi.o req.o accept.o tools.o adminr.o restart.o proxy.o musers.o conf.o icfg.o stat.o icfgjs.o ftpd.o smptps.o smtpcl.o mailip.o dnsd.o tlsm.o gz.o dhcpd.o wmbx.o bvprintfv.o telnet.o md5.o msprintfchk.o fcgi.o vpn.o reqfunc.o srvmd5.o
 
 ATOBJS=$(addprefix at/,$(ATOBJS0))
 ATOBJS_TLS=$(addprefix at/tls_,$(ATOBJS0))
+ATVPNCL=$(addprefix at/,$(VPNCLOBJ))
 
 $(ATOBJS): $(GENERATED)
 
 at/%.o : %.cpp
 	  $(ATGPP) -c $(S) $(ATFLAGS) -o $@  $<
+
+at/vpnclient/%.o: %.cpp
+	$(ATGPP) -c $(S) $(ATFLAGS) -DVPNCLIENT_ONLY -o $@  $<
 
 at/tls_%.o : %.cpp
 	  $(ATGPP) -c $(S) $(ATFLAGS) -DTLSWODLL -o $@  $<
@@ -1142,18 +1263,20 @@ at/httpd.exopenssl: $(ATOBJS_TLS) at/runssl111.o
 at/httpd.exgnutls: $(ATOBJS_TLS) at/rungnutls.o
 	$(ATGPP)  $(S) -o $@ $^  -mlittle-endian  -msoft-float -march=armv5te -mtune=arm9tdmi -L$(ATLIB)/  -L$(ATSYSLIB)  -nostartfiles  $(ATLIB)/crt1.o $(ATLIB)/crti.o $(ATLIB)/crtn.o -static -lc -lutil -lpthread -Wl,-Bdynamic $(LIBDIRARMF) -l:libgnutls.so.30
 
+at/shs_vpnclient: $(ATVPNCL)
+	$(ATGPP)  $(S) -o $@ $^  -mlittle-endian  -msoft-float -march=armv5te -mtune=arm9tdmi -L$(ATLIB)/  -L$(ATSYSLIB)  -nostartfiles  $(ATLIB)/crt1.o $(ATLIB)/crti.o $(ATLIB)/crtn.o -static -lc -lutil -lpthread
 
-
-N_OBJS0=to_linux.o srv0a.o srv_ssi.o srv_cgi.o req.o accept.o tools.o adminr.o restart.o proxy.o musers.o conf.o icfg.o stat.o icfgjs.o ftpd.o smptps.o smtpcl.o mailip.o dnsd.o tlsm.o gz.o dhcpd.o wmbx.o bvprintfv.o telnet.o md5.o msprintfchk.o fcgi.o vpn.o
+N_OBJS0=to_linux.o srv0a.o srv_ssi.o srv_cgi.o req.o accept.o tools.o adminr.o restart.o proxy.o musers.o conf.o icfg.o stat.o icfgjs.o ftpd.o smptps.o smtpcl.o mailip.o dnsd.o tlsm.o gz.o dhcpd.o wmbx.o bvprintfv.o telnet.o md5.o msprintfchk.o fcgi.o vpn.o reqfunc.o srvmd5.o
 N_OBJS=$(addprefix oo/,$(N_OBJS0))
 N_OBJS_TLS=$(addprefix oo/tls_,$(N_OBJS0))
+N_VPNCL=$(addprefix oo/,$(VPNCLOBJ))
+N_VPNCL_TLS=$(addprefix oo/,$(CCOBJS)) $(addprefix oo/tls_,$(CVPNCLOBJ)) $(addprefix oo/vpnclient/tls_,$(VVPNCLOBJ))
 
 $(N_OBJS): $(GENERATED)
 
 n_all: A_GCC=$(CROSS_COMPILE)gcc
 n_all: N_FLAGS = -mlittle-endian -Wno-deprecated-declarations -Wno-conversion  -Wno-write-strings  -fno-access-control  -fno-nonansi-builtins -fno-elide-constructors -fno-enforce-eh-specs   -fno-rtti  -fno-weak -nostdinc++  -Wnoexcept -fno-exceptions -Wno-format -fpermissive -DLINUX -DSYSUNIX -DNOTINTEL -DFREEVER -DTELNET -DUSE_IPV6 -DV_FULL=1 -DUSE_FUTEX -DUSE_POOL -DWITHMD5 -DFIX_EXCEPT -DUSEVALIST -DVPN_LINUX -DTLSVPN -DUSE_SYSPASS -DSHS_VERSION=$(VERSION) $(A_OPT) $(ADVOPT)
-n_all: $(TMPRAM)oo o oo $(N_DEP) oo/httpd.exe oo/sndmsg oo/libsec111.so oo/libsecgnutls.so oo/httpd.exopenssl oo/httpd.exgnutls
-
+n_all: $(TMPRAM)oo o oo oo/vpnclient $(N_DEP) oo/httpd.exe oo/sndmsg oo/libsec111.so oo/libsecgnutls.so oo/httpd.exopenssl oo/httpd.exgnutls oo/shs_vpnclient oo/shs_vpnclient.openssl oo/shs_vpnclient.gnutls
 
 oo/%.o : %.cpp
 	  $(A_GCC) -c $(S) $(N_FLAGS) -o $@  $<
@@ -1166,6 +1289,12 @@ oo/%.o : %.c
 
 oo/tls_%.o : %.c
 	  $(A_GCC) -c $(S) $(N_FLAGS) -DTLSWODLL -o $@  $<
+
+oo/vpnclient/%.o : %.cpp
+	  $(A_GCC) -c $(S) $(N_FLAGS) -DVPNCLIENT_ONLY -o $@  $<
+
+oo/vpnclient/tls_%.o : %.cpp
+	  $(A_GCC) -c $(S) $(N_FLAGS) -DTLSWODLL -DVPNCLIENT_ONLY -o $@  $<
 
 oo/runssl111.o: runssl111.cpp
 	 $(A_GCC) -c -s -o $@  -DOSSL111 -I/usr/src/openssl-1.1.1m/include $(N_FLAGS) -O2  $<
@@ -1188,6 +1317,16 @@ oo/libsec111.so: runssl111.cpp
 oo/sndmsg: oo/sndmsg.o
 	$(A_GCC)  $(G)  $^ -o $@ -lc
 
+oo/shs_vpnclient: $(N_VPNCL)
+	$(A_GCC)  -s  $^ -o $@ $(N_LFLAGS) -lc -lutil -lpthread -ldl $(N_LFAKELIBS) -lcrypt
+
+oo/shs_vpnclient.openssl: $(N_VPNCL_TLS) oo/runssl111.o
+	$(A_GCC)  $(S) -o $@ $^  $(N_LFLAGS) -lc -lutil -lpthread -ldl -Wl,-Bdynamic $(N_LFAKELIBS) -lssl $(N_LFAKELIBS) -lcrypto $(N_LFAKELIBS) -lcrypt
+
+oo/shs_vpnclient.gnutls: $(N_VPNCL_TLS) oo/rungnutls.o
+	$(A_GCC)  $(S) -o $@ $^ $(N_LFLAGS) -lc -lutil -lpthread -ldl -Wl,-Bdynamic  $(N_LFAKELIBS) -l:libgnutls.so.30 $(N_LFAKELIBS) -lcrypt
+
+
 oo/fakelibs:
 	mkdir -p $@
 
@@ -1197,26 +1336,40 @@ oo/fakelibs/%.so: /usr/lib/x86_64-linux-gnu/%.so
 httpd.exe.1: httpd_usage.1.in o64/httpd.exe
 	help2man -i $< -o $@ -N ./o64/httpd.exe
 
+shs_vpnclient.1: shs_vpnclient_usage.1.in o64/shs_vpnclient
+	help2man -i $< -o $@ -N ./o64/shs_vpnclient
+
 sndmsg.1: sndmsg_usage.1.in o64/sndmsg
 	help2man -i $< -o $@ -N ./o64/sndmsg
 
+temp_sert: o/stemp_sert.pem
+
+o/stemp_sert.pem:
+	openssl genrsa 4096 > $@
+	openssl req -x509 -new -key $@ -days 3650 >> $@ <openssl_sert_templ
+
+
+%/temp_sert.pem: o/stemp_sert.pem
+	cp $< $@
+
+o/gtemp_sert.pem: gnutls_sert_templ
+	certtool --generate-privkey --bits 4096 --outfile $@
+	certtool --generate-self-signed --load-privkey $@ --template gnutls_sert_templ >> $@
 
 clean_n:
 	rm -rf $(N_OBJS_TLS) $(N_OBJS) oo/fakelibs oo/httpd.exe oo/sndmsg oo/libsec111.so oo/libsecgnutls.so oo/httpd.exopenssl oo/httpd.exgnutls $(addprefix oo/,$(SECOBJ))
 
-
-
 cleanobj:
-	rm -f $(OOBJS) $(OOBJS64) $(OOBJS64_TLS) $(OOBJS_TLS) $(ATOBJS) $(ATOBJS_TLS) $(addprefix o/,$(SECOBJ)) $(addprefix o64/,$(SECOBJ)) $(addprefix at/,$(SECOBJ)) $(N_OBJS_TLS) $(N_OBJS)
+	rm -f $(OOBJS) $(OOBJS64) $(OOBJS64_TLS) $(OOBJS_TLS) $(ATOBJS) $(ATOBJS_TLS) $(addprefix o/,$(SECOBJ)) $(addprefix o64/,$(SECOBJ)) $(addprefix at/,$(SECOBJ)) $(N_OBJS_TLS) $(N_OBJS) $(OOVPNCL) $(OOVPNCL64) $(N_VPNCL) $(ATVPNCL) $(WINVPNCLOBJ) $(WINOOBJS) $(ARMOBJ)
 
-clean:  clean_n
-	rm -f $(OOBJS) $(OOBJS64) $(ROBJS) $(MIPSOBJ) $(WINOOBJS)  $(ATOBJS) $(ARMOBJ) wo/libsecgnutls.o wo/libsec111.o $(OOBJS64_TLS) $(OOBJS_TLS)  $(ATOBJS_TLS) $(addprefix o/,$(SECOBJ)) $(addprefix o64/,$(SECOBJ)) $(addprefix at/,$(SECOBJ)) $(WINOOBJS)
+clean:  clean_n cleanobj
+	rm -f wo/libsecgnutls.o wo/libsec111.o
 
 cleangen:
 	rm -f $(GENERATED)
 
 cleanall: clean cleangen
-	rm -f o/httpd.exe o64/httpd.exe wo/http.exe http.exe wo/httpg.exe wo/shttps_mg.exe  wo/shttps_mgi.exe  wo/shttpsr_mg.exe  wo/shttpsr_mgi.exe wo/uninst.exe wo/libsecgnutls.dll o/libsec111.so o/libsecgnutls.so o64/httpd.exe o64/libsecgnutls.so o64/libsec111.so at/httpd.exe at/libsec111.so at/libsecgnutls.so
+	rm -f o/httpd.exe o64/httpd.exe wo/http.exe http.exe wo/httpg.exe wo/shttps_mg.exe  wo/shttps_mgi.exe  wo/shttpsr_mg.exe  wo/shttpsr_mgi.exe wo/uninst.exe wo/libsecgnutls.dll o/libsec111.so o/libsecgnutls.so o64/httpd.exe o64/libsecgnutls.so o64/libsec111.so at/httpd.exe at/libsec111.so at/libsecgnutls.so $(addsuffix shs_vpnclient,$(OBJDIRS)) wo/vpnclient.exe
 	if [ "$(TMPRAM)" = "/dev/shm/shttps/o/" ] ; then rm -rf $(TMPRAM) ; fi
 
 SRC = accept.cpp cdde.cpp descu.htm fix_langpack.pl gz.h LICENSE mstring1.h pop3d.cpp secdll.h srv_ssi.cpp strtoul.cpp uninst.cpp \
@@ -1230,7 +1383,10 @@ bvprintf.h crt0pe.s dnsd.cpp g4strhtm.hh ico2.h mailip.cpp mlist.h nommc_dlfcn.h
 bvprintfv.cpp cstat.cpp get4def.pl ico.h mrc.cpp onelog.cpp regular.h S5_lf.hh srvars.cpp _strc.h to_linux.cpp xx31.ico \
  def4str.pl fcgi.cpp getstr isapi.cpp makefile.bsd mrc.h pe_m.h req.cpp srv_cgi.cpp strc.h to_linux.h \
  desc.htm fcgi.h getstr.cpp isapi.h makefile.dj msprintfchk.cpp pkbig.cpp ress1.s srvdat.cpp strcwm.h to_win.h \
-c4char.pl descr.htm gz.cpp lang_notes.txt makefile.in mstring1.cpp pklz.cpp restart.cpp srv.h strcwmr.h vpn.cpp vpn.h tools.cpp mkfakelib_cros.pl sndmsg.cpp httpd.exe.1 sndmsg.1 sndmsg_usage.1.in httpd_usage.1.in def4str2.pl httpd.cfg
+ c4char.pl descr.htm gz.cpp lang_notes.txt makefile.in mstring1.cpp pklz.cpp restart.cpp srv.h strcwmr.h vpn.cpp vpn.h tools.cpp mkfakelib_cros.pl sndmsg.cpp \
+ icfg_vpnclient.cpp reqfunc.cpp slloop_vpnclient.cpp srv0a_vpnclient.cpp srvdat_vpnclient.cpp  srvmd5.cpp \
+ httpd.exe.1 sndmsg.1 shs_vpnclient.1 sndmsg_usage.1.in httpd_usage.1.in shs_vpnclient_usage.1.in def4str2.pl httpd.cfg vpnclient.cfg \
+ openssl_sert_templ gnutls_sert_templ
 
 WSRC = $(addprefix winclude/,winsock_IPv6.h zconf.h zlib.h tap-windows.h nethdr.h)
 LSRC = $(addsuffix shs_lang.cfg, ru/ en/)

@@ -75,7 +75,10 @@ fb_lnotes[10],fe_lnotes[10],
 fb_s1[10],fe_s1[10],
 fb_s2[10],fe_s2[10],
 fb_s3[10],fe_s3[10],
-fb_s4[10],fe_s4[10]
+fb_s4[10],fe_s4[10],
+fb_vpnc[10], fe_vpnc[10],
+fb_sert[10],
+fe_sert[10]
 ;
 char *easyfl[]=
 {
@@ -88,6 +91,10 @@ char *easyfl[]=
  "vpn_if_client_up.bat",fb_s2,fe_s2,
  "vpn_if_client_down.bat",fb_s3,fe_s3,
  "http.exe.manifest",fb_s4,fe_s4,
+
+ "vpnclient.exe", fb_vpnc, fe_vpnc,
+ "vpnclient.exe.manifest", fb_s4,fe_s4,
+ "temp_sert.pem", fb_sert,fe_sert,
 #ifdef RUS
   "shs_lang.cfg",fb_lang,fe_lang,
 #endif
@@ -198,6 +205,7 @@ BROWSEINFO binf={0,0,target,"Select target",0,0,0,0};
 char *  cmdInstall="[CreateGroup(\"Small HTTP server\")]\n"
 "[ShowGroup(\"Small HTTP server\",1)]\n"
 "[AddItem(\"%s\\http.exe\",\"Small HTTP server\")]\n"
+"[AddItem(\"%s\\vpnclient.exe\",\"VPN client\")]\n"
 #ifdef RUS
 "[AddItem(\"%s\\desc.htm\",\"Описание\")]\n"
 "[AddItem(\"%s\\license.txt\",\"Лицензия\")]"
@@ -357,7 +365,7 @@ long CALLBACK  dlgFnc(HWND hwnd, UINT msg,UINT wparam, LONG lparam)
 #endif
        ,t[0],MB_RETRYCANCEL|MB_ICONSTOP )==IDCANCEL) return 0;
        l=t[2]-t[1];
-       if(stristr(t[0],".bat") || stristr(t[0],".cfg") || stristr(t[0],".manifest") || stristr(t[0],".txt")  )
+       if(stristr(t[0],".bat") || stristr(t[0],".pem") || stristr(t[0],".cfg") || stristr(t[0],".manifest") || stristr(t[0],".txt")  )
          while(0 == t[1][l-1] ) --l;
 
        _hwrite(i,t[1],l);
@@ -377,7 +385,7 @@ long CALLBACK  dlgFnc(HWND hwnd, UINT msg,UINT wparam, LONG lparam)
      if(IsDChk(hwnd,147)&1)
      {HGLOBAL hgl=GlobalAlloc(GMEM_DDESHARE,1024);
       m=(char *)GlobalLock(hgl);
-      sprintf(m,cmdInstall,target,target,target,target);
+      sprintf(m,cmdInstall,target,target,target,target,target);
       ProgmanMSG(m);
       GlobalUnlock(hgl);
       GlobalFree(hgl);

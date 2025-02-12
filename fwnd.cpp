@@ -29,6 +29,7 @@
 
 #ifndef SRV_H
 #include "srv.h"
+#include "vpn.h"
 #endif
 void *id_heap;
 #ifdef MINGW
@@ -81,16 +82,17 @@ int IsDChk(HWND hwnd,int d){return SendDlgItemMessage(hwnd,d,BM_GETCHECK,0,0);}
 int GetDlgItemTextLen(HWND hwnd,int d){return SendDlgItemMessage(hwnd,d,WM_GETTEXTLENGTH,0,0);}
 
 long CALLBACK DefProc(HWND hwnd, UINT msg,UINT wparam, LONG lparam)
-{union{
- RECT  xrc;
- char *bfr;
- //APPBARDATA  abd;
- POINT ap;
-  void *pp;
-  host_dir *ph;
-  char *pm;
-  char **pe;
-  User *pu;
+{
+ union{
+    RECT  xrc;
+    char *bfr;
+    //APPBARDATA  abd;
+    POINT ap;
+    void *pp;
+    host_dir *ph;
+    char *pm;
+    char **pe;
+    User *pu;
  };
  int i,j,k,l;
  char *p;
@@ -211,6 +213,30 @@ long CALLBACK DefProc(HWND hwnd, UINT msg,UINT wparam, LONG lparam)
   case WM_COMMAND:
    switch( (((i=LOWORD(wparam))<800) || (i>=3900) )? i:700+(i&7) )
    {
+     case 98: // VPN Connect/Disconnect
+       if(is_no_exit & 1)
+       { // Disconnect
+     case 99:
+         is_no_exit = 2;
+         SetDlgItemText(mwnd, 98, "VPN Connect");
+       }
+       else
+       { // Connect
+         is_no_exit = 1;
+         SetDlgItemText(mwnd, 98, "VPN Disconnect");
+         if(!(s_aflg & AFL_VPNCLN))
+         {
+           if(vpn_remote_host && vpn_remote_host[0])
+           {
+             CreateThread(&secat,(0x5000 + sizeof(VPNclient) + MAX_MTU + 0xFFF)& ~0xFFF ,VPNClient,(void *)0,0,&trd_id);
+             debug("TLS VPN client starting (connect to: %s)\r\n", vpn_remote_host);
+           }
+           else {
+             debug("VPN Remote host not specified...\r\n");
+           }
+         }
+       }
+       break;
    #ifndef CD_VER
     case 3900:
     case 3901:
@@ -268,6 +294,7 @@ long CALLBACK DefProc(HWND hwnd, UINT msg,UINT wparam, LONG lparam)
        }
       }
       break;
+#ifndef VPNCLIENT_ONLY
    case 720:
    case 740:
    case 760:
@@ -330,7 +357,11 @@ long CALLBACK DefProc(HWND hwnd, UINT msg,UINT wparam, LONG lparam)
      k=GetDlgItemTextLen(hwnd,768);
      p=pu->pasw();
      t=pu->dir(p);
+#ifdef NEWSTRUCT
+     if(strlen(p)>j || strlen(pu->name) > i || strlen(t)>k)
+#else
      if( (((ulong)t -(ulong)pu) +strlen(t) )< (i+j+k+sizeof(*pu) ) )
+#endif  // NEWSTRUCT
      {pu->state=0;
 
    case 761: //Add u
@@ -338,12 +369,23 @@ long CALLBACK DefProc(HWND hwnd, UINT msg,UINT wparam, LONG lparam)
      j=GetDlgItemTextLen(hwnd,765);
      k=GetDlgItemTextLen(hwnd,768);
      pm=new char[i+j+k+sizeof(*pu)+3 ];
+#ifdef NEWSTRUCT
+     pu->name = pm + sizeof(*pu);
+     pu->pwd = pu->name + i + 1,
+     pu->ddr = pu->pwd + j + 1;
+#endif  // NEWSTRUCT
      pu->next=userList;
      userList=pu;
      }
-     GetDlgItemText(hwnd,764,pu->name,256);
+#ifdef NEWSTRUCT
+     GetDlgItemText(hwnd,764,pu->name,i+1);
+     GetDlgItemText(hwnd,765,pu->pwd, j+1);
+     GetDlgItemText(hwnd,768,p=pu->ddr,k+1);
+#else // NEWSTRUCT
+     GetDlgItemText(hwnd,764,pu->name,256)
      GetDlgItemText(hwnd,765,pu->name+i+1,256);
      GetDlgItemText(hwnd,768,p=pu->name+i+j+2,256);
+#endif // NEWSTRUCT
      CreateDirectory(p,&secat);
      i=0x80;
      if( IsDChk(hwnd,770)) i|=UserFTPR ;
@@ -374,13 +416,25 @@ long CALLBACK DefProc(HWND hwnd, UINT msg,UINT wparam, LONG lparam)
     j=GetDlgItemTextLen(hwnd,792);
     k=0;
     if((IsDChk(hwnd,796)))k=GetDlgItemTextLen(hwnd,797);
+#ifdef NEWSTRUCT
+     pm=new char[i + j + k + sizeof(*ph) + 12];
+
+     ph->h=pm + sizeof(*ph);
+     ph->d=pm + sizeof(*ph) + i + 2;
+#else
      pm=new char[i+j+k+12];
      ph->d=pm+10+i;
+#endif  // NEWSTRUCT
      ph->next=hsdr.next;
      hsdr.next=ph;
-     GetDlgItemText(hwnd,784,ph->h,256);
+     GetDlgItemText(hwnd,784,ph->h, i+1);
+#ifdef NEWSTRUCT
+     GetDlgItemText(hwnd,792,ph->d, j+1);
+     if(k) GetDlgItemText(hwnd,797,ph->d+(ph->flg=j+1),k+1);
+#else
      GetDlgItemText(hwnd,792,ph->d=ph->h+i+1,256);
      if(k)GetDlgItemText(hwnd,797,ph->d+(ph->flg=j+1),256);
+#endif  // NEWSTRUCT
      if(IsDChk(hwnd,794) && ph->h[0]!='/' )
      {strcpy(fnamebuf+GetWindowsDirectoryA(fnamebuf,256), (s_aflg & 0x80000000)?
        "\\hosts": "\\SYSTEM32\\DRIVERS\\ETC\\hosts"   );
@@ -403,9 +457,15 @@ long CALLBACK DefProc(HWND hwnd, UINT msg,UINT wparam, LONG lparam)
    case  794: EnableWindow( GetDlgItem(hwnd,i+1),(IsDChk(hwnd,i)&1));
      if(i==794 && !GetDlgItemTextLen(hwnd,795))SetDlgItemText(hwnd,795,"127.0.0.1");
      break;
+
+#endif // VPNCLIENT_ONLY
+
    case 346: Restart();
    case 345: SMTPCounter=0x7FF; return 1;
+#ifndef VPNCLIENT_ONLY
    case 347: LoadDomainM(); return 1;
+#endif // VPNCLIENT_ONLY
+
 #endif
    case 344: MessageBox(0,about,wnd_name,MB_OK); return 1;
    case 125:// Open Window
@@ -537,6 +597,29 @@ ulong WINAPI ASyncIOThread(void *)
   return 0;
 };
 
+uint last_updated;
+void UpdateVPNStatInfo(int force)
+{
+  VPNclient * v;
+  char bfr[60];
+  uint tick;
+  if(!force)
+  {
+    if(wstate) return;
+    tick = GetTickCount();
+    if(tick<last_updated || ((tick^last_updated)&0x80000000) )
+      return;
+    last_updated = tick + 2048;
+  }
+  v = vpn_cln_connected;
+  if(v) {
+    sprintf(bfr, "In: %uKb  Out:%uKb",(uint) ((v->Tin+511)>>10),(uint)( (v->Tout+511)>>10) );
+    SetDlgItemText(mwnd, 97, bfr);
+  }
+  else {
+    SetDlgItemText(mwnd, 97, "Disconnected");
+  }
+}
 
 #endif
 

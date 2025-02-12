@@ -42,6 +42,9 @@
 .globl _fe_s1
 .globl _fe_s2
 .globl _fe_s3
+.globl _fb_vpnc
+.globl _fe_vpnc
+
 /*.globl _fb_ipbase
 .globl _fe_ipbase*/
 .globl _fb_lnotes
@@ -81,6 +84,16 @@ _fb_s3:
 .include "vpn_if_client_down.bin"
 _fe_s3:
 
+_fb_vpnc:
+.include "vpnclient.bin"
+_fe_vpnc:
+
+.globl _fb_sert
+.globl _fe_sert
+
+_fb_sert:
+.include "temp_sert.bin"
+_fe_sert:
 
 .globl _fb_s4
 .globl _fe_s4

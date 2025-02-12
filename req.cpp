@@ -112,7 +112,7 @@ char* ConvertUtf(char *s,ushort *w)
 char* CheckBadName(char *in_buf)
 {char *t,*p,*pp;
   int ii;
-  for(p=t=in_buf;*t;++t,++p)
+  for(p=t=in_buf; *t; ++t,++p)
     if(*t=='/')
     {
       *p=FSLUSH;
@@ -319,6 +319,9 @@ int Req::HttpReq()
       if((pst=strstr(in_buf,"\r\n\r\n")))break;
       if((pst=strstr(in_buf,"\n\n"))){pst+=3; break;}
     }while(1);
+
+    if(!pst) goto bdreq;
+
     postsize=l-(pst-in_buf)-4;
     KeepAlive=stristr(in_buf,"Connection: Keep-Alive");
 
@@ -465,7 +468,8 @@ int Req::HttpReq()
 
     #ifndef CD_VER
     if( strin(in_buf+dirlen,"/$_admin_$") )
-    {if( (s_flgs[1]&FL1_ATLS && (Snd!=&TLSSend)) ||
+    {
+      if( (s_flgs[1]&FL1_ATLS && (Snd!=&TLSSend)) ||
       (IsInIPRange(adm_range)<=0 )
       || IsProxyRange(adm_range) ) HttpReturnError(sACCESS_DE);
       else Admin();
@@ -595,12 +599,16 @@ int Req::HttpReq()
       p+=sprintf(templ=p,"%.63s",def_name);
 
     }
-    lcnt_trn:
+
+ lcnt_trn:
 
     DBGL("")
 
     if((hf=FindFirstFile(in_buf,&fd) )!=INVALID_HANDLE_VALUE)
     {
+ lcnt_trn2:
+      DBGLA("found %s", in_buf)
+
       if(templ)
       {
         while(fd.cFileName[0]=='.' && fd.cFileName[1]<'0')
@@ -623,6 +631,9 @@ int Req::HttpReq()
         (s_flgs[1]&FL1_RUNSYSTEM) &&
         (fd.dwFileAttributes&FILE_ATTRIBUTE_SYSTEM)
       )tpp=(char *)1;
+
+      DBGLA("tpp = %X", (long) tpp)
+
       #endif
 
       ii=9;
@@ -635,7 +646,7 @@ int Req::HttpReq()
         ii=9;
         goto ex2a;
       }
-      else if( (t=strrchr(in_buf,'.')))
+      else if( (t=strrchr(in_buf,'.')) && ! strpbrk(t,"/\\()[]-+,") )
       {
         if(!t[1])goto bdreq;
         h=DWORD_PTR(*t);
@@ -692,6 +703,9 @@ int Req::HttpReq()
       )
       {
         lcgi:
+
+        DBGL("CGI")
+
         #ifdef SYSUNIX
         fileStat=&(fd.st);
         #endif
@@ -708,6 +722,7 @@ int Req::HttpReq()
           (fcgi_detect && fcgi_detect[0] &&
           stristr(in_buf, fcgi_detect) != 0  ) )
         {
+          DBGLA("Fast CGI %s", in_buf)
           CallFCGI(in_buf);
         }
         else
@@ -792,8 +807,18 @@ int Req::HttpReq()
           if((t=strchr(in_buf,'.')))
           {
             if( (trn=strchr(t,FSLUSH) ) )
-            { trn[-1]=0; if(templ)*templ=0;
-              goto lcnt_trn;
+            {
+              *trn=0;
+              if((hf=FindFirstFile(in_buf,&fd) )!=INVALID_HANDLE_VALUE)
+              {
+                if (! (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
+                  if(templ)*templ=0;
+                  goto lcnt_trn2;
+                }
+                FindClose(hf);
+              }
+              *trn=FSLUSH;
+              trn = 0;
             };
           }
 
@@ -836,6 +861,9 @@ int Req::HttpReq()
           loc=error_file;
           in_buf=xin_buf;
           strcpy(in_buf,error_file);
+          KeepAlive = 0;
+
+          DBGLA("error file %s", error_file)
 
           goto lcnt_trn;
         }
@@ -942,6 +970,9 @@ int Req::HttpReq()
       _lclose(h);
     #undef l
     ex1:;
+
+    DBGLA("exit fl=%X KeepAlive=%lX", fl, (long)KeepAlive )
+
     ttm+=GetTickCount()-tick;
     if( (! KeepAlive) || --KeepAliveCounter<=0 ){
       DBGL("KeepAlive not avilablie\n");

@@ -48,16 +48,6 @@ void  SignalUSR(int)
 }
 
 
-void signalHUP(int )
-{
-  if(is_no_exit)
-  {
-    // Toggle VPN client connection (Connect/Disconnect)
-    is_no_exit = 2 | (is_no_exit^1);
-    signal(SIGHUP, signalHUP);
-  }
-}
-
 #if ! (defined(ANDROID) || defined(LPC_ARM)  || defined(AT_ARM) )
 #include <execinfo.h>
 #else
@@ -207,45 +197,11 @@ lbRestart:
  {
   is_no_exit=0;
   s_aflg|=AFL_EXIT;
-  StopSocket();
   unsave_limit=1;
 #ifndef ARM
 
-#if 0
-
-  void **bp,*ip;
-  debug("\nPlease send this part of log to support@smallsrv.com: " STRVER " Exception at %X  EIP=%X\n"
-  "EAX=%X EBX=%X ECX=%X EDX=%X ESI=%X EDI=%X ESP=%X; stack trace:\n"
-  , info->si_addr,ptr->uc_mcontext.gregs[REG_EIP]
-  ,ptr->uc_mcontext.gregs[REG_EAX]
-  ,ptr->uc_mcontext.gregs[REG_EBX]
-  ,ptr->uc_mcontext.gregs[REG_ECX]
-  ,ptr->uc_mcontext.gregs[REG_EDX]
-  ,ptr->uc_mcontext.gregs[REG_ESI]
-  ,ptr->uc_mcontext.gregs[REG_EDI]
-  ,ptr->uc_mcontext.gregs[REG_ESP]
-  );
-  bp = (void**)ptr->uc_mcontext.gregs[REG_EBP];
-  do{
-    ip = bp[1];
-    if(!ip)break;
- //   debug("%X->%X ",ip, ((ulong*) ip)[-1] );
-    debug("%X ",ip );
-    if(bp >= (void**)bp[0] ) break;
-    bp = (void**)bp[0];
-  }while( bp );
-#endif
- /*
-
-  if(unsave_limit>1)
-  {unsave_limit=1;
-   RelProt();
-  }
-
-  */
 #endif
 
-//  CloseServer();
 #if defined(x86_64)
   if( (!ext_cntr2) && ptr && ptr->uc_mcontext.gregs[REG_RSP]){ext_cntr2++; DebugStack((u_long *) (ptr->uc_mcontext.gregs[REG_RSP])); ext_cntr2=0; }
 #elif  !defined(NOTINTEL)
@@ -253,24 +209,15 @@ lbRestart:
 #endif
  }
  longjmp(jmp_env,1);
-  //execve(cmdline,,)
-//   if( !vfork() )
-//     execl(__argv[0],__argv[0],0);
-//   exit(0);
-};
 
+};
 
 int last[8]={-1,-1,-1,-1,-1,-1};
 struct rlimit  rlim={0x7FFFFFF,0x7FFFFFF};
 
-#if defined(_BSD_VA_LIST_) || defined(NOTINTEL)
-int main
-#else
-extern "C"
-int main
-#endif
-(int argc, char *argv[] )
-{int ll;
+extern "C" int main(int argc, char *argv[] )
+{
+  int ll;
 union{
  fd_set set;
  struct stat stt;
@@ -281,9 +228,6 @@ fd_set er_set;
  char *t,*p;
 
  __argv=argv;
-#ifdef SEPLOG
- gLog.Init(0);//"");
-#endif
 
 #ifdef FIX_EXCEPT
 
@@ -299,23 +243,14 @@ fd_set er_set;
 
 #endif
  cmdline=argv[0];
+
+#ifdef SEPLOG
+ gLog.Init(0);//"");
+ PreInitSepLog();
+#endif
+
  if(argc>1 )
  {
-   /*
-   if( DWORD_PTR(argv[1][0]) == 0x00762D2D x4CHAR("--v") || DWORD_PTR(argv[1][0]) == 0x65762D2D x4CHAR("--ve") )
-   {
-     printf("%s\n", sSMALL_HTT);
-     exit(0);
-   }
-   if( DWORD_PTR(argv[1][0]) ==  0x003F2D2D x4CHAR("--?")   ||
-       DWORD_PTR(argv[1][0]) ==  0x00682D2D x4CHAR("--h")   ||
-       DWORD_PTR(argv[1][0]) == 0x65682D2D x4CHAR("--he") )
-   {
-     PrintHelp();
-
-     exit(0);
-   }
-   */
    i=DWORD_PTR(argv[1][0]);
    if(! (i&0xFF0000) ) i&=0xFFFF;
    switch(i)
@@ -330,7 +265,7 @@ fd_set er_set;
 #if defined(CONFIG_CONFIG) && ! defined(CONFIG_CURRENT_DIR)
         if( LoadLangCfg(CONFIG_CONFIG "shs_lang.cfg" ) < 0 )
 #endif
-         LoadLangCfg( "shs_lang.cfg" );
+          LoadLangCfg( "shs_lang.cfg" );
 
        case  0x00682D x4CHAR("-h"):
        case  0x00682D2D x4CHAR("--h"):
@@ -356,93 +291,68 @@ fd_set er_set;
 
    }
  }
- /*
- if(argc>2 && DWORD_PTR(argv[1][0]) == 0x00632D2D x4CHAR("--c") )
- {
-   if(!PrepCfg( argv[2] ) )
-   {
-     if(argv[2][0]!='.' && (t=strrchr(argv[2],'/' )) )
-     {
-       *t=0;
-        chdir(argv[2]);
-       *t='/';
-     }
-   }
- }
- else
-   */
-
 
 #if defined(CONFIG_CONFIG) && ! defined(CONFIG_CURRENT_DIR)
-  if(! PrepCfg( CONFIG_CONFIG "httpd.cfg"))
+  if(! PrepCfg( CONFIG_CONFIG "vpnclient.cfg"))
   {
     chdir(CONFIG_CONFIG);
   }
   else
 #endif
-    if( (p=stristr(t=argv[0],".ex") ) )
+    //if( (p=stristr(t=argv[0],".ex") ) )
     {
       char *tt;
 
-      ll = p - t + 1;
+      t=argv[0];
+      //ll = p - t + 1;
+      ll = strlen(t) ;
       if(*t == '"') {
         t++;
         ll--;
       }
       tt= (char *) malloc(ll + 8);
       if(!tt) return 1;
-      memcpy(tt, t, ll);
-      DWORD_PTR(tt[ll])=0x676663 x4CHAR("cfg");
+      sprintf(tt, "%s.cfg", t, ll);
+      //DWORD_PTR(tt[ll])=0x676663 x4CHAR(".cfg");
       if(PrepCfg(tt)) {
         free(tt);
-        if(PrepCfg("httpd.cfg") )
-          if( ! PrepCfg("/etc/shttp/httpd.cfg") )
+        if(PrepCfg("vpnclient.cfg") )
+          if( ! PrepCfg("/etc/shttp/vpnclient.cfg") )
           {
             chdir("/etc/shttp");
           };
       }
     }
  lbSkipCfg:
- InitParam( (char*)argv );
+  InitParam( (char*)argv );
 #if defined(CONFIG_CONFIG) && ! defined(CONFIG_CURRENT_DIR)
- if( LoadLangCfg(CONFIG_CONFIG "shs_lang.cfg" ) < 0 )
+  if( LoadLangCfg(CONFIG_CONFIG "shs_lang.cfg" ) < 0 )
 #endif
- LoadLangCfg("shs_lang.cfg" );
+    LoadLangCfg("shs_lang.cfg" );
 
-#ifndef CD_VER
-#ifndef FREEVER
-// CheckCode((uchar *)user_name,chk_code3,0);
-  CheckCode((uchar *)user_name,chk_code3a,0);
-#endif
-#endif
-
- if(s_flg&FL_HIDE)
- {// Daimonize
-#ifndef LPC_ARM
-   if( ( ll=fork() ) )
-   { exit(0);
-   }
-#else
+  if(s_flg&FL_HIDE)
+  {// Daimonize
+    #ifndef LPC_ARM
+    if( ( ll=fork() ) )
+    { exit(0);
+    }
+    #else
     daemon(1,1);
-#endif
-   if( setsid()<0 )
-   {
-     printf("Running as daimon\n");
-   }
-   pipe(tmp);
- }
- puid=getuid();
- ppid=getpid();
- signal(SIGTERM  ,SignalHandler);
- signal(SIGINT   ,SignalHandler);
- signal(SIGQUIT  ,SignalHandler);
- signal(SIGABRT  ,SignalHandler);
- //signal(SIGSEGV,  ErrHandler);
- signal(SIGUSR1  ,SignalUSR);
- signal(SIGHUP, signalHUP);
- signal(SIGPIPE  ,SIG_IGN);
-// signal(SIGCHILD  ,SignalChild);
-// SIGCANCEL
+    #endif
+    if( setsid()<0 )
+    {
+      printf("Running as daimon\n");
+    }
+    pipe(tmp);
+  }
+  puid=getuid();
+  ppid=getpid();
+  signal(SIGTERM  ,SignalHandler);
+  signal(SIGINT   ,SignalHandler);
+  signal(SIGQUIT  ,SignalHandler);
+  signal(SIGABRT  ,SignalHandler);
+  signal(SIGUSR1  ,SignalUSR);
+  signal(SIGPIPE  ,SIG_IGN);
 
   struct sigaction action;
   memset(&action, 0, sizeof(action));
@@ -458,146 +368,41 @@ fd_set er_set;
     if(setrlimit(RLIMIT_CORE,  &rlim))
       debug("Cant set ulimit %d %s\n",errno,strerror(errno) )  ;
   }
-// debug("point 0 ...");
 
- if(s_flg&FL_HIDE){s_flg|=FL_NOICON;}
- if(flog)
- {
-   struct tm *stm;
-   if(stat(flog,&stt)<0)
-   {
-     if((ll=creat(flog,0600))>=0)
-     {
-       fstat(ll,&stt);
-       _lclose(ll);
-     }
-   }
-   stm = localtime( (time_t *) & (stt.st_ctime));
-   if(stm) lastday = stm->tm_mday;
- }
- if( InitApplication() <= 0 )return 0;
-
-  for(i=0;i<TOTAL_SERVICES;++i)//if( runed[i]<max_srv[i] )
-    for(k=0; k < MAX_ADAPT; ++k)    if( (j=soc_srv[i+k*MAX_SERV])>0)
-    {
-      maxKeepAliveSet.Set(j);
-      //debug("FD Set %d\n",)
-      //   printf("\rSET: %d %d %d\n",i,k,j);
-    }
-
- //do{sleep(1); }while(is_no_exit || (s_aflg&AFL_RESTART) );
-// debug("point 1 ...");
- while(is_no_exit)
- {
-  s=0;
-//  FD_ZERO(&set);
-  memcpy(&set, &KeepAliveSet, sizeof(set) );
-  for(i=0;i<TOTAL_SERVICES;++i)
-    if( runed[i] >= max_srv[i] && max_srv[i] )
-    {
-      for(k=0; k < MAX_ADAPT; ++k)
-        if( (j=soc_srv[i+k*MAX_SERV])>0){
-          FD_CLR(j,&set);
-         // printf("\rCLR: %d %d %d\n",i,k,j);
-        }
-      if(KeepAliveList && ( (SRV_HTTP_MSK|SRV_PROXY_MSK|SRV_SSL_MSK) & (1<<i) ) && max_srv[i] )
-      {
-        MyLock(KeepAliveMutex);
-        for(kk=0; kk<KeepAliveCount; kk++)
-        {
-          if( (KeepAliveList[kk]->flsrv[1] & MAX_SERV_MASK) == k) FD_CLR(KeepAliveList[kk]->s,&set);
-        }
-        MyUnlock(KeepAliveMutex);
-      }
-    }
-  TVal.tv_sec=1;
-  TVal.tv_usec=500000;
-  memcpy(&er_set,&set,sizeof(er_set));
-  if( (j=select(keep_alive_max_fd+1,&set,0,&er_set,&TVal))>0 )
+  if(s_flg&FL_HIDE){s_flg|=FL_NOICON;}
+  if(flog)
   {
-    //DBGLA("select return %u", j)
-    for(i=0; i<TOTAL_SERVICES; ++i)
+    struct tm *stm;
+    if(stat(flog,&stt)<0)
     {
-      if(runed[i]<max_srv[i] )
-        for(k=0; k < MAX_ADAPT; ++k)
-          if(FD_ISSET(soc_srv[i+k*MAX_SERV],&set))
-          {
-            //     for(kk=k=0;k<i;++k)kk+=max_srv[i];
-            //     kk+=runed[i];
-            if(last[i]>=0 && !rreq[last[i]])
-            {
-              usleep(20000);
-              last[i]=-1;
-              continue;
-            }
-            // DBGL("Select Req..")
-            last[i]=CrThread( ((i+k*MAX_SERV)<<16)); // + k);
-            // DBGLA("Select Req2.. KeepAliveCount=%d keep_alive_max_fd=%d\n", KeepAliveCount,keep_alive_max_fd)
-
-            if((--j) <= 0) goto ex_loop3;
-          }
-          else if(FD_ISSET(soc_srv[i+k*MAX_SERV],&er_set))
-          {
-            debug("Socket error: %u(%u)",soc_port[i],i);
-            if(!MutexEr)
-            {
-              MyLock(MutexEr);
-              for(kk=0; kk < MAX_ADAPT; ++kk)
-                if(soc_srv[i+kk*MAX_SERV]>0)
-                {
-                  closesocket(soc_srv[i+kk*MAX_SERV]);
-                  soc_srv[i+kk*MAX_SERV]=0;
-                }
-              CreateSrv(i);
-              MyUnlock(MutexEr);
-            }
-          }
-    }
-    if(KeepAliveList)
-    {
-      // DBGLA(" j=%d", j)
-      MyLock(KeepAliveMutex);
-      for(k=0; k<KeepAliveCount; )
+      if((ll=creat(flog,0600))>=0)
       {
-        Req *preq;
-
-        preq = KeepAliveList[k];
-        // DBGLA("ka %d %d",k, preq->s);
-        if (!preq) break;
-
-        if(FD_ISSET(preq->s,&er_set))
-        {
-          // DBGLA("ka err %d %d",k, preq->s);
-          RemoveAndDelKeepAlive(k);
-        }
-        else if(FD_ISSET(preq->s,&set))
-        {
-          // DBGLA("ka select %d %d",k, preq->s);
-          RemoveKeepAlive(k);
-          CrThreadFunc((TskSrv)KeepAliveWike, preq);
-          if((--j) <= 0) break;
-        }
-        else k++;
+        fstat(ll,&stt);
+        _lclose(ll);
       }
-      MyUnlock(KeepAliveMutex);
     }
-
-  ex_loop3:;
-
-    FreeThreads();
-    if(pid_to_wait)
-    {
-      waitpid(pid_to_wait,(int *)&i,WNOHANG);
-      waitpid(0,(int *)&i,WNOHANG);
-      pid_to_wait=0;
-    }
+    stm = localtime( (time_t *) & (stt.st_ctime));
+    if(stm) lastday = stm->tm_mday;
   }
- }
+#ifdef  TLSWODLL
+  SetPriority(tls_priority);
+#else
+  if((!TLSLibrary) || !InitSecDLL())
+  {
+    pprot+=sprintf(pprot,"**Error. Can't load TLS/SSL library\r\n");
+  }
+  else
+#endif
+  if(InitLib((TFprintf) &tlsdebug,
+              (TFtransfer) (&JustSnd),
+              (TFtransfer) (&JustRcv),
+              CApath,CAfile,s_cert_file, s_key_file) )
+  {
+    DBGL("Start")
+    VPNClient(0);
+    return 0;
+  }
 
- //do{
-   sleep(1);
- //}while(s_aflg&AFL_RESTART);
- CloseServer();
- return 0;
+  return 1;
 };
 

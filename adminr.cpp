@@ -39,7 +39,6 @@
 
 //const char AuthErr1[]="HTTP/1.0 401\r\nWWW-Authenticate: Basic realm=\"Administration of Small HTTP server\"\r\nContent-Type: text/html\r\n\r\n<center><h2>Authorization request<br><a href=/$_admin_$stat>Login</a></h2></center>";
 //const char AuthErr[]="HTTP/1.0 401\r\nWWW-Authenticate: Basic realm=\"Authorization request\"\r\nContent-Type: text/plain\r\n\r\nAuthorization request\r\n";
-char *charset="";
 int Req::ChkValidPth(char *p,char *b)
 {
 #ifndef SYSUNIX
@@ -472,12 +471,13 @@ if(0){
         p=GetVar(req_var,"d");
         if(ChkValidPth(p,b))goto lbOutUPg;
         if(p[(i=strlen(p))-1]==FSLUSH)p[--i]=0;
-#ifdef A_64
+#ifdef NEWSTRUCT
         tuser=(User *) malloc( sizeof(User )+i+strlen(t)+strlen(u)+3 );
         tuser->name=(char *)(tuser+1);
         tuser->ddr=tuser->name+sprintf(tuser->name,"%s",u)+1;
         tuser->pwd=tuser->ddr+sprintf(tuser->ddr,"%s",p)+1;
         sprintf(tuser->pwd,"%s",t);
+        UpdPwdCrypt(tuser->pwd);
 #else
         tuser=(User *) new char[sizeof(User )+i+strlen(t)+strlen(u)+3 ];
         t1+=sprintf(t1=tuser->name,"%s",u)+1;
@@ -490,42 +490,50 @@ if(0){
       }
       else
       {
-       if( (tuser=FindUser(u,0xFF)) )
-       {
-         if(!strcmp(p,"Remove") )
-         {
-           tuser->state=0;
-         }
-         else
-         { p=GetVar(req_var,"p");
-           t=tuser->pasw();
-           if(strcmp(p,t))
-           {if( strlen(t)<strlen(p) )
-            {tuser->state=0; goto lbAdd;}
-            strcpy(t,p);
-           }
-           p=GetVar(req_var,"d");
-           t=tuser->dir(t);
-           if(strcmp(p,t))
-           {if( strlen(t)<strlen(p) )
-            {tuser->state=0; goto lbAdd; }
-            strcpy(t,p);
-           }
-          lbState:
-           i=0x80;
-           if(GetVar(req_var,"ftp")) i|=UserFTPR ;
-           if(GetVar(req_var,"wri")) i|=UserFTPW ;
-           if(!GetVar(req_var,"cgi")) i|=UserNOCGI;
-           if(GetVar(req_var,"smtp")) i|=UserSMTP ;
-           if(GetVar(req_var,"adm")) i|=UserADMIN;
-           if(GetVar(req_var,"hp")) i|=UserHTTP;
-           if(GetVar(req_var,"pop" )){i|=UserPOP3 ;}
-           tuser->state=i;
-           tuser->MkDir();
-         }
-         SaveCfgFile(b);
-       }
-       else{ HTTPAdminErrorMessage( sUSER_NOT_ ,b); }
+        if( (tuser=FindUser(u,0xFF)) )
+        {
+          if(!strcmp(p,"Remove") )
+          {
+            tuser->state=0;
+          }
+          else // change
+          {
+            char pbfr[40];
+            p=GetVar(req_var,"p");
+            t=tuser->pasw();
+            if (Pass2Txt(pbfr,t))
+              t=pbfr;
+            if(strcmp(p,t))
+            {
+              DBGLA("other password: |%s| != |%s|", p, t)
+
+              if(strlen(t)<strlen(p) )
+              {tuser->state=0; goto lbAdd;}
+              strcpy(t,p);
+            }
+            p=GetVar(req_var,"d");
+            t=tuser->dir(t);
+            if(strcmp(p,t))
+            {
+              if( strlen(t)<strlen(p) )
+              {tuser->state=0; goto lbAdd; }
+              strcpy(t,p);
+            }
+            lbState:
+            i=0x80;
+            if(GetVar(req_var,"ftp")) i|=UserFTPR ;
+            if(GetVar(req_var,"wri")) i|=UserFTPW ;
+            if(!GetVar(req_var,"cgi")) i|=UserNOCGI;
+            if(GetVar(req_var,"smtp")) i|=UserSMTP ;
+            if(GetVar(req_var,"adm")) i|=UserADMIN;
+            if(GetVar(req_var,"hp")) i|=UserHTTP;
+            if(GetVar(req_var,"pop" )){i|=UserPOP3 ;}
+            tuser->state=i;
+            tuser->MkDir();
+          }
+          SaveCfgFile(b);
+        }
+        else{ HTTPAdminErrorMessage( sUSER_NOT_ ,b); }
       }
 
      }
@@ -554,7 +562,7 @@ if(0){
         {t1=GetVar(req_var,"n");
          j=strlen(t1);
         }
-#ifdef A_64
+#ifdef NEWSTRUCT
         a=(host_dir *) Malloc(sizeof(host_dir) + i + j+ strlen(u) +5);
         a->h=(char *)(a+1);
 #else

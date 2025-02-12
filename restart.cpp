@@ -90,7 +90,9 @@ void RestartServer(char *u,int cnt)
 
 //  Sleep(0x20);
   Sleep(100);
+#ifndef VPNCLIENT_ONLY
   if(total_dhcp_ip)SaveDHCP();
+#endif // VPNCLIENT_ONLY
 #ifndef SYSUNIX
   CloseService();
 
@@ -159,71 +161,78 @@ void RestartServer(char *u,int cnt)
 #ifndef SYSUNIX
 
 void OkCfgWindow()
-{CfgParam *cp;
- char  u[512],*t,*x;
- HWND  tw;
- int i,j,k,l,chk=0;
+{
+  CfgParam *cp;
+  char  u[512],*t,*x;
+  HWND  tw;
+  int i,j,k,l,chk=0;
 
- int lis_no_exit=is_no_exit;
-  for(k=0;ConfigParams[k].desc;++k)if( ConfigParams[k].name )
+  int lis_no_exit=is_no_exit;
+  for(k=0;ConfigParams[k].desc;++k)
   {
-   if( ConfigParams[k].v )
-   {
-    GetDlgItemText(dwndc,(k<<3)+800,u,500 );
-    if(ConfigParams[k].max)
+    cp = ConfigParams + k;
+    if( cp->name )
     {
-      if( (l=atoui(u))!=*(ConfigParams[k].v) )
+      if( cp->v )
       {
-       if((ConfigParams[k].v== (uint *)&time_update) && ((!time_update) || !*ConfigParams[k].v ) )lis_no_exit=0;
-       *(ConfigParams[k].v)=l;
-       if(strstr(ConfigParams[k].name,"max" ) ) lis_no_exit=0;
-       if(strstr(ConfigParams[k].name,"port") ) lis_no_exit=0;
-       if(strstr(ConfigParams[k].name,"cache") )lis_no_exit=0;
-      }
-    }
-    else
-    {
-     if( ((*ConfigParams[k].v)?strcmp(u,*(char**)(ConfigParams[k].v)):u[0] ))
-     {
-       if( (*ConfigParams[k].v) && (strlen(u)<=strlen(*(char**)ConfigParams[k].v)) )
-       {
-        if(*u)
-          strcpy(*(char**)(ConfigParams[k].v),u);
+        GetDlgItemText(dwndc,(k<<3)+800,u,500 );
+        if(cp->max)
+        {
+          if( (l=atoui(u))!=*(cp->v) )
+          {
+            if((cp->v== (uint *)&time_update) && ((!time_update) || !*(cp->v) ) )lis_no_exit=0;
+            *(cp->v)=l;
+            if(strstr(cp->name,"max" ) ) lis_no_exit=0;
+            if(strstr(cp->name,"port") ) lis_no_exit=0;
+            if(strstr(cp->name,"cache") )lis_no_exit=0;
+          }
+        }
         else
         {
-         if(ConfigParams[k].v == (uint *)&cgi_detect )
-           (*(char**)(ConfigParams[k].v))= "\\cgi-bin\\";
-         else if(   (ConfigParams[k].v != (uint *)&   def_dir)
-                 && (ConfigParams[k].v != (uint *)&  out_path)
-                 && (ConfigParams[k].v != (uint *)&  err_path)
-                 && (ConfigParams[k].v != (uint *)& smtp_name)
-                 && (ConfigParams[k].v != (uint *)& def_name )
-                )*ConfigParams[k].v=0;
+          if( ((*cp->v)?strcmp(u,*(char**)(cp->v)):u[0] ))
+          {
+            if( (*cp->v) && (strlen(u)<=strlen(*(char**)cp->v)) )
+            {
+              if(*u)
+                strcpy(*(char**)(cp->v),u);
+              else
+              {
+                if(cp->v == (uint *)&cgi_detect )
+                  (*(char**)(cp->v))= "\\cgi-bin\\";
+                else if(   (cp->v != (uint *)&   def_dir)
+                  && (cp->v != (uint *)&  out_path)
+                  && (cp->v != (uint *)&  err_path)
+                  && (cp->v != (uint *)& smtp_name)
+                  && (cp->v != (uint *)& def_name )
+                )*cp->v=0;
+              }
+            }
+            else
+            {
+              //         is_no_exit=0;
+              t=new char[i=strlen(u)+3];
+              memcpy(t,u,i);
+              FREE_IF_HEAP2((*(char**)(cp->v)));
+              (*(char**)(cp->v))=t;
+            }
+          }
         }
-       }
-       else
-       {
-//         is_no_exit=0;
-         t=new char[i=strlen(u)+3];
-         memcpy(t,u,i);
-         FREE_IF_HEAP2((*(char**)(ConfigParams[k].v)));
-         (*(char**)(ConfigParams[k].v))=t;
-       }
-     }
+
+        if(cp->fChange)cp->fChange(cp);
+      }
+      else if(cp->max)
+      {
+        if( IsDChk(dwndc,(k<<3)+805 ) )s_flgs[cp->min] |=cp->max;
+        else s_flgs[cp->min]  &= ~cp->max;
+      }
+#if 0
+      else if(ConfigParams[k+1].v && IsDChk(dwndc,(k<<3)+805 ) )
+      {
+      if( *ConfigParams[k+1].v && strstr(ConfigParams[k+1].name,"max")  )lis_no_exit=0;
+      *ConfigParams[k+1].v=0; ++k;
     }
-   }
-   else if(ConfigParams[k].max)
-   {
-     if( IsDChk(dwndc,(k<<3)+805 ) )s_flgs[ConfigParams[k].min] |=ConfigParams[k].max;
-     else s_flgs[ConfigParams[k].min]  &= ~ConfigParams[k].max;
-   }
- #if 0
-   else if(ConfigParams[k+1].v && IsDChk(dwndc,(k<<3)+805 ) )
-   {
-    if( *ConfigParams[k+1].v && strstr(ConfigParams[k+1].name,"max")  )lis_no_exit=0;
-    *ConfigParams[k+1].v=0; ++k;
-   }
- #endif
+#endif
+    }
   }
   t=new char[0x20000];
 
@@ -257,87 +266,84 @@ void Restart()
 
 #endif
 
-ulong DTick(ulong tick1, ulong tick2)
-{
-  if(tick1 >= tick2) return tick1 - tick2;
-  return (0xFFFFffff - tick2 + tick1);
-}
-
 int hLock,hcLock;
 int FreeThreads()
-{int i,j=-1;
- MyLock(hLock);
- for(i=0;i<max_tsk;++i)
- {
-   if(hndls[i])
-   {
-     #ifdef SYSUNIX
-     if( ((u_long)(rreq[i])) != 1 ) continue;
-     pthread_detach((pthread_t) hndls[i]);
-     rreq[i]=0;
-     #else
-     ulong r;
-     if( (GetExitCodeThread(hndls[i],&r)) && r == STILL_ACTIVE) continue;
-     CloseHandle(hndls[i]);
-     #endif
-     hndls[i]=0;
-   }
-   if(j<0)j=i;
- }
- if(j<0 && dos_protect_speed)
- {
-#define  TIME_TO_CHECK_TICK     (300*1024)
-   ulong bytes_per_s = (dos_protect_speed<<10)/60;
-   ulong tick = GetTickCount();
-   ulong time_tick;
-   int k;
+{
+  int i,j=-1;
+  MyLock(hLock);
+  for(i=0;i<max_tsk;++i)
+  {
+    if(hndls[i])
+    {
+      #ifdef SYSUNIX
+      if( ((u_long)(rreq[i])) != 1 ) continue;
+      pthread_detach((pthread_t) hndls[i]);
+      rreq[i]=0;
+      #else
+      ulong r;
+      if( (GetExitCodeThread(hndls[i],&r)) && r == STILL_ACTIVE) continue;
+      CloseHandle(hndls[i]);
+      #endif
+      hndls[i]=0;
+    }
+    if(j<0)j=i;
+  }
+  if(j<0 && dos_protect_speed)
+  {
+    #define  TIME_TO_CHECK_TICK     (300*1024)
+    ulong bytes_per_s = (dos_protect_speed<<10)/60;
+    ulong tick = GetTickCount();
+    ulong time_tick;
+    int k;
 
-   ++no_close_req;
-   for(i=0; i<max_tsk; ++i)
-   {
-     if(rreq[i] > (Req *)1)
-     {
+    ++no_close_req;
+    for(i=0; i<max_tsk; ++i)
+    {
+      if(rreq[i] > (Req *)1)
+      {
 
-       if( hndls[i] &&
-         (time_tick = DTick(tick,rreq[i]->tmout)) > TIME_TO_CHECK_TICK &&
-         rreq[i]->s != -1
-       )
-       {
-         if( ( (u64) rreq[i]->Tin + (u64) rreq[i]->Tout ) < ( (time_tick * bytes_per_s )>>10 ) )
-         {
-           k = rreq[i]->flsrv[1]&MAX_SERV_MASK;
-           #ifdef SEPLOG
-           sepLog[k]->Ldebug("**Found DoS connection at thread %u (port: %u)\r\n",i,soc_port[k]);
-           #else
-           debug("**Found DoS connection at thread %u (port: %u) \r\n",i,soc_port[k]);
-           #endif
-           rreq[i]->Shutdown();
-         }
-       }
-     }
-   }
-   dec_no_close_req();
+        if( hndls[i] &&
+          (time_tick = DTick(tick,rreq[i]->tmout)) > TIME_TO_CHECK_TICK &&
+          rreq[i]->s != -1
+        )
+        {
+          if( ( (u64) rreq[i]->Tin + (u64) rreq[i]->Tout ) < ( (time_tick * bytes_per_s )>>10 ) )
+          {
+            k = rreq[i]->flsrv[1]&MAX_SERV_MASK;
+            #ifdef SEPLOG
+            sepLog[k]->Ldebug("**Found DoS connection at thread %u (port: %u)\r\n",i,soc_port[k]);
+            #else
+            debug("**Found DoS connection at thread %u (port: %u) \r\n",i,soc_port[k]);
+            #endif
+            rreq[i]->Shutdown();
+          }
+        }
+      }
+    }
+    dec_no_close_req();
 
- }
- MyUnlock(hLock);
- return j;
+  }
+  MyUnlock(hLock);
+  return j;
 };
 
 int CrThreadFunc(TskSrv Fnc,Req *par)
-{int i;
- MyLock(hcLock);
- if((i=FreeThreads())>=0)
- {
-   par->ntsk = i;
-   hndls[i]=
-     (THREADHANDLE)
-     CreateThread(&secat,0x5000,Fnc,par,0,&trd_id);
- }
- MyUnlock(hcLock);
-// debug("Crth %d) %X; %X %X %X %X %X %X ",i,hndls[i],hndls[0],rreq[0],hndls[1],rreq[1]);
- return i;
+{
+  int i;
+  MyLock(hcLock);
+  if((i=FreeThreads())>=0)
+  {
+    par->ntsk = i;
+    hndls[i]=
+    (THREADHANDLE)
+    CreateThread(&secat,0x5000,Fnc,par,0,&trd_id);
+  }
+  MyUnlock(hcLock);
+  // debug("Crth %d) %X; %X %X %X %X %X %X ",i,hndls[i],hndls[0],rreq[0],hndls[1],rreq[1]);
+  return i;
 }
 
+#ifndef VPNCLIENT_ONLY
 int CrThread(uint fnc)
 {
  int i;
@@ -351,6 +357,7 @@ int CrThread(uint fnc)
 // debug("Crth %d) %X; %X %X %X %X %X %X ",i,hndls[i],hndls[0],rreq[0],hndls[1],rreq[1]);
  return i;
 }
+#endif // VPNCLIENT_ONLY
 
 char * GetNextBindAddr(char *p, void *sa_server)
 {
@@ -370,7 +377,6 @@ char * GetNextBindAddr(char *p, void *sa_server)
     ((sockaddr_in *)sa_server)->sin_addr . s_addr = ConvertIP(p);
   }
 //  debug("Next %s",p);
-
 
   if(p)
   {
@@ -401,7 +407,7 @@ int ChkWaitBind()
    return 0;
 
 }
-
+#ifndef VPNCLIENT_ONLY
 int CreateSrv(int j)
 {
  int i,s,k=0,jj=j%MAX_SERV;
@@ -532,6 +538,8 @@ char *srv_str[]=
 ,"Telnet"
 };
 
+#endif // VPNCLIENT_ONLY
+
 int InitApplication()
 {
 #ifndef SYSUNIX
@@ -607,7 +615,7 @@ int InitApplication()
   leenv=arstrlen(eenv=GetEnvironmentStrings());
 
   hProcess=GetCurrentProcess();
-#endif
+#endif // SYSUNIX
 
 #ifdef SEPLOG
 #define  pprot  gLog.lpprot
@@ -618,9 +626,10 @@ int InitApplication()
 
 
   GetProt();
-
   pprot+=sprintf(pprot,"%s\r\n\r\n",about);
   i=0;
+#ifndef VPNCLIENT_ONLY
+
   if(max_srv[0])
   {
    pprot+=sprintf(pprot,
@@ -668,57 +677,73 @@ int InitApplication()
    ,smtp_name,out_path,sent_path?sent_path:"",err_path);
    }
 
+#endif // V_FULL
+
 // debug("*** %X %X ***",s_flgs[1],FL1_SMTPTLS&s_flgs[1]);
 
- if(max_srv[5] || (FL1_SMTPTLS&s_flgs[1]) || (s_flgs[2]&FL2_FTPTLS) )
+//#ifndef VPNCLIENT_ONLY
+ if(max_srv[5] || (FL1_SMTPTLS&s_flgs[1]) || (s_flgs[2]&FL2_FTPTLS) || (vpn_remote_host && vpn_remote_host[0]) )
+#endif // VPNCLIENT_ONLY
  {
-#ifdef SYSUNIX
-  RelProt();
-  oldprot=pprot;
-#endif
-#ifndef  TLSWODLL
-  if((!TLSLibrary) || !InitSecDLL())
-  {
-    pprot+=sprintf(pprot,"**Error. Can't load TLS/SSL library\r\n");
-  }
-  else
+   //pprot+=sprintf(pprot,"Loading TLS/SSL library...\r\n");
+   #ifdef SYSUNIX
+   RelProt();
+   oldprot=pprot;
+   #endif
+#ifdef  TLSWODLL
+   SetPriority(tls_priority);
 #else
-  SetPriority(tls_priority);
-#endif
-  if(
-   InitLib((TFprintf) &tlsdebug, (TFtransfer) (&JustSnd), (TFtransfer) (&JustRcv),
-//   InitLib((TFprintf) &debug, (TFtransfer) (&Req::JustSend), (TFtransfer) (&Req::JustRecv),
-//   InitLib((TFprintf) &debug, dynamic_cast<TFtransfer>(&Req::JustSend), (TFtransfer)  static_cast<void *>(&Req::JustRecv),
-   CApath,CAfile,s_cert_file, s_key_file)
-  )
-  {if(FL1_SMTPTLS&s_flgs[1])s_aflg|=AFL_TLS;
-   if(max_srv[5])
-   {i+= max_srv[5]=CreateSrv(5);
-    pprot+=sprintf(pprot,
-#ifdef RUS
-"%s порт=%u Количество подключений=%d\r\n"
-#else
- s_S_PORT__
-#endif
-    ,"TLS/SSL",soc_port[5],max_srv[5]);
-    if(s_flgs[2]&(1<<5))
-#ifndef SYSUNIX
-      if(CreateSrv(5+MAX_SERV)>0)
-#endif
-         pprot+=sprintf(pprot-2, " (+IPv6)\r\n" )-2;
-
+   if((!TLSLibrary) || !InitSecDLL())
+   {
+     pprot+=sprintf(pprot,"**Error. Can't load TLS/SSL library\r\n");
    }
-//   else printf("Tls server dont using %X\n",s_flgs[2]);
-  }
-//   else
-//   {
-//     pprot+=sprintf(pprot,"Cant init TLS/SSL library\r\n");
-//   }
-#ifdef SYSUNIX
-  if(oldprot!=pprot)RelProt();
-  GetProt();
+   else
 #endif
+   {
+    // pprot+=sprintf(pprot,"Load TLS/SSL library initting...\r\n");
+
+     if(
+       InitLib((TFprintf) &tlsdebug, (TFtransfer) (&JustSnd), (TFtransfer) (&JustRcv),
+               //   InitLib((TFprintf) &debug, (TFtransfer) (&Req::JustSend), (TFtransfer) (&Req::JustRecv),
+               //   InitLib((TFprintf) &debug, dynamic_cast<TFtransfer>(&Req::JustSend), (TFtransfer)  static_cast<void *>(&Req::JustRecv),
+               CApath,CAfile,s_cert_file, s_key_file)
+     )
+     {
+       pprot+=sprintf(pprot,"TLS/SSL library loadded\r\n");
+       #ifndef VPNCLIENT_ONLY
+       if(FL1_SMTPTLS&s_flgs[1])s_aflg|=AFL_TLS;
+       if(max_srv[5])
+       {
+         i+= max_srv[5]=CreateSrv(5);
+         pprot+=sprintf(pprot,
+                        #ifdef RUS
+                        "%s порт=%u Количество подключений=%d\r\n"
+                        #else
+                        s_S_PORT__
+                        #endif
+                        ,"TLS/SSL",soc_port[5],max_srv[5]);
+         if(s_flgs[2]&(1<<5))
+           #ifndef SYSUNIX
+           if(CreateSrv(5+MAX_SERV)>0)
+           #endif
+             pprot+=sprintf(pprot-2, " (+IPv6)\r\n" )-2;
+
+       }
+       #endif // VPNCLIENT_ONLY
+
+       //   else printf("Tls server dont using %X\n",s_flgs[2]);
+     }
+     else
+     {
+       pprot+=sprintf(pprot,"Cant init TLS/SSL library\r\n");
+     }
+   }
+     #ifdef SYSUNIX
+     if(oldprot!=pprot)RelProt();
+     GetProt();
+     #endif
  }
+ afterTLS:
  sprintf(sprt80 ,"%u",http_port);
  sprintf(sprt443,"%u",ssl_port);
 
@@ -745,7 +770,9 @@ int InitApplication()
     DWORD_PTR(*pprot)= 0x0A0D;
     pprot+=2;
   };
-#endif
+#endif //DDNS
+
+#ifndef VPNCLIENT_ONLY
   if((dns_file) && InitDnsSrv() )
   { pprot+=sprintf(pprot,
 #ifdef RUS
@@ -754,7 +781,7 @@ int InitApplication()
  sDNS_IS_EN
 #endif
 ,count_dns );
-#endif
+//#endif
 #ifndef SYSUNIX
    mnu2[11].flg=0;
 #endif
@@ -771,9 +798,11 @@ int InitApplication()
 #endif
 ,total_dhcp_ip );
   }
-#endif
+#endif // V_FILL
+#endif // VPNCLIENT_ONLY
 
 #ifdef TLSVPN
+#ifndef VPNCLIENT_ONLY
   if( max_srv[SRV_SSL] )
   {
     if(VPN_Init()!=-1)
@@ -781,6 +810,9 @@ int InitApplication()
       pprot+=sprintf(pprot, "TLS VPN enabled\r\n" );
     }
   }
+#endif // VPNCLIENT_ONLY
+
+#if defined(SYSUNIX) || !defined(VPNCLIENT_ONLY)
   if(vpn_remote_host && vpn_remote_host[0])
   {
     CreateThread(&secat,(0x5000 + sizeof(VPNclient) + MAX_MTU + 0xFFF)& ~0xFFF ,VPNClient,(void *)0,0,&trd_id);
@@ -788,8 +820,12 @@ int InitApplication()
   }
 #endif
 
+#endif // TLSVPN
+
 #ifndef SYSUNIX
+#ifndef VPNCLIENT_ONLY
   if(maxKeepAlive) CreateThread(&secat,0x2000,(TskSrv) KeepAliveThread,0,0,&trd_id);
+#endif // VPNCLIENT_ONLY
 
   mwnd=CreateWindowEx( 0 /*((s_flg&0x10)>>4)*WS_EX_TOOLWINDOW*/ ,"FMFROM",wnd_name,
                        DS_3DLOOK|WS_CLIPCHILDREN|WS_CAPTION|WS_POPUP|WS_SYSMENU|WS_MINIMIZEBOX|WS_DLGFRAME|((wstate=FL_HIDE&s_flg)?0:WS_VISIBLE),
@@ -801,6 +837,20 @@ int InitApplication()
   mnu3[0].id=(ulong)hmnu;
   hmmnu=MkMnu(mnu4,CreateMenu);
   */
+#ifdef VPNCLIENT_ONLY
+
+        CreateWindowEx(0,"BUTTON", "VPN Connect",
+                        WS_BORDER|WS_CHILD|WS_VISIBLE, 4, 4,132,20, mwnd,(HMENU) 98 ,hinstance, 0);
+
+        CreateWindowEx(0,"BUTTON", "Settings",
+                        WS_BORDER|WS_CHILD|WS_VISIBLE, 144,4,132,20, mwnd,(HMENU) 126 ,hinstance, 0);
+
+        CreateWindowEx(WS_EX_CLIENTEDGE,"STATIC", "In: 0  Out:0",
+                        WS_BORDER|WS_CHILD|WS_VISIBLE, 282, 2, rc.right - 282,20, mwnd,(HMENU) 97 ,hinstance, 0);
+
+   rc.top += 28;
+   rc.bottom -= 28;
+#endif // VPNCLIENT_ONLY
   ewnd=CreateWindowEx(WS_EX_CLIENTEDGE,"EDIT",b_prot,
         WS_BORDER|WS_CHILD|WS_VISIBLE|ES_MULTILINE|
         ES_READONLY|WS_VSCROLL,
@@ -811,7 +861,7 @@ int InitApplication()
   InsertMenu(GetSystemMenu(mwnd,0),0,MF_POPUP|MF_BYPOSITION|MF_HILITE,(uint)hmnu,"&Server");
 
   nid.hWnd=mwnd; nid.hIcon=hicon;
-  if(! (s_flg&0x10) )s_aflg|=!Shell_NotifyIcon(NIM_ADD,&nid);
+  if(! (s_flg&FL_NOICON) )s_aflg|=!Shell_NotifyIcon(NIM_ADD,&nid);
   SendMessage(ewnd,WM_SETFONT,(ulong)GetStockObject(17),1);
 #if defined(CD_VER) && (! defined(SYSUNIX)) && ! defined(SPECIAL)
 

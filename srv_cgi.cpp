@@ -163,69 +163,10 @@ int Req::ExecCGI()
  memcpy(http_v,http_var,sizeof(http_v));
  http_var=http_v;
 // prepare_HTTP_var();
-DBG();
+ DBGLA("CGI %s", loc)
  return  ExecCGIEx();
 };
 //----
-
-ulong D64X(uchar i)
-{if(i=='+')return 62;
- if(i=='/')return 63;
- if(i<'0')return 64;
- if(i<='9')return i-'0' + 52;
- if(i<='Z')return i-'A';
- return i-'a' + 26;
-};
-
-char * Decode64(char *t, char *s, int max_size)
-{
-  char *y = t;
-  uint i,j;
-
-  while((i=D64X(*s))<64)
-  {
-    s++;
-    if( (j=D64X(*s))>=64 )break;
-    *y=(i<<2)|(j>>4);
-    s++; y++;
-    if( (i=D64X(*s))>=64 )break;
-    *y=(j<<4)|(i>>2);
-    s++; y++;
-    if( (j=D64X(*s))>=64 )break;
-    *y=(i<<6)|(j);
-    s++; y++;
-    if((y-t) >= max_size) return 0;
-  }
-  *y=0;
-  return y;
-}
-
-char * Req::CheckAuth(char *&p)
-{
-  char *t,*z,*y;
-  if( (t= GetVar(http_var,"AUTHORIZATION")) )
-  {
-    z=y=p;
-    //  debug("|%s|",t);
-    if( strin(t,"Basic") )
-    {
-      if(! (Decode64(y, t+6, 256) ) ) return 0;
-      if((y=strchr(z,':'))){*y=0;y++;}else y="";
-      p=y;
-      return z;
-    }
-    else   if( strin(t,"Digest") )
-    {
-      p=t;
-      if((z=strstr(t, "username=\"")))
-      {
-        z+=sizeof("username=");
-        return z;
-      }
-    }
-  }
-  return 0;
-}
 
 #ifndef SYSUNIX
 int MyCreateProcess(char *p,void *env,char *loc, STARTUPINFO *cb,PROCESS_INFORMATION *pi)
@@ -361,10 +302,16 @@ hwr,hwre
  }
  else if(strstrnc(loc,".EXE")){fl|=F_EXE; e=loc;}
  else if(strstrnc(loc,".DLL")) return  ExecDllEx(loc);
- else{
-  for(tt=ext;*tt;tt+=2) if((*tt[0]=='.') && strstrnc(loc,*tt) ){e=tt[1]; goto llgs1;}
- llgs2:;
-  if(!(s_flg&FL_NOWINTYPES)) if( (ll=(ulong)FindExecutable(loc,dir,z))>32 )
+ else {
+   for(tt=ext;*tt;tt+=2) if((*tt[0]=='.') && strstrnc(loc,*tt) )
+   {
+     e=tt[1];
+     if(!e) break;
+     DBGLA("Found Executable %s", e)
+     goto llgs1;
+   }
+   llgs2:;
+   if(!(s_flg&FL_NOWINTYPES)) if( (ll=(ulong)FindExecutable(loc,dir,z))>32 )
    {llgs1:
      if(strstrnc(e,".DLL")) return  ExecDllEx(e);
    }else goto er000;
@@ -436,21 +383,26 @@ hwr,hwre
   if( ! (fl&F_EXE) )
   {
      if( (fl&F_PHP) )
-        sprintf(p,"%s %s%s%s",e,t1,(loc[1]==':')?loc:t+1,t1);
+        sprintf(p,"\"%s\" \"%s%s%s\"",e,t1,(loc[1]==':')?loc:t+1,t1);
      else
-        sprintf(p,"%s %s%s%s %s",e,t1,(loc[1]==':')?loc:t+1,t1,req);
+        sprintf(p,"\"%s\" \"%s%s%s\" \"%s\"",e,t1,(loc[1]==':')?loc:t+1,t1,req);
   }
-  else sprintf(p,"%s %s",loc,req);
+  else sprintf(p,"\"%s\" \"%s\"",loc,req);
 //  *t=0;
   ec=t[1];
   t[1]=0;
+
+
   ll=(int) MyCreateProcess(p,env,(doc_dir)?doc_dir:loc, &cb,&pi);
+
+    DBGLA("p=%s %d, %d", p, ll,  GetLastError())
+
    //CreateProcess(0,p,&secat,&secat,1,NORMAL_PRIORITY_CLASS,env,(doc_dir)?doc_dir:loc, &cb,&pi);
   t[1]=ec;
 //CloseHandle(hwr);
 //CloseHandle(hwre);
 //if(hrdp)CloseHandle(hrdp);
-//  debug("Create: ll=%d pl=%u %u",ll,pl,cl);
+ DBGLA("Create: ll=%d pl=%u %u",ll,pl,cl);
   if( ll )
   { ll=0; ec=STILL_ACTIVE; goto lb1;
     do{
@@ -483,7 +435,7 @@ hwr,hwre
        }else
        {lbrd:
         //l=0;
-//        debug("Read %d %d",l,GetLastError());
+        DBGLA("Read %d %d",l,GetLastError());
         if(l>0x8000)l=0x8000;
         ReadFile(hrd,p,l,(ulong *)&l,0);
 //        debug("Read done: list %d %d",l,GetLastError());
@@ -527,9 +479,13 @@ hwr,hwre
                 t = (char *) ChunkedHead;
                 ll = sizeof(ChunkedHead) - 1;
                 fl |= F_UPCHUNKED;
+                DBGLA("ChunkedHead fl=%X", fl)
               }
             }
           }
+
+          DBGLA("ll=%u l=%u |%.50s|", ll, l, t)
+
           if( send(s,t,ll,0)<0 )goto tp;
           if(gz && t1 && !(fl&F_SKIPHEAD))
           {send(s,p,i=t1-p+1+(*t1=='\r'),0);
@@ -566,7 +522,11 @@ hwr,hwre
                   GetExitCodeProcess(pi.hProcess,(ulong *)&ec);
                 }while( ec==STILL_ACTIVE );
               }
-              else{tp2: TerminateProcess(pi.hProcess,0); }
+              else {
+                tp2:
+                DBGLA("TerminateProcess timeout=%u, cgi_timeout=%u %u", (uint)timeout, cgi_timeout,  (uint) time(0))
+                TerminateProcess(pi.hProcess,0);
+              }
               debug("Connection aborted %d..",GetLastError()); goto ex2;
             };
             ll+=l;
@@ -576,6 +536,7 @@ hwr,hwre
      //  Sleep(100);
         if(http_status == 101) // Websocket
         {
+          DBGLA("http_status=%d", http_status)
           do {
             if(PeekNamedPipe(hrd,0,0,0,(ulong *)&l,0) && l){
               ReadFile(hrd,p,0x4000,(ulong *)&l,0);
@@ -623,43 +584,50 @@ hwr,hwre
 
 
 
-#ifndef QW1
-   if(cl>0) do{
-     if(pl>(cl+2))pl=(cl+2);
-  //   if(pl>cl)pl=cl;
-//     debug("cl=%d pl=%u",cl,pl);
-     l=0;
-     if(pl>0){WriteFile(hwrp,t2,pl,(ulong *)&l,0);
-      pl-=l; cl-=l; t2+=l;
-     }
-//     debug("cl=%d pl=%u,%u",cl,pl,l);
-     if( cl<=0)
-     {
-//      debug("Close hwrp1...");
-      //FlushFileBuffers(hwrp);
-      CloseHandle(hwrp);
-      hwrp=0;
-//      debug("Close hwrp...");
-      break;
-     }
-     if(pl>0)break;
-     t2=p;          //MIN(0x10000,cl)
-     do{
-      l=0;
-      if(PeekNamedPipe(hrd,0,0,0,(ulong *)&l,0) && l) goto lbrd;
-      if(PeekNamedPipe(hrde,0,0,0,(ulong *)&l,0) && l) goto lbrde;
-      GetExitCodeProcess(pi.hProcess,(ulong *)&ec);
-      if(ec!=STILL_ACTIVE)goto exLp2;
-     }while( !RESelect(0,30000,1,s) );
-     if( (pl=Recv(p,0x8000))<0 )goto tp;
-   }while(pl);
-   else pl=0;
-#endif
+        #ifndef QW1
+        if(cl>0) do{
+          DBGL("")
+          if(pl>(cl+2))pl=(cl+2);
+          //   if(pl>cl)pl=cl;
+          //     debug("cl=%d pl=%u",cl,pl);
+          l=0;
+          if(pl>0){WriteFile(hwrp,t2,pl,(ulong *)&l,0);
+            pl-=l; cl-=l; t2+=l;
+          }
+          //     debug("cl=%d pl=%u,%u",cl,pl,l);
+          if(cl<=0)
+          {
+            //      debug("Close hwrp1...");
+            //FlushFileBuffers(hwrp);
+            CloseHandle(hwrp);
+            hwrp=0;
+            //      debug("Close hwrp...");
+            break;
+          }
+          if(pl>0)break;
+          t2=p;          //MIN(0x10000,cl)
+          do{
+            l=0;
+            if(PeekNamedPipe(hrd,0,0,0,(ulong *)&l,0) && l) goto lbrd;
+            if(PeekNamedPipe(hrde,0,0,0,(ulong *)&l,0) && l) goto lbrde;
+            GetExitCodeProcess(pi.hProcess,(ulong *)&ec);
+            if(ec!=STILL_ACTIVE)goto exLp2;
+          }while( !RESelect(0,30000,1,s) );
+          if( (pl=Recv(p,0x8000))<0 )goto tp;
+        }while(pl);
+        else pl=0;
+        #endif
 
 //  if( WaitForMultipleObjects(3,ahwr,0,1000)==(WAIT_OBJECT_0 + 2) )
-       if( RESelect(0,10240,1,s) ) if( Recv(p,0x8000)<=0 ) goto tp;
+       if( RESelect(0,10240,1,s) ) if( Recv(p,0x8000)<=0 ){
+         DBGLA("Connection closed %u", cgi_timeout)
+         goto tp;
+       }
        //if(! --timeout) goto tp2;
-       if(timeout<time(0)) goto tp2;
+       if(timeout<time(0)) {
+         DBGLA("Timeout %u", timeout)
+         goto tp2;
+       }
        PeekNamedPipe(hrd,0,0,0,(ulong *)&l,0);
 //       debug("%X %X \r\n",ec,l);
       }while( (ec==STILL_ACTIVE) || l );

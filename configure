@@ -127,13 +127,14 @@
    --armlib="/usr/src/crossarm/lib"
    --withoutIPv6        -- IPv4 only
    --withoutFUTEX       -- do not use futex (Linux specifed feature)
-   --withoutPOOL        -- use select instead pool
+   --withoutPOOL        -- use select instead poll
    --withoutMD5         -- without MD5
    --withoutVPN         -- without VPN
    --withoutSYSPASS     -- without system password support
    --withoutTelnet      -- without Telnet (Telnet for ARM and other little platforms)
+   --withoutGenTempSert -- Do not generate temporary certificate
    --commonLog          -- without separate log
-   --withTLS_1_3 -- enable TLS 1.3
+   --withTLS_1_3        -- enable TLS 1.3
    --withoutfakelibs    -- without fakelibs  (with fakelibs the program can run in another Linux systems)
    --withfakelibs       -- with fakelibs  (with fakelibs the program can run in another Linux systems)
    --debug              -- with debug
@@ -553,9 +554,13 @@ make
       $sec =~ s/libssl.so//;
    }
 
-   if(stat('/usr/lib/i386-linux-gnu/libgnutls.so') || stat("$libdir/libgnutls.so") )
+   if(stat($gtls = '/usr/lib/i386-linux-gnu/libgnutls.so') || stat($gtls = "$libdir/libgnutls.so") )
    {
-     $i32gnutls30 = 3;
+     $nm = `nm -D $gtls`;
+     if($nm =~ /gnutls_certificate_verify_peers3/g)
+     {
+       $i32gnutls30 = 3;
+     }
    }
    elsif(stat('/usr/lib/i386-linux-gnu/libgnutls.so.30') || stat("$libdir/libgnutls.so.30") )
    {
@@ -583,9 +588,13 @@ make
    }
 
 
-   if(stat('/usr/lib/x86_64-linux-gnu/libgnutls.so')  || stat("$libdir/libgnutls.so") )
+   if(stat($gtls = '/usr/lib/x86_64-linux-gnu/libgnutls.so')  || stat($gtls = "$libdir/libgnutls.so") )
    {
-     $i64gnutls30 = 3;
+     $nm = `nm -D $gtls`;
+     if($nm =~ /gnutls_certificate_verify_peers3/g)
+     {
+       $i64gnutls30 = 3;
+     }
    }
    elsif(stat('/usr/lib/x86_64-linux-gnu/libgnutls.so.30') || stat("$libdir/libgnutls.so.30") )
    {
@@ -603,6 +612,26 @@ make
       $sec64 =~ s/libgnutls.so//;
    }
 
+ }
+
+ if(! $without['GenTempSert'] )
+ {
+
+   $sertapp=`openssl version`;
+   if($sertapp && $sertapp =~ /[0-9]/)
+   {
+     $all .= ' temp_sert';
+     $use_temp_sert=1;
+   }
+   else
+   {
+     $sertapp=`certtool -v`;
+     if($sertapp && $sertapp =~ /[0-9]/)
+     {
+       $all .= ' temp_sert';
+       $use_temp_sert=2;
+     }
+   }
  }
 
  if($all =~ /i64|i32/)
@@ -690,6 +719,7 @@ N_DEP := $(N_FAKELIBS)
       s/-DVPN[A-Z_]+//g;
       s/-DTLSVPN//g;
       s/ vpn.o//g;
+      s/ shs_vpnclient[^ ]*//g;
     }
     if($without{'SYSPASS'})
     {
@@ -728,11 +758,13 @@ N_DEP := $(N_FAKELIBS)
       s/^i32([f]*\:.*)o[\/of]*?\/libsec111.so(.*)/i32$1 $2/g;
       s/^i32([f]*\:.*)o[\/of]*?\/libsec.so(.*)/i32$1 $2/g;
       s/^i32([f]*\:.*)o[\/of]*?\/httpd.exopenssl(.*)/i32$1 $2/g;
+      s/^i32([f]*\:.*)o[\/of]*?\/shs_vpnclient.openssl(.*)/i32$1 $2/g;
     }
     if($wolibgnutls32)
     {
       s/^i32([f]*\:.*)o[\/of]*?\/libsecgnutls.so(.*)/i32$1 $2/g;
       s/^i32([f]*\:.*)o[\/of]*?\/httpd.exgnutls(.*)/i32$1 $2/g;
+      s/^i32([f]*\:.*)o[\/of]*?\/shs_vpnclient.gnutls(.*)/i32$1 $2/g;
     }
 
     if($woseclib64)
@@ -740,10 +772,13 @@ N_DEP := $(N_FAKELIBS)
       s/^i64([f]?\:.*)o64[\/of]*?\/libsec.so(.*)/i64$1 $2/g;
       s/^i64([f]?\:.*)o64[\/of]*?\/libsec111.so(.*)/i64$1 $2/g;
       s/^i64([f]?\:.*)o64[\/of]*?\/httpd.exopenssl(.*)/i64$1 $2/g;
+      s/^i64([f]*\:.*)o64[\/of]*?\/shs_vpnclient.openssl(.*)/i64$1 $2/g;
     }
     if($wolibgnutls64)
     {
       s/^i64:(.*)o64\/libsecgnutls.so(.*)/i64: $1 $2/g;
+      s/^i64([f]?\:.*)o64[\/of]*?\/httpd.exgnutls(.*)/i64$1 $2/g;
+      s/^i64([f]*\:.*)o64[\/of]*?\/shs_vpnclient.gnutls(.*)/i64$1 $2/g;
     }
     if($i32gnutls30 == 1)
     {
@@ -764,6 +799,10 @@ N_DEP := $(N_FAKELIBS)
     if($openssl_path)
     {
       s/\/usr\/src\/openssl-1.1.1m/$openssl_path/g;
+    }
+    if($use_temp_sert==2)
+    {
+      s/[:][ ]*o\/stemp_sert.pem/: o\/gtemp_sert.pem/g;
     }
 
     foreach $x ( keys %var )
