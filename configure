@@ -554,9 +554,13 @@ make
       $sec =~ s/libssl.so//;
    }
 
-   if(stat('/usr/lib/i386-linux-gnu/libgnutls.so') || stat("$libdir/libgnutls.so") )
+   if(stat($gtls = '/usr/lib/i386-linux-gnu/libgnutls.so') || stat($gtls = "$libdir/libgnutls.so") )
    {
-     $i32gnutls30 = 3;
+     $nm = `nm -D $gtls`;
+     if($nm =~ /gnutls_certificate_verify_peers3/g)
+     {
+       $i32gnutls30 = 3;
+     }
    }
    elsif(stat('/usr/lib/i386-linux-gnu/libgnutls.so.30') || stat("$libdir/libgnutls.so.30") )
    {
@@ -584,9 +588,13 @@ make
    }
 
 
-   if(stat('/usr/lib/x86_64-linux-gnu/libgnutls.so')  || stat("$libdir/libgnutls.so") )
+   if(stat($gtls = '/usr/lib/x86_64-linux-gnu/libgnutls.so')  || stat($gtls = "$libdir/libgnutls.so") )
    {
-     $i64gnutls30 = 3;
+     $nm = `nm -D $gtls`;
+     if($nm =~ /gnutls_certificate_verify_peers3/g)
+     {
+       $i64gnutls30 = 3;
+     }
    }
    elsif(stat('/usr/lib/x86_64-linux-gnu/libgnutls.so.30') || stat("$libdir/libgnutls.so.30") )
    {
