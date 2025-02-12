@@ -48,7 +48,7 @@
 
 char *CApath,
      *CAfile,
-     *s_cert_file="server.pem",
+     *s_cert_file="temp_sert.pem",
      *s_key_file //="s1024key.pem"
 ;
 char *TLSLibrary=

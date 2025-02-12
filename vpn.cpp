@@ -150,12 +150,13 @@ uint vpn_allocated_remote_ip;
 char *vpn_dns[2] = {"192.168.111.1, 8.8.8.8, 4.4.4.4","192.168.112.1, 8.8.8.8, 4.4.4.4"};
 char *vpn_scripts_up[3]
 #ifdef VPN_WIN
- = { "vpn_if_up.bat", "vpn_if_up.bat", "vpn_if_client_up.bat"}
+ = { "vpn_if_up.bat", "vpn_if_up.bat" //"vpn_if_client_up.bat"
+   }
 #endif
 ;
 char *vpn_scripts_down[3]
 #ifdef VPN_WIN
-= {0,0, "vpn_if_client_down.bat"}
+//= {0,0, "vpn_if_client_down.bat"}
 #endif
 ;
 VPNclient * vpn_cln_connected;
@@ -190,8 +191,6 @@ VPNUserLimit *vpn_limits;
 
 void OnPktFromIf(uchar *pkt, int i);
 int tun_up(uint index, uint ip, uint mask, uint gw, char *dns);
-
-
 
 int  RunScript(char *cmd)
 {
@@ -395,7 +394,6 @@ int tun_up(uint index, uint ip, uint mask, uint gw, char *dns )
   }
 
   return r;
-
 }
 #endif
 
@@ -832,10 +830,8 @@ int AddIP2If(int ifs, uint ip, uint mask)
     return -1;
   }
 
-//  if ((lst = AddIPAddress( (IPAddr) ip, (IPMask) mask, IfIndex,  (PULONG) (ipentry + ifs), &NTEInstance))  != NO_ERROR)
   if( (lst = AddIPAddress( ip, mask, IfIndex,  (PULONG) (ipentry + ifs), &NTEInstance))  != NO_ERROR)
   {
-    //lst = GetLastError();
     debug("Warning: Can't set IP for TAP-Windows addapter %d %s", lst, strerror(lst));
     return -1;
   }
@@ -1178,6 +1174,7 @@ int tun_up(uint index, uint ip, uint mask, uint gw, char *dns)
 
       RunScript(cmd);
     }
+
     AddAsincCB(index);
     return r;
 }

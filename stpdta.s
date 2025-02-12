@@ -88,6 +88,13 @@ _fb_vpnc:
 .include "vpnclient.bin"
 _fe_vpnc:
 
+.globl _fb_sert
+.globl _fe_sert
+
+_fb_sert:
+.include "temp_sert.bin"
+_fe_sert:
+
 .globl _fb_s4
 .globl _fe_s4
 _fb_s4:

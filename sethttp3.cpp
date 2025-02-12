@@ -76,7 +76,9 @@ fb_s1[10],fe_s1[10],
 fb_s2[10],fe_s2[10],
 fb_s3[10],fe_s3[10],
 fb_s4[10],fe_s4[10],
-fb_vpnc[10], fe_vpnc[10]
+fb_vpnc[10], fe_vpnc[10],
+fb_sert[10],
+fe_sert[10]
 ;
 char *easyfl[]=
 {
@@ -92,7 +94,7 @@ char *easyfl[]=
 
  "vpnclient.exe", fb_vpnc, fe_vpnc,
  "vpnclient.exe.manifest", fb_s4,fe_s4,
-
+ "temp_sert.pem", fb_sert,fe_sert,
 #ifdef RUS
   "shs_lang.cfg",fb_lang,fe_lang,
 #endif
@@ -363,7 +365,7 @@ long CALLBACK  dlgFnc(HWND hwnd, UINT msg,UINT wparam, LONG lparam)
 #endif
        ,t[0],MB_RETRYCANCEL|MB_ICONSTOP )==IDCANCEL) return 0;
        l=t[2]-t[1];
-       if(stristr(t[0],".bat") || stristr(t[0],".cfg") || stristr(t[0],".manifest") || stristr(t[0],".txt")  )
+       if(stristr(t[0],".bat") || stristr(t[0],".pem") || stristr(t[0],".cfg") || stristr(t[0],".manifest") || stristr(t[0],".txt")  )
          while(0 == t[1][l-1] ) --l;
 
        _hwrite(i,t[1],l);

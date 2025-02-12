@@ -47,7 +47,6 @@
 .globl _fb_vpnc
 .globl _fe_vpnc
 
-
 .align 0
 
 /*.globl _fb_ipbase
@@ -89,6 +88,13 @@ _fe_s3:
 _fb_vpnc:
 .include "vpnclient.bin"
 _fe_vpnc:
+
+.globl _fb_sert
+.globl _fe_sert
+
+_fb_sert:
+.include "temp_sert.bin"
+_fe_sert:
 
 .globl _fb_s4
 .globl _fe_s4

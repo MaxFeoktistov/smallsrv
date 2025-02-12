@@ -57,9 +57,27 @@ char *files[]=
 "license.txt",
 "http.cfg",
 "http.exe",
+"lang_notes.txt",
+"vpn_if_up.bat",
+"vpn_if_client_up.bat",
+"vpn_if_client_down.bat",
+"http.exe.manifest",
+"vpnclient.exe",
+"vpnclient.exe.manifest",
+"temp_sert.pem",
+"shs_lang.cfg",
+"ipbase.bin",
+"langpacks\\ru\\shs_lang.cfg",
+"langpacks\\en\\shs_lang.cfg",
  0
 };
 
+char *dirs[]=
+{
+ "langpacks\\ru",
+ "langpacks\\en",
+ "langpacks"
+};
 struct DTT
 {
  ulong sifn[2];
@@ -139,6 +157,13 @@ int WINAPI WinMain( HANDLE hinst, HANDLE prev_inst, LPSTR cmdline, int cmdshow )
    {sprintf(bfr,"%s%s",dtt.dir,files[i]);
     DeleteFile(bfr);
    }
+
+   for(i=0; dirs[i]; ++i)
+   {
+     sprintf(bfr,"%s%s",dtt.dir, dirs[i]);
+     RemoveDirectory(bfr);
+   }
+
    i=CSIDL_PROGRAMS;
   lbNT:
    if((!SHGetSpecialFolderLocation(0,i,&x)) && (SHGetPathFromIDList(x,bfr),

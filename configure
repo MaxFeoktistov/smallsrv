@@ -132,8 +132,9 @@
    --withoutVPN         -- without VPN
    --withoutSYSPASS     -- without system password support
    --withoutTelnet      -- without Telnet (Telnet for ARM and other little platforms)
+   --withoutGenTempSert -- Do not generate temporary certificate
    --commonLog          -- without separate log
-   --withTLS_1_3 -- enable TLS 1.3
+   --withTLS_1_3        -- enable TLS 1.3
    --withoutfakelibs    -- without fakelibs  (with fakelibs the program can run in another Linux systems)
    --withfakelibs       -- with fakelibs  (with fakelibs the program can run in another Linux systems)
    --debug              -- with debug
@@ -605,6 +606,26 @@ make
 
  }
 
+ if(! $without['GenTempSert'] )
+ {
+
+   $sertapp=`openssl version`;
+   if($sertapp && $sertapp =~ /[0-9]/)
+   {
+     $all .= ' temp_sert';
+     $use_temp_sert=1;
+   }
+   else
+   {
+     $sertapp=`certtool -v`;
+     if($sertapp && $sertapp =~ /[0-9]/)
+     {
+       $all .= ' temp_sert';
+       $use_temp_sert=2;
+     }
+   }
+ }
+
  if($all =~ /i64|i32/)
  {
    $warn=`gcc --help=warnings`;
@@ -770,6 +791,10 @@ N_DEP := $(N_FAKELIBS)
     if($openssl_path)
     {
       s/\/usr\/src\/openssl-1.1.1m/$openssl_path/g;
+    }
+    if($use_temp_sert==2)
+    {
+      s/[:][ ]*o\/stemp_sert.pem/: o\/gtemp_sert.pem/g;
     }
 
     foreach $x ( keys %var )

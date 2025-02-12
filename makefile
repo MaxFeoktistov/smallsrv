@@ -22,7 +22,7 @@
 #
 #
 
-VERSION=3.06.35test14
+VERSION=3.06.35
 VERSIONT=3.06.35test
 BUDIR=../site/30635/
 
@@ -595,16 +595,16 @@ wo/shttpsr_mgi.exe: wo/stpdtari.o wo/sethttp3ri.o wo/mstring1.o wo/updr.res
 wo/uninst.exe: wo/uninst.o
 	$(WINEGCC)  -s  $^ -o $@  -nodefaultlibs -L$(MGDIR)\\lib -luser32 -lkernel32 -lgdi32 -lcomdlg32 -ladvapi32 -lshell32 -Wl,--subsystem,windows -nostartfiles  -Xlinker -Map -Xlinker wo/flxmaps  -Xlinker --entry=_start  -nostartfiles -Xlinker -Map -Xlinker wo/flxmap  -Xlinker --entry=_start    -fno-optional-diags -momit-leaf-frame-pointer  -mno-red-zone -fno-exceptions  -fno-stack-protector -fno-ms-extensions -no-pie -fno-stack-check -mno-stack-arg-probe
 
-wo/stpdta.o: wo/stpdta.s wo/uninst.bin wo/http.bin wo/ind1.bin wo/eshs_lang.bin wo/shs_lang.bin wo/lnotes.bin wo/lic.bin wo/vpn_if_up.bin wo/vpn_if_client_up.bin wo/vpn_if_client_down.bin wo/manifest.bin wo/vpnclient.bin
+wo/stpdta.o: wo/stpdta.s wo/uninst.bin wo/http.bin wo/ind1.bin wo/eshs_lang.bin wo/shs_lang.bin wo/lnotes.bin wo/lic.bin wo/vpn_if_up.bin wo/vpn_if_client_up.bin wo/vpn_if_client_down.bin wo/manifest.bin wo/vpnclient.bin wo/temp_sert.bin
 	 cd wo ;  $(WINEAS)  stpdta.s -o stpdta.o
 
-wo/stpdtar.o: wo/stpdtar.s wo/uninst.bin wo/http.bin wo/ind1r.bin wo/eshs_lang.bin wo/shs_lang.bin wo/lnotes.bin wo/licr.bin wo/vpn_if_up.bin wo/vpn_if_client_up.bin wo/vpn_if_client_down.bin wo/manifest.bin wo/vpnclient.bin
+wo/stpdtar.o: wo/stpdtar.s wo/uninst.bin wo/http.bin wo/ind1r.bin wo/eshs_lang.bin wo/shs_lang.bin wo/lnotes.bin wo/licr.bin wo/vpn_if_up.bin wo/vpn_if_client_up.bin wo/vpn_if_client_down.bin wo/manifest.bin wo/vpnclient.bin wo/temp_sert.bin
 	 cd wo ;  $(WINEAS)  stpdtar.s -o stpdtar.o
 
-wo/stpdtai.o: wo/stpdtai.s wo/uninst.bin wo/http.bin wo/ind1.bin wo/eshs_lang.bin wo/shs_lang.bin wo/lnotes.bin wo/lic.bin wo/ipbase.s wo/vpn_if_up.bin wo/vpn_if_client_up.bin wo/vpn_if_client_down.bin wo/manifest.bin wo/vpnclient.bin
+wo/stpdtai.o: wo/stpdtai.s wo/uninst.bin wo/http.bin wo/ind1.bin wo/eshs_lang.bin wo/shs_lang.bin wo/lnotes.bin wo/lic.bin wo/ipbase.s wo/vpn_if_up.bin wo/vpn_if_client_up.bin wo/vpn_if_client_down.bin wo/manifest.bin wo/vpnclient.bin wo/temp_sert.bin
 	 cd wo ;  $(WINEAS)  stpdtai.s -o stpdtai.o
 
-wo/stpdtari.o: wo/stpdtari.s wo/uninst.bin wo/http.bin wo/ind1r.bin wo/eshs_lang.bin wo/shs_lang.bin wo/lnotes.bin wo/licr.bin wo/ipbase.s wo/vpn_if_up.bin wo/vpn_if_client_up.bin wo/vpn_if_client_down.bin wo/manifest.bin wo/vpnclient.bin
+wo/stpdtari.o: wo/stpdtari.s wo/uninst.bin wo/http.bin wo/ind1r.bin wo/eshs_lang.bin wo/shs_lang.bin wo/lnotes.bin wo/licr.bin wo/ipbase.s wo/vpn_if_up.bin wo/vpn_if_client_up.bin wo/vpn_if_client_down.bin wo/manifest.bin wo/vpnclient.bin wo/temp_sert.bin
 	 cd wo ;  $(WINEAS)  stpdtari.s -o stpdtari.o
 
 wo/stpdta.s: stpdta.s
@@ -655,6 +655,8 @@ wo/lnotes.bin :  lang_notes.txt
 wo/ipbase.s : ipbase.bin
 	$(WINEBIN2S)  $< $@
 
+wo/temp_sert.bin : o/stemp_sert.pem
+	$(WINEBIN2S)  $< $@
 
 # o/t2icfg.o: t2icfg.cpp g4s1.hh
 
@@ -807,9 +809,10 @@ install: # all
 	for i in httpd.exe.1 sndmsg.1 shs_vpnclient.1 ; do cp $$i $(ICONFIG_BASE)/share/man/man1/ ; done
 	for i in httpd.exgnutls.1 httpd.exopenssl.1 ; do ln -sf httpd.exe.1 $(ICONFIG_BASE)/share/man/man1/$$i ; done
 	for i in shs_vpnclient.gnutls.1 shs_vpnclient.openssl.1 ; do ln -sf shs_vpnclient.1 $(ICONFIG_BASE)/share/man/man1/$$i ; done
+	if [ -r o/stemp_sert.pem ] ; then cp o/stemp_sert.pem $(ICONFIG_CONFIG)/temp_sert.pem ; elif [ o/gtemp_sert.pem ] ; then cp o/gtemp_sert.pem $(ICONFIG_CONFIG)/temp_sert.pem ; fi;
 
 
-DISTFILES=vpn_if_client_down.sh vpn_if_client_up.sh vpn_if_up.sh descu.htm httpd.cfg lang_notes.txt libsec111.so license.ssl notes.ssl libsecgnutls.so  license06.txt langpacks/ru langpacks/ru/shs_lang.cfg langpacks/en langpacks/en/shs_lang.cfg sndmsg httpd.exe.1 sndmsg.1 shs_vpnclient.1 vpnclient.cfg
+DISTFILES=vpn_if_client_down.sh vpn_if_client_up.sh vpn_if_up.sh descu.htm httpd.cfg lang_notes.txt libsec111.so license.ssl notes.ssl libsecgnutls.so  license06.txt langpacks/ru langpacks/ru/shs_lang.cfg langpacks/en langpacks/en/shs_lang.cfg sndmsg httpd.exe.1 sndmsg.1 shs_vpnclient.1 vpnclient.cfg  temp_sert.pem
 ODISTFILES=$(addprefix o/dist/,$(DISTFILES))
 OUDISTFILES=$(addprefix o/of/dist/,$(DISTFILES))
 ADISTFILES=$(addprefix at/dist/,$(DISTFILES))
@@ -837,37 +840,34 @@ DIST_DIR=$(CURRENT_DIR)o/alldist/
 $(DIST_DIR):
 	mkdir -p $(DIST_DIR)
 
-# dist:   o/dist/libsec.so o/dist/libsec111.so o/dist/license06.txt at/dist/license06.txt o/dist/libsecgnutls.so o/dist/langpacks/ru/shs_lang.cfg o/dist/langpacks/en/shs_lang.cfg o/dist/descu.htm at/dist/
+TAR_KEY:=-cJf
+TAR_EXT:=txz
 
-dist: $(PREPAREDISTDIRS) $(ODISTFILES) $(OUDISTFILES) $(ADISTFILES) $(O64DISTFILES) $(O64UDISTFILES) $(OODISTFILES) $(DIST_DIR) o.prepare_dist distof atdist dist64 arm64dist
-	cd o/dist/ ; rm -f $(DIST_DIR)shttplnxu.tgz ; tar --owner=root --group=root -czf $(DIST_DIR)shttplnxu.tgz * ; chmod 0644 $(DIST_DIR)shttplnxu.tgz
+dist: $(PREPAREDISTDIRS) $(ODISTFILES) $(OUDISTFILES) $(ADISTFILES) $(O64DISTFILES) $(O64UDISTFILES) $(OODISTFILES) $(DIST_DIR) distu distof atdist dist64 dist64of arm64dist
 
-#distof: BSDIR=o/
+distu: BSNAME:=shttplnxu
+distu: o.prepare_dist
 
 distof: BINFILES:=$(BINFILESF)
+distof: BSNAME:=shttplnx
 distof: o/of.prepare_dist
-	cd o/of/dist/ ; rm -f $(DIST_DIR)shttplnx.tgz ; tar --owner=root --group=root -czf $(DIST_DIR)shttplnx.tgz * ; chmod 0644 $(DIST_DIR)shttplnx.tgz
 
 atdist: CROSS_COMPILE:=arm-linux-gnueabi-
+atdist: BSNAME:=shttparmlnx
 atdist: at.prepare_dist
-	cd at/dist/ ; rm -f $(DIST_DIR)shttparmlnx.tgz ; tar --owner=root --group=root -czf $(DIST_DIR)shttparmlnx.tgz * ; chmod 0644 $(DIST_DIR)shttparmlnx.tgz
 
-#dist64: o64/dist/libsec.so o64/dist/libsec111.so o64/dist/libsecgnutls.so o64/of/dist/libsec.so o64/of/dist/libsecgnutls.so o64/dist/langpacks/ru/shs_lang.cfg o64/dist/langpacks/en/shs_lang.cfg
+dist64: BSNAME:=shttplnx64u
+dist64: o64.prepare_dist
 
-
-dist64: o64.prepare_dist dist64of
-	cd o64/dist/ ; rm -f $(DIST_DIR)shttplnx64u.tgz ; tar --owner=root --group=root -czf $(DIST_DIR)shttplnx64u.tgz * ; chmod 0644 $(DIST_DIR)shttplnx64u.tgz
-
+dist64of: BSNAME:=shttplnx64
 dist64of: BINFILES:=$(BINFILESF)
 dist64of: o64/of.prepare_dist
-	cd o64/of/dist/ ; rm -f $(DIST_DIR)shttplnx64.tgz ; tar --owner=root --group=root -czf $(DIST_DIR)shttplnx64.tgz * ; chmod 0644 $(DIST_DIR)shttplnx64.tgz
 
 arm64dist: arm64
 arm64dist: BINFILES:=$(BINFILESF)
+arm64dist: BSNAME:=shttparm64lnx
 arm64dist: CROSS_COMPILE:=aarch64-linux-gnu-
-arm64dist: arm64 oo/dist oo.prepare_dist
-	rm -f $(DIST_DIR)shttparm64lnx.tgz
-	cd oo/dist ; tar --owner=root --group=root -czf $(DIST_DIR)shttparm64lnx.tgz * ; chmod 0644 $(DIST_DIR)shttparm64lnx.tgz
+arm64dist: oo/dist oo.prepare_dist
 
 dist_clean:
 	for i in $(PREPAREDISTDIRS) ; do for j in $(BINFILESF) ; do rm -f $$i/$$j ; done ; done
@@ -882,8 +882,8 @@ dist_clean:
 
 %.prepare_dist:
 	chmod -R go-w,u+rw,a+X $(BSDIR)$*/dist/*
-	for i in $(BINFILES) ; do if [ -e $(BSDIR)$*/$$i ] ; then cp $(BSDIR)$*/$$i $(BSDIR)$*/dist/ ; $(CROSS_COMPILE)strip $(BSDIR)$*/dist/$$i ; chmod 0755 $(BSDIR)$*/$$i ; fi ; done
-	cd $(BSDIR)$*/dist/ ; $(CROSS_COMPILE)strip sndmsg *.so ; chmod  0755 *.so sndmsg ; chmod 0644 *.1; chmod 0600 httpd.cfg
+	for i in $(BINFILES) ; do if [ -e $(BSDIR)$*/$$i ] ; then cp $(BSDIR)$*/$$i $(BSDIR)$*/dist/ ; $(CROSS_COMPILE)strip $(BSDIR)$*/dist/$$i ; chmod 0755 $(BSDIR)$*/$$i ; fi ; done ; rm -f $(DIST_DIR)/$(BSNAME).*
+	cd $(BSDIR)$*/dist/ ; $(CROSS_COMPILE)strip sndmsg *.so ; chmod  0755 *.so sndmsg ; chmod 0644 *.1; chmod 0600 httpd.cfg ; tar --owner=root --group=root $(TAR_KEY) $(DIST_DIR)/$(BSNAME).$(TAR_EXT) * ;	chmod 0644 $(DIST_DIR)/$(BSNAME).$(TAR_EXT)
 
 
 
@@ -1342,6 +1342,18 @@ shs_vpnclient.1: shs_vpnclient_usage.1.in o64/shs_vpnclient
 sndmsg.1: sndmsg_usage.1.in o64/sndmsg
 	help2man -i $< -o $@ -N ./o64/sndmsg
 
+temp_sert: o/stemp_sert.pem
+
+o/stemp_sert.pem:
+	openssl genrsa 4096 > $@
+	echo -e "AW\nAll\nWorld\nSHS\nTemp sertificate\ntemp.cer\n\n\n\n\n\n\n" | openssl req -x509 -new -key $@ -days 3650 >> $@
+
+%/temp_sert.pem: o/stemp_sert.pem
+	cp $< $@
+
+o/gtemp_sert.pem: gnutls_sert_templ
+	certtool --generate-privkey --bits 4096 --outfile $@
+	certtool --generate-self-signed --load-privkey $@ --template gnutls_sert_templ >> $@
 
 clean_n:
 	rm -rf $(N_OBJS_TLS) $(N_OBJS) oo/fakelibs oo/httpd.exe oo/sndmsg oo/libsec111.so oo/libsecgnutls.so oo/httpd.exopenssl oo/httpd.exgnutls $(addprefix oo/,$(SECOBJ))

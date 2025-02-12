@@ -1,0 +1,13 @@
+organization = "Best organization"
+locality = "All World"
+state = None
+country = AW
+
+# common name
+cn = "Temp sertificate"
+
+serial = 123456789
+expiration_days = 3650
+
+# subjectAltNames
+dns_name = noname.net
