@@ -1346,7 +1346,8 @@ temp_sert: o/stemp_sert.pem
 
 o/stemp_sert.pem:
 	openssl genrsa 4096 > $@
-	echo -e "AW\nAll\nWorld\nSHS\nTemp sertificate\ntemp.cer\n\n\n\n\n\n\n" | openssl req -x509 -new -key $@ -days 3650 >> $@
+	openssl req -x509 -new -key $@ -days 3650 >> $@ <openssl_sert_templ
+
 
 %/temp_sert.pem: o/stemp_sert.pem
 	cp $< $@
@@ -1384,7 +1385,8 @@ bvprintfv.cpp cstat.cpp get4def.pl ico.h mrc.cpp onelog.cpp regular.h S5_lf.hh s
  desc.htm fcgi.h getstr.cpp isapi.h makefile.dj msprintfchk.cpp pkbig.cpp ress1.s srvdat.cpp strcwm.h to_win.h \
  c4char.pl descr.htm gz.cpp lang_notes.txt makefile.in mstring1.cpp pklz.cpp restart.cpp srv.h strcwmr.h vpn.cpp vpn.h tools.cpp mkfakelib_cros.pl sndmsg.cpp \
  icfg_vpnclient.cpp reqfunc.cpp slloop_vpnclient.cpp srv0a_vpnclient.cpp srvdat_vpnclient.cpp  srvmd5.cpp \
- httpd.exe.1 sndmsg.1 shs_vpnclient.1 sndmsg_usage.1.in httpd_usage.1.in shs_vpnclient_usage.1.in def4str2.pl httpd.cfg vpnclient.cfg
+ httpd.exe.1 sndmsg.1 shs_vpnclient.1 sndmsg_usage.1.in httpd_usage.1.in shs_vpnclient_usage.1.in def4str2.pl httpd.cfg vpnclient.cfg \
+ openssl_sert_templ gnutls_sert_templ
 
 WSRC = $(addprefix winclude/,winsock_IPv6.h zconf.h zlib.h tap-windows.h nethdr.h)
 LSRC = $(addsuffix shs_lang.cfg, ru/ en/)
