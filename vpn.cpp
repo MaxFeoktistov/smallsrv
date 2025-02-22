@@ -2171,7 +2171,10 @@ int VPNclient::ClientConnect(OpenSSLConnection *x)
 #ifndef  TLSWODLL
   if( (!PSecConnect) || PSecConnect == SecConnectAbcent)
   {
-    debug("Your version of 'libsec' library doesn't support functions required for VPN client. Please update it...\r\n");
+
+    debug( (PSecAccept)?"Your version of 'libsec' library doesn't support functions required for VPN client. Please update it...\r\n"
+                       : "TLS/SSL library not loaded"
+         );
     return -4;
   }
 #endif

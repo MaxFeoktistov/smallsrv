@@ -64,6 +64,18 @@ typedef void* HKEY;
 #include "mrc.cpp"
 //#include "mdef.h"
 
+#ifndef VPNCLIENT_ONLY
+#define MAIN_APP_NAME "http"
+#define SERVICE_NAME "shttps"
+#define MAIN_APP_MEM fb_http
+#define MAIN_APP_MEM_END fe_http
+#else
+#define MAIN_APP_NAME "vpnclient"
+#define SERVICE_NAME "svpnclient"
+#define MAIN_APP_MEM fb_vpnc
+#define MAIN_APP_MEM_END fe_vpnc
+#endif // VPNCLIENT_ONLY
+
 
 #define sprintf wsprintf
 //extern "C" int pak_exe(char *e,int l);
@@ -83,14 +95,20 @@ fe_sert[10]
 char *easyfl[]=
 {
  "uninst.exe",fb_uttp,fe_uttp,
+#ifndef VPNCLIENT_ONLY
  "http.exe",fb_http,fe_http,
+#endif
  "desc.htm",fb_ind,fe_ind,
  "license.txt",fb_lis,fe_lis,
  "lang_notes.txt",fb_lnotes,fe_lnotes,
+#ifndef VPNCLIENT_ONLY
  "vpn_if_up.bat",fb_s1,fe_s1,
+#endif
  "vpn_if_client_up.bat",fb_s2,fe_s2,
  "vpn_if_client_down.bat",fb_s3,fe_s3,
+#ifndef VPNCLIENT_ONLY
  "http.exe.manifest",fb_s4,fe_s4,
+#endif
 
  "vpnclient.exe", fb_vpnc, fe_vpnc,
  "vpnclient.exe.manifest", fb_s4,fe_s4,
@@ -133,13 +151,19 @@ SC_HANDLE
 QUERY_SERVICE_CONFIG Service;
 #endif
 char apname[]=
+#ifndef VPNCLIENT_ONLY
 #ifdef RUS
 "Установка Small HTTP server 3.0";
 #define DISPLAY_NAME  apname+10
 #else
 "Setup Small HTTP server 3.0";
 #define DISPLAY_NAME  apname+6
+#endif // RUS
+#else // VPNCLIENT_ONLY
+ "Setup VPN Client for Small HTTP server 3.0";
+#define DISPLAY_NAME  apname+6
 #endif
+
 
 mrc_obj  dlg1[]=
 {
@@ -157,6 +181,7 @@ mrc_obj  dlg1[]=
 {"Служба NT",149,"BUTTON",WS_DISABLED|BS_AUTOCHECKBOX|WS_CHILD|WS_VISIBLE|WS_TABSTOP,170,136,50,10},
 #endif
 
+#ifndef VPNCLIENT_ONLY
 {"Административный вход:",102,"BUTTON",BS_GROUPBOX|WS_CHILD|WS_VISIBLE,2,147,212,64},
 
 {"Эта версия включает удаленное администрирование. Для доступа, необходимо создать акаунт. "
@@ -167,6 +192,7 @@ mrc_obj  dlg1[]=
 {"admin",181,"EDIT",ES_LEFT|ES_AUTOHSCROLL|WS_CHILD|WS_VISIBLE|WS_BORDER|WS_TABSTOP, 42, 188, 150, 10, WS_EX_STATICEDGE },
 {"Пароль:", 46, "STATIC", SS_LEFT|WS_CHILD|WS_VISIBLE, 8, 199, 30, 8 },
 {"",182,"EDIT",ES_LEFT|ES_AUTOHSCROLL|WS_CHILD|WS_VISIBLE|WS_BORDER|WS_TABSTOP|ES_PASSWORD, 42, 199, 150, 10, WS_EX_STATICEDGE },
+#endif // VPNCLIENT_ONLY
 
 {"&Установить",110,"BUTTON",WS_DISABLED|BS_DEFPUSHBUTTON|WS_CHILD|WS_VISIBLE|WS_TABSTOP, 10, 212, 50, 14},
 {"&Отмена",112,"BUTTON",BS_PUSHBUTTON|WS_CHILD|WS_VISIBLE|WS_TABSTOP, 80, 212, 50, 14  },
@@ -185,6 +211,8 @@ mrc_obj  dlg1[]=
 #ifdef SERVICE
 {"NT Service", 149, "BUTTON", WS_DISABLED|BS_AUTOCHECKBOX|WS_CHILD|WS_VISIBLE|WS_TABSTOP, 170, 136,50,10},
 #endif
+
+#ifndef VPNCLIENT_ONLY
 {"Administrator account:",  102, "BUTTON", BS_GROUPBOX|WS_CHILD|WS_VISIBLE, 2,147,212, 64 },
 {"This version has online administration. To get access, you have to create an account now. "
  "After setting you can add, change, or delete accounts",
@@ -193,6 +221,8 @@ mrc_obj  dlg1[]=
 {"admin",181, "EDIT",ES_LEFT|ES_AUTOHSCROLL|WS_CHILD|WS_VISIBLE|WS_BORDER|WS_TABSTOP, 42, 188, 150, 10, WS_EX_STATICEDGE },
 {"Password:", 46, "STATIC", SS_LEFT|WS_CHILD|WS_VISIBLE, 8, 199, 30, 8 },
 {"",182,"EDIT",ES_LEFT|ES_AUTOHSCROLL|WS_CHILD|WS_VISIBLE|WS_BORDER|WS_TABSTOP|ES_PASSWORD, 42, 199, 150, 10, WS_EX_STATICEDGE },
+#endif // VPNCLIENT_ONLY
+
 
 {"&Install",110,"BUTTON",WS_DISABLED|BS_DEFPUSHBUTTON|WS_CHILD|WS_VISIBLE|WS_TABSTOP, 10, 212, 50, 14},
 {"&Cancel",112,"BUTTON",BS_PUSHBUTTON|WS_CHILD|WS_VISIBLE|WS_TABSTOP,80,212,50,14},
@@ -204,7 +234,10 @@ BROWSEINFO binf={0,0,target,"Select target",0,0,0,0};
 
 char *  cmdInstall="[CreateGroup(\"Small HTTP server\")]\n"
 "[ShowGroup(\"Small HTTP server\",1)]\n"
+#ifndef VPNCLIENT_ONLY
 "[AddItem(\"%s\\http.exe\",\"Small HTTP server\")]\n"
+#endif // VPNCLIENT_ONLY
+
 "[AddItem(\"%s\\vpnclient.exe\",\"VPN client\")]\n"
 #ifdef RUS
 "[AddItem(\"%s\\desc.htm\",\"Описание\")]\n"
@@ -218,6 +251,24 @@ char *  cmdInstall="[CreateGroup(\"Small HTTP server\")]\n"
 
 ;
 
+const char *LinkNames[] = {
+
+#ifndef VPNCLIENT_ONLY
+"Small HTTP server",
+#endif // VPNCLIENT_ONLY
+"VPN client",
+#ifdef RUS
+"Описание",
+"Лицензия",
+#else
+"Description",
+"License",
+#endif
+"Localisation notes",
+"Uninstall",
+0
+};
+
 HDDEDATA CALLBACK ProgDdeCallback(
 UINT wType,UINT wFmt,HCONV hConv,HSZ hsz1,HSZ hsz2,HDDEDATA hData,
 DWORD dwData1,DWORD dwData2){return(0);}
@@ -230,8 +281,6 @@ char *old_user;
 char *reg_code;
 int old_cfg_len=0;
 FILETIME CreationTime;
-
-
 
 #ifdef MINGW
 extern "C" {
@@ -293,14 +342,17 @@ long CALLBACK  dlgFnc(HWND hwnd, UINT msg,UINT wparam, LONG lparam)
     break;
    case 145: //...
     if( SHGetPathFromIDList( (_ITEMIDLIST *)SHBrowseForFolder(&binf),target))
-    {if(!strstr(target,"shttps") )strcat(target,folder+(target[3]==0));
-     SetDlgItemText(hwnd,180,target);
+    {
+      if(!strstr(target, "shttps" ) )
+        strcat(target,folder+(target[3]==0));
+      SetDlgItemText(hwnd,180,target);
     }
     return 0;
 
    case 111: // Uninstal
     if((i=strlen(target))>3)
-    {strcpy(target+i,"\\http.exe");
+    {
+     strcpy(target+i,"\\" MAIN_APP_NAME ".exe");
      if(hs){ControlService(hs,SERVICE_CONTROL_STOP,&SerStat); DeleteService(hs);} DeleteFile(target);
 /*
      strcpy(target+i,"\\http.cfg"); DeleteFile(target);
@@ -323,15 +375,13 @@ long CALLBACK  dlgFnc(HWND hwnd, UINT msg,UINT wparam, LONG lparam)
     }
 
     if( (m=strrchr(uninst,'\\')))
-    {strcpy(m,"\\Small HTTP server.lnk"); DeleteFile(uninst);
-#ifdef RUS
-     strcpy(m,"\\Описание.lnk");  DeleteFile(uninst);
-     strcpy(m,"\\Лицензия.lnk");  DeleteFile(uninst);
-#else
-     strcpy(m,"\\Description.lnk"); DeleteFile(uninst);
-     strcpy(m,"\\License.lnk");     DeleteFile(uninst);
-#endif
-     strcpy(m,"\\lang_notes.lnk");     DeleteFile(uninst);
+    {
+      const char **lnk;
+      for(lnk = LinkNames; *lnk; lnk++ )
+      {
+        strcpy(m, *lnk);
+        DeleteFile(uninst);
+      }
 
      *m=0;
      RemoveDirectory(uninst);
@@ -380,7 +430,7 @@ long CALLBACK  dlgFnc(HWND hwnd, UINT msg,UINT wparam, LONG lparam)
  //  if ! defined(MINGW)
   if((xx=IsDChk(mwnd,149)&1) && sch) Ucode[4]=1;
 #endif
-#endif
+#endif //SERVICE
 
      if(IsDChk(hwnd,147)&1)
      {HGLOBAL hgl=GlobalAlloc(GMEM_DDESHARE,1024);
@@ -393,24 +443,29 @@ long CALLBACK  dlgFnc(HWND hwnd, UINT msg,UINT wparam, LONG lparam)
 
      if(startup)
      {if( (IsDChk(hwnd,148)&1) && !xx )
-      {RegSetValueEx(startup,"http.exe",0,REG_SZ,(uchar *)fb_http,sprintf(fb_http,"%s\\http.exe",target));}
-      else RegDeleteValue(startup,"http.exe");
+      {RegSetValueEx(startup, MAIN_APP_NAME ".exe",0,REG_SZ,(uchar *)MAIN_APP_MEM, sprintf(MAIN_APP_MEM, "%s\\" MAIN_APP_NAME ".exe",target));}
+      else RegDeleteValue(startup, MAIN_APP_NAME ".exe");
       RegCloseKey(startup);
      }
+#ifndef VPNCLIENT_ONLY
      if((i=_lopen("http.cfg",2) )<=0)i=_lcreat("http.cfg",0);
      else _llseek(i,0,2);
      GetDlgItemText(hwnd,181,fb_http+8192,80);
      GetDlgItemText(hwnd,182,fb_http+4096,80);
      _hwrite(i,fb_http,sprintf(fb_http," \n user=%s;%s;%s;A\n norunhtm\n",fb_http+8192,fb_http+4096,target));
+#endif // VPNCLIENT_ONLY
 
 
 #ifdef SERVICE
 if(sch)
 {
  if(xx)
- {strcat(target,"\\http.exe service");
+ {
+  strcat(target,"\\" MAIN_APP_NAME ".exe service");
+
   if(!hs)
-  {if(!(hs=CreateService(sch,folder+1,DISPLAY_NAME,SERVICE_ALL_ACCESS,
+  {
+    if(!(hs=CreateService(sch, SERVICE_NAME, DISPLAY_NAME,SERVICE_ALL_ACCESS,
    SERVICE_WIN32_OWN_PROCESS /*_SHARE_PROCESS  */ |SERVICE_INTERACTIVE_PROCESS,
    SERVICE_AUTO_START,SERVICE_ERROR_NORMAL,target,0,0,0,0,0)))
    {
@@ -462,7 +517,7 @@ int InitApplication()
  i=GetVersion() & 0x80000000;
 
 #ifndef RICON
- for(ticon=fb_http;ticon<fe_http;++ticon )
+ for(ticon=MAIN_APP_MEM; ticon<MAIN_APP_MEM_END; ++ticon )
    if( DWORD_PTR(*ticon)==0xdd7d7777 //8x8x16
 //0x77777777  //16x16x16
 // 0x00FFFF7F  //16x16x2
@@ -470,7 +525,7 @@ int InitApplication()
   {
 #else
 //      if !defined(MINGW)
- for(Ucode=fb_http;Ucode<fe_http;++Ucode)
+ for(Ucode=MAIN_APP_MEM; Ucode<MAIN_APP_MEM_END; ++Ucode)
    if( DWORD_PTR(*Ucode)==0x25FC2488) break;
 #endif
 
@@ -479,7 +534,7 @@ int InitApplication()
   {
 #ifdef SERVICE
    if((sch=OpenSCManager(0,0,SC_MANAGER_ALL_ACCESS)))
-   {if((hs=OpenService(sch,folder+1,SERVICE_ALL_ACCESS)))
+   {if((hs=OpenService(sch,SERVICE_NAME,SERVICE_ALL_ACCESS)))
     {QueryServiceConfig(hs,&Service,sizeof(Service),(LPDWORD)&i);
      if(Service.lpBinaryPathName)strcpy(target,Service.lpBinaryPathName);
      if((t=strrchr(target,'\\')))*t=0;
@@ -516,7 +571,12 @@ int InitApplication()
   i=CSIDL_PROGRAMS;
  lbNT:
   if((!SHGetSpecialFolderLocation(0,i,&x)) && (SHGetPathFromIDList(x,bfr),
+#ifndef VPNCLIENT_ONLY
      sprintf(uninst,"%s\\Small HTTP server\\Small HTTP server.lnk",bfr),
+#else
+     sprintf(uninst,"%s\\Small HTTP server\\VPN client.lnk",bfr),
+#endif // VPNCLIENT_ONLY
+
      ( (h=_lopen(uninst,0) )>0 )
     )
    )
@@ -524,7 +584,10 @@ int InitApplication()
    i=_hread(h,bfr,512);
    _lclose(h);
    for(j=0;j<i;++j)
-   {if((bfr[j]==':') && (bfr[j+1]=='\\') && (t=strstr(bfr+j,"\\http.exe")) )
+   {
+    if((bfr[j]==':') && (bfr[j+1]=='\\') &&
+      (t=strstr(bfr+j,"\\" MAIN_APP_NAME ".exe"))
+    )
     {if( (i=(t-bfr)-j+1 )>255)i=255;
      strncpy(target,bfr+j-1,i);
      dlg1[1].Style &= ~WS_DISABLED;
@@ -536,7 +599,7 @@ int InitApplication()
 
   RegOpenKey(HKEY_LOCAL_MACHINE,"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run",&startup);
   if(dlg1[1].Style & WS_DISABLED && startup)
-  {if(RegQueryValue(startup,"http.exe",target,(PLONG)&h)==ERROR_SUCCESS)
+  {if(RegQueryValue(startup, MAIN_APP_NAME ".exe",target,(PLONG)&h)==ERROR_SUCCESS)
    {if(t=strrchr(target,'\\') )*t=0;
     dlg1[1].Style &= ~WS_DISABLED;
    }

@@ -435,7 +435,8 @@ int Req::HttpReq()
       goto ex2;
     }
 
-    if((req=strchr(in_buf,'?'))){
+    if((req=strpbrk(in_buf,"? \r")) && *req =='?')
+    {
       *req++=0;
       if(req[-2]=='/')
       {

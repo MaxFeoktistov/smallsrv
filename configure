@@ -134,6 +134,7 @@
    --withoutTelnet      -- without Telnet (Telnet for ARM and other little platforms)
    --withoutGenTempSert -- Do not generate temporary certificate
    --commonLog          -- without separate log
+   --only_vpncvlient    -- Build VPN Client only
    --withTLS_1_3        -- enable TLS 1.3
    --withoutfakelibs    -- without fakelibs  (with fakelibs the program can run in another Linux systems)
    --withfakelibs       -- with fakelibs  (with fakelibs the program can run in another Linux systems)
@@ -366,6 +367,10 @@ make
        $var{'CONFIG_LOG'}="$x/log/smallsrv/";
        next L1;
      }
+     if(/--only_vpncvlient/)
+     {
+       $only_vpnc = 1;
+     }
 
      foreach $x (
        'includedir',
@@ -430,6 +435,11 @@ make
 
  $WIN_CONFIG_BASE = $var{'WIN_CONFIG_BASE'};
  delete($var{'WIN_CONFIG_BASE'});
+
+ if(! stat("dnsd.cpp") )
+ { # VPN Client only
+   $only_vpnc = 1;
+ }
 
 
  foreach $_ ( keys %var )
@@ -803,6 +813,26 @@ N_DEP := $(N_FAKELIBS)
     if($use_temp_sert==2)
     {
       s/[:][ ]*o\/stemp_sert.pem/: o\/gtemp_sert.pem/g;
+    }
+    if($only_vpnc == 1)
+    {
+      while(s/^([a-z_0-9]+):(.*) [^\/]+\/(httpd|sndmsg)\.([^ ]+)/$1:$2 /g)
+      {
+        ;
+      }
+
+      s/^([a-z_0-9]+):(.*) [^\/]+\/sndmsg/$1:$2 /g;
+      s/^([a-z_0-9]+):(.*) [^\/]+\/http.exe/$1:$2 /g;
+      s/^([a-z_0-9]+):(.*) [^\/]+\/sndmsg.exe/$1:$2 /g;
+
+      while(s/:=(.*)(httpd|sndmsg)\.([^ ]+)/:=$1/g)
+      {
+        ;
+      }
+      while(s/(for i in .*)(httpd|sndmsg)\.([^ ]+)/$1/g)
+      {
+        ;
+      }
     }
 
     foreach $x ( keys %var )

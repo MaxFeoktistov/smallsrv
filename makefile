@@ -22,9 +22,9 @@
 #
 #
 
-VERSION=3.06.35
-VERSIONT=3.06.35test
-BUDIR=../site/30635/
+VERSION=3.06.36test1
+VERSIONT=3.06.36test
+BUDIR=../site/30636/
 
 prefix ?=/usr/local/
 CONFIG_BASE   ?= $(prefix:%/=%)/
@@ -234,8 +234,7 @@ OOVPNCL64_TLS=$(COBJS64) $(addprefix o64/tls_,$(CVPNCLOBJ)) $(addprefix o64/vpnc
 
 WINOOBJS= wo/fwnd.o $(addprefix wo/,$(AOBJS)) wo/bvprintfv.o wo/srvdat.o wo/isapi.o wo/qsort.o wo/updr.res
 
-WINVPNCLOBJ=wo/vpnclient/fwnd.o wo/mstring1.o wo/vpnclient/restart.o $(addprefix wo/,$(BVPNCLOBJ)) wo/bvprintfv.o wo/srvdat_vpnclient.o wo/qsort.o wo/updr.res
-
+WINVPNCLOBJ=wo/vpnclient/fwnd.o wo/mstring1.o wo/vpnclient/restart.o $(addprefix wo/,$(BVPNCLOBJ)) wo/bvprintfv.o wo/srvdat_vpnclient.o wo/updr.res
 
 #GENERATED=S2_lf.hh lS2_lf.cfg g4strc.h S3_lf.hh lS3_lf.cfg g4strcwm.h t2icfg.cpp S1_lf.hh lS1_lf.cfg g4s1.hh o/s1.hh
 GENERATED=S2_lf.hh lS2_lf.cfg g4strc.h S3_lf.hh lS3_lf.cfg g4strcwm.h
@@ -282,7 +281,7 @@ else
 #all: win
 #all: o64/vpnclient o64/shs_vpnclient
 #all: wo/vpnclient.exe
-
+#all: wo/shvpnclient.exe
 all: /dev/shm/shttps/o/1.x o/1.x getstr i32 i64 i32f i64f win arm arm64
 
 endif
@@ -474,6 +473,7 @@ o/httpd.exopenssl: $(OOBJS_TLS) o/runssl111.o
 o/of/httpd.exopenssl: $(OOBJS_TLS) o/runssl111.o
 	$(GCC)  $(G)  $^ -o $@  $(LOPT) $(LIBF) $(LIBDIR32F) -lssl  $(LIBDIR32F) -lcrypto
 
+
 o/httpd.exgnutls: $(OOBJS_TLS) o/rungnutls.o
 	$(GCC)  $(G)  $^ -o $@ -Wl,--copy-dt-needed-entries $(LOPT) $(LIB) $(LIBDIR32) -lgnutls
 
@@ -591,6 +591,9 @@ wo/shttpsr_mgi.exe: wo/stpdtari.o wo/sethttp3ri.o wo/mstring1.o wo/updr.res
 	$(WINEGCC)  -s -Os $^ -o $@  -L$(MGDIR)\\lib -luser32 -lkernel32 -lgdi32 -lcomdlg32 -ladvapi32 -lshell32 -Wl,--subsystem,windows -nostartfiles  -Xlinker -Map -Xlinker wo/flxmaps  -Xlinker --entry=_start  -nostartfiles -nodefaultlibs -Xlinker -Map -Xlinker wo/flxmap  -Xlinker --entry=_start    -fno-optional-diags -momit-leaf-frame-pointer  -mno-red-zone -fno-exceptions  -fno-stack-protector -fno-ms-extensions -no-pie -fno-stack-check -mno-stack-arg-probe
 	upx -9 $@
 
+wo/shvpnclient.exe: wo/stpdta_vpn.o wo/vpnclient/sethttp3.o wo/mstring1.o wo/updr.res
+	$(WINEGCC)  -s -Os $^ -o $@  -L$(MGDIR)\\lib -luser32 -lkernel32 -lgdi32 -lcomdlg32 -ladvapi32 -lshell32 -Wl,--subsystem,windows -nostartfiles  -Xlinker -Map -Xlinker wo/flxmaps  -Xlinker --entry=_start  -nostartfiles -nodefaultlibs -Xlinker -Map -Xlinker wo/flxmap  -Xlinker --entry=_start    -fno-optional-diags -momit-leaf-frame-pointer  -mno-red-zone -fno-exceptions  -fno-stack-protector -fno-ms-extensions -no-pie -fno-stack-check -mno-stack-arg-probe
+	upx -9 $@
 
 wo/uninst.exe: wo/uninst.o
 	$(WINEGCC)  -s  $^ -o $@  -nodefaultlibs -L$(MGDIR)\\lib -luser32 -lkernel32 -lgdi32 -lcomdlg32 -ladvapi32 -lshell32 -Wl,--subsystem,windows -nostartfiles  -Xlinker -Map -Xlinker wo/flxmaps  -Xlinker --entry=_start  -nostartfiles -Xlinker -Map -Xlinker wo/flxmap  -Xlinker --entry=_start    -fno-optional-diags -momit-leaf-frame-pointer  -mno-red-zone -fno-exceptions  -fno-stack-protector -fno-ms-extensions -no-pie -fno-stack-check -mno-stack-arg-probe
@@ -607,7 +610,14 @@ wo/stpdtai.o: wo/stpdtai.s wo/uninst.bin wo/http.bin wo/ind1.bin wo/eshs_lang.bi
 wo/stpdtari.o: wo/stpdtari.s wo/uninst.bin wo/http.bin wo/ind1r.bin wo/eshs_lang.bin wo/shs_lang.bin wo/lnotes.bin wo/licr.bin wo/ipbase.s wo/vpn_if_up.bin wo/vpn_if_client_up.bin wo/vpn_if_client_down.bin wo/manifest.bin wo/vpnclient.bin wo/temp_sert.bin
 	 cd wo ;  $(WINEAS)  stpdtari.s -o stpdtari.o
 
+wo/stpdta_vpn.o: wo/stpdta_vpn.s wo/uninst.bin wo/ind1.bin wo/eshs_lang.bin wo/shs_lang.bin wo/lnotes.bin wo/lic.bin wo/vpn_if_up.bin wo/vpn_if_client_up.bin wo/vpn_if_client_down.bin wo/manifest.bin wo/vpnclient.bin wo/temp_sert.bin
+	 cd wo ;  $(WINEAS) stpdta_vpn.s -o stpdta_vpn.o
+
+
 wo/stpdta.s: stpdta.s
+	cp -f $< $@
+
+wo/stpdta_vpn.s: stpdta_vpn.s
 	cp -f $< $@
 
 wo/stpdtar.s: stpdtar.s
@@ -899,10 +909,10 @@ oo/dist/% : oo/%
 # oo/dist: $(TMPRAM)oo
 # 	mkdir -p $@
 
-sinst: o/dist/httpd.exe $(DIST_DIR)shttplnx.tgz $(DIST_DIR)shttplnxu.tgz $(DIST_DIR)shttparmlnx.tgz $(DIST_DIR)shttplnx64.tgz  $(DIST_DIR)shttplnx64u.tgz
+sinst: o/dist/httpd.exe $(DIST_DIR)shttplnx.$(TAR_EXT) $(DIST_DIR)shttplnxu.$(TAR_EXT) $(DIST_DIR)shttparmlnx.$(TAR_EXT) $(DIST_DIR)shttplnx64.$(TAR_EXT)  $(DIST_DIR)shttplnx64u.$(TAR_EXT)
 	chmod 0666 wo/shttps*.exe
 	mkdir -p $(BUDIR)
-	for i in wo/shttps_mg.exe wo/shttpsr_mg.exe $(DIST_DIR)*.tgz o/smallsrv_$(VERSION)_amd64.deb o/smallsrv-$(VERSION).tar.gz $(IWDIST) ; do echo $$i ; cp $$i /mnt/d/var/www/pre/ ; cp $$i $(BUDIR) ; done
+	for i in wo/shttps_mg.exe wo/shttpsr_mg.exe $(DIST_DIR)*.$(TAR_EXT) o/smallsrv_$(VERSION)_amd64.deb o/smallsrv-$(VERSION).tar.gz $(IWDIST) ; do echo $$i ; cp $$i /mnt/d/var/www/pre/ ; cp $$i $(BUDIR) ; done
 	if [ "$(VERSION)" != "$(VERSIONT)" ] ; then ln -sf smallsrv_$(VERSION)_amd64.deb /mnt/d/var/www/pre/smallsrv_$(VERSIONT)_amd64.deb ; fi
 
 # 	for i in wo/shttps_mg.exe wo/shttpsr_mg.exe $(DIST_DIR)shttplnx.tgz $(DIST_DIR)shttplnxu.tgz $(DIST_DIR)shttparmlnx.tgz $(DIST_DIR)shttplnx64.tgz $(DIST_DIR)shttplnx64u.tgz ; do cp $$i /mnt/d/var/www/pre/ ; done
@@ -1112,7 +1122,7 @@ ${OBJDIRSNAMES} :
 	ln -s ${TMPRAM}/$@ .
 
 $(addsuffix srv0a.o,$(OBJDIRS) $(OBJDIRS_TLS)): g4strc.h srv0a.cpp slloop.cpp srvars.cpp seplog.cpp onelog.cpp
-$(addsuffix srv0a_vpnclient.o,$(OBJDIRS) $(OBJDIRS_TLS)): g4strc.h srv0a.cpp slloop_vpnclient.cpp srvars.cpp seplog.cpp onelog.cpp
+$(addsuffix srv0a_vpnclient.o,$(OBJDIRS) $(OBJDIRS_TLS)): g4strc.h srv0a_vpnclient.cpp slloop_vpnclient.cpp srvars.cpp seplog.cpp onelog.cpp
 $(addsuffix conf_vpnclient.o,$(OBJDIRS) $(OBJDIRS_TLS)): g4strc.h conf.cpp
 $(addsuffix adminr.o,$(OBJDIRS) $(OBJDIRS_TLS)): g4strc.h adminr.cpp icfghtm.cpp g4strhtm.hh
 $(addsuffix stat.o,$(OBJDIRS) $(OBJDIRS_TLS)): g4strc.h stat.cpp cstat.cpp statusr.cpp
@@ -1253,7 +1263,6 @@ at/atobjdir:
 	[ -d at ] || ln -sf /dev/shm/shttps/o/at .
 	echo   >$@
 
-
 at/httpd.exe: $(ATOBJS)
 	$(ATGPP)  $(S) -o $@ $^  -mlittle-endian  -msoft-float -march=armv5te -mtune=arm9tdmi -L$(ATLIB)/  -L$(ATSYSLIB)  -nostartfiles  $(ATLIB)/crt1.o $(ATLIB)/crti.o $(ATLIB)/crtn.o -static -lc -lutil -lpthread
 
@@ -1386,18 +1395,34 @@ bvprintfv.cpp cstat.cpp get4def.pl ico.h mrc.cpp onelog.cpp regular.h S5_lf.hh s
  c4char.pl descr.htm gz.cpp lang_notes.txt makefile.in mstring1.cpp pklz.cpp restart.cpp srv.h strcwmr.h vpn.cpp vpn.h tools.cpp mkfakelib_cros.pl sndmsg.cpp \
  icfg_vpnclient.cpp reqfunc.cpp slloop_vpnclient.cpp srv0a_vpnclient.cpp srvdat_vpnclient.cpp  srvmd5.cpp \
  httpd.exe.1 sndmsg.1 shs_vpnclient.1 sndmsg_usage.1.in httpd_usage.1.in shs_vpnclient_usage.1.in def4str2.pl httpd.cfg vpnclient.cfg \
- openssl_sert_templ gnutls_sert_templ
+ openssl_sert_templ gnutls_sert_templ stpdta_vpn.s
 
 WSRC = $(addprefix winclude/,winsock_IPv6.h zconf.h zlib.h tap-windows.h nethdr.h)
 LSRC = $(addsuffix shs_lang.cfg, ru/ en/)
 SSRC = $(addprefix script_examples/,vpn_if_client_down.bat vpn_if_client_down.sh vpn_if_client_up.bat vpn_if_client_up.sh vpn_if_up.bat vpn_if_up.sh)
 DSRC = $(addprefix debian/,changelog rules copyright smallsrv.manpages)
+DSRCVPNC = $(addprefix debian/,rules copyright shs-vpnclient.manpages)
 ASRC = license.ssl notes.ssl
 src_name=o/smallsrv-$(VERSION).tar.gz
 src_dir=smallsrv-$(VERSION)
 
+VPNSRC := $(subst .o,.cpp, $(CVPNCLOBJ) $(VVPNCLOBJ) $(CCOBJS)) fwnd.cpp mstring1.cpp restart.cpp srvdat_vpnclient.cpp qsort.cpp \
+ updr.rc stpdta_vpn.s sethttp3.cpp shs_vpnclient_usage.1.in def4str2.pl vpnclient.cfg rungnutls.cpp runssl111.cpp slloop_vpnclient.cpp \
+ gz.h LICENSE mstring1.h  secdll.h add_to_langcfg.pl dgpp_quote.h  configure hton.h md5.h dhcp.h lS1_lf.cfg mdef.h slib.h \
+ srvars.cpp seplog.cpp onelog.cpp license06.txt descu.htm \
+ dhhosts.h g4s1.hh  lS2_lf.cfg  ndpdbg.s README.md   stpdtamg.s t3_g4strc.h bin2s.cpp g4strc.h lS3_lf.cfg  realloc.s S1_lf.hh \
+ g4strcwm.h lS5_lf.cfg ndp.s S2_lf.hh stpdtar.s tlsdll.h bvprintf.h g4strhtm.hh ico2.h mlist.h nommc_dlfcn.h S3_lf.hh \
+ ico.h regular.h S5_lf.hh _strc.h  getstr mrc.h pe_m.h strc.h to_linux.h desc.htm fcgi.h isapi.h ress1.s strcwm.h to_win.h \
+ descr.htm srv.h strcwmr.h vpn.h shs_vpnclient.1  openssl_sert_templ gnutls_sert_templ stpdta_vpn.s makefile.in
+vpncsrc_name=o/shs-vpnclient-$(VERSION).tar.gz
+vpncsrc_dir=shs-vpnclient-$(VERSION)
+
+
 sources:
 	tar -czvf $(src_name) --transform="s,^,./$(src_dir)/," --exclude-backups $(SRC) $(WSRC) $(LSRC) $(SSRC) $(DSRC) $(ASRC)
+
+vpncsources:
+	tar -czvf $(vpncsrc_name) --transform="s,^,./$(vpncsrc_dir)/," --exclude-backups $(VPNSRC) $(WSRC) $(LSRC) $(SSRC) $(DSRCVPNC) $(ASRC)
 
 deb: sources
 	cd o ; tar -xzf $(src_dir).tar.gz
@@ -1406,3 +1431,10 @@ deb: sources
 
 srcdeb: deb
 	cd o/$(src_dir) ; DEBEMAIL="max@smallsrv.com" ; DEBFULLNAME="Maksim Feoktistov" ; debmake -b "binarypackage:bin" ; debuild -i -us -uc -S
+
+vpncdeb: vpncsources
+	cd o ; tar -xzf $(vpncsrc_dir).tar.gz
+	mkdir -p o/$(vpncsrc_dir)/debian ; sed "s/^Version:.*/Version: $(VERSION)/" debian/vpnc.control >o/$(vpncsrc_dir)/debian/control
+	cp debian/vpnc.changelog o/$(vpncsrc_dir)/debian/changelog
+	cd o/$(vpncsrc_dir) ; DEBEMAIL="max@smallsrv.com" ; DEBFULLNAME="Maksim Feoktistov" ; debmake -b "binarypackage:bin" ; debuild -i -us -uc -b
+

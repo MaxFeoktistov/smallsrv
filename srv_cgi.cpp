@@ -270,6 +270,32 @@ HANDLE DUP2(HANDLE b)
  return b;
 }
 
+int FixWinCRCR(char *p, int l)
+{
+  char *t = strstr(p, "\r\r\n");
+  char *pp;
+  int i = 0;
+
+  if(t)
+  {
+    pp=t+1;
+    i = t - p;
+    l--;
+    while(i<l)
+    {
+      *t++ = *pp++;
+      i++;
+      if(*pp == '\r' && pp[1] == '\r' && pp[2] == '\n' )
+      {
+        pp++;
+        l--;
+      }
+    }
+    *t = 0;
+  }
+  return l;
+}
+
 int Req::ExecCGIEx()
 {HANDLE hrdp=0,hwrp,hrde,hrd,
 hwr,hwre
@@ -443,6 +469,7 @@ hwr,hwre
         {
           ll=sizeof("HTTP/1.0 200 \r\n")-1;
           tt=0;
+          l=FixWinCRCR(p,l);
           if(strinnc(p,(char *)"Status: "))
           {
             p+=8;
