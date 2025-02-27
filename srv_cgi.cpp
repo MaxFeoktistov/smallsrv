@@ -1214,7 +1214,7 @@ DBG();
     }else{
     //errun:
       //if(t) *t = '\\';
-      sprintf(p,"Error run %s with %s \r\n",loc+dirlen,req);
+      msprintfchk(p,p+0x8000,"Error run %s with %s\r\n",loc+dirlen,req);
       HttpReturnError(p);
     }
  ex:

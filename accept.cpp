@@ -639,7 +639,7 @@ int Req::HttpReturnError(char *err,int errcode)
 #else
  AddToLog(err,s,&sa_c46 ,FmtShortErr);
 #endif
- SendChk(out_buf,sprintf(out_buf,
+ SendChk(out_buf,msprintfchk(out_buf, out_buf + 2048,
  (l=fl&0xE0000)? //2,3,4
   "%u %s\r\n\r\n":"HTTP/1.0 %u Error\r\nContent-Type: text/html\r\n\r\n"
  "<hr><pre><font size=+2><b>\n%.512s\n</b></font></pre><hr><br>%450s",errcode,err,""));
