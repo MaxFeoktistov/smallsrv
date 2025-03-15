@@ -78,6 +78,7 @@ void  *tap_waitbfr[3];
 
 //const char * TUNTAPNames[3] = {"TUN","TAP","TAP"};
 const char * TUNTAPNames[3] = {"tun","tap","tap"};
+char *vpn_limit_fname = "vpn_limits.dat";
 
 #ifdef VPN_WIN
 char * vpnIfNamesW[3];
@@ -90,7 +91,6 @@ uint  old_ipv4gw;
 int  old_winIfDefIdx = -1;
 void  *ipentry[3];
 #endif // VPN_UPDATE_NET
-
 
 
 struct AsincReadHelper_t
@@ -1787,6 +1787,7 @@ int VPN_Init()
     CloseTunTap();
     return -1;
   }
+  VPNLoadLimit();
 
   return (int) CreateThread(&secat,0x5000 + MAX_MTU,(TskSrv)VPN_Thread, (void *)0, 0, &trd_id);
 }
@@ -1902,6 +1903,10 @@ int VPNclient::SendIsUs(uchar *pktl, int tuntap)
 void VPN_Done()
 {
   int i;
+
+#ifndef VPNCLIENT_ONLY
+  VPNSaveLimit();
+#endif //VPNCLIENT_ONLY
   MyLock(vpn_mutex);
   if(vpn_list) {
     for(i=0; i<vpn_count; i++)
@@ -2020,6 +2025,164 @@ VPNUserLimit *VPNclient::SetLimit()
   }
   MyUnlock(vpn_limit_mutex);
   return p;
+}
+
+inline uint B2Mb(u64 b)
+{
+  return (b + 0x7FFFFF) >> 20;
+}
+
+void VPNSaveLimit()
+{
+  char bfr[0x2000];
+  char *pb=bfr;
+  VPNUserLimit *p;
+  int i;
+  int h;
+
+
+  if((!vpn_limit_fname) || !vpn_limits)
+    return;
+
+  if( (h = _lcreat(vpn_limit_fname,0)) <0 )
+  {
+    debug("Can't create file %s %d %s\r\n", vpn_limit_fname, errno, strerror(errno));
+    return ;
+  }
+
+  for(p=vpn_limits; p; p=p->next)
+  {
+      if(p->usr)
+        pb += sprintf(pb,"u;%s", p->usr->name);
+      else
+      {
+        *pb++='i';
+        *pb++=';';
+        pb += IP2S(pb, &p->sa_c);
+      }
+
+      pb += sprintf(pb, ";%llu;%llu;%llu;%llu",
+        p->in,
+        p->out,
+        p->in_fast,
+        p->out_fast
+      );
+
+      for(i=0; i<3; i++)
+      {
+        pb += sprintf(pb, ";%llu;%llu;%llu",
+                      (u64) p->lim[i].end,
+                      p->lim[i].in_bytes,
+                      p->lim[i].out_bytes);
+      }
+
+      *pb++='\n';
+
+      if( (i = pb - bfr) > 0x1000)
+      {
+        _hwrite(h, bfr, i);
+        pb = bfr;
+      }
+  }
+
+  if( (i = pb - bfr) )
+    _hwrite(h, bfr, i);
+  _lclose(h);
+}
+
+
+const u8 SaveLimFields[] = {
+  offset(VPNUserLimit, in),
+  offset(VPNUserLimit, out),
+  offset(VPNUserLimit, in_fast),
+  offset(VPNUserLimit, out_fast),
+  offset(VPNUserLimit, lim[0].end),
+  offset(VPNUserLimit, lim[0].in_bytes),
+  offset(VPNUserLimit, lim[0].out_bytes),
+  offset(VPNUserLimit, lim[1].end),
+  offset(VPNUserLimit, lim[1].in_bytes),
+  offset(VPNUserLimit, lim[1].out_bytes),
+  offset(VPNUserLimit, lim[2].end),
+  offset(VPNUserLimit, lim[2].in_bytes),
+  offset(VPNUserLimit, lim[2].out_bytes)
+};
+
+#define TOTAL_LIM_FIELDS  (sizeof(SaveLimFields) + 2 )
+
+void VPNLoadLimit()
+{
+  int h;
+  int l, i;
+  char *bfr;
+  char *bp;
+  char *e;
+  union {
+    VPNUserLimit *p;
+    u8 * pc;
+  };
+  User *u;
+  char *ar[40];
+
+  if(!vpn_limit_fname)
+    return;
+
+  if( (h = _lopen(vpn_limit_fname, 0)) <0 )
+  {
+    debug("Can't open file %s %d %s\r\n", vpn_limit_fname, errno, strerror(errno));
+    return ;
+  }
+
+  l=FileSize(h);
+  bfr = (char *) Malloc(l + 0x20);
+  if(!bfr)
+    return;
+
+  bp = bfr;
+  _hread(h, bfr, l);
+
+  while ( (e = strchr(bp, '\n')) )
+  {
+    *e++ = 0;
+
+    if(split(bp, ";", ar, 40) >= TOTAL_LIM_FIELDS)
+    {
+      if(*bp == 'u')
+      {
+        u = FindUser(ar[1],UserHTTP,0,0);
+        if(!u)
+          goto cont;
+      }
+      p = (VPNUserLimit *) Malloc(sizeof(VPNUserLimit));
+      if(!p)
+        break;
+
+
+      if(*bp != 'u')
+      {
+        if(strchr(ar[1], ':'))
+        {
+          IPv6Addr((ushort *)& p->sa_c6.sin6_addr, ar[1]);
+          p->sa_c.sin_family = AF_INET6;
+        }
+        else
+        {
+          p->sa_c.sin_addr.s_addr = ConvertIP(ar[1]);
+          p->sa_c.sin_family = AF_INET;
+        }
+      }
+
+    }
+
+    for(i=0; i<sizeof(SaveLimFields); i++)
+        *(u64 *) (pc + SaveLimFields[i]) = atoll(ar[i+2]);
+
+    p->next = vpn_limits;
+    vpn_limits = p;
+cont:
+    bp = e;
+  }
+
+  free(bfr);
 }
 
 #endif // VPNCLIENT_ONLY

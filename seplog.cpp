@@ -28,6 +28,9 @@
 //#define pcnt   lpcnt
 #define b_prot lb_prot
 
+#if defined(_BSD_VA_LIST_) && ! defined(USEVALIST)
+#define  mva_list _BSD_VA_LIST_
+#endif
 
 void TLog::Init(int n){lpprot=lf_prot=loldprot=lb_prot; suffix=SrvNameSufix[n] ;  lb_prot[0]=0; lpcnt=0; msk=1<<n; llastday=0;};
 //void TLog::LAddToLog(char *t,int s,const char *fmt,...)
@@ -104,14 +107,7 @@ void TLog::LAddToLog(char *t,int s, TSOCKADDR *psa, const char *fmt,...)
       pprot+=mvsprintfchk(pprot,aabfr+256,fmt+1,v)-2;
       va_end(v);
 #else
-      pprot+=mvsprintfchk(pprot,aabfr+256,fmt+1,(
-#ifdef _BSD_VA_LIST_
- _BSD_VA_LIST_
-#else
- mva_list
-#endif
-   ) (void *) ((&fmt)+1)
- )-2;
+      pprot+=mvsprintfchk(pprot,aabfr+256,fmt+1,(mva_list) (void *) ((&fmt)+1) )-2;
 #endif
    }
    if(trim_log_lines)pprot=TrimLogLines(x)-2;
@@ -245,8 +241,12 @@ void TLog::GetProt(){
      loldprot=lpprot;
 #endif
 };
+
+
 void TLog::RelProt(SYSTEMTIME *stime)
-{int l,ll;
+{
+ int l,ll;
+ int tl;
  SYSTEMTIME lTime;
  FILETIME CrTime1,CrTime;
  char flogname[256];
@@ -345,40 +345,40 @@ void TLog::RelProt(SYSTEMTIME *stime)
 #endif
      if(GetFileAttributes(flogname)!=INVALID_FILE_ATTRIBUTES )
      {
-      char *tt;
-      WIN32_FIND_DATA  fdt;
-      SYSTEMTIME sTim2;
-      HANDLE hh2;
-      char ddir[280];
+       char *tt;
+       WIN32_FIND_DATA  fdt;
+       SYSTEMTIME sTim2;
+       HANDLE hh2;
+       char ddir[280];
 
-      hh2=FindFirstFile(flogname,&fdt);
-      if(hh2!=INVALID_HANDLE_VALUE)
-      {
+       hh2=FindFirstFile(flogname,&fdt);
+       if(hh2!=INVALID_HANDLE_VALUE)
+       {
          FindClose(hh2);
          FileTimeToSystemTime(&fdt.ftCreationTime,&sTim2);
 
 
-       tt=strrchr(flogname,'/');
-       if(tt)
-       {
-         *tt=0;
-         sprintf(ddir,"%.255s/%u",flogname,sTim2.wYear);
-         CreateDirectory(ddir,&secat);
-         sprintf(ddir,"%.255s/%u/%.20s",flogname,sTim2.wYear,tt+1);
-         *tt='/';
-       }
-       else
-       {
-         sprintf(ddir,"%u",sTim2.wYear);
-         CreateDirectory(ddir,&secat);
-         sprintf(ddir,"%u/%.20s",sTim2.wYear,flogname);
-       }
-       if(!MoveFile(flogname,ddir) )
-       {
-   //        if(t)*t='.';
+         tt=strrchr(flogname,'/');
+         if(tt)
+         {
+           *tt=0;
+           sprintf(ddir,"%.255s/%u",flogname,sTim2.wYear);
+           CreateDirectory(ddir,&secat);
+           sprintf(ddir,"%.255s/%u/%.20s",flogname,sTim2.wYear,tt+1);
+           *tt='/';
+         }
+         else
+         {
+           sprintf(ddir,"%u",sTim2.wYear);
+           CreateDirectory(ddir,&secat);
+           sprintf(ddir,"%u/%.20s",sTim2.wYear,flogname);
+         }
+         if(!MoveFile(flogname,ddir) )
+         {
+           //        if(t)*t='.';
            goto lbRenErr;
+         }
        }
-      }
      }
 #endif
    //  if(t)*t='.';
@@ -432,8 +432,12 @@ lbRenErr:;
   f_prot=pprot;
  };
 #endif
- if((pprot-b_prot)>=LOG_SIZE)
- {pprot-=0x1000;f_prot-=0x1000; memcpy(b_prot,b_prot+0x1000,pprot-b_prot);};
+ if((tl = pprot - b_prot)>=LOG_SIZE)
+ {
+   pprot-=0x1000;
+   f_prot-=0x1000;
+   memcpy(b_prot,b_prot+0x1000,tl);
+ };
 
 #ifndef SYSUNIX
  if(!wstate)ShowProt();
@@ -459,14 +463,7 @@ extern "C" void TLog::Ldebug(const char *a,...)
  Lvdebug(a,v);
  va_end(v);
 #else
- Lvdebug(a,(
-#ifdef _BSD_VA_LIST_
- _BSD_VA_LIST_
-#else
- mva_list
-#endif
-   ) (void *) ((&a)+1)
- );
+ Lvdebug(a,(mva_list) (void *) ((&a)+1));
 #endif
 }
 extern "C" void TLog::Lvdebug(const char *a,mva_list v)
@@ -495,27 +492,6 @@ extern "C" void TLog::Lvdebug(const char *a,mva_list v)
 #endif
  RelProt();
 }
-/* Unused function
-extern "C" void edebug(const char *a,...)
-{
-#ifdef  USEVALIST
-    //defined(ARM) || defined(x86_64)
- va_list v;
- va_start(v,a);
- gLog.Lvdebug(a,v);
- va_end(v);
-#else
- gLog.Lvdebug(a,(
-#ifdef _BSD_VA_LIST_
- _BSD_VA_LIST_
-#else
- va_list
-#endif
- ) (void *) ((&a)+1)
- );
-#endif
-}
-*/
 
 extern "C" void tlsdebug(const char *a,...)
 {
@@ -525,14 +501,7 @@ extern "C" void tlsdebug(const char *a,...)
  sepLog[5]->Lvdebug(a,v);
  va_end(v);
 #else
- sepLog[5]->Lvdebug(a,(
-#ifdef _BSD_VA_LIST_
- _BSD_VA_LIST_
-#else
- mva_list
-#endif
- ) (void *) ((&a)+1)
- );
+ sepLog[5]->Lvdebug(a,(mva_list) (void *) ((&a)+1));
 #endif
 }
 

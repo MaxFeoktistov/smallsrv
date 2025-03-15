@@ -1,4 +1,12 @@
-smallsrv (3.06.35test14) unstable; urgency=low
+smallsrv (3.06.36test4) unstable; urgency=low
+
+  * A little changes
+  * Created separated package for VPN client
+  * Added saving of VPN limits state when exiting
+
+ -- Maksim Feoktistov <max@smallsrv.com>  Sat, 15 Mar 2025 22:50:54 +0400
+
+smallsrv (3.06.35) unstable; urgency=low
 
   * Changed loading/saving configuration. Added support for comments
   * Fixed editing configuration from the web interface
@@ -12,7 +20,7 @@ smallsrv (3.06.35test14) unstable; urgency=low
   * Some changes in source organisation
   * Added SIGHUP signal handler to connect or disconnect a VPN client.
 
- -- Maksim Feoktistov <max@smallsrv.com>  Sun, 09 Feb 2025 16:35:09 +0400
+ -- Maksim Feoktistov <max@smallsrv.com>  Tue, 11 Feb 2025 22:54:03 +0400
 
 smallsrv (3.06.34) unstable; urgency=low
 

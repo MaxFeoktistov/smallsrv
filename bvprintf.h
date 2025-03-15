@@ -71,7 +71,7 @@ struct BFILE
    va_end(a);
    return r;
 #else
-     return bvprintf(fmt,(void **) ((&fmt)+1 )) ;
+   return bvprintf(fmt,(void **) ((&fmt)+1 )) ;
 #endif
 
  }
@@ -88,34 +88,10 @@ struct BFILE
 
 };
 
-int  mvsprintfchk(char *t,char *et,const char *fmt,
-#ifdef USEVALIST
-                va_list v
-#else
-                void **v
-#endif
-);
+int mvsprintfchk(char *t,char *et,const char *fmt, mva_list v);
 int msprintfchk(char *t,char *et,const char *fmt,...);
 int msprintf(char *t, const char *fmt,...);
-/*
-inline int msprintfchk(char *t,char *et,const char *fmt,...)
-{
-#ifdef USEVALIST
-   va_list a;
-   int r;
 
-   va_start(a, fmt);
-   r=mvsprintfchk(t,et,fmt,a);
-   va_end(a);
-   return r;
-#else
-   return mvsprintfchk(t,et,fmt,(void **) ((&fmt)+1 ) ) ;
-#endif
-
-
-}
-
-*/
 }
 
 #endif

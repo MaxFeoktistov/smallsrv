@@ -301,9 +301,10 @@ int BFILE::bvprintf(const char *fmt, void *v)
                   if(!*p) break;
                   *t++ = *p++;
                 }
-                if( (i=t-bfr)> BFR_LIM )
+
+                if( (i=t-bfr)>= BFR_LIM )
                 {
-                  ii += x = Flush(par,bfr,i);
+                  ii += x = Flush(par, bfr, i);
                   t=bfr;
                   if(i != x)
                     goto exLoop;
@@ -367,7 +368,7 @@ int BFILE::bvprintf(const char *fmt, void *v)
 #endif
    *t++=*fmt++;
   }
-  if( (i=t-bfr)>BFR_LIM )
+  if((i=t-bfr) >= BFR_LIM)
   {
     ii += x = Flush(par,bfr,i);
     t=bfr;
@@ -377,14 +378,6 @@ int BFILE::bvprintf(const char *fmt, void *v)
  }
 
 exLoop:
- /*
- if( (i=t-bfr) )
- {
-   ii+=Flush(par,bfr,i);
-   t=bfr;
- }
- return ii;
-// */
  return ii+(t-bfr);
 
 };

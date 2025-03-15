@@ -435,7 +435,7 @@ long CALLBACK  dlgFnc(HWND hwnd, UINT msg,UINT wparam, LONG lparam)
      if(IsDChk(hwnd,147)&1)
      {HGLOBAL hgl=GlobalAlloc(GMEM_DDESHARE,1024);
       m=(char *)GlobalLock(hgl);
-      sprintf(m,cmdInstall,target,target,target,target,target);
+      sprintf(m,cmdInstall,target,target,target,target,target,target,target,target);
       ProgmanMSG(m);
       GlobalUnlock(hgl);
       GlobalFree(hgl);

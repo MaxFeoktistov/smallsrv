@@ -371,28 +371,17 @@ int BFILE::bvprintf(const char *fmt,va_list vl)
    *t++=*fmt++;
   }
 
-  if( (i=t-bfr)>BFR_LIM )
+  if((i=t-bfr) >= BFR_LIM)
   {
-    x = Flush(par, bfr, i);
-    ii += x;
+    ii += x = Flush(par, bfr, i);
     t = bfr;
     if(i != x)
       break;
   }
  }
 
- exLoop:
- /*
- if( (i=t-bfr) )
- {
-   ii+=Flush(par,bfr,i);
-   t=bfr;
- }
- return ii;
- */
-
+exLoop:
  return ii+(t-bfr);
-
 };
 
 

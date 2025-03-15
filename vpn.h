@@ -233,6 +233,7 @@ extern int  tuntap_number[3];
 extern char *tundev;
 extern int vpn_client_port;
 extern VPNUserLimit *vpn_limits;
+extern char *vpn_limit_fname;
 
 
 
@@ -257,6 +258,8 @@ ulong WINAPI VPNClient(void *);
 void SaveVPNLimits();
 void LoadVPNLimits();
 void ClearLimits(uint end, uint pp);
+void VPNSaveLimit();
+void VPNLoadLimit();
 
 }
 #endif

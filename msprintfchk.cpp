@@ -55,13 +55,7 @@ int SPrintChkFlush(SprintfPars *th,char *t,ulong l)
  return l;
 };
 
-int  mvsprintfchk(char *t,char *et,const char *fmt,
-    #ifdef USEVALIST
-                va_list v
-#else
-                void **v
-#endif
-)
+int  mvsprintfchk(char *t,char *et,const char *fmt, mva_list v)
 {
   SprintfPars th;
   BFILE bf;
