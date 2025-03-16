@@ -2121,7 +2121,8 @@ void VPNLoadLimit()
     u8 * pc;
   };
   User *u;
-  char *ar[40];
+  char *ar[TOTAL_LIM_FIELDS + 2];
+  int n;
 
   if(!vpn_limit_fname)
     return;
@@ -2144,8 +2145,9 @@ void VPNLoadLimit()
   {
     *e++ = 0;
 
-    if(split(bp, ";", ar, 40) >= TOTAL_LIM_FIELDS)
+    if( (n = split(bp, ";", ar, TOTAL_LIM_FIELDS + 1)) >= TOTAL_LIM_FIELDS)
     {
+      DBGLA("Total %u field %s %s", n, ar[0], ar[1])
       if(*bp == 'u')
       {
         u = FindUser(ar[1],UserHTTP,0,0);
@@ -2156,8 +2158,9 @@ void VPNLoadLimit()
       if(!p)
         break;
 
-
-      if(*bp != 'u')
+      if(*bp == 'u')
+        p->usr = u;
+      else
       {
         if(strchr(ar[1], ':'))
         {
@@ -2171,13 +2174,20 @@ void VPNLoadLimit()
         }
       }
 
-    }
-
-    for(i=0; i<sizeof(SaveLimFields); i++)
+      for(i=0; i<sizeof(SaveLimFields); i++)
         *(u64 *) (pc + SaveLimFields[i]) = atoll(ar[i+2]);
 
-    p->next = vpn_limits;
-    vpn_limits = p;
+      p->next = vpn_limits;
+      vpn_limits = p;
+
+      DBGLA("Readed saved limit for %s", ar[1])
+
+    }
+#ifdef DEBUG_VERSION
+    else {
+      DBGLA("To small records %d < %u", n, TOTAL_LIM_FIELDS);
+    }
+#endif
 cont:
     bp = e;
   }
@@ -2278,13 +2288,17 @@ int split(char *src, char *separators, char **result, int max_result)
   int ret = 0;
   while(*src && ret<max_result)
   {
-    if(result) *result=src;
+    if(result)
+    {
+      *result=src;
+      result++;
+    }
+    ret++;
     //while( ! strchr(separators, *src ) ) { if(!*src) goto ex2loop; src++ ; }
-    if( (!(src = strpbrk(src, separators)) ) || ! *src )  goto ex2loop;
+    if( (!(src = strpbrk(src, separators)) ) || ! *src )
+      break;
     *src++ = 0;
     while( strchr(separators, *src ) ) { if(!*src) goto ex2loop; src++ ; }
-    if(result) result++;
-    ret++;
   }
  ex2loop:
   return ret;
