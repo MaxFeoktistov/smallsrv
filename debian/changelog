@@ -1,10 +1,11 @@
-smallsrv (3.06.36test4) unstable; urgency=low
+smallsrv (3.06.36test5) unstable; urgency=low
 
   * A little changes
   * Created separated package for VPN client
   * Added saving of VPN limits state when exiting
+  * A little fixes
 
- -- Maksim Feoktistov <max@smallsrv.com>  Sat, 15 Mar 2025 22:50:54 +0400
+ -- Maksim Feoktistov <max@smallsrv.com>  Sat, 29 Mar 2025 13:52:53 +0400
 
 smallsrv (3.06.35) unstable; urgency=low
 

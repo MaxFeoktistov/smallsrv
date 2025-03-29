@@ -699,27 +699,30 @@ int onCfgChangeVHost(CfgParam *th)
   host_dir *b;
   char *p, *t;
 
-  t = *(char **)th->v;
-  if( *t==';') return 0;
+  p = *(char **)th->v;
+  if( *p==';') return 0;
 
-  a = (host_dir *) malloc(sizeof(host_dir) );
-  a->h = t;
-  a->next = 0;
-  * (host_dir **) th->vv = a;
-  th->vv = & a->next;
-
-  if( (t=strchr(t,';') ) )
+  if( (t=strchr(p,';') ) )
   {
     *t=0;
     t++;
-    for(b=&hsdr;(b) && (b!=a);b=b->next)
-      if(b->h && ! strcmp(b->h,t) )
-        b->d=t;
+
+    for(a=hsdr.next; (a) ;a=a->next)
+      if(a->h && ! strcmp(a->h,p)) goto hst_found;
+
+    a = (host_dir *) malloc(sizeof(host_dir) );
+    a->h = p;
+    a->next = 0;
+    * (host_dir **) th->vv = a;
+    th->vv = & a->next;
+
+hst_found:
+
     a->flg=0;
     if((p=strchr(a->d=PrepPath(t),';'))) *p++=0;
-    if(xxx)t=xxx+1;
-    else return 0;
-    if( (!p) && *t==';')p=t+1;
+    if(!xxx) return 0;
+    t=xxx+1;
+    if((!p) && *t==';') p=t+1;
     if(p)
     {
       p=PrepPath(p);
@@ -945,32 +948,6 @@ void SaveConfigFile(char *bfr,char *fnm)
 
 
 
-#if 0
- if(mime && mime[0] )j+=sprintf(bfr+j,"mime=%s\r\n",mime);
-
- if(*ext)
- {j+=sprintf(bfr+j,"ext=\"");
-  for(tt=ext; *tt; tt+=2) if(*tt[0]=='.')
-   j+=sprintf(bfr+j,"%.4s;%s;",tt[0],tt[1]);
-  DWORD_PTR(bfr[j-1])=0xA0D22 x4CHAR("\"\r\n");
-  j+=2;
- };
-
- for(a=hsdr.next;a;a=a->next)
-  j+=sprintf(bfr+j,"hostpath=%s;\"%s\";\"%s\"\r\n",a->h,a->d,a->flg?a->d+a->flg:"");
-
- for(tuser=userList;tuser;tuser=tuser->next) if((i=tuser->state)&0x80)
- {p=tuser->pasw();
-  j+=sprintf(bfr+j,"user=%s;",tuser->name);
-  if(s_flgs[1]&FL1_CRYPTPWD && (*p>1)) j=ConvPwd(bfr+j,p)-bfr;
-  else  j+=sprintf(bfr+j,(*p==1)?
-   "%0.0s+%8.8X.%8.8X":"%s",p,DWORD_PTR(p[1]),DWORD_PTR(p[5]));
-  j+=sprintf(bfr+j,";%s;",tuser->dir(p));
-  j+=tuser->FlgString(bfr+j);
-  DWORD_PTR(bfr[j])=0x0A0D;
-  j+=2;
- }
-#endif
 
  if( (h=_lcreat(fnm,0))>0)
  {

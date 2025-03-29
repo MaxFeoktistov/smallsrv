@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2021 Maksim Feoktistov.
+ * Copyright (C) 1999-2025 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov
@@ -80,6 +80,20 @@ void operator delete(void *a)
 
 int IsDChk(HWND hwnd,int d){return SendDlgItemMessage(hwnd,d,BM_GETCHECK,0,0);}
 int GetDlgItemTextLen(HWND hwnd,int d){return SendDlgItemMessage(hwnd,d,WM_GETTEXTLENGTH,0,0);}
+
+
+host_dir *DelVHost(host_dir *ph)
+{
+  host_dir *pth;
+
+  for(pth=hsdr.next ;pth; pth=pth->next)
+    if(pth->next == ph)
+    {
+      pth->next=ph->next;
+      break;
+    }
+  return pth;
+}
 
 long CALLBACK DefProc(HWND hwnd, UINT msg,UINT wparam, LONG lparam)
 {
@@ -409,8 +423,7 @@ long CALLBACK DefProc(HWND hwnd, UINT msg,UINT wparam, LONG lparam)
     break;
    case 782: //Change h
     if(!(pp=CurInList(780,fnamebuf)) )return 0;
-    for(pth=&hsdr;pth;pth=pth->next) if(pth->next==ph)
-    {pth->next=ph->next; break; }
+    pth = DelVHost(ph);
    case 781: //Add h
     i=GetDlgItemTextLen(hwnd,784);
     j=GetDlgItemTextLen(hwnd,792);
@@ -447,14 +460,13 @@ long CALLBACK DefProc(HWND hwnd, UINT msg,UINT wparam, LONG lparam)
      }
    if(0){
    case 783: //del
-     if(!(pp=CurInList(780,fnamebuf)) )return 0;
-     for(pth=&hsdr;pth;pth=pth->next) if(pth->next==ph)
-     {pth->next=ph->next; break;}
+     if(!(pp=CurInList(780, fnamebuf)) )return 0;
+     pth = DelVHost(ph);
    }
     ReinitListBox(780,(ListNext)HostListNext,hsdr.next);
     break;
    case  796:
-   case  794: EnableWindow( GetDlgItem(hwnd,i+1),(IsDChk(hwnd,i)&1));
+   case  794: EnableWindow( GetDlgItem(hwnd,i+1), (IsDChk(hwnd,i)&1));
      if(i==794 && !GetDlgItemTextLen(hwnd,795))SetDlgItemText(hwnd,795,"127.0.0.1");
      break;
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2022 Maksim Feoktistov.
+ * Copyright (C) 1999-2025 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov
@@ -96,7 +96,6 @@ int Req::Admin()
  User *tuser;
  host_dir *a;
  };
- host_dir *ab;
  int i,j,k;
  uint who;
 
@@ -543,56 +542,62 @@ if(0){
    case 0x74736F68 x4CHAR("host") :
      if(req!=NullString)
      {
-      if( (u=GetVar(req_var,"h")) && (t=GetVar(req_var,"d")) && ( (p=GetVar(req_var,"s"))  || (p=GetVar(req_var,"s1")) )  )
-      {ab=&hsdr;
-       if((i=strcmp(p,"Remove")))
-       {i=strlen(t);
-        if( DWORD_PTR(t[3])!=0x2F2F3A70 x4CHAR("p://")  && ChkValidPth(t,b))goto lbOutUPg;
-        if(t[i-1]==FSLUSH)t[--i]=0;
-       }
-       for(a=hsdr.next;a;a=(ab=a)->next)if(!stricmp(a->h,u))
+       if( (u=GetVar(req_var,"h")) && (t=GetVar(req_var,"d")) && ( (p=GetVar(req_var,"s"))  || (p=GetVar(req_var,"s1")) )  )
        {
-        {ab->next=a->next;
-         break;
-        }
-       }
-       if(i)
-       {j=0;
-        if(GetVar(req_var,"p"))
-        {t1=GetVar(req_var,"n");
-         j=strlen(t1);
-        }
-#ifdef NEWSTRUCT
-        a=(host_dir *) Malloc(sizeof(host_dir) + i + j+ strlen(u) +5);
-        a->h=(char *)(a+1);
-#else
-        a=(host_dir *) new char[sizeof(host_dir) + i + j+ strlen(u) +5];
-#endif
-        i=sprintf(a->d=p+sprintf(p=a->h,u)+1,t);
-        if(j)strcpy(a->d+(a->flg=i+1),t1);
+         host_dir *ab;
 
-        a->next=hsdr.next;
-        hsdr.next=a;
-       }
-      lbCmnHosts:
-       if( (t=GetVar(req_var,"i")) && GetVar(req_var,"u") &&  u[0]!='/')
-       {
+         ab=&hsdr;
+         if((i=strcmp(p,"Remove")))
+         {
+           i=strlen(t);
+           if( DWORD_PTR(t[3])!=0x2F2F3A70 x4CHAR("p://")  && ChkValidPth(t,b))goto lbOutUPg;
+             if(t[i-1]==FSLUSH)t[--i]=0;
+         }
+         for(a=hsdr.next;a;a=(ab=a)->next)
+           if(!stricmp(a->h,u))
+           {
+             ab->next=a->next;
+             break;
+           }
+         if(i)
+         {
+           j=0;
+           if(GetVar(req_var,"p"))
+           {
+             t1=GetVar(req_var,"n");
+             j=strlen(t1);
+           }
+           #ifdef NEWSTRUCT
+           a=(host_dir *) Malloc(sizeof(host_dir) + i + j + strlen(u) +5);
+           a->h=(char *)(a+1);
+           #else
+           a=(host_dir *) new char[sizeof(host_dir) + i + j + strlen(u) +5];
+           #endif
+           i=sprintf(a->d = p + sprintf(p=a->h, "%s", u) + 1, "%s", t);
+           if(j) strcpy(a->d+(a->flg=i+1), t1);
+
+           a->next = hsdr.next;
+           hsdr.next = a;
+         }
+         lbCmnHosts:
+         if( (t=GetVar(req_var,"i")) && GetVar(req_var,"u") &&  u[0]!='/')
+         {
 #ifndef SYSUNIX
-        strcpy(b+GetWindowsDirectoryA(b,256), (s_aflg & 0x80000000)?
-         "\\hosts": "\\SYSTEM32\\DRIVERS\\ETC\\hosts"   );
-        if( ( (i=_lopen(b,1))>0 ) || ((i=_lcreat(b,0))>0 ) )
+           strcpy(b+GetWindowsDirectoryA(b,256), (s_aflg & 0x80000000)?
+           "\\hosts": "\\SYSTEM32\\DRIVERS\\ETC\\hosts"   );
+           if( ( (i=_lopen(b,1))>0 ) || ((i=_lcreat(b,0))>0 ) )
 #else
-        if( ( (i=_lopen("/etc/hosts",1))>0 ) || ((i=_lcreat("/etc/hosts",0))>0 ) )
+             if( ( (i=_lopen("/etc/hosts",1))>0 ) || ((i=_lcreat("/etc/hosts",0))>0 ) )
 #endif
-        {
-         _llseek(i,0,2);
-         _hwrite(i,b,sprintf(b,"%s %s\r\n",t,u));
-         _lclose(i);
-        };
+             {
+               _llseek(i,0,2);
+               _hwrite(i,b,sprintf(b,"%s %s\r\n",t,u));
+               _lclose(i);
+             };
 
+         }
+         SaveCfgFile(b);
        }
-       SaveCfgFile(b);
-      }
      }
    }
 

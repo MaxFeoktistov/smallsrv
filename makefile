@@ -22,7 +22,7 @@
 #
 #
 
-VERSION=3.06.36test2
+VERSION=3.06.36test5
 VERSIONT=3.06.36test
 BUDIR=../site/30636/
 
@@ -1122,8 +1122,10 @@ ${OBJDIRSNAMES} :
 	ln -s ${TMPRAM}/$@ .
 
 $(addsuffix srv0a.o,$(OBJDIRS) $(OBJDIRS_TLS)): g4strc.h srv0a.cpp slloop.cpp srvars.cpp seplog.cpp onelog.cpp
-$(addsuffix srv0a_vpnclient.o,$(OBJDIRS) $(OBJDIRS_TLS)): g4strc.h srv0a_vpnclient.cpp slloop_vpnclient.cpp srvars.cpp seplog.cpp onelog.cpp
-$(addsuffix conf_vpnclient.o,$(OBJDIRS) $(OBJDIRS_TLS)): g4strc.h conf.cpp
+$(addsuffix srv0a_vpnclient.o,$(OBJDIRS) $(OBJDIRS_TLS)): g4strc.h srv0a_vpnclient.cpp slloop_vpnclient.cpp srvars.cpp seplog.cpp onelog.cpp g4s1.hh
+$(addsuffix vpnclient/tls_conf.o,$(OBJDIRS) $(OBJDIRS_TLS)): g4strc.h conf.cpp g4s1.hh g4strcwm.h S2_lf.hh
+$(addsuffix vpnclient/conf.o,$(OBJDIRS) $(OBJDIRS_TLS)): g4strc.h conf.cpp g4s1.hh g4strcwm.h S2_lf.hh
+$(addsuffix icfg_vpnclient.o,$(OBJDIRS) $(OBJDIRS_TLS)): g4strc.h g4s1.hh g4strcwm.h S2_lf.hh
 $(addsuffix adminr.o,$(OBJDIRS) $(OBJDIRS_TLS)): g4strc.h adminr.cpp icfghtm.cpp g4strhtm.hh
 $(addsuffix stat.o,$(OBJDIRS) $(OBJDIRS_TLS)): g4strc.h stat.cpp cstat.cpp statusr.cpp
 $(addsuffix smptps.o,$(OBJDIRS) $(OBJDIRS_TLS)): g4strc.h smptps.cpp pop3d.cpp
@@ -1369,7 +1371,7 @@ clean_n:
 	rm -rf $(N_OBJS_TLS) $(N_OBJS) oo/fakelibs oo/httpd.exe oo/sndmsg oo/libsec111.so oo/libsecgnutls.so oo/httpd.exopenssl oo/httpd.exgnutls $(addprefix oo/,$(SECOBJ))
 
 cleanobj:
-	rm -f $(OOBJS) $(OOBJS64) $(OOBJS64_TLS) $(OOBJS_TLS) $(ATOBJS) $(ATOBJS_TLS) $(addprefix o/,$(SECOBJ)) $(addprefix o64/,$(SECOBJ)) $(addprefix at/,$(SECOBJ)) $(N_OBJS_TLS) $(N_OBJS) $(OOVPNCL) $(OOVPNCL64) $(N_VPNCL) $(ATVPNCL) $(WINVPNCLOBJ) $(WINOOBJS) $(ARMOBJ)
+	rm -f $(OOBJS) $(OOBJS64) $(OOBJS64_TLS) $(OOBJS_TLS) $(ATOBJS) $(ATOBJS_TLS) $(addprefix o/,$(SECOBJ)) $(addprefix o64/,$(SECOBJ)) $(addprefix at/,$(SECOBJ)) $(N_OBJS_TLS) $(N_OBJS) $(OOVPNCL) $(OOVPNCL_TLS) $(OOVPNCL64) $(OOVPNCL64_TLS) $(N_VPNCL) $(ATVPNCL) $(WINVPNCLOBJ) $(WINOOBJS) $(ARMOBJ)
 
 clean:  clean_n cleanobj
 	rm -f wo/libsecgnutls.o wo/libsec111.o
