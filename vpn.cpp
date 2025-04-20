@@ -80,6 +80,9 @@ void  *tap_waitbfr[3];
 const char * TUNTAPNames[3] = {"tun","tap","tap"};
 char *vpn_limit_fname = "vpn_limits.dat";
 
+time_t next_save_limits;
+const u32 save_limits_interval = 86400;
+
 #ifdef VPN_WIN
 char * vpnIfNamesW[3];
 char * vpnIfNames[3];
@@ -91,7 +94,6 @@ uint  old_ipv4gw;
 int  old_winIfDefIdx = -1;
 void  *ipentry[3];
 #endif // VPN_UPDATE_NET
-
 
 struct AsincReadHelper_t
 {
@@ -1482,6 +1484,9 @@ lb_reconnect:
    AddToLog(0, cl->s, & cl->sa_c46, ">>VPN Connection open %s %s %u.%u.%u.%u\r\n", cl->a_user? cl->a_user->name: "",
             TUNTAPNames[isTap], ip&0xFF, (ip>>8)&0xFF,(ip>>16)&0xFF, ip>>24); // TODO: Big endian fix
 
+   if(vpn_limit_fname && next_save_limits < time(0))
+     VPNSaveLimit();
+
    return 0;
 }
 #endif //VPNCLIENT_ONLY
@@ -1788,6 +1793,7 @@ int VPN_Init()
     return -1;
   }
   VPNLoadLimit();
+  next_save_limits = time(0) + save_limits_interval;
 
   return (int) CreateThread(&secat,0x5000 + MAX_MTU,(TskSrv)VPN_Thread, (void *)0, 0, &trd_id);
 }
@@ -2047,11 +2053,12 @@ void VPNSaveLimit()
   if( (h = _lcreat(vpn_limit_fname,0)) <0 )
   {
     debug("Can't create file %s %d %s\r\n", vpn_limit_fname, errno, strerror(errno));
-    return ;
   }
-
-  for(p=vpn_limits; p; p=p->next)
+  else
   {
+
+    for(p=vpn_limits; p; p=p->next)
+    {
       if(p->usr)
         pb += sprintf(pb,"u;%s", p->usr->name);
       else
@@ -2062,10 +2069,10 @@ void VPNSaveLimit()
       }
 
       pb += sprintf(pb, ";%llu;%llu;%llu;%llu",
-        p->in,
-        p->out,
-        p->in_fast,
-        p->out_fast
+                    p->in,
+                    p->out,
+                    p->in_fast,
+                    p->out_fast
       );
 
       for(i=0; i<3; i++)
@@ -2083,11 +2090,14 @@ void VPNSaveLimit()
         _hwrite(h, bfr, i);
         pb = bfr;
       }
+    }
+
+    if( (i = pb - bfr) )
+      _hwrite(h, bfr, i);
+    _lclose(h);
   }
 
-  if( (i = pb - bfr) )
-    _hwrite(h, bfr, i);
-  _lclose(h);
+  next_save_limits = time(0) + save_limits_interval;
 }
 
 

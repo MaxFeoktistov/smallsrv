@@ -1,0 +1,15 @@
+Source: shs-vpnclient
+Section: net
+Priority: standard
+Maintainer: Maksim Feoktistov <max@smallsrv.com>
+Build-Depends: debhelper-compat (= 12)
+Standards-Version: 4.5.0
+Homepage: https://smallsrv.com
+
+Package: shs-vpnclient
+Version: 3.06.29
+Architecture: any
+Multi-Arch: foreign
+Depends: libc6 (>= 2.14), libgnutls30 (>= 3.0.0), libssl1.1 (>= 1.1.0), ${misc:Depends}, ${shlibs:Depends}
+Description:  VPN client for Small HTTP server
+ Can connect to Small HTTP server, by https protocol and setup VPN channel.

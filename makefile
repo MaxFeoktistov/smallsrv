@@ -22,7 +22,7 @@
 #
 #
 
-VERSION=3.06.36test5
+VERSION=3.06.36
 VERSIONT=3.06.36test
 BUDIR=../site/30636/
 
@@ -51,7 +51,7 @@ G=  -g  -Os
 TMPRAM ?= /dev/shm/shttps/
 
 ifeq ($(VERSION),$(VERSIONT))
-IWDIST:= wo/shttps_mgi.exe wo/shttpsr_mgi.exe
+IWDIST:= wo/shttps_mgi.exe wo/shttpsr_mgi.exe wo/shvpnclient.exe
 endif
 
 
@@ -283,6 +283,8 @@ else
 #all: wo/vpnclient.exe
 #all: wo/shvpnclient.exe
 all: /dev/shm/shttps/o/1.x o/1.x getstr i32 i64 i32f i64f win arm arm64
+
+fall: all wo/shvpnclient.exe
 
 endif
 
@@ -912,7 +914,7 @@ oo/dist/% : oo/%
 sinst: o/dist/httpd.exe $(DIST_DIR)shttplnx.$(TAR_EXT) $(DIST_DIR)shttplnxu.$(TAR_EXT) $(DIST_DIR)shttparmlnx.$(TAR_EXT) $(DIST_DIR)shttplnx64.$(TAR_EXT)  $(DIST_DIR)shttplnx64u.$(TAR_EXT)
 	chmod 0666 wo/shttps*.exe
 	mkdir -p $(BUDIR)
-	for i in wo/shttps_mg.exe wo/shttpsr_mg.exe $(DIST_DIR)*.$(TAR_EXT) o/smallsrv_$(VERSION)_amd64.deb o/smallsrv-$(VERSION).tar.gz $(IWDIST) ; do echo $$i ; cp $$i /mnt/d/var/www/pre/ ; cp $$i $(BUDIR) ; done
+	for i in wo/shttps_mg.exe wo/shttpsr_mg.exe $(DIST_DIR)*.$(TAR_EXT) o/smallsrv_$(VERSION)_amd64.deb o/smallsrv-$(VERSION).tar.gz $(IWDIST)  o/shs_vpnclient-$(VERSION)_amd64.deb ; do echo $$i ; cp $$i /mnt/d/var/www/pre/ ; cp $$i $(BUDIR) ; done
 	if [ "$(VERSION)" != "$(VERSIONT)" ] ; then ln -sf smallsrv_$(VERSION)_amd64.deb /mnt/d/var/www/pre/smallsrv_$(VERSIONT)_amd64.deb ; fi
 
 # 	for i in wo/shttps_mg.exe wo/shttpsr_mg.exe $(DIST_DIR)shttplnx.tgz $(DIST_DIR)shttplnxu.tgz $(DIST_DIR)shttparmlnx.tgz $(DIST_DIR)shttplnx64.tgz $(DIST_DIR)shttplnx64u.tgz ; do cp $$i /mnt/d/var/www/pre/ ; done
