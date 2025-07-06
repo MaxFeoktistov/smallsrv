@@ -816,7 +816,7 @@ N_DEP := $(N_FAKELIBS)
     }
     if($only_vpnc == 1)
     {
-      while(s/^([a-z_0-9]+):(.*) [^\/]+\/(httpd|sndmsg)\.([^ ]+)/$1:$2 /g)
+      while(s/^([a-z_0-9]+):(.*) [^\/]+\/(httpd|sndmsg)([^ ]*)/$1:$2 /g)
       {
         ;
       }
@@ -825,11 +825,11 @@ N_DEP := $(N_FAKELIBS)
       s/^([a-z_0-9]+):(.*) [^\/]+\/http.exe/$1:$2 /g;
       s/^([a-z_0-9]+):(.*) [^\/]+\/sndmsg.exe/$1:$2 /g;
 
-      while(s/:=(.*)(httpd|sndmsg)\.([^ ]+)/:=$1/g)
+      while(s/:=(.*)(httpd|sndmsg)([^ ]*)/:=$1/g)
       {
         ;
       }
-      while(s/(for i in .*)(httpd|sndmsg)\.([^ ]+)/$1/g)
+      while(s/(for i in .*)(httpd|sndmsg)([^ ]*)/$1/g)
       {
         ;
       }

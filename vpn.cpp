@@ -87,7 +87,7 @@ const u32 save_limits_interval = 86400;
 #ifdef VPN_WIN
 char * vpnIfNamesW[3];
 char * vpnIfNames[3];
-char   vpnIfGuid[3][80];
+char   vpnIfGuid[3][120];
 int   vpnWinIdx[3] = {-1,-1,-1};
 char *tundev="tap0901";
 #ifdef  VPN_UPDATE_NET
@@ -570,9 +570,9 @@ int get_guid(int index, char *ret_bfr)
                   if( vpnIfNames[index] && vpnIfNames[index][0] &&
                     ( !strcasecmp((char *)name, vpnIfNames[index]) ) )
                   {
-                    strncpy(ret_bfr, (char *)net_cfg_instance_id , 256);
+                    strncpy(ret_bfr, (char *)net_cfg_instance_id , 120);
                     r = 1;
-                    if (vpnIfNamesW[index] != (vpnIfNames[index] + llen + 2))
+                    if (vpnIfNamesW[index] != (vpnIfNames[index] + llen + 4))
                       goto lbInitName;
                     break;
                   }
@@ -581,14 +581,14 @@ int get_guid(int index, char *ret_bfr)
                     if(ii == tuntap_number[index])
                     {
                     lbInitName:
-                      vpnIfNames[index] = (char *) malloc(llen+4+len);
-                      vpnIfNamesW[index] = vpnIfNames[index] + llen + 2;
+                      vpnIfNames[index] = (char *) malloc(llen+8+len);
+                      vpnIfNamesW[index] = vpnIfNames[index] + llen + 4;
                       strcpy(vpnIfNames[index], name);
-                      strncpy(ret_bfr, (char *) net_cfg_instance_id, 256);
+                      strncpy(ret_bfr, (char *) net_cfg_instance_id, 120);
                       memcpy(vpnIfNamesW[index], name_data, len);
                       vpnIfNamesW[index][len] = 0;
 
-                      DBGLA("index = %u %lX len=%d",index, (long) vpnIfNamesW[index], len)
+                      DBGLA("index = %u %lX len=%d %llX",index, (long) vpnIfNamesW[index], len, DDWORD_PTR(vpnIfNamesW[index][0]))
 
                       r = 1;
                       break;
@@ -793,17 +793,19 @@ int GetAdapterIdxFromList(int ifs)
   ULONG r;
 
   pp = p = (IP_ADAPTER_ADDRESSES *) malloc(0x10000);
+  DBGLA("Malloc return %lX", (long) p )
   r = GetAdaptersAddresses(AF_UNSPEC, GAA_FLAG_INCLUDE_PREFIX|GAA_FLAG_SKIP_DNS_SERVER|GAA_FLAG_INCLUDE_ALL_INTERFACES, NULL, p, &bsize);
   if(r == NO_ERROR) {
-    for(; p; p=p->Next)
+    while(p)
     {
-      DBGLA("%u %s", p->IfIndex, p->AdapterName);
+      DBGLA("%u %s %s", p->IfIndex, p->AdapterName, vpnIfGuid[ifs]);
       if(!stricmp(p->AdapterName, vpnIfGuid[ifs])) // vpnIfNames[ifs]))
       {
         DBGLA("Interface found!!! %u", p->IfIndex)
         ret = p->IfIndex;
         break;
       }
+      p=p->Next;
     }
   }
   else
@@ -846,7 +848,7 @@ void SetIPWithUndocumented(int ifs, u32 ip, u32 mask)
     if (lst == NO_ERROR) {
         debug("IP set successfully!\n");
     } else {
-        debug("*****ERROR: Failed to set IP (Error: %d %s) ifs:%u %X %X %X\n", lst, strerror(lst), ifs, ip, mask, ip & mask);
+        debug("*****ERROR: Failed to set IP (Error: %d %s) ifs:%u %X %X %X %llX\n", lst, strerror(lst), ifs, ip, mask, ip & mask, DDWORD_PTR(vpnIfNamesW[ifs][0]));
     }
 
 }
@@ -860,16 +862,23 @@ int AddIP2If(int ifs, uint ip, uint mask)
   DBGLA("%d %X %X %s",ifs, DWORD_PTR(vpnIfNamesW[ifs][0]), DWORD_PTR(vpnIfNamesW[ifs][8]), vpnIfNamesW[ifs])
   //DBGLA("%d %lX",ifs, (long) vpnIfNamesW[ifs])
 
-  if(vpnWinIdx[ifs] < 0) {
+  IfIndex = vpnWinIdx[ifs];
+  if((int)IfIndex < 0) {
     IfIndex = GetAdapterIdxFromList(ifs);
     vpnWinIdx[ifs] = IfIndex;
   }
 
-  if((int)IfIndex<0 && (lst = GetAdapterIndex((LPWSTR) vpnIfNamesW[ifs] , &IfIndex)) != NO_ERROR)
+
+  if((int)IfIndex<0)
   {
-    //lst = GetLastError();
-    debug("*****ERROR: Can't get index of TAP-Windows addapter %d %s %d",lst, strerror(lst), ifs);
-    return -1;
+    if((lst = GetAdapterIndex((LPWSTR) vpnIfNamesW[ifs] , &IfIndex)) != NO_ERROR)
+    {
+      //lst = GetLastError();
+      debug("*****ERROR: Can't get index of TAP-Windows addapter %d %s %d", lst, strerror(lst), ifs);
+      return -1;
+    }
+
+    vpnWinIdx[ifs] = IfIndex;
   }
 
   if( (lst = AddIPAddress( ip, mask, IfIndex,  (PULONG) (ipentry + ifs), &NTEInstance))  != NO_ERROR)
