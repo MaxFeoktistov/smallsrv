@@ -541,6 +541,7 @@ int FndLimit(int lst,LimitBase **ip, LimitBase **net, sockaddr_in *sa );
 #define FL3_VPNCL_FIXIP     0x00100000
 #define FL3_VPNCL_UPDRT     0x00200000
 #define FL3_VPNSR_FIXIP     0x00400000
+#define FL3_VPN_UPDMAC      0x00800000
 
 #define USE_TUN       (s_flgs[3] & FL3_VPN_TUN)
 #define USE_TAP       (s_flgs[3] & FL3_VPN_TAP)

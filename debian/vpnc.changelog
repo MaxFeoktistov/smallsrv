@@ -1,3 +1,9 @@
+shs-vpnclient (3.06.37test1) unstable; urgency=low
+
+  * Some fixes in VPN client
+
+ -- Maksim Feoktistov <max@smallsrv.com>  Sun, 06 Jul 2025 10:10:58 +0400
+
 shs-vpnclient (3.06.36) unstable; urgency=low
 
   * Created separated package for VPN client

@@ -31,6 +31,7 @@
 #include <netinet/ip6.h>
 #include <net/ethernet.h>
 #include <net/route.h>
+#include <net/if_arp.h>
 // #ifdef ARM
 // #include <net/if.h>
 // #else
@@ -54,6 +55,35 @@
 #define MAX_MTU  16384
 
 extern "C" {
+
+#ifndef ARPOP_REQUEST
+/* ARP protocol opcodes. */
+#define	ARPOP_REQUEST	1		/* ARP request.  */
+#define	ARPOP_REPLY	2		/* ARP reply.  */
+#define	ARPOP_RREQUEST	3		/* RARP request.  */
+#define	ARPOP_RREPLY	4		/* RARP reply.  */
+#define	ARPOP_InREQUEST	8		/* InARP request.  */
+#define	ARPOP_InREPLY	9		/* InARP reply.  */
+#define	ARPOP_NAK	10		/* (ATM)ARP NAK.  */
+#endif
+
+struct arp_pkt
+{
+    unsigned short int hrd;          /* Format of hardware address.  */
+    unsigned short int pro;          /* Format of protocol address.  */
+    unsigned char hln;               /* Length of hardware address.  */
+    unsigned char pln;               /* Length of protocol address.  */
+    unsigned char op_hi;           /* ARP opcode (command).  */
+    unsigned char op;           /* ARP opcode (command).  */
+    /* Ethernet looks like this : This bit is variable sized
+       however...  */
+    unsigned char sha[6];   /* Sender hardware address.  */
+    unsigned int  sip;          /* Sender IP address.  */
+    unsigned char tha[6];   /* Target hardware address.  */
+    unsigned int  tip;          /* Target IP address.  */
+} PACKED;
+
+
 
 struct VPN_TUNPacket
 {
@@ -92,6 +122,7 @@ struct VPN_TAPPacket
   union {
     struct iphdr   ip4;
     struct ip6_hdr ip6;
+    struct arp_pkt arp;
   };
 } PACKED ;
 
@@ -188,6 +219,21 @@ struct VPNclient : public Req
   void UpdateLimits();
 
 };
+
+struct icmp_echo {
+  /*  header */
+  u8 type;
+  u8 code;
+  u16 checksum;
+
+  u16 ident;
+  u16 seq;
+
+  /*  data */
+  char data[64];
+} PACKED ;
+
+
 
 extern VPNclient **vpn_list;
 

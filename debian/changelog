@@ -1,3 +1,14 @@
+smallsrv (3.06.37test1) unstable; urgency=low
+
+  * Some fixes in VPN client
+  * To VPN server added 'welcome' ping from the server, that sometime
+    required for TAP Windows clients.
+  * To the VPN server added possibility to fix wrong MAC address in
+    income packets for TAP or send ping if packets with wrong MAC detected
+    to fix remote ARP table.
+
+ -- Maksim Feoktistov <max@smallsrv.com>  Sun, 06 Jul 2025 10:10:58 +0400
+
 smallsrv (3.06.36) unstable; urgency=low
 
   * Created separated package for VPN client

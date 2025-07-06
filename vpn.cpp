@@ -22,6 +22,7 @@
  *
  */
 
+//#define DEBUG_VERSION 1
 
 #include "mstring1.h"
 #include "vpn.h"
@@ -137,6 +138,7 @@ static int tuntap_flags[3] = {IFF_TUN | TUN_PI, IFF_TAP|IFF_NO_PI, IFF_TAP|IFF_N
 int  tuntap_number[3];
 char* tuntap_ipv4[3]= {"192.168.111.1","192.168.112.1"};
 char* tuntap_ipv4nmask[3] = {"255.255.255.0","255.255.255.0"};
+u32   tuntap_ipv4a[3];
 char* tuntap_ipv6[3];
 uint tuntap_ipv6plen[3];
 uint vpn_rescan_us=500000;
@@ -444,11 +446,7 @@ int tun_alloc(int index)
         debug("VPN: can't get hw address interface %s: %d %d %s\r\n", ifr.ifr_flags, ifr.ifr_name, r, errno, strerror(errno) );
       else
       {
-#ifdef ARM
         memcpy(vpn_mac+index, ifr.ifr_hwaddr.sa_data, 6);
-#else
-        vpn_mac[index] = DDWORD_PTR(ifr.ifr_hwaddr.sa_data[0]) & 0xFFFFffffFFLL;
-#endif
         DBGLA("Tap MAC: %llX", vpn_mac[index])
       }
     }
@@ -461,6 +459,7 @@ int tun_alloc(int index)
       {
         ip = ConvertIP(t=tuntap_ipv4[index]);
         m = ConvertIP(t=tuntap_ipv4nmask[index]);
+        tuntap_ipv4a[index] = ip;
       }
       tun_up(index, ip, m, ip, 0 );
     }
@@ -565,16 +564,23 @@ int get_guid(int index, char *ret_bfr)
 
                   DBGLA("name = '%s'", name)
 
+                  int llen = strlen(name);
+
+
                   if( vpnIfNames[index] && vpnIfNames[index][0] &&
                     ( !strcasecmp((char *)name, vpnIfNames[index]) ) )
                   {
                     strncpy(ret_bfr, (char *)net_cfg_instance_id , 256);
                     r = 1;
-                    //break;
+                    if (vpnIfNamesW[index] != (vpnIfNames[index] + llen + 2))
+                      goto lbInitName;
+                    break;
+                  }
+                  else {
 
                     if(ii == tuntap_number[index])
                     {
-                      int llen = strlen(name);
+                    lbInitName:
                       vpnIfNames[index] = (char *) malloc(llen+4+len);
                       vpnIfNamesW[index] = vpnIfNames[index] + llen + 2;
                       strcpy(vpnIfNames[index], name);
@@ -703,6 +709,7 @@ HANDLE tun_alloc(int index)
       {
         ip = ConvertIP(t=tuntap_ipv4[index]);
         m = ConvertIP(t=tuntap_ipv4nmask[index]);
+        tuntap_ipv4a[index] = ip;
       }
       if(index<2) tun_up(index, ip, m, ip, 0 );
   }
@@ -785,10 +792,10 @@ int GetAdapterIdxFromList(int ifs)
   ULONG bsize = 0x10000;
   ULONG r;
 
-  p = (IP_ADAPTER_ADDRESSES *) malloc(0x10000);
+  pp = p = (IP_ADAPTER_ADDRESSES *) malloc(0x10000);
   r = GetAdaptersAddresses(AF_UNSPEC, GAA_FLAG_INCLUDE_PREFIX|GAA_FLAG_SKIP_DNS_SERVER|GAA_FLAG_INCLUDE_ALL_INTERFACES, NULL, p, &bsize);
   if(r == NO_ERROR) {
-    for(pp = p; p; p=p->Next)
+    for(; p; p=p->Next)
     {
       DBGLA("%u %s", p->IfIndex, p->AdapterName);
       if(!stricmp(p->AdapterName, vpnIfGuid[ifs])) // vpnIfNames[ifs]))
@@ -804,10 +811,43 @@ int GetAdapterIdxFromList(int ifs)
     debug("*****ERROR: Can't get list of Windows addapter %d %s %u", r, strerror(r), ifs);
   }
 
-
-
   free(pp);
   return ret;
+
+}
+
+// Declare the function (not in public headers)
+typedef DWORD (WINAPI *SetAdapterIpAddressFunc)(
+    LPWSTR AdapterName,    // Adapter GUID (e.g., L"{XXXXXX-XXXX...}")
+    ULONG IPAddress,        // IP as 32-bit uint (inet_addr format)
+    ULONG SubnetMask       // Subnet as 32-bit uint
+);
+
+static HMODULE hIphlpapi;
+void SetIPWithUndocumented(int ifs, u32 ip, u32 mask)
+{
+
+    if (!hIphlpapi)
+      hIphlpapi = LoadLibraryA("iphlpapi.dll");
+    if (!hIphlpapi) {
+        debug("*****ERROR: Failed to load iphlpapi.dll\n");
+        return;
+    }
+
+    SetAdapterIpAddressFunc SetAdapterIpAddress =
+        (SetAdapterIpAddressFunc)GetProcAddress(hIphlpapi, "SetAdapterIpAddress");
+    if (!SetAdapterIpAddress) {
+        debug("*****ERROR: SetAdapterIpAddress not found in iphlpapi.dll\n");
+        return;
+    }
+
+    // Call the function
+    int lst = SetAdapterIpAddress((LPWSTR) vpnIfNamesW[ifs], ip, ip & mask);
+    if (lst == NO_ERROR) {
+        debug("IP set successfully!\n");
+    } else {
+        debug("*****ERROR: Failed to set IP (Error: %d %s) ifs:%u %X %X %X\n", lst, strerror(lst), ifs, ip, mask, ip & mask);
+    }
 
 }
 
@@ -835,6 +875,8 @@ int AddIP2If(int ifs, uint ip, uint mask)
   if( (lst = AddIPAddress( ip, mask, IfIndex,  (PULONG) (ipentry + ifs), &NTEInstance))  != NO_ERROR)
   {
     debug("Warning: Can't set IP for TAP-Windows addapter %d %s", lst, strerror(lst));
+    SetIPWithUndocumented(ifs, ip, mask);
+
     return -1;
   }
 
@@ -900,14 +942,16 @@ uint UpdateDefaultGW(uint gw, uint vpn_server_ip, int isRemove)
            }
 
            DBGLA("Found default GW: ForwardType=%d  dwForwardProto=%u\r\n"
-                 "dwForwardMetric1=%u dwForwardMetric2=%u dwForwardMetric3=%u dwForwardMetric4=%u dwForwardMetric5=%u",
+                 "dwForwardMetric1=%u dwForwardMetric2=%u dwForwardMetric3=%u dwForwardMetric4=%u dwForwardMetric5=%u dwForwardAge=%u dwForwardNextHopAS=%u",
                  pt->table[i].dwForwardType,
                  pt->table[i].dwForwardProto,
                  pt->table[i].dwForwardMetric1,
                  pt->table[i].dwForwardMetric2,
                  pt->table[i].dwForwardMetric3,
                  pt->table[i].dwForwardMetric4,
-                 pt->table[i].dwForwardMetric5
+                 pt->table[i].dwForwardMetric5,
+                 pt->table[i].dwForwardAge,
+                 pt->table[i].dwForwardNextHopAS
            )
            if(vpn_server_gw_idx >= 0)
              break;
@@ -1295,6 +1339,93 @@ int IsVPN_IP_Free(uint ip)
 ///////////////////
 
 #ifndef VPNCLIENT_ONLY
+
+u16 ip_checksum(u8* bfr,int len)
+{
+  u32 checksum = 0;
+  u8 * end = bfr + len;
+
+  /*  odd len add last byte and reset end */
+  if(len & 1)
+  {
+    end = bfr + len - 1;
+    checksum += (*end) << 8;
+  }
+
+  /*  add words of two len,one by one */
+  while(bfr < end)
+  {
+    checksum += bfr[0] << 8;
+    checksum += bfr[1];
+    bfr += 2;
+  }
+
+  /*  add carry if any */
+  u32 carray = checksum >> 16;
+  while (carray)
+  {
+    checksum = (checksum & 0xffff) + carray;
+    carray = checksum >> 16;
+  }
+
+  return (~checksum) & 0xffff;
+}
+
+int send_echo_request(u32 ip, int len)
+{
+  struct icmp_echo icmp;
+  int n = 5;
+  int r = 0;
+  struct sockaddr_in addr;
+
+  int s = socket(AF_INET,SOCK_RAW,IPPROTO_ICMP);
+
+  if (s == -1)
+  {
+    debug("Error get socket for welcom PING: %d %s\n",errno,strerror(errno));
+    return -1;
+  }
+
+  memset(&addr, 0, sizeof(addr));
+
+  /* fill address,set port to 0 */
+  addr.sin_family = AF_INET;
+  addr.sin_port = 0;
+  addr.sin_addr.s_addr = ip;
+
+  /* fill header files */
+  memset(&icmp, 0, sizeof(icmp));
+  icmp.type = 8;
+  icmp.code = 0;
+  icmp.ident = 0x1234;
+  icmp.seq = 1;
+
+  /* calculate and fill checksum */
+  icmp.checksum = htons(ip_checksum((unsigned char*)&icmp, len));
+
+  while(n>0)
+  {
+	  /* send it */
+	  if( sendto(s, (char *) &icmp, len, 0,
+		  (struct sockaddr*)&addr, sizeof(addr)) != len )
+	  {
+		  if(errno == 105) {
+			  Sleep(1);
+			  n--;
+			  continue;
+		  }
+		  debug("Welcom ping sending error %d, %s\n", errno, strerror(errno));
+		  r = -1;
+          break;
+	  }
+	  break;
+  }
+  return r;
+}
+
+
+
+
 int Req::InsertVPNclient()
 {
   VPNclient *cl;
@@ -1487,6 +1618,10 @@ lb_reconnect:
    if(vpn_limit_fname && next_save_limits < time(0))
      VPNSaveLimit();
 
+   /* Send welcome ping: */
+   Sleep(100);
+   send_echo_request(ip, 48);
+
    return 0;
 }
 #endif //VPNCLIENT_ONLY
@@ -1525,13 +1660,43 @@ int VPNclient::RecvPkt()
   while(pos_pkt>2 && (uint)pos_pkt >= (ll = pkt_len+2))
   {
 
+#ifndef VPNCLIENT_ONLY
+    if ( (fl & F_VPNTAP) &&
+         tun_index != INDEX_CLIENT &&
+         vpn_mac[tun_index] &&
+         (! (tappkt.eth.ether_dhost[0]&1)) &&
+         (
+           (
+             (tappkt.eth.ether_type == ETHERTYPE_IP_LE)  &&
+             tappkt.ip4.daddr == tuntap_ipv4a[INDEX_TAP]
+           ) ||
+           (tappkt.eth.ether_type == ETHERTYPE_ARP_LE)  &&
+           tappkt.arp.tip == tuntap_ipv4a[INDEX_TAP]
+         )
+       )
+    {
+      if(s_flgs[3] & FL3_VPN_UPDMAC)
+        memcpy(tappkt.eth.ether_dhost, vpn_mac + tun_index, 6);
+      else if(memcmp(tappkt.eth.ether_dhost, vpn_mac + tun_index, 6))
+      {
+        time_t lpt = time(0);
+        if(KeepAliveExpired < lpt) {
+          debug("packet for unknown MAC: %X%02X != %X %llX", DWORD_PTR(tappkt.eth.ether_dhost[0]),
+                WORD_PTR(tappkt.eth.ether_dhost[4]), DWORD_PTR(vpn_mac[tun_index]), vpn_mac[tun_index]);
+          send_echo_request(ipv4, 48);
+          KeepAliveExpired = lpt + 20;
+        }
+      }
+    }
+#endif
+
 #ifdef VPN_WIN
     l = SynhWrite(tun_index, pkt + 2, pkt_len);
 #else
     l=write(tuntap_fds[tun_index], pkt + 2, pkt_len);
 #endif
     //DBGLA("tun_proto = %X l=%d", tunpkt.tun_proto, l )
-    if(l != pkt_len )
+    if(l != pkt_len)
     {
        debug("TUN(%d,%X) write %d error %d %d %s\r\n", tun_index, (fl&F_VPNTAP), pkt_len, l, errno, strerror(errno));
        pos_pkt = 0;
@@ -1587,20 +1752,35 @@ int VPNclient::RecvPkt()
       //DBGLA("tap proto = %X", tappkt.eth.ether_type)
 
       if( //tappkt.eth.ether_type == ETHERTYPE_ARP_LE  ||
-          ! (fl & F_VPN_MACSET) )
+          (! (fl & F_VPN_MACSET) ) && ! (tappkt.eth.ether_shost[0]&1) )
       {
         mac[1]=0;
         memcpy(&macb, &tappkt.eth.ether_shost, 6);
         //macl = DDWORD_PTR(tappkt.eth.ether_shost[0]) & 0xFFFFffffFFLL;
         fl |= F_VPN_MACSET;
-        DBGLA("ARP: mac=%X-%X", mac[0], mac[1])
+        DBGLA("client mac=%X-%X", mac[0], mac[1])
       }
 
-      if( (! (fl & F_VPN_IPSET) ) && tappkt.eth.ether_type == ETHERTYPE_IP_LE && tappkt.ip4.saddr )
+      if(! (fl & F_VPN_IPSET) )
       {
-        ipv4 = tunpkt.ip4.saddr;
-        fl |= F_VPN_IPSET;
-        DBGLA("ip=%X",ipv4)
+        if(tappkt.eth.ether_type == ETHERTYPE_IP_LE) {
+          if(tappkt.ip4.saddr)
+          {
+            ipv4 = tunpkt.ip4.saddr;
+            fl |= F_VPN_IPSET;
+            DBGLA("ip=%X",ipv4)
+          }
+        }
+    /*
+        else if(tappkt.eth.ether_type == ETHERTYPE_ARP_LE) {
+          if(tappkt.arp.op == ARPOP_REQUEST && tappkt.arp.sip)
+          {
+            ipv4 = tappkt.arp.sip;
+            fl |= F_VPN_IPSET;
+            DBGLA("ARP ip=%X",ipv4)
+          }
+        }
+       */
       }
       if( (! (fl & F_VPN_IP6SET) ) && tappkt.eth.ether_type == ETHERTYPE_IPV6 && WORD_PTR(tappkt.ip6.ip6_src.s6_addr[0]) ==
 #ifdef BIG_ENDIAN
@@ -1891,7 +2071,8 @@ int VPNclient::SendIsUs(uchar *pktl, int tuntap)
         DBGLA("tap ppkt: %X %08X-%04X != %08X-%04X  mcst:%X", ppkt->eth.ether_type,
             DWORD_PTR(ppkt->eth.ether_dhost[0]), WORD_PTR(ppkt->eth.ether_dhost[4]) ,
             mac[0], mac[1],  ppkt->eth.ether_dhost[0] & 0x1);
-        return ret;
+        if(ppkt->eth.ether_type != ETHERTYPE_ARP_LE || (fl & F_VPN_MACSET))
+          return ret;
       }
       if((r=Send(pktl, ppkt->len + 2))<=0) ret = -1;
 #ifndef VPNCLIENT_ONLY

@@ -22,9 +22,9 @@
 #
 #
 
-VERSION=3.06.36
+VERSION=3.06.37test1
 VERSIONT=3.06.36test
-BUDIR=../site/30636/
+BUDIR=../site/30637/
 
 prefix ?=/usr/local/
 CONFIG_BASE   ?= $(prefix:%/=%)/
@@ -305,7 +305,7 @@ i64f: $(TMPRAM)o64/of o o64 $(FAKELIBS64) o64/of/httpd.exe o64/of/libsecgnutls.s
 
 arm: $(TMPRAM)at o at at/vpnclient at/atobjdir at/httpd.exe at/libsec111.so at/libsecgnutls.so at/httpd.exopenssl at/httpd.exgnutls at/shs_vpnclient
 
-win: $(TMPRAM)wo o wo wo/http.exe wo/httpg.exe bin2s wo/shttps_mg.exe wo/shttpsr_mg.exe wo/shttps_mgi.exe wo/shttpsr_mgi.exe wo/libsecgnutls.dll wo/vpnclient wo/vpnclient.exe
+win: $(TMPRAM)wo o wo wo/http.exe wo/httpg.exe bin2s wo/shttps_mg.exe wo/shttpsr_mg.exe wo/shttps_mgi.exe wo/shttpsr_mgi.exe wo/libsecgnutls.dll wo/vpnclient wo/vpnclient.exe wo/shvpnclient.exe
 
 
 arm64: CROSS_COMPILE:=aarch64-linux-gnu-
@@ -914,7 +914,7 @@ oo/dist/% : oo/%
 sinst: o/dist/httpd.exe $(DIST_DIR)shttplnx.$(TAR_EXT) $(DIST_DIR)shttplnxu.$(TAR_EXT) $(DIST_DIR)shttparmlnx.$(TAR_EXT) $(DIST_DIR)shttplnx64.$(TAR_EXT)  $(DIST_DIR)shttplnx64u.$(TAR_EXT)
 	chmod 0666 wo/shttps*.exe
 	mkdir -p $(BUDIR)
-	for i in wo/shttps_mg.exe wo/shttpsr_mg.exe $(DIST_DIR)*.$(TAR_EXT) o/smallsrv_$(VERSION)_amd64.deb o/smallsrv-$(VERSION).tar.gz $(IWDIST)  o/shs_vpnclient-$(VERSION)_amd64.deb ; do echo $$i ; cp $$i /mnt/d/var/www/pre/ ; cp $$i $(BUDIR) ; done
+	for i in wo/shttps_mg.exe wo/shttpsr_mg.exe $(DIST_DIR)*.$(TAR_EXT) o/smallsrv_$(VERSION)_amd64.deb o/smallsrv-$(VERSION).tar.gz $(IWDIST)  o/shs-vpnclient_$(VERSION)_amd64.deb ; do echo $$i ; cp $$i /mnt/d/var/www/pre/ ; cp $$i $(BUDIR) ; done
 	if [ "$(VERSION)" != "$(VERSIONT)" ] ; then ln -sf smallsrv_$(VERSION)_amd64.deb /mnt/d/var/www/pre/smallsrv_$(VERSIONT)_amd64.deb ; fi
 
 # 	for i in wo/shttps_mg.exe wo/shttpsr_mg.exe $(DIST_DIR)shttplnx.tgz $(DIST_DIR)shttplnxu.tgz $(DIST_DIR)shttparmlnx.tgz $(DIST_DIR)shttplnx64.tgz $(DIST_DIR)shttplnx64u.tgz ; do cp $$i /mnt/d/var/www/pre/ ; done
