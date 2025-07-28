@@ -179,72 +179,65 @@ HWND CreateWindowExX(
   LPVOID    lpParam
 )
 {
- if(strstr(charset,
-//#ifdef UTF16SUPPORT
-     " utf"
-//#else
-//     " utf-8"
-//#endif
+  if(strstr(charset," utf") )
+  {
+    ushort cm[64];
+    ushort wm[256];
+    int r=0;
+    #ifdef UTF16SUPPORT
+    if(strstr(charset," utf-16"))
+    {
+      //    r=utf162unicode((ushort *)lpClassName,cm);
+      //    r+=utf162unicode((ushort *)lpWindowName,wm);
+      return CreateWindowExW(
+                             dwExStyle,
+                             (LPCWSTR) lpClassName,
+                             (LPCWSTR) lpWindowName,
+                             dwStyle,
+                             X,
+                             Y,
+                             nWidth,
+                             nHeight,
+                             hWndParent,
+                             hMenu,
+                             hInstance,
+                             lpParam);
+    }
+    else
+    #endif
+    {
+      r=utf2unicode((uchar *)lpClassName,cm);
+      r|=utf2unicode((uchar *)lpWindowName,wm);
+    }
 
-) )
- {
-   ushort cm[64];
-   ushort wm[256];
-   int r=0;
-#ifdef UTF16SUPPORT
-   if(strstr(charset," utf-16"))
-   {
-//    r=utf162unicode((ushort *)lpClassName,cm);
-//    r+=utf162unicode((ushort *)lpWindowName,wm);
-     return CreateWindowExW(
-        dwExStyle,
-        (LPCWSTR) lpClassName,
-        (LPCWSTR) lpWindowName,
-        dwStyle,
-        X,
-        Y,
-        nWidth,
-        nHeight,
-        hWndParent,
-        hMenu,
-        hInstance,
-        lpParam);
-   }
-   else
-#endif
-   {
-    r=utf2unicode((uchar *)lpClassName,cm);
-    r|=utf2unicode((uchar *)lpWindowName,wm);
-   }
+    if(r>0)return CreateWindowExW(
+                                  dwExStyle,
+                                  (LPCWSTR) cm,
+                                  (LPCWSTR) wm,
+                                  dwStyle,
+                                  X,
+                                  Y,
+                                  nWidth,
+                                  nHeight,
+                                  hWndParent,
+                                  hMenu,
+                                  hInstance,
+                                  lpParam);
 
-   if(r>0)return CreateWindowExW(
-        dwExStyle,
-        (LPCWSTR) cm,
-        (LPCWSTR) wm,
-        dwStyle,
-        X,
-        Y,
-        nWidth,
-        nHeight,
-        hWndParent,
-        hMenu,
-        hInstance,
-        lpParam);
-
- }
- return CreateWindowEx(
-  dwExStyle,
-  lpClassName,
-  lpWindowName,
-  dwStyle,
-  X,
-  Y,
-  nWidth,
-  nHeight,
-  hWndParent,
-  hMenu,
-  hInstance,
-  lpParam);
+  }
+  return CreateWindowEx(
+    dwExStyle,
+    lpClassName,
+    lpWindowName,
+    dwStyle,
+    X,
+    Y,
+    nWidth,
+    nHeight,
+    hWndParent,
+    hMenu,
+    hInstance,
+    lpParam);
 
 
 };

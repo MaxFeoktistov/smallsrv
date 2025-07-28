@@ -62,6 +62,7 @@ typedef void* HKEY;
 #include <winsvc.h>
 #endif
 #include "mrc.cpp"
+#include "sethttp_lang.h"
 //#include "mdef.h"
 
 #ifndef VPNCLIENT_ONLY
@@ -90,7 +91,35 @@ fb_s3[10],fe_s3[10],
 fb_s4[10],fe_s4[10],
 fb_vpnc[10], fe_vpnc[10],
 fb_sert[10],
-fe_sert[10]
+fe_sert[10],
+
+am_lang[10], am_lange[10],
+ar_lang[10], ar_lange[10],
+bg_lang[10], bg_lange[10],
+ch_lang[10], ch_lange[10],
+da_lang[10], da_lange[10],
+de_lang[10], de_lange[10],
+en_lang[10], en_lange[10],
+es_lang[10], es_lange[10],
+et_lang[10], et_lange[10],
+fi_lang[10], fi_lange[10],
+fr_lang[10], fr_lange[10],
+ge_lang[10], ge_lange[10],
+hg_lang[10], hg_lange[10],
+it_lang[10], it_lange[10],
+jp_lang[10], jp_lange[10],
+jw_lang[10], jw_lange[10],
+kr_lang[10], kr_lange[10],
+mn_lang[10], mn_lange[10],
+pe_lang[10], pe_lange[10],
+pg_lang[10], pg_lange[10],
+pl_lang[10], pl_lange[10],
+rm_lang[10], rm_lange[10],
+rs_lang[10], rs_lange[10],
+ru_lang[10], ru_lange[10],
+sw_lang[10], sw_lange[10],
+tu_lang[10], tu_lange[10],
+ua_lang[10], ua_lange[10]
 ;
 char *easyfl[]=
 {
@@ -119,14 +148,138 @@ char *easyfl[]=
 #ifdef IPCONTRY
   "ipbase.bin",fb_ipbase,fe_ipbase,
 #endif
-  "langpacks\\ru\\shs_lang.cfg",fb_lang,fe_lang,
-  "langpacks\\en\\shs_lang.cfg",fb_lange,fe_lange,
+  //"langpacks\\ru\\shs_lang.cfg",fb_lang,fe_lang,
+  //"langpacks\\en\\shs_lang.cfg",fb_lange,fe_lange,
+
+ "langpacks\\am\\shs_lang.cfg", am_lang, am_lange,
+ "langpacks\\ar\\shs_lang.cfg", ar_lang, ar_lange,
+ "langpacks\\bg\\shs_lang.cfg", bg_lang, bg_lange,
+ "langpacks\\ch\\shs_lang.cfg", ch_lang, ch_lange,
+ "langpacks\\da\\shs_lang.cfg", da_lang, da_lange,
+ "langpacks\\de\\shs_lang.cfg", de_lang, de_lange,
+ "langpacks\\en\\shs_lang.cfg", en_lang, en_lange,
+ "langpacks\\es\\shs_lang.cfg", es_lang, es_lange,
+ "langpacks\\et\\shs_lang.cfg", et_lang, et_lange,
+ "langpacks\\fi\\shs_lang.cfg", fi_lang, fi_lange,
+ "langpacks\\fr\\shs_lang.cfg", fr_lang, fr_lange,
+ "langpacks\\ge\\shs_lang.cfg", ge_lang, ge_lange,
+ "langpacks\\hg\\shs_lang.cfg", hg_lang, hg_lange,
+ "langpacks\\it\\shs_lang.cfg", it_lang, it_lange,
+ "langpacks\\jp\\shs_lang.cfg", jp_lang, jp_lange,
+ "langpacks\\jw\\shs_lang.cfg", jw_lang, jw_lange,
+ "langpacks\\kr\\shs_lang.cfg", kr_lang, kr_lange,
+ "langpacks\\mn\\shs_lang.cfg", mn_lang, mn_lange,
+ "langpacks\\pe\\shs_lang.cfg", pe_lang, pe_lange,
+ "langpacks\\pg\\shs_lang.cfg", pg_lang, pg_lange,
+ "langpacks\\pl\\shs_lang.cfg", pl_lang, pl_lange,
+ "langpacks\\rm\\shs_lang.cfg", rm_lang, rm_lange,
+ "langpacks\\rs\\shs_lang.cfg", rs_lang, rs_lange,
+ "langpacks\\ru\\shs_lang.cfg", ru_lang, ru_lange,
+ "langpacks\\sw\\shs_lang.cfg", sw_lang, sw_lange,
+ "langpacks\\tu\\shs_lang.cfg", tu_lang, tu_lange,
+ "langpacks\\ua\\shs_lang.cfg", ua_lang, ua_lange,
+
+
  0,0,0
 };
 
-char *ddirs []={"langpacks\\en","langpacks\\ru","langpacks",0};
+//char *ddirs []={"langpacks\\en","langpacks\\ru","langpacks",0};
+char *ddirs []={
+  "langpacks",
+  "langpacks\\am",
+  "langpacks\\ar",
+  "langpacks\\bg",
+  "langpacks\\ch",
+  "langpacks\\da",
+  "langpacks\\de",
+  "langpacks\\en",
+  "langpacks\\es",
+  "langpacks\\et",
+  "langpacks\\fi",
+  "langpacks\\fr",
+  "langpacks\\ge",
+  "langpacks\\hg",
+  "langpacks\\it",
+  "langpacks\\jp",
+  "langpacks\\jw",
+  "langpacks\\kr",
+  "langpacks\\mn",
+  "langpacks\\pe",
+  "langpacks\\pg",
+  "langpacks\\pl",
+  "langpacks\\rm",
+  "langpacks\\rs",
+  "langpacks\\ru",
+  "langpacks\\sw",
+  "langpacks\\tu",
+  "langpacks\\ua",
+  "langpacks",
+  0};
 char  folder[]="\\shttps";
 char  target[256]="c:\\shttps";
+
+struct LangItem {
+  const char * name;
+  char  *beg;
+  char  *end;
+  const char **setup_str;
+};
+
+const char *lang_en[] =
+{
+  "&Uninstall",
+  "I agree with this license, and I accept all items.",
+  "Target:",
+  "Update entry in main menu.",
+  "Add to startup.",
+  "NT Service",
+  "Language:",
+  "Administrator account:",
+  "This version has online administration. To get access, you might to create an account now. "
+  "After setting you can add, change, or delete accounts",
+  "User:",
+  "Password:",
+  "&Install",
+  "&Cancel",
+  0
+};
+
+const char **current_lang = lang_en;
+LangItem languages[] = {
+//{"English", fb_lange,fe_lange},
+//{"Russian", fb_lang,fe_lang},
+
+ { "English", en_lang, en_lange, lang_en},
+ { "Armenian", am_lang, am_lange, lang_en},
+ { "Arabic", ar_lang, ar_lange, lang_ar},
+ { "Bulgarian", bg_lang, bg_lange, lang_bg},
+ { "Chinese", ch_lang, ch_lange, lang_zh},
+ { "Danish", da_lang, da_lange, lang_da},
+ { "German", de_lang, de_lange, lang_de},
+ { "Spanish", es_lang, es_lange, lang_es},
+ { "Estonian", et_lang, et_lange, lang_et},
+ { "Finnish", fi_lang, fi_lange, lang_fi},
+ { "French", fr_lang, fr_lange, lang_fr},
+ { "Georgian", ge_lang, ge_lange, lang_en},
+ { "Hungarian", hg_lang, hg_lange, lang_hu},
+ { "Italian", it_lang, it_lange, lang_it},
+ { "Japanese", jp_lang, jp_lange, lang_ja},
+ { "Hebrew", jw_lang, jw_lange, lang_he},
+ { "Korean", kr_lang, kr_lange, lang_ko},
+ { "Mongolian", mn_lang, mn_lange, lang_en},
+ { "Persian", pe_lang, pe_lange, lang_fa},
+ { "Portuguese", pg_lang, pg_lange, lang_pt},
+ { "Polish", pl_lang, pl_lange, lang_pl},
+ { "Romanian", rm_lang, rm_lange, lang_ro},
+ { "Serbian", rs_lang, rs_lange, lang_en},
+ { "Russian", ru_lang, ru_lange, lang_ru},
+ { "Swedish", sw_lang, sw_lange, lang_sv},
+ { "Turkish", tu_lang, tu_lange, lang_tr},
+ { "Ukranian", ua_lang, ua_lange, lang_uk},
+
+ {0,0,0}
+};
+
 #ifndef RICON
 uchar icn2[192]={
 #include "ico2.h"
@@ -165,11 +318,12 @@ char apname[]=
 #endif
 
 
+#define DELTA1 16
 mrc_obj  dlg1[]=
 {
 #ifdef RUS
-{apname,0,"FMform", WS_OVERLAPPED|WS_CAPTION|WS_VISIBLE|WS_SYSMENU| WS_MINIMIZEBOX,2,16,220*2,248*2,WS_EX_STATICEDGE},
-{"&Деинсталяция", 111, "BUTTON", WS_DISABLED|BS_DEFPUSHBUTTON|WS_CHILD|WS_VISIBLE|WS_TABSTOP,150,212,50,14},
+{apname,0,"FMform", WS_OVERLAPPED|WS_CAPTION|WS_VISIBLE|WS_SYSMENU| WS_MINIMIZEBOX,2,16,220*2,270*2,WS_EX_STATICEDGE},
+{"&Деинсталяция", 111, "BUTTON", WS_DISABLED|BS_DEFPUSHBUTTON|WS_CHILD|WS_VISIBLE|WS_TABSTOP,150,233,50,14},
 {fb_lis,    120, "EDIT", WS_BORDER|WS_CHILD|WS_VISIBLE|ES_MULTILINE|ES_READONLY|WS_VSCROLL|WS_TABSTOP,4,4,208,96,WS_EX_STATICEDGE},
 {"Я согласен с этой лицензией, во всех пунктах.", 144, "BUTTON", BS_AUTOCHECKBOX|WS_CHILD|WS_VISIBLE|WS_TABSTOP,8,102,160,10},
 {"Каталог установки:", 146, "STATIC", SS_LEFT|WS_CHILD|WS_VISIBLE, 8, 112, 47, 8 },
@@ -181,29 +335,34 @@ mrc_obj  dlg1[]=
 {"Служба NT",149,"BUTTON",WS_DISABLED|BS_AUTOCHECKBOX|WS_CHILD|WS_VISIBLE|WS_TABSTOP,170,136,50,10},
 #endif
 
+
+{"Language:",146, "STATIC", SS_LEFT|WS_CHILD|WS_VISIBLE, 8, 151, 30, 8 },
+{"",183,"COMBOBOX", WS_CHILD | WS_VISIBLE | WS_BORDER | WS_TABSTOP| CBS_DROPDOWNLIST | CBS_AUTOHSCROLL | CBS_HASSTRINGS, 42, 150, 150, 60, 0 },
+#define DELTA1 16
+
 #ifndef VPNCLIENT_ONLY
-{"Административный вход:",102,"BUTTON",BS_GROUPBOX|WS_CHILD|WS_VISIBLE,2,147,212,64},
+{"Административный вход:",102,"BUTTON",BS_GROUPBOX|WS_CHILD|WS_VISIBLE,2,147 + DELTA1,212,64},
 
 {"Эта версия включает удаленное администрирование. Для доступа, необходимо создать акаунт. "
  "После установки вы сможете добавлять, менять, или удалять любые акаунты.",
- 103,"STATIC", SS_LEFT|WS_CHILD|WS_VISIBLE, 8, 158, 204,30 },
+ 103,"STATIC", SS_LEFT|WS_CHILD|WS_VISIBLE, 8, 158 + DELTA1, 204,30 },
 
 {"Имя:",146,"STATIC", SS_LEFT|WS_CHILD|WS_VISIBLE, 8, 188, 30, 8 },
-{"admin",181,"EDIT",ES_LEFT|ES_AUTOHSCROLL|WS_CHILD|WS_VISIBLE|WS_BORDER|WS_TABSTOP, 42, 188, 150, 10, WS_EX_STATICEDGE },
+{"admin",181,"EDIT",ES_LEFT|ES_AUTOHSCROLL|WS_CHILD|WS_VISIBLE|WS_BORDER|WS_TABSTOP, 42, 188 + DELTA1, 150, 10, WS_EX_STATICEDGE },
 {"Пароль:", 46, "STATIC", SS_LEFT|WS_CHILD|WS_VISIBLE, 8, 199, 30, 8 },
-{"",182,"EDIT",ES_LEFT|ES_AUTOHSCROLL|WS_CHILD|WS_VISIBLE|WS_BORDER|WS_TABSTOP|ES_PASSWORD, 42, 199, 150, 10, WS_EX_STATICEDGE },
+{"",182,"EDIT",ES_LEFT|ES_AUTOHSCROLL|WS_CHILD|WS_VISIBLE|WS_BORDER|WS_TABSTOP|ES_PASSWORD, 42, 199 + DELTA1, 150, 10, WS_EX_STATICEDGE },
 #endif // VPNCLIENT_ONLY
 
-{"&Установить",110,"BUTTON",WS_DISABLED|BS_DEFPUSHBUTTON|WS_CHILD|WS_VISIBLE|WS_TABSTOP, 10, 212, 50, 14},
-{"&Отмена",112,"BUTTON",BS_PUSHBUTTON|WS_CHILD|WS_VISIBLE|WS_TABSTOP, 80, 212, 50, 14  },
+{"&Установить",110,"BUTTON",WS_DISABLED|BS_DEFPUSHBUTTON|WS_CHILD|WS_VISIBLE|WS_TABSTOP, 10, 233, 50, 14},
+{"&Отмена",112,"BUTTON",BS_PUSHBUTTON|WS_CHILD|WS_VISIBLE|WS_TABSTOP, 80, 233, 50, 14  },
 
 #else
-{apname,0,"FMform", WS_OVERLAPPED|WS_CAPTION|WS_VISIBLE|WS_SYSMENU| WS_MINIMIZEBOX,2, 16, 220*2, 248*2,WS_EX_STATICEDGE},
-{"&Uninstall", 111, "BUTTON", WS_DISABLED|BS_DEFPUSHBUTTON|WS_CHILD|WS_VISIBLE|WS_TABSTOP, 150, 212, 50, 14},
+{apname,0,"FMform", WS_OVERLAPPED|WS_CAPTION|WS_VISIBLE|WS_SYSMENU| WS_MINIMIZEBOX,2, 16, 220*2, 270*2,WS_EX_STATICEDGE},
+{"&Uninstall", 111, "BUTTON", WS_DISABLED|BS_DEFPUSHBUTTON|WS_CHILD|WS_VISIBLE|WS_TABSTOP, 150, 233, 50, 14},
 {fb_lis,120,"EDIT", WS_BORDER|WS_CHILD|WS_VISIBLE|ES_MULTILINE|ES_READONLY|WS_VSCROLL| WS_TABSTOP,4,4,208,96, WS_EX_STATICEDGE },
 
 {"I agree with this license, and I accept all items.", 144, "BUTTON", BS_AUTOCHECKBOX|WS_CHILD|WS_VISIBLE|WS_TABSTOP, 8, 102,120,10},
-{"Target:", 146, "STATIC", SS_LEFT|WS_CHILD|WS_VISIBLE, 8, 112, 47, 8 },
+{"Target:", 1461, "STATIC", SS_LEFT|WS_CHILD|WS_VISIBLE, 8, 112, 47, 8 },
 {target,180, "EDIT",   ES_LEFT|ES_AUTOHSCROLL|WS_CHILD|WS_VISIBLE|WS_BORDER|WS_TABSTOP, 8, 120, 170, 12, WS_EX_STATICEDGE },
 {"...",145, "BUTTON", BS_PUSHBUTTON|WS_CHILD|WS_VISIBLE|WS_TABSTOP, 180, 120, 12, 12, WS_EX_CLIENTEDGE|WS_EX_NOPARENTNOTIFY|WS_EX_STATICEDGE },
 {"Update entry in main menu.", 147, "BUTTON", BS_AUTOCHECKBOX|WS_CHILD|WS_VISIBLE|WS_TABSTOP, 8, 136,90,10},
@@ -212,20 +371,25 @@ mrc_obj  dlg1[]=
 {"NT Service", 149, "BUTTON", WS_DISABLED|BS_AUTOCHECKBOX|WS_CHILD|WS_VISIBLE|WS_TABSTOP, 170, 136,50,10},
 #endif
 
+
+{"Language:",1462, "STATIC", SS_LEFT|WS_CHILD|WS_VISIBLE, 8, 151, 30, 8 },
+{"",183,"COMBOBOX", WS_CHILD | WS_VISIBLE | WS_BORDER | WS_TABSTOP| CBS_DROPDOWNLIST | CBS_AUTOHSCROLL | CBS_HASSTRINGS, 42, 150, 150, 60, 0 },
+
 #ifndef VPNCLIENT_ONLY
-{"Administrator account:",  102, "BUTTON", BS_GROUPBOX|WS_CHILD|WS_VISIBLE, 2,147,212, 64 },
-{"This version has online administration. To get access, you have to create an account now. "
+{"Administrator account:",  102, "BUTTON", BS_GROUPBOX|WS_CHILD|WS_VISIBLE, 2,147 + DELTA1 ,212, 65 },
+
+{"This version has online administration. To get access, you might to create an account now. "
  "After setting you can add, change, or delete accounts",
- 103, "STATIC", SS_LEFT|WS_CHILD|WS_VISIBLE, 8, 158, 204,30 },
-{"User:",146, "STATIC", SS_LEFT|WS_CHILD|WS_VISIBLE, 8, 188, 30, 8 },
-{"admin",181, "EDIT",ES_LEFT|ES_AUTOHSCROLL|WS_CHILD|WS_VISIBLE|WS_BORDER|WS_TABSTOP, 42, 188, 150, 10, WS_EX_STATICEDGE },
-{"Password:", 46, "STATIC", SS_LEFT|WS_CHILD|WS_VISIBLE, 8, 199, 30, 8 },
-{"",182,"EDIT",ES_LEFT|ES_AUTOHSCROLL|WS_CHILD|WS_VISIBLE|WS_BORDER|WS_TABSTOP|ES_PASSWORD, 42, 199, 150, 10, WS_EX_STATICEDGE },
+ 103, "STATIC", SS_LEFT|WS_CHILD|WS_VISIBLE, 8, 158 + DELTA1, 204,30 },
+{"User:",1463, "STATIC", SS_LEFT|WS_CHILD|WS_VISIBLE, 8, 188 + DELTA1, 30, 8 },
+{"admin",181, "EDIT",ES_LEFT|ES_AUTOHSCROLL|WS_CHILD|WS_VISIBLE|WS_BORDER|WS_TABSTOP, 42, 188 + DELTA1, 150, 10, WS_EX_STATICEDGE },
+{"Password:", 46, "STATIC", SS_LEFT|WS_CHILD|WS_VISIBLE, 8, 199 + DELTA1, 30, 8 },
+{"",182,"EDIT",ES_LEFT|ES_AUTOHSCROLL|WS_CHILD|WS_VISIBLE|WS_BORDER|WS_TABSTOP|ES_PASSWORD, 42, 199 + DELTA1, 150, 10, WS_EX_STATICEDGE },
 #endif // VPNCLIENT_ONLY
 
 
-{"&Install",110,"BUTTON",WS_DISABLED|BS_DEFPUSHBUTTON|WS_CHILD|WS_VISIBLE|WS_TABSTOP, 10, 212, 50, 14},
-{"&Cancel",112,"BUTTON",BS_PUSHBUTTON|WS_CHILD|WS_VISIBLE|WS_TABSTOP,80,212,50,14},
+{"&Install",110,"BUTTON",WS_DISABLED|BS_DEFPUSHBUTTON|WS_CHILD|WS_VISIBLE|WS_TABSTOP, 10, 233, 50, 14},
+{"&Cancel",112,"BUTTON",BS_PUSHBUTTON|WS_CHILD|WS_VISIBLE|WS_TABSTOP,80,233,50,14},
 #endif
 {0,0,0,0,0,0,0,0,0}
 
@@ -301,6 +465,90 @@ void start()
 #define TYPE_SC_HANDLE
 #endif
 
+
+int utf2unicode(uchar *s,ushort *cm)
+{
+  int r=0;
+  uint a,b,c,d;
+  do
+  {
+    a=*s++;
+    if(a<0x80)
+    {
+      d=a;
+      // if(!a)break;
+    }
+    else if(a>=0xC0 && a <=0xDF)
+    {
+      b=*s++;
+      if( b<0x80 || b>0xbf )
+      {
+        return -1;
+      }
+      //        *cm++=((a&0x1F)<<6)|(b&0x3F);
+      d=((a&0x1F)<<6)|(b&0x3F);
+      r++;
+    }
+    else if(a>=0xE0 && a <=0xEF)
+    {
+      b=*s++;
+      c=*s++;
+      if( b<0x80 || b>0xbf || c<0x80 || c>0xbf )
+      {
+        return -1;
+      }
+      //        *cm++=((a&0xF)<<12)|((b&0x3F)<<6)|(c&0x3F);
+      d=((a&0xF)<<12)|((b&0x3F)<<6)|(c&0x3F);
+      r++;
+    }
+    else if(a>=0xF0 && a <=0xF5)
+    {
+      b=*s++;
+      c=*s++;
+      d=*s++;
+      if( b<0x80 || b>0xbf || c<0x80 || c>0xbf || d<0x80 || d>0xbf )
+      {
+        return -1;
+      }
+      d=((a&0xF)<<18)|((b&0x3F)<<12)|((c&0x3F)<<6)|(d&0x3F);
+      r++;
+    }
+    else return -1;
+    #define UNI_SUR_HIGH_START  0xD800
+    #define UNI_SUR_HIGH_END    0xDBFF
+    #define UNI_SUR_LOW_START   0xDC00
+    #define UNI_SUR_LOW_END     0xDFFF
+    if(d<0xFFFE)
+      //    if(d<0xD800)
+    {
+      if(d >= UNI_SUR_HIGH_START && d < UNI_SUR_LOW_END)
+      {
+        *cm=(ushort)-2;
+        r=-2;
+      }
+      else *cm++=d;
+    }
+    else
+    {
+      *cm++=(d>>10)  + UNI_SUR_HIGH_START ;
+      *cm++=(d&0x3FF)  + UNI_SUR_LOW_START ;
+    }
+
+  }while( a );
+  return r;
+};
+
+
+int SetDlgItemTextUTF(HWND hwnd, int id, uchar *txt )
+{
+  ushort wm[256];
+
+  if(utf2unicode(txt, wm) > 0)
+    return SetDlgItemTextW(hwnd, id, (LPCWSTR) wm);
+
+  return  SetDlgItemText(hwnd, id, (LPCSTR) txt);
+};
+
 void  ProgmanMSG(char *dta)
 {ulong idInst=0;
  HCONV hConv;
@@ -365,7 +613,7 @@ long CALLBACK  dlgFnc(HWND hwnd, UINT msg,UINT wparam, LONG lparam)
         DeleteFile(target);
      }
 
-     for(t=ddirs;*t;t++)
+     for(t=ddirs+1;*t;t++)
      {
        sprintf(target+i,"\\%s",*t);
        RemoveDirectory(target);
@@ -395,9 +643,13 @@ long CALLBACK  dlgFnc(HWND hwnd, UINT msg,UINT wparam, LONG lparam)
     if( SetCurrentDirectory(target))
     {char **t;
      HCURSOR hc;
+     /*
      CreateDirectory("langpacks",0);
      CreateDirectory("langpacks\\ru",0);
      CreateDirectory("langpacks\\en",0);
+     */
+     for(t=ddirs;t[1];t++)
+       CreateDirectory(*t, 0);
 
      for(m=fb_uttp;m<fe_uttp;++m)
       if( DWORD_PTR(*m)==0x4D4D4D4D && DWORD_PTR(m[4])==0x46464646)
@@ -421,6 +673,17 @@ long CALLBACK  dlgFnc(HWND hwnd, UINT msg,UINT wparam, LONG lparam)
        _hwrite(i,t[1],l);
        _lclose(i);
      }
+     xx = SendDlgItemMessage(mwnd, 183, CB_GETCURSEL, 0, 0);
+     if( xx != CB_ERR &&  (uint)xx < ARRAY_SIZE(languages) && xx>1 && languages[xx].name)
+     {
+       i =_lcreat("shs_lang.cfg", 0);
+       if(i>0) {
+         l = languages[xx].end - languages[xx].beg;
+         _hwrite(i, languages[xx].beg, l);
+         _lclose(i);
+       }
+     }
+
 #ifdef SERVICE
 
 #ifndef RICON
@@ -498,6 +761,26 @@ lbsrverr:
    }
    MessageBox(hwnd,"Installation complete.",apname,MB_OK);
    case 112: DestroyWindow(hwnd); break;
+
+   case 183:
+   {
+     i = SendDlgItemMessage(mwnd, 183, CB_GETCURSEL, 0, 0);
+     if(i>=0 && i< ARRAY_SIZE(languages) && languages[i].setup_str != current_lang)
+     {
+       current_lang = languages[i].setup_str;
+       for(mrc_obj *p = dlg1; p->xClassName; p++) {
+         if(p->name && p->name[0])
+         {
+           for(int ii = 0; lang_en[ii]; ii++)
+             if(!strcmp(p->name, lang_en[ii]) )
+             {
+               SetDlgItemTextUTF(mwnd, p->id, (uchar *) current_lang[ii]);
+               break;
+             }
+         }
+       }
+     }
+   }
   }
 
  };
@@ -604,7 +887,12 @@ int InitApplication()
     dlg1[1].Style &= ~WS_DISABLED;
    }
   }
-  ShowWindow(mwnd=MkDlg(dlg1,0,(long)GetStockObject(17)),SW_SHOWNORMAL);
+
+  mwnd=MkDlg(dlg1,0,(long)GetStockObject(17));
+  for(i=0; languages[i].name; i++ )
+    SendDlgItemMessage(mwnd, 183, CB_ADDSTRING, 0, (LPARAM) languages[i].name);
+
+  ShowWindow(mwnd, SW_SHOWNORMAL);
   return 1;
  }
  return 0;

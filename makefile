@@ -22,7 +22,7 @@
 #
 #
 
-VERSION=3.06.37test2
+VERSION=3.06.37test3
 VERSIONT=3.06.36test
 BUDIR=../site/30637/
 
@@ -252,6 +252,17 @@ FLIBSARM= libgnutls.so libssl.so libcrypto.so libgnutls.so.30 libcrypt.so
 FAKELIBSARM=$(addprefix fakelibsarm/,$(FLIBSARM))
 N_FAKELIBS=$(addprefix oo/fakelibs/,$(FLIBSARM))
 
+LANGS=am  ar  bg  ch  da  de  en  es  et  fi  fr  ge  hg  it  jp  jw  kr  mn  pe  pg  pl  rm  rs  ru  sw  tu  ua
+SRC_LANG_DIR= $(addprefix langpacks/,$(LANGS))
+DST_LANG_BIN= $(addsuffix .shs_lang.bin,$(LANGS))
+DST_LANG_WBIN= $(addprefix wo/,$(DST_LANG_BIN))
+LANG_FILES= $(addsuffix /shs_lang.cfg,$(LANGS))
+DST_LANG_FILES= $(addprefix langpacks/,$(LANG_FILES))
+DST_LANG_DIR= $(addprefix langpacks/,$(LANGS))
+SRC_LANG_FILES= $(addprefix langpacks/,$(LANG_FILES))
+
+DST_LIST= o/dist at/dist o64/dist o/of/dist o64/of/dist oo/of/dist oo/dist
+
 
 ifdef $(CROSS_COMPILE)
 
@@ -305,7 +316,9 @@ i64f: $(TMPRAM)o64/of o o64 $(FAKELIBS64) o64/of/httpd.exe o64/of/libsecgnutls.s
 
 arm: $(TMPRAM)at o at at/vpnclient at/atobjdir at/httpd.exe at/libsec111.so at/libsecgnutls.so at/httpd.exopenssl at/httpd.exgnutls at/shs_vpnclient
 
-win: $(TMPRAM)wo o wo wo/http.exe wo/httpg.exe bin2s wo/shttps_mg.exe wo/shttpsr_mg.exe wo/shttps_mgi.exe wo/shttpsr_mgi.exe wo/libsecgnutls.dll wo/vpnclient wo/vpnclient.exe wo/shvpnclient.exe
+# win: $(TMPRAM)wo o wo wo/vpnclient wo/http.exe wo/httpg.exe bin2s wo/shttps_mg.exe wo/shttpsr_mg.exe wo/shttps_mgi.exe wo/shttpsr_mgi.exe wo/libsecgnutls.dll wo/vpnclient.exe wo/shvpnclient.exe
+
+win: $(TMPRAM)wo o wo wo/vpnclient wo/http.exe wo/httpg.exe bin2s wo/shttps_mg.exe wo/shttps_mgi.exe wo/libsecgnutls.dll wo/vpnclient.exe wo/shvpnclient.exe
 
 
 arm64: CROSS_COMPILE:=aarch64-linux-gnu-
@@ -457,8 +470,9 @@ o/1.x: /dev/shm/shttps/o/1.x
 	ln -sf /dev/shm/shttps/wo .
 	ln -sf /dev/shm/shttps/arm .
 	mkdir -p  o/dist o/of/dist at/dist/ o64/dist o64/of/dist o/of o64/of
-	mkdir -p  o/dist/langpacks/en at/dist/langpacks/en o64/dist/langpacks/en o64/of/dist/langpacks/en
-	mkdir -p  o/dist/langpacks/ru at/dist/langpacks/ru o64/dist/langpacks/ru o64/of/dist/langpacks/ru
+
+#	mkdir -p  o/dist/langpacks/en at/dist/langpacks/en o64/dist/langpacks/en o64/of/dist/langpacks/en
+#	mkdir -p  o/dist/langpacks/ru at/dist/langpacks/ru o64/dist/langpacks/ru o64/of/dist/langpacks/ru
 
 /dev/shm/shttps/o/1.x :
 	mkdir -p /dev/shm/shttps/o /dev/shm/shttps/o64 /dev/shm/shttps/wo /dev/shm/shttps/arm ; echo 1 >$@
@@ -600,19 +614,19 @@ wo/shvpnclient.exe: wo/stpdta_vpn.o wo/vpnclient/sethttp3.o wo/mstring1.o wo/upd
 wo/uninst.exe: wo/uninst.o
 	$(WINEGCC)  -s  $^ -o $@  -nodefaultlibs -L$(MGDIR)\\lib -luser32 -lkernel32 -lgdi32 -lcomdlg32 -ladvapi32 -lshell32 -Wl,--subsystem,windows -nostartfiles  -Xlinker -Map -Xlinker wo/flxmaps  -Xlinker --entry=_start  -nostartfiles -Xlinker -Map -Xlinker wo/flxmap  -Xlinker --entry=_start    -fno-optional-diags -momit-leaf-frame-pointer  -mno-red-zone -fno-exceptions  -fno-stack-protector -fno-ms-extensions -no-pie -fno-stack-check -mno-stack-arg-probe
 
-wo/stpdta.o: wo/stpdta.s wo/uninst.bin wo/http.bin wo/ind1.bin wo/eshs_lang.bin wo/shs_lang.bin wo/lnotes.bin wo/lic.bin wo/vpn_if_up.bin wo/vpn_if_client_up.bin wo/vpn_if_client_down.bin wo/manifest.bin wo/vpnclient.bin wo/temp_sert.bin
+wo/stpdta.o: wo/stpdta.s wo/uninst.bin wo/http.bin wo/ind1.bin $(DST_LANG_WBIN) wo/lnotes.bin wo/lic.bin wo/vpn_if_up.bin wo/vpn_if_client_up.bin wo/vpn_if_client_down.bin wo/manifest.bin wo/vpnclient.bin wo/temp_sert.bin
 	 cd wo ;  $(WINEAS)  stpdta.s -o stpdta.o
 
 wo/stpdtar.o: wo/stpdtar.s wo/uninst.bin wo/http.bin wo/ind1r.bin wo/eshs_lang.bin wo/shs_lang.bin wo/lnotes.bin wo/licr.bin wo/vpn_if_up.bin wo/vpn_if_client_up.bin wo/vpn_if_client_down.bin wo/manifest.bin wo/vpnclient.bin wo/temp_sert.bin
 	 cd wo ;  $(WINEAS)  stpdtar.s -o stpdtar.o
 
-wo/stpdtai.o: wo/stpdtai.s wo/uninst.bin wo/http.bin wo/ind1.bin wo/eshs_lang.bin wo/shs_lang.bin wo/lnotes.bin wo/lic.bin wo/ipbase.s wo/vpn_if_up.bin wo/vpn_if_client_up.bin wo/vpn_if_client_down.bin wo/manifest.bin wo/vpnclient.bin wo/temp_sert.bin
+wo/stpdtai.o: wo/stpdtai.s wo/uninst.bin wo/http.bin wo/ind1.bin  $(DST_LANG_WBIN) wo/lnotes.bin wo/lic.bin wo/ipbase.s wo/vpn_if_up.bin wo/vpn_if_client_up.bin wo/vpn_if_client_down.bin wo/manifest.bin wo/vpnclient.bin wo/temp_sert.bin
 	 cd wo ;  $(WINEAS)  stpdtai.s -o stpdtai.o
 
 wo/stpdtari.o: wo/stpdtari.s wo/uninst.bin wo/http.bin wo/ind1r.bin wo/eshs_lang.bin wo/shs_lang.bin wo/lnotes.bin wo/licr.bin wo/ipbase.s wo/vpn_if_up.bin wo/vpn_if_client_up.bin wo/vpn_if_client_down.bin wo/manifest.bin wo/vpnclient.bin wo/temp_sert.bin
 	 cd wo ;  $(WINEAS)  stpdtari.s -o stpdtari.o
 
-wo/stpdta_vpn.o: wo/stpdta_vpn.s wo/uninst.bin wo/ind1.bin wo/eshs_lang.bin wo/shs_lang.bin wo/lnotes.bin wo/lic.bin wo/vpn_if_up.bin wo/vpn_if_client_up.bin wo/vpn_if_client_down.bin wo/manifest.bin wo/vpnclient.bin wo/temp_sert.bin
+wo/stpdta_vpn.o: wo/stpdta_vpn.s wo/uninst.bin wo/ind1.bin $(DST_LANG_WBIN) wo/lnotes.bin wo/lic.bin wo/vpn_if_up.bin wo/vpn_if_client_up.bin wo/vpn_if_client_down.bin wo/manifest.bin wo/vpnclient.bin wo/temp_sert.bin
 	 cd wo ;  $(WINEAS) stpdta_vpn.s -o stpdta_vpn.o
 
 
@@ -653,6 +667,9 @@ wo/licr.bin : licr06.txt
 	$(WINEBIN2S)  $< $@
 
 wo/lic.bin :  license06.txt
+	$(WINEBIN2S)  $< $@
+
+wo/%.shs_lang.bin: langpacks/%/shs_lang.cfg
 	$(WINEBIN2S)  $< $@
 
 wo/shs_lang.bin :  ru/shs_lang.cfg
@@ -816,7 +833,7 @@ install: # all
 	for i in $(BINFILESF) libsecgnutls.so libsec111.so ; do  if [ -e $(INSTALLFROM)$$i ] ; then cp $(INSTALLFROM)$$i $(ICONFIG_APPDIR) ; fi; done
 	for i in httpd.cfg vpnclient.cfg script_examples/*.sh ; do [ -e $(ICONFIG_CONFIG)/$$i ] || cp $$i $(ICONFIG_CONFIG) ; done
 	for i in $(BINFILESF) ; do  if [ -e $(ICONFIG_APPDIR)/$$i ] ; then  ln -sf $(CONFIG_APPDIR)/$$i $(ICONFIG_BASE)/bin/ ; fi ; done
-	for i in ru en ; do mkdir -p $(ICONFIG_SHARE)/$$i ; cp $$i/shs_lang.cfg $(ICONFIG_SHARE)/$$i/ ; done
+	for i in $(LANGS) ; do mkdir -p $(ICONFIG_SHARE)/locale/$$i ; cp langpacks/$$i/shs_lang.cfg $(ICONFIG_SHARE)/locale/$$i/ ; done
 	for i in license.ssl notes.ssl license06.txt notes.ssl descu.htm ; do cp $$i $(ICONFIG_SHARE) ; done
 	for i in httpd.exe.1 sndmsg.1 shs_vpnclient.1 ; do cp $$i $(ICONFIG_BASE)/share/man/man1/ ; done
 	for i in httpd.exgnutls.1 httpd.exopenssl.1 ; do ln -sf httpd.exe.1 $(ICONFIG_BASE)/share/man/man1/$$i ; done
@@ -824,7 +841,7 @@ install: # all
 	if [ -r o/stemp_sert.pem ] ; then cp o/stemp_sert.pem $(ICONFIG_CONFIG)/temp_sert.pem ; elif [ o/gtemp_sert.pem ] ; then cp o/gtemp_sert.pem $(ICONFIG_CONFIG)/temp_sert.pem ; fi;
 
 
-DISTFILES=vpn_if_client_down.sh vpn_if_client_up.sh vpn_if_up.sh descu.htm httpd.cfg lang_notes.txt libsec111.so license.ssl notes.ssl libsecgnutls.so  license06.txt langpacks/ru langpacks/ru/shs_lang.cfg langpacks/en langpacks/en/shs_lang.cfg sndmsg httpd.exe.1 sndmsg.1 shs_vpnclient.1 vpnclient.cfg  temp_sert.pem
+DISTFILES=vpn_if_client_down.sh vpn_if_client_up.sh vpn_if_up.sh descu.htm httpd.cfg lang_notes.txt libsec111.so license.ssl notes.ssl libsecgnutls.so  license06.txt $(DST_LANG_DIR) $(DST_LANG_FILES) sndmsg httpd.exe.1 sndmsg.1 shs_vpnclient.1 vpnclient.cfg  temp_sert.pem
 ODISTFILES=$(addprefix o/dist/,$(DISTFILES))
 OUDISTFILES=$(addprefix o/of/dist/,$(DISTFILES))
 ADISTFILES=$(addprefix at/dist/,$(DISTFILES))
@@ -912,10 +929,10 @@ oo/dist/% : oo/%
 # 	mkdir -p $@
 
 sinst: o/dist/httpd.exe $(DIST_DIR)shttplnx.$(TAR_EXT) $(DIST_DIR)shttplnxu.$(TAR_EXT) $(DIST_DIR)shttparmlnx.$(TAR_EXT) $(DIST_DIR)shttplnx64.$(TAR_EXT)  $(DIST_DIR)shttplnx64u.$(TAR_EXT)
-	chmod 0666 wo/shttps*.exe wo/shs_vpnclient.exe
+	chmod 0666 wo/shttps*.exe wo/shvpnclient.exe
 	mkdir -p $(BUDIR)
-	for i in wo/shttps_mg.exe wo/shttpsr_mg.exe wo/shs_vpnclient.exe $(DIST_DIR)*.$(TAR_EXT) o/smallsrv_$(VERSION)_amd64.deb o/smallsrv-$(VERSION).tar.gz $(IWDIST)  o/shs-vpnclient_$(VERSION)_amd64.deb ; do echo $$i ; cp $$i /mnt/d/var/www/pre/ ; cp $$i $(BUDIR) ; done
-	if [ "$(VERSION)" != "$(VERSIONT)" ] ; then ln -sf smallsrv_$(VERSION)_amd64.deb /mnt/d/var/www/pre/smallsrv_$(VERSIONT)_amd64.deb ; fi
+	for i in wo/shttps_mg.exe wo/shttpsr_mg.exe wo/shvpnclient.exe $(DIST_DIR)*.$(TAR_EXT) o/smallsrv_$(VERSION)_amd64.deb o/smallsrv-$(VERSION).tar.gz $(IWDIST)  o/shs-vpnclient_$(VERSION)_amd64.deb ; do echo $$i ; cp $$i /mnt/d/var/www/pre/ ; cp $$i $(BUDIR) ; done
+	if [ "$(VERSION)" != "$(VERSIONT)" ] ; then ln -sf smallsrv_$(VERSION)_amd64.deb /mnt/d/var/www/pre/smallsrv_$(VERSIONT)_amd64.deb ; ln -sf shs-vpnclient_$(VERSION)_amd64.deb /mnt/d/var/www/pre/shs-vpnclient_$(VERSIONT)_amd64.deb ; fi
 
 # 	for i in wo/shttps_mg.exe wo/shttpsr_mg.exe $(DIST_DIR)shttplnx.tgz $(DIST_DIR)shttplnxu.tgz $(DIST_DIR)shttparmlnx.tgz $(DIST_DIR)shttplnx64.tgz $(DIST_DIR)shttplnx64u.tgz ; do cp $$i /mnt/d/var/www/pre/ ; done
 
@@ -948,17 +965,34 @@ sinstf:  o/dist/httpd.exe $(DIST_DIR)shttplnx.tgz $(DIST_DIR)shttparmlnx.tgz $(D
 	cp o/of/dist/httpd.exe /mnt/d/shttps/
 	for i in indexr.htm index.htm shttp3e.xml shttp3.xml ; do cp $$i /mnt/d/var/www/ ; done
 
-%/langpacks/en:
-	mkdir -p $@
+define inst_lang
+$(2)/langpacks/$(1):
+	echo $(2)/langpacks/$(1)
+	mkdir -p $(2)/langpacks/$(1)
 
-%/langpacks/ru:
-	mkdir -p $@
+$(2)/langpacks/$(1)/shs_lang.cfg: langpacks/$(1)/shs_lang.cfg $(2)/langpacks/$(1)
+	cp langpacks/$(1)/shs_lang.cfg $(2)/langpacks/$(1)/shs_lang.cfg
 
-%/langpacks/en/shs_lang.cfg: en/shs_lang.cfg %/langpacks/en
-	cp -f $< $@
+endef
 
-%/langpacks/ru/shs_lang.cfg: ru/shs_lang.cfg %/langpacks/ru
-	cp -f $< $@
+#$(eval $(foreach lang,$(LANGS),$(call inst_lang,$(lang))))
+#$(foreach lang,$(LANGS),$(eval $(call inst_lang,$(lang))))
+$(foreach lang,$(LANGS), $(foreach dst,$(PREPAREDISTDIRS),$(eval $(call inst_lang,$(lang),$(dst)))))
+
+# $(foreach(lang,$(LANGS),$(call inst_lang,$(lang)))
+
+
+# %/langpacks/en:
+# 	mkdir -p $@
+#
+# %/langpacks/ru:
+# 	mkdir -p $@
+#
+# %/langpacks/en/shs_lang.cfg: en/shs_lang.cfg %/langpacks/en
+# 	cp -f $< $@
+#
+# %/langpacks/ru/shs_lang.cfg: ru/shs_lang.cfg %/langpacks/ru
+# 	cp -f $< $@
 
 o%/license.ssl: lbins/license.ssl
 	cp -f $< $@
@@ -1402,7 +1436,7 @@ bvprintfv.cpp cstat.cpp get4def.pl ico.h mrc.cpp onelog.cpp regular.h S5_lf.hh s
  openssl_sert_templ gnutls_sert_templ stpdta_vpn.s
 
 WSRC = $(addprefix winclude/,winsock_IPv6.h zconf.h zlib.h tap-windows.h nethdr.h)
-LSRC = $(addsuffix shs_lang.cfg, ru/ en/)
+LSRC = $(SRC_LANG_FILES)
 SSRC = $(addprefix script_examples/,vpn_if_client_down.bat vpn_if_client_down.sh vpn_if_client_up.bat vpn_if_client_up.sh vpn_if_up.bat vpn_if_up.sh)
 DSRC = $(addprefix debian/,changelog rules copyright smallsrv.manpages)
 DSRCVPNC = $(addprefix debian/,rules copyright shs-vpnclient.manpages)
@@ -1423,10 +1457,10 @@ vpncsrc_dir=shs-vpnclient-$(VERSION)
 
 
 sources:
-	tar -czvf $(src_name) --transform="s,^,./$(src_dir)/," --exclude-backups $(SRC) $(WSRC) $(LSRC) $(SSRC) $(DSRC) $(ASRC)
+	tar -chzvf $(src_name) --transform="s,^,./$(src_dir)/," --exclude-backups $(SRC) $(WSRC) $(LSRC) $(SSRC) $(DSRC) $(ASRC)
 
 vpncsources:
-	tar -czvf $(vpncsrc_name) --transform="s,^,./$(vpncsrc_dir)/," --exclude-backups $(VPNSRC) $(WSRC) $(LSRC) $(SSRC) $(DSRCVPNC) $(ASRC)
+	tar -chzvf $(vpncsrc_name) --transform="s,^,./$(vpncsrc_dir)/," --exclude-backups $(VPNSRC) $(WSRC) $(LSRC) $(SSRC) $(DSRCVPNC) $(ASRC)
 
 deb: sources
 	cd o ; tar -xzf $(src_dir).tar.gz
