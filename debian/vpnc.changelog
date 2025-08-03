@@ -1,9 +1,10 @@
 shs-vpnclient (3.06.37test3) unstable; urgency=low
 
+  * The word "certificate" in the text has been corrected.
   * Added locale files for 25 languages
     (Translated with help AI)
 
- -- Maksim Feoktistov <max@smallsrv.com>  Sat, 26 Jul 2025 09:13:55 +0400
+ -- Maksim Feoktistov <max@smallsrv.com>  Sun, 03 Aug 2025 21:34:42 +0400
 
 shs-vpnclient (3.06.37test2) unstable; urgency=low
 

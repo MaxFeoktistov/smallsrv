@@ -81,6 +81,19 @@ typedef void* HKEY;
 #define sprintf wsprintf
 //extern "C" int pak_exe(char *e,int l);
 
+//#define DEBUG_VERSION 1
+
+#ifdef DEBUG_VERSION
+//static int  hstdout;
+//=(int)GetStdHandle((ulong)STD_OUTPUT_HANDLE);
+static char ddbg[4512];
+
+#define  DBG(a, b...) _hwrite((int) GetStdHandle((ulong)STD_OUTPUT_HANDLE) , ddbg, wsprintf(ddbg,"DBG:%u" a " \r\n",__LINE__, ## b));
+//MessageBox(0,ddbg,"DBG",MB_OK);
+#else
+#define  DBG(a, b...)
+#endif
+
 extern "C" char  fb_ind[10],fb_lis[10],fb_lisrus[10],fe_ind[10],fe_lis[10],fe_lisrus[10],fb_http[10],fe_http[10],fb_uttp[10],fe_uttp[10],*end,fb_lang[10],fe_lang[10],
 fb_lange[10],fe_lange[10],
 fb_ipbase[10],fe_ipbase[10],
@@ -250,7 +263,7 @@ LangItem languages[] = {
 //{"Russian", fb_lang,fe_lang},
 
  { "English", en_lang, en_lange, lang_en},
- { "Armenian", am_lang, am_lange, lang_en},
+ { "Armenian", am_lang, am_lange, lang_am},
  { "Arabic", ar_lang, ar_lange, lang_ar},
  { "Bulgarian", bg_lang, bg_lange, lang_bg},
  { "Chinese", ch_lang, ch_lange, lang_zh},
@@ -260,18 +273,18 @@ LangItem languages[] = {
  { "Estonian", et_lang, et_lange, lang_et},
  { "Finnish", fi_lang, fi_lange, lang_fi},
  { "French", fr_lang, fr_lange, lang_fr},
- { "Georgian", ge_lang, ge_lange, lang_en},
+ { "Georgian", ge_lang, ge_lange, lang_ge},
  { "Hungarian", hg_lang, hg_lange, lang_hu},
  { "Italian", it_lang, it_lange, lang_it},
  { "Japanese", jp_lang, jp_lange, lang_ja},
  { "Hebrew", jw_lang, jw_lange, lang_he},
  { "Korean", kr_lang, kr_lange, lang_ko},
- { "Mongolian", mn_lang, mn_lange, lang_en},
+ { "Mongolian", mn_lang, mn_lange, lang_mn},
  { "Persian", pe_lang, pe_lange, lang_fa},
  { "Portuguese", pg_lang, pg_lange, lang_pt},
  { "Polish", pl_lang, pl_lange, lang_pl},
  { "Romanian", rm_lang, rm_lange, lang_ro},
- { "Serbian", rs_lang, rs_lange, lang_en},
+ { "Serbian", rs_lang, rs_lange, lang_rs},
  { "Russian", ru_lang, ru_lange, lang_ru},
  { "Swedish", sw_lang, sw_lange, lang_sv},
  { "Turkish", tu_lang, tu_lange, lang_tr},
@@ -361,7 +374,7 @@ mrc_obj  dlg1[]=
 {"&Uninstall", 111, "BUTTON", WS_DISABLED|BS_DEFPUSHBUTTON|WS_CHILD|WS_VISIBLE|WS_TABSTOP, 150, 233, 50, 14},
 {fb_lis,120,"EDIT", WS_BORDER|WS_CHILD|WS_VISIBLE|ES_MULTILINE|ES_READONLY|WS_VSCROLL| WS_TABSTOP,4,4,208,96, WS_EX_STATICEDGE },
 
-{"I agree with this license, and I accept all items.", 144, "BUTTON", BS_AUTOCHECKBOX|WS_CHILD|WS_VISIBLE|WS_TABSTOP, 8, 102,120,10},
+{"I agree with this license, and I accept all items.", 144, "BUTTON", BS_AUTOCHECKBOX|WS_CHILD|WS_VISIBLE|WS_TABSTOP, 8, 102,210,10},
 {"Target:", 1461, "STATIC", SS_LEFT|WS_CHILD|WS_VISIBLE, 8, 112, 47, 8 },
 {target,180, "EDIT",   ES_LEFT|ES_AUTOHSCROLL|WS_CHILD|WS_VISIBLE|WS_BORDER|WS_TABSTOP, 8, 120, 170, 12, WS_EX_STATICEDGE },
 {"...",145, "BUTTON", BS_PUSHBUTTON|WS_CHILD|WS_VISIBLE|WS_TABSTOP, 180, 120, 12, 12, WS_EX_CLIENTEDGE|WS_EX_NOPARENTNOTIFY|WS_EX_STATICEDGE },
@@ -470,6 +483,11 @@ int utf2unicode(uchar *s,ushort *cm)
 {
   int r=0;
   uint a,b,c,d;
+  if(!s) {
+    DBG("err %lX %lX", s, cm)
+    return 0;
+  }
+
   do
   {
     a=*s++;
@@ -543,6 +561,10 @@ int SetDlgItemTextUTF(HWND hwnd, int id, uchar *txt )
 {
   ushort wm[256];
 
+  if(!txt) {
+    DBG("Wrong text for id: %d", id)
+    return 0;
+  }
   if(utf2unicode(txt, wm) > 0)
     return SetDlgItemTextW(hwnd, id, (LPCWSTR) wm);
 

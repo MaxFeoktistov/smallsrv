@@ -654,10 +654,10 @@ SPD(5,tls)
 {"vpncln_script_up" ,256,0,(uint *)&vpn_scripts_up[2], CXS(S1t2T_7330605, "Run init script when VPN connection estabilished")},
 {"vpncln_script_down" ,256,0,(uint *)&vpn_scripts_down[2], CXS(S1t2T_8671725, "Run deinit script when VPN connection closed")},
 
-{"vpncln_chktls",3, FL3_VPN_CHKTLS    , (uint *)0, CXS(S1t2T_4758472, "Validate remote TLS sertificate, check host name" )},
-{"vpncln_tlsigntime",3, FL3_VPN_TLSIGNTIME, (uint *)0, CXS(S1t2T_7019198, "Don't check remote sertificate time. Ignore expired. (GNUTLS only)" )},
-{"vpncln_tlsssign",3, FL3_VPN_TLSSSIGN  , (uint *)0, CXS(S1t2T_5926682, "Accept self signed sertificate. (GNUTLS only)" )},
-{"vpncln_tlssshstyle",3, FL3_VPN_TLSSHSTYLE  , (uint *)0, CXS(S1t2T_7549822, "SSH style of sertificate validate. (GNUTLS only. Public keys of new untracted remote will be stored in ~/.gnutls/known_hosts)" )},
+{"vpncln_chktls",3, FL3_VPN_CHKTLS    , (uint *)0, CXS(S1t2T_4758472, "Validate remote TLS certificate, check host name" )},
+{"vpncln_tlsigntime",3, FL3_VPN_TLSIGNTIME, (uint *)0, CXS(S1t2T_7019198, "Don't check remote certificate time. Ignore expired. (GNUTLS only)" )},
+{"vpncln_tlsssign",3, FL3_VPN_TLSSSIGN  , (uint *)0, CXS(S1t2T_5926682, "Accept self signed certificate. (GNUTLS only)" )},
+{"vpncln_tlssshstyle",3, FL3_VPN_TLSSHSTYLE  , (uint *)0, CXS(S1t2T_7549822, "SSH style of certificate validate. (GNUTLS only. Public keys of new untracted remote will be stored in ~/.gnutls/known_hosts)" )},
 
 #endif // TLSVPN
 

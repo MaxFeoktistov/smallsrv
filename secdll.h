@@ -63,7 +63,7 @@ int STDCALL SecClose (SecConnection *s );
 
 int STDCALL SecConnect(OpenSSLConnection *s, int flags, char *verfyhost); // This function prepare client TLS connection
 // Flags:
-#define  tbtAnon    0x1            /* Don't use server sertificate */
+#define  tbtAnon    0x1            /* Don't use server certificate */
 #define  tbtVerfyRequired 0x4      /* Verfy hostname */
 #define  tbtDontVerfyTyme 0x8      /* GNUTLS only. Don't verfy timestamp */
 #define  tbtDontVerfySigner 0x10   /* GNUTLS only. Don't verfy issuer */
