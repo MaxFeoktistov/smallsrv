@@ -63,12 +63,12 @@ int STDCALL SecClose (SecConnection *s );
 
 int STDCALL SecConnect(OpenSSLConnection *s, int flags, char *verfyhost); // This function prepare client TLS connection
 // Flags:
-#define  tbtAnon    0x1            /* Don't use server sertificate */
-#define  tbtVerfyRequired 0x4      /* Verfy hostname */
-#define  tbtDontVerfyTyme 0x8      /* GNUTLS only. Don't verfy timestamp */
-#define  tbtDontVerfySigner 0x10   /* GNUTLS only. Don't verfy issuer */
+#define  tbtAnon    0x1            /* Don't use server certificate */
+#define  tbtVerfyRequired 0x4      /* Verify hostname */
+#define  tbtDontVerfyTyme 0x8      /* GNUTLS only. Don't verify timestamp */
+#define  tbtDontVerfySigner 0x10   /* GNUTLS only. Don't verify issuer */
 #define  tbtSSHstyleVerfy  0x20    /* GNUTLS only. SSH style. First time new host will be valid, and public key will be stored */
-// verfyhost must be NULL if don't verfy, or name of remote host for verfication.
+// verfyhost must be NULL if don't verfy, or name of remote host for verification.
 // This function return 1 if success, 0 if fail.
 
 int STDCALL SecUpdateCB(OpenSSLConnection *s); // Function that must be call when address of caller object changed.

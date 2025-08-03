@@ -689,10 +689,10 @@ For GnuTLS, see the string format <a href="https://gnutls.org/manual/html_node/P
  <tr><td><b>Set  client VPN interface netmask</b></td><td><b>tuntap_nmask=value</b></td></tr>
  <tr><td><b>Run init script when VPN connection estabilished</b></td><td><b>vpncln_script_up=path</b></td></tr>
  <tr><td><b>Run deinit script when VPN connection closed</b></td><td><b>vpncln_script_down=path</b></td></tr>
- <tr><td><b>Validate remote TLS sertificate, check host name</b></td><td><b>vpncln_chktls</b></td></tr>
- <tr><td><b>Don't check remote sertificate time.</b> Ignore expired. (GNUTLS only)</td><td><b>vpncln_tlsigntime</b></td></tr>
- <tr><td><b>Accept self signed sertificate.</b> (GNUTLS only)</td><td><b>vpncln_tlsssign</b></td></tr>
- <tr><td><b>SSH style of sertificate validate.</b> (GNUTLS only. Public keys of new untracted remote will be stored in ~/.gnutls/known_hosts)</td><td><b>vpncln_tlssshstyle</b></td></tr>
+ <tr><td><b>Validate remote TLS certificate, check host name</b></td><td><b>vpncln_chktls</b></td></tr>
+ <tr><td><b>Don't check remote certificate time.</b> Ignore expired. (GNUTLS only)</td><td><b>vpncln_tlsigntime</b></td></tr>
+ <tr><td><b>Accept self signed certificate.</b> (GNUTLS only)</td><td><b>vpncln_tlsssign</b></td></tr>
+ <tr><td><b>SSH style of certificate validate.</b> (GNUTLS only. Public keys of new untracted remote will be stored in ~/.gnutls/known_hosts)</td><td><b>vpncln_tlssshstyle</b></td></tr>
 
 
 
@@ -1372,8 +1372,8 @@ connect <a href=http://www.OpenSSL.org>OpenSSL</a> or
 <a href=http://www.gnutls.org>GNU TLS</a> to the server.
 <b>libsec111.so and libsecgnutls.so</b> libraries based on OpenSSL and GnuTLS included in Linux package.
 
-For this functions required sertificate.<br>
-Easy and free way to get it, is generate self signed sertificate e.g. with help OpenSSL:
+For this functions required certificate.<br>
+Easy and free way to get it, is generate self signed certificate e.g. with help OpenSSL:
 <pre>
 
 openssl genrsa 2048 &gt; ks.key

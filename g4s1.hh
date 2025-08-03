@@ -15,7 +15,7 @@
 
 
 #ifdef MAINSTR
- char S1t2T_4758472[] = "Validate remote TLS sertificate, check host name";
+ char S1t2T_4758472[] = "Validate remote TLS certificate, check host name";
  char *lS1t2T_4758472 = S1t2T_4758472;
 #else
  extern char *lS1t2T_4758472;
@@ -95,7 +95,7 @@
 
 
 #ifdef MAINSTR
- char S1t2T_7549822[] = "SSH style of sertificate validate. (GNUTLS"
+ char S1t2T_7549822[] = "SSH style of certificate validate. (GNUTLS"
 " only. Public keys of new untracted remote will be stored in ~/.gnutls/known_hosts)";
  char *lS1t2T_7549822 = S1t2T_7549822;
 #else
@@ -791,7 +791,7 @@
 
 
 #ifdef MAINSTR
- char S1t2T_5926682[] = "Accept self signed sertificate. (GNUTLS only)";
+ char S1t2T_5926682[] = "Accept self signed certificate. (GNUTLS only)";
  char *lS1t2T_5926682 = S1t2T_5926682;
 #else
  extern char *lS1t2T_5926682;
@@ -1854,7 +1854,7 @@
 
 
 #ifdef MAINSTR
- char S1t2T_7019198[] = "Don't check remote sertificate time. Ignore"
+ char S1t2T_7019198[] = "Don't check remote certificate time. Ignore"
 " expired. (GNUTLS only)";
  char *lS1t2T_7019198 = S1t2T_7019198;
 #else

@@ -4,7 +4,7 @@ state = None
 country = AW
 
 # common name
-cn = "Temp sertificate"
+cn = "Temp certificate"
 
 serial = 123456789
 expiration_days = 3650
