@@ -813,7 +813,7 @@ static int verify_certificate_callback(gnutls_session_t session)
 
   if (status == 0) /* Certificate is trusted */
   {
-    DBGLS("Trasted sertificate")
+    DBGLS("Trusted certificate")
     return 0;
   }
 
@@ -832,7 +832,7 @@ static int verify_certificate_callback(gnutls_session_t session)
   else if (ret == GNUTLS_E_CERTIFICATE_KEY_MISMATCH) {
     Fprintf("Error: host %s is known but has another key associated. "
             "It might be that the server has multiple keys, or you are under attack\r\n"
-            "If you are sure that the sertificate is valid -- remove old info from $HOME/.gnutls/known_hosts\r\n",
+            "If you are sure that the certificate is valid -- remove old info from $HOME/.gnutls/known_hosts\r\n",
             hostname);
     return GNUTLS_E_CERTIFICATE_ERROR;
   } else if (ret < 0) {
@@ -845,7 +845,7 @@ static int verify_certificate_callback(gnutls_session_t session)
     DBGLS("store!")
     if(gnutls_store_pubkey(NULL, NULL, hostname, "https", type,
                               &cert_list[0], 0, 0))
-      Fprintf("Cant store Public Key info for sertificate...\r\n");
+      Fprintf("Cant store Public Key info for certificate...\r\n");
   }
 
   /* notify gnutls to continue handshake normally */
