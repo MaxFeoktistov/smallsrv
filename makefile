@@ -22,8 +22,8 @@
 #
 #
 
-VERSION=3.06.37test4
-VERSIONT=3.06.36test
+VERSION=3.06.37
+VERSIONT=3.06.37test
 BUDIR=../site/30637/
 
 prefix ?=/usr/local/
@@ -51,7 +51,7 @@ G=  -g  -Os
 TMPRAM ?= /dev/shm/shttps/
 
 ifeq ($(VERSION),$(VERSIONT))
-IWDIST:= wo/shttps_mgi.exe wo/shttpsr_mgi.exe wo/shvpnclient.exe
+IWDIST:= wo/shttps_mgi.exe wo/shvpnclient.exe
 endif
 
 
@@ -595,17 +595,17 @@ wo/shttps_mg.exe: wo/stpdta.o wo/sethttp3.o wo/mstring1.o wo/updr.res
 	$(WINEGCC)  -s -Os $^ -o $@  -L$(MGDIR)\\lib -luser32 -lkernel32 -lgdi32 -lcomdlg32 -ladvapi32 -lshell32 -Wl,--subsystem,windows -nostartfiles  -Xlinker -Map -Xlinker wo/flxmaps  -Xlinker --entry=_start  -nostartfiles -nodefaultlibs -Xlinker -Map -Xlinker wo/flxmap  -Xlinker --entry=_start    -fno-optional-diags -momit-leaf-frame-pointer  -mno-red-zone -fno-exceptions  -fno-stack-protector -fno-ms-extensions -no-pie -fno-stack-check -mno-stack-arg-probe
 	upx -9 $@
 
-wo/shttpsr_mg.exe: wo/stpdtar.o wo/sethttp3r.o wo/mstring1.o wo/updr.res
-	$(WINEGCC)  -s -Os $^ -o $@  -L$(MGDIR)\\lib -luser32 -lkernel32 -lgdi32 -lcomdlg32 -ladvapi32 -lshell32 -Wl,--subsystem,windows -nostartfiles  -Xlinker -Map -Xlinker wo/flxmaps  -Xlinker --entry=_start  -nostartfiles -nodefaultlibs -Xlinker -Map -Xlinker wo/flxmap  -Xlinker --entry=_start    -fno-optional-diags -momit-leaf-frame-pointer  -mno-red-zone -fno-exceptions  -fno-stack-protector -fno-ms-extensions -no-pie -fno-stack-check -mno-stack-arg-probe
-	upx -9 $@
+# wo/shttpsr_mg.exe: wo/stpdtar.o wo/sethttp3r.o wo/mstring1.o wo/updr.res
+# 	$(WINEGCC)  -s -Os $^ -o $@  -L$(MGDIR)\\lib -luser32 -lkernel32 -lgdi32 -lcomdlg32 -ladvapi32 -lshell32 -Wl,--subsystem,windows -nostartfiles  -Xlinker -Map -Xlinker wo/flxmaps  -Xlinker --entry=_start  -nostartfiles -nodefaultlibs -Xlinker -Map -Xlinker wo/flxmap  -Xlinker --entry=_start    -fno-optional-diags -momit-leaf-frame-pointer  -mno-red-zone -fno-exceptions  -fno-stack-protector -fno-ms-extensions -no-pie -fno-stack-check -mno-stack-arg-probe
+# 	upx -9 $@
 
 wo/shttps_mgi.exe: wo/stpdtai.o wo/sethttp3i.o wo/mstring1.o wo/updr.res
 	$(WINEGCC)  -s -Os $^ -o $@  -L$(MGDIR)\\lib -luser32 -lkernel32 -lgdi32 -lcomdlg32 -ladvapi32 -lshell32 -Wl,--subsystem,windows -nostartfiles  -Xlinker -Map -Xlinker wo/flxmaps  -Xlinker --entry=_start  -nostartfiles -nodefaultlibs -Xlinker -Map -Xlinker wo/flxmap  -Xlinker --entry=_start    -fno-optional-diags -momit-leaf-frame-pointer  -mno-red-zone -fno-exceptions  -fno-stack-protector -fno-ms-extensions -no-pie -fno-stack-check -mno-stack-arg-probe
 	upx -9 $@
 
-wo/shttpsr_mgi.exe: wo/stpdtari.o wo/sethttp3ri.o wo/mstring1.o wo/updr.res
-	$(WINEGCC)  -s -Os $^ -o $@  -L$(MGDIR)\\lib -luser32 -lkernel32 -lgdi32 -lcomdlg32 -ladvapi32 -lshell32 -Wl,--subsystem,windows -nostartfiles  -Xlinker -Map -Xlinker wo/flxmaps  -Xlinker --entry=_start  -nostartfiles -nodefaultlibs -Xlinker -Map -Xlinker wo/flxmap  -Xlinker --entry=_start    -fno-optional-diags -momit-leaf-frame-pointer  -mno-red-zone -fno-exceptions  -fno-stack-protector -fno-ms-extensions -no-pie -fno-stack-check -mno-stack-arg-probe
-	upx -9 $@
+# wo/shttpsr_mgi.exe: wo/stpdtari.o wo/sethttp3ri.o wo/mstring1.o wo/updr.res
+# 	$(WINEGCC)  -s -Os $^ -o $@  -L$(MGDIR)\\lib -luser32 -lkernel32 -lgdi32 -lcomdlg32 -ladvapi32 -lshell32 -Wl,--subsystem,windows -nostartfiles  -Xlinker -Map -Xlinker wo/flxmaps  -Xlinker --entry=_start  -nostartfiles -nodefaultlibs -Xlinker -Map -Xlinker wo/flxmap  -Xlinker --entry=_start    -fno-optional-diags -momit-leaf-frame-pointer  -mno-red-zone -fno-exceptions  -fno-stack-protector -fno-ms-extensions -no-pie -fno-stack-check -mno-stack-arg-probe
+# 	upx -9 $@
 
 wo/shvpnclient.exe: wo/stpdta_vpn.o wo/vpnclient/sethttp3.o wo/mstring1.o wo/updr.res
 	$(WINEGCC)  -s -Os $^ -o $@  -L$(MGDIR)\\lib -luser32 -lkernel32 -lgdi32 -lcomdlg32 -ladvapi32 -lshell32 -Wl,--subsystem,windows -nostartfiles  -Xlinker -Map -Xlinker wo/flxmaps  -Xlinker --entry=_start  -nostartfiles -nodefaultlibs -Xlinker -Map -Xlinker wo/flxmap  -Xlinker --entry=_start    -fno-optional-diags -momit-leaf-frame-pointer  -mno-red-zone -fno-exceptions  -fno-stack-protector -fno-ms-extensions -no-pie -fno-stack-check -mno-stack-arg-probe
@@ -931,7 +931,7 @@ oo/dist/% : oo/%
 sinst: o/dist/httpd.exe $(DIST_DIR)shttplnx.$(TAR_EXT) $(DIST_DIR)shttplnxu.$(TAR_EXT) $(DIST_DIR)shttparmlnx.$(TAR_EXT) $(DIST_DIR)shttplnx64.$(TAR_EXT)  $(DIST_DIR)shttplnx64u.$(TAR_EXT)
 	chmod 0666 wo/shttps*.exe wo/shvpnclient.exe
 	mkdir -p $(BUDIR)
-	for i in wo/shttps_mg.exe wo/shttpsr_mg.exe wo/shvpnclient.exe $(DIST_DIR)*.$(TAR_EXT) o/smallsrv_$(VERSION)_amd64.deb o/smallsrv-$(VERSION).tar.gz $(IWDIST)  o/shs-vpnclient_$(VERSION)_amd64.deb ; do echo $$i ; cp $$i /mnt/d/var/www/pre/ ; cp $$i $(BUDIR) ; done
+	for i in wo/shttps_mg.exe wo/shvpnclient.exe $(DIST_DIR)*.$(TAR_EXT) o/smallsrv_$(VERSION)_amd64.deb o/smallsrv-$(VERSION).tar.gz $(IWDIST)  o/shs-vpnclient_$(VERSION)_amd64.deb ; do echo $$i ; cp $$i /mnt/d/var/www/pre/ ; cp $$i $(BUDIR) ; done
 	if [ "$(VERSION)" != "$(VERSIONT)" ] ; then ln -sf smallsrv_$(VERSION)_amd64.deb /mnt/d/var/www/pre/smallsrv_$(VERSIONT)_amd64.deb ; ln -sf shs-vpnclient_$(VERSION)_amd64.deb /mnt/d/var/www/pre/shs-vpnclient_$(VERSIONT)_amd64.deb ; fi
 
 # 	for i in wo/shttps_mg.exe wo/shttpsr_mg.exe $(DIST_DIR)shttplnx.tgz $(DIST_DIR)shttplnxu.tgz $(DIST_DIR)shttparmlnx.tgz $(DIST_DIR)shttplnx64.tgz $(DIST_DIR)shttplnx64u.tgz ; do cp $$i /mnt/d/var/www/pre/ ; done
@@ -941,26 +941,26 @@ sinst: o/dist/httpd.exe $(DIST_DIR)shttplnx.$(TAR_EXT) $(DIST_DIR)shttplnxu.$(TA
 
 sinste:  o/dist/httpd.exe $(DIST_DIR)shttplnx.tgz $(DIST_DIR)shttplnx64.tgz
 	chmod 0666 wo/shttps*.exe
-	for i in wo/shttps_mg.exe wo/shttpsr_mg.exe $(DIST_DIR)shttplnx.tgz $(DIST_DIR)shttplnx64.tgz ; do cp $$i /mnt/d/var/www/pre/ ; done
+	for i in wo/shttps_mg.exe $(DIST_DIR)shttplnx.tgz $(DIST_DIR)shttplnx64.tgz ; do cp $$i /mnt/d/var/www/pre/ ; done
 	mv /mnt/d/shttps/httpd.exe /mnt/d/shttps/oldhttpd.exe
 	cp o/dist/httpd.exe /mnt/d/shttps/
 
 sinstcpy:  o/dist/httpd.exe $(DIST_DIR)shttplnx.tgz $(DIST_DIR)shttplnxu.tgz $(DIST_DIR)shttparmlnx.tgz $(DIST_DIR)shttplnx64.tgz  $(DIST_DIR)shttplnx64u.tgz
 	chmod 0666 wo/shttps*.exe
-	for i in wo/shttps_mg.exe wo/shttpsr_mg.exe $(DIST_DIR)shttplnx.tgz $(DIST_DIR)shttplnxu.tgz $(DIST_DIR)shttparmlnx.tgz $(DIST_DIR)shttplnx64.tgz $(DIST_DIR)shttplnx64u.tgz ; do cp $$i ./lastbin ; done
+	for i in wo/shttps_mg.exe $(DIST_DIR)shttplnx.tgz $(DIST_DIR)shttplnxu.tgz $(DIST_DIR)shttparmlnx.tgz $(DIST_DIR)shttplnx64.tgz $(DIST_DIR)shttplnx64u.tgz ; do cp $$i ./lastbin ; done
 
-sinsta: sinst wo/shttps_mgi.exe wo/shttpsr_mgi.exe
-	chmod 0666 wo/shttps_mgi.exe wo/shttpsr_mgi.exe
-	for i in wo/shttps_mgi.exe wo/shttpsr_mgi.exe ; do cp $$i /mnt/d/var/www/pre/ ; done
+sinsta: sinst wo/shttps_mgi.exe
+	chmod 0666 wo/shttps_mgi.exe
+	for i in wo/shttps_mgi.exe ; do cp $$i /mnt/d/var/www/pre/ ; done
 
-sinstw: wo/shttps_mg.exe wo/shttpsr_mg.exe
-	chmod 0666 wo/shttps_mg.exe wo/shttpsr_mg.exe
-	for i in wo/shttps_mg.exe wo/shttpsr_mg.exe ; do cp $$i /mnt/d1/var/www/pre/ ; done
+sinstw: wo/shttps_mg.exe
+	chmod 0666 wo/shttps_mg.exe
+	for i in wo/shttps_mg.exe ; do cp $$i /mnt/d1/var/www/pre/ ; done
 
 
 sinstf:  o/dist/httpd.exe $(DIST_DIR)shttplnx.tgz $(DIST_DIR)shttparmlnx.tgz $(DIST_DIR)shttplnx64.tgz  $(DIST_DIR)shttplnx64u.tgz
 	chmod 0666 wo/shttps*.exe
-	for i in wo/shttps_mg.exe wo/shttpsr_mg.exe wo/shttps_mgi.exe wo/shttpsr_mgi.exe $(DIST_DIR)shttplnx.tgz $(DIST_DIR)shttparmlnx.tgz $(DIST_DIR)shttplnx64.tgz $(DIST_DIR)shttplnx64u.tgz $(DIST_DIR)shttplnx64u.tgz shttp_src.tgz ; do cp $$i /mnt/d/var/www/pre/ ; done
+	for i in wo/shttps_mg.exe wo/shttps_mgi.exe $(DIST_DIR)shttplnx.tgz $(DIST_DIR)shttparmlnx.tgz $(DIST_DIR)shttplnx64.tgz $(DIST_DIR)shttplnx64u.tgz $(DIST_DIR)shttplnx64u.tgz shttp_src.tgz ; do cp $$i /mnt/d/var/www/pre/ ; done
 	mv /mnt/d/shttps/httpd.exe /mnt/d/shttps/oldhttpd.exe
 	cp o/of/dist/httpd.exe /mnt/d/shttps/
 	for i in indexr.htm index.htm shttp3e.xml shttp3.xml ; do cp $$i /mnt/d/var/www/ ; done
@@ -1416,7 +1416,7 @@ cleangen:
 	rm -f $(GENERATED)
 
 cleanall: clean cleangen
-	rm -f o/httpd.exe o64/httpd.exe wo/http.exe http.exe wo/httpg.exe wo/shttps_mg.exe  wo/shttps_mgi.exe  wo/shttpsr_mg.exe  wo/shttpsr_mgi.exe wo/uninst.exe wo/libsecgnutls.dll o/libsec111.so o/libsecgnutls.so o64/httpd.exe o64/libsecgnutls.so o64/libsec111.so at/httpd.exe at/libsec111.so at/libsecgnutls.so $(addsuffix shs_vpnclient,$(OBJDIRS)) wo/vpnclient.exe
+	rm -f o/httpd.exe o64/httpd.exe wo/http.exe http.exe wo/httpg.exe wo/shttps_mg.exe  wo/shttps_mgi.exe wo/shttpsr_mg.exe wo/shttpsr_mgi.exe wo/uninst.exe wo/libsecgnutls.dll o/libsec111.so o/libsecgnutls.so o64/httpd.exe o64/libsecgnutls.so o64/libsec111.so at/httpd.exe at/libsec111.so at/libsecgnutls.so $(addsuffix shs_vpnclient,$(OBJDIRS)) wo/vpnclient.exe
 	if [ "$(TMPRAM)" = "/dev/shm/shttps/o/" ] ; then rm -rf $(TMPRAM) ; fi
 
 SRC = accept.cpp cdde.cpp descu.htm fix_langpack.pl gz.h LICENSE mstring1.h pop3d.cpp secdll.h srv_ssi.cpp strtoul.cpp uninst.cpp \
@@ -1433,7 +1433,7 @@ bvprintfv.cpp cstat.cpp get4def.pl ico.h mrc.cpp onelog.cpp regular.h S5_lf.hh s
  c4char.pl descr.htm gz.cpp lang_notes.txt makefile.in mstring1.cpp pklz.cpp restart.cpp srv.h strcwmr.h vpn.cpp vpn.h tools.cpp mkfakelib_cros.pl sndmsg.cpp \
  icfg_vpnclient.cpp reqfunc.cpp slloop_vpnclient.cpp srv0a_vpnclient.cpp srvdat_vpnclient.cpp  srvmd5.cpp \
  httpd.exe.1 sndmsg.1 shs_vpnclient.1 sndmsg_usage.1.in httpd_usage.1.in shs_vpnclient_usage.1.in def4str2.pl httpd.cfg vpnclient.cfg \
- openssl_sert_templ gnutls_sert_templ stpdta_vpn.s
+ openssl_sert_templ gnutls_sert_templ stpdta_vpn.s sethttp_lang.h
 
 WSRC = $(addprefix winclude/,winsock_IPv6.h zconf.h zlib.h tap-windows.h nethdr.h)
 LSRC = $(SRC_LANG_FILES)
@@ -1451,7 +1451,7 @@ VPNSRC := $(subst .o,.cpp, $(CVPNCLOBJ) $(VVPNCLOBJ) $(CCOBJS)) fwnd.cpp mstring
  dhhosts.h g4s1.hh  lS2_lf.cfg  ndpdbg.s README.md   stpdtamg.s t3_g4strc.h bin2s.cpp g4strc.h lS3_lf.cfg  realloc.s S1_lf.hh \
  g4strcwm.h lS5_lf.cfg ndp.s S2_lf.hh stpdtar.s tlsdll.h bvprintf.h g4strhtm.hh ico2.h mlist.h nommc_dlfcn.h S3_lf.hh \
  ico.h regular.h S5_lf.hh _strc.h  getstr mrc.h pe_m.h strc.h to_linux.h desc.htm fcgi.h isapi.h ress1.s strcwm.h to_win.h \
- descr.htm srv.h strcwmr.h vpn.h shs_vpnclient.1  openssl_sert_templ gnutls_sert_templ stpdta_vpn.s makefile.in
+ descr.htm srv.h strcwmr.h vpn.h shs_vpnclient.1  openssl_sert_templ gnutls_sert_templ stpdta_vpn.s makefile.in sethttp_lang.h
 vpncsrc_name=o/shs-vpnclient-$(VERSION).tar.gz
 vpncsrc_dir=shs-vpnclient-$(VERSION)
 

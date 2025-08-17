@@ -42,19 +42,17 @@ function E(s,a,b,c)
 //--></script>
 
 
-
 </head><body bgcolor=#ffffff text=#000000>
 <!--#include virtual="menue.htm" -->
 
 <center><h1>Small HTTP server</h1>(Description for Windows version)</center>
-
 <p><a name=C></a><H3>Contents</h3><table cellspacing=3 cellpadding=8 border=0 width=100%><tr valign=top><td>
 <ul><li><a href=#W>What's this?</a>
 <li><a href=l1.shtml >License.</a>
 <li><a href=#W1>Capabilities</a>
 <li><a href=#h>How to...?</a>
 <li><a href=#h1>Directories and files names</a>
-<li><a href=#h2>Options and command line parameters</a>
+<li><a href=#h2>Command line settings and parameters</a>
 <li><a href=#ip>Allowed  and denied IP ranges.</a>
 <li><a href=#li>Limits.</a>
 
@@ -77,10 +75,10 @@ function E(s,a,b,c)
 <font size=2 class=h><b>
 <a href=http://127.0.0.1/$_admin_$conf>Setting / Current state</a><br>
 <a href=http://127.0.0.1/$_admin_$host>Users & Virtual Hosts</a><br>
-<a href=http://127.0.0.1/$_admin_$state>Current statistics</a>
+<a href=http://127.0.0.1/$_admin_$state>Current statistics</a><br>
+<a href=http://127.0.0.1/$_wmail_$ >Web mail</a>
 <hr><center>Online:</center>
 <a href=http://smallsrv.com/index.htm#new>What's new?</a><br></b>(Last version, Forum, etc.)<br>
-<b><a href=http://smallsrv.com/webmail.exe>Download Web Mail</a><br></b>An external script gives Web intrface for working with mail</sup><br>
 <b><a href=http://smallsrv.com/sendmail.exe>Download Sendmail emulator</a><br></b></sup><br>
 <b><a href=http://smallsrv.com/donation.shtml>Donation</a><br>
 </b>
@@ -121,8 +119,9 @@ debug their CGI-scripts without going on-line.
 underestimate its capabilities.
 <br><center><h2>Capabilities.</h2></center><ul>
 <li>GET,POST,HEAD methods support (HTTP/1.0 - 1.1)
-<li>Multitasking. -- simultaneous data transfer and requests reception from
-several remote users with a delay depending on the channel's quality.
+<li>Multitasking. -- simultaneous data transfer and requests
+reception from several remote users with a delay depending on the channel's
+quality.
 <li>High performance. The server transfers data without any delay.
 <li>CGI-scripts and FastCGI available:
 <ul>
@@ -137,7 +136,8 @@ several remote users with a delay depending on the channel's quality.
 <li>Internet Server Applications ISAPI).
 <li>Dynamical output of information about requests. The 16 Kb cache is
 provided for the log. After its overflow earlier data are replaced by
-newer ones. The "save" option writes every 4 Kb of the protocol on your hard disk.
+newer ones. The "save" option writes every 4-8 Kb of the log on your hard
+disk.
 <li>Requests control protects your information.
 <br>
 <br> Also: <br>
@@ -234,6 +234,14 @@ Such files are being used for redirect inbound request to other site. This
 file must begins with keyword "Status: " after this returning code and your
 header is going. After header one line is empty, and data. Extension must be
 <b>.asi</b> or <b>.asis</b><br>
+Example of file t.htm.asi:<br>
+<pre>
+Status: 301
+Location: /d2/t.htm
+content-type: text/html
+
+Moved Permanently....
+</pre>
 
 <p><a href=#C>Contents</a><hr><center><a name=h2><p></a><br><h2>Options and command line parameters.</h2></center>
  You can option server via dialog box "<b><u>S</u>ettings..</b>", via Web interface
@@ -622,7 +630,7 @@ Separate addreses by space. Use *@host to block receiving from any address of th
 <tr><td><b>Use TLS when sending outgoing message if possible</b></td><td><b>smtptls</b></td></tr>
 <tr><td><b>Always use TLS when sending outgoing messages; if not possible, don't send</b></td><td><b>smtponlytls</b></td></tr>
 <tr><td><b>Verify the remote certificate signature. (Verfy methods the same as directed in VPN client settings)</b></td><td><b>smtpchktls</b></td></tr>
-
+<tr><td><b>When using SMTP authorization, the sender must be the same as the authorization user.</b></td><td><b>smtp_authsame</b></td></tr>
 
 <tr align=center bgcolor=#c0fff8><td colspan=2><b>DHCP server setting</b></td></tr>
 
@@ -709,6 +717,17 @@ For GnuTLS, see the string format <a href="https://gnutls.org/manual/html_node/P
 <tr><td><b>Total IP addresses to allocate for remote client that connected to Tap.</b> (Optional. Set to 0 to use external DHCP server, or another methods)</td><td><b>tap_remote_max=value</b></td></tr>
 <tr><td><b>DNS servers that will be offered to the TAP client.</b> (Optional) </td><td><b>tap_remote_dns=value</b></td></tr>
 
+<tr><td><b>Fix destination MAC in packets for TAP</b></td><td><b>tap_fix_map</b></td></tr>
+<tr><td><b>Set VPN traffic limit per user</b></td><td><b>vpn_user_limit</b></td></tr>
+<tr><td><b>Set VPN traffic limit per IP</b></td><td><b>vpn_ip_limit</b></td></tr>
+<tr><td><b>Limit of incoming VPN traffic per hour.</b> (Mb)</td><td><b>vpn_limit_in_h=value</b></td></tr>
+<tr><td><b>Limit of outgoing VPN traffic per hour.</b> (Mb)</td><td><b>vpn_limit_out_h=value</b></td></tr>
+<tr><td><b>Limit of incoming VPN traffic per day.</b> (Mb)</td><td><b>vpn_limit_in_d=value</b></td></tr>
+<tr><td><b>Limit of outgoing VPN traffic per day.</b> (Mb)</td><td><b>vpn_limit_out_d=value</b></td></tr>
+<tr><td><b>Limit of incoming VPN traffic per mounth.</b> (Mb)</td><td><b>vpn_limit_in_m=value</b></td></tr>
+<tr><td><b>Limit of outgoing VPN traffic per  mounth.</b> (Mb)</td><td><b>vpn_limit_out_m=value</b></td></tr>
+<tr><td><b>Save the state of limits in this file on exit</b></td><td><b>vpn_limit_fname=path</b></td></tr>
+
 <tr align=center bgcolor=#c0fff8><td colspan=2><b>HTTP TLS VPN client setting</b></td></tr>
 
 <tr><td><b>Enable to connect to TLS VPN remote host</b></td><td><b>vpnclient</b></td></tr>
@@ -728,6 +747,7 @@ For GnuTLS, see the string format <a href="https://gnutls.org/manual/html_node/P
 <tr><td><b>Don't check remote certificate time.</b> Ignore expired. (GNUTLS only)</td><td><b>vpncln_tlsigntime</b></td></tr>
 <tr><td><b>Accept self signed certificate.</b> (GNUTLS only)</td><td><b>vpncln_tlsssign</b></td></tr>
 <tr><td><b>SSH style of certificate validate.</b> (GNUTLS only. Public keys of new untracted remote will be stored in ~/.gnutls/known_hosts)</td><td><b>vpncln_tlssshstyle</b></td></tr>
+
 
 <tr><td colspan=2><center><b>Users</b></center>
 To give FTP, Mail, Administration access you must add users.
@@ -772,11 +792,9 @@ hostpath=max.name.www;C:\www2
 
 <p><a href=#C>Contents</a><hr><center><br><a name=ip></a><h2> Allowed  and denied IP ranges.</h2></center>
 
-For each service you may direct allowed and denied IP addresses.
-Also present common allowed and denied ranges of IP to blocking or enable
-access
-to all TCP services, and ranges that define IPs from where Web
-administration available.
+For each server, you can specify allowed and prohibited IP addresses.
+Also specify general allowed and prohibited IP ranges to block or allow access
+to all TCP servers, as well as ranges that define the IP addresses from which web administration is available.
 Addresses directed through coma. You might direct one address or range.
 Example: <tt>127.0.0.1,192.168.0.1-192.168.0.255</tt>
 <p>
@@ -794,13 +812,12 @@ searching it do for IPs from allowed list only.
 <p>
 <p><a href=#C>Contents</a><hr><center><br><a name=li></a><h2>Limits.</h2></center>
 
-You may direct limits for exchange for HTTP,Proxy,SMTP,FTP.  For it,
-in the settings direct time for that will present limit and values for
-IP, network of this IP, and total limit for the service.
-Get attention, that when limit will over the exchange will not be
-break until full file will not be transfer.  When limit overflow
-next calls for the time calculated from overflow value will be failed.
-
+You can limit traffic for HTTP, Proxy, SMTP and FTP. To do this,
+in the settings, specify the time for which the limit will be set and the values for
+the IP address, the network of this IP address and the general limit for the service.
+Please note that if the limit is exceeded, data exchange will not
+be interrupted until the file is transferred completely. If the limit is overflowed,
+the following requests will be rejected within the time calculated based on the overflow value.
 
 
 <p><a href=#C>Contents</a><hr><center><a name=h3><p></a><br><h2>Running scripts.</h2></center>
@@ -808,7 +825,7 @@ next calls for the time calculated from overflow value will be failed.
 Requested files that contents CGI identefer in pathname will be executed.
 If option "Run 'system' files" selected  then files with attribute 'system'
 will be executed too. CGI/1.1 standards are supported, for reference please consult
-<a href=http://Web.Golux.Com/coar/cgi/>http://Web.Golux.Com/coar/cgi/</a>.
+<a href=https://datatracker.ietf.org/doc/html/rfc3875 >rfc3875 </a>.
 When running a script, request line parameters are transferred both in
 command line and in QUERY_STRING environment variable. The script transfers
 data directly to the client that requested it. A script should output
@@ -824,8 +841,8 @@ completes output with these symbols. (\r = [CR] = 0x0D; \n = [LF] = 0x0A )
 <li type=circle>SSI can greatly increase your capabilities allowing you to
 dynamically insert results of CGI scripts in any place of a document being
 shown to the user.<br>
-<li type=circle> When a remote client requests a *.sht, *.shtm or *.shtml
-file, server returns it evaluating SSI tags which are contained there.<br>
+<li type=circle> When a remote client requests a *.sht, *.shtm or *.shtml file,
+the server returns it by processing the SSI tags it contains.<br>
 <li type=circle> SSI tags have the following format:<br>
 <b>&lt;!--#tag_name {variable="value" } --&gt;</b><br>
 <li type=circle> HTTP or <b> request form variables</b> can be put into
@@ -833,7 +850,7 @@ the "value" field. Variable name starts with $ and can be later put in braces
 {} if you wish to concatenate the variable value with subsequent text
 (excepting spaces). For instance , $USER_AGENT contains browser type, and if
 you want to concatenate it with "_12345", use "${USER_AGENT}_12345". When
-using symbols like $, \, " make sure you place \ before them: $ - \$, \ - \\,
+using symbols like <i>$, \, "</i> make sure you place \ before them: $ - \$, \ - \\,
 " - \" etc. If a variable can't be evaluated, it replaced with the
 "undefined" value.
 <p>Current server version supports the following tags:
@@ -842,11 +859,11 @@ using symbols like $, \, " make sure you place \ before them: $ - \$, \ - \\,
 &lt;!--#include file="full_path/file_name" --&gt;<br>
    Both variants include the content of file_name in the document. In first
 case it looks for the document from the web root directory, in the second
-case you can define a path for the document. If the requested document
-content <i>cgi_ident</i> in path, the server runs the file. If the file_name
-contains the "?" symbol, the string after it is transmitted as a request
-with parameters which should be processed by your script.
-
+case you can define a path for the document. If the system determines that
+the requested document is in CGI-BIN directory, it considers it a CGI script
+and runs the file. If the file_name contains the "?" symbol, the string after
+it is transmitted as a request with parameters which should be processed by
+your script.
 <p><b>exec</b><br>
 &lt;!--#exec cgi="file_name" --&gt;<br>
 &lt;!--#exec cmd="file_name" --&gt;<br>
@@ -874,8 +891,8 @@ Runs the script like with "include" tag, from  /<i>cgi_ident</i>/ subdirectory
  <tr><td><b>n</b></td><td>Numeric representation of a month, without leading zeros </td><td>1 through 12</td></tr>
  <tr><td><b>Y</b></td><td>A full numeric representation of a year, 4 digits </td><td>1970 through 9999</td></tr>
  <tr><td><b>y</b></td><td>A two digit representation of a year </td><td>00 through 99</td></tr>
- <tr><td><b>a</b></td><td>Lowercase Ante meridiem and Post meridiem </td><td>am or pm</td></tr>
- <tr><td><b>A</b></td><td>Uppercase Ante meridiem and Post meridiem </td><td>AM or PM</td></tr>
+ <tr><td><b>a</b></td><td>Lowercase Ante meridiem and Post meridiem </td><td><i>am or pm</i></td></tr>
+ <tr><td><b>A</b></td><td>Uppercase Ante meridiem and Post meridiem </td><td><i>AM or PM</i></td></tr>
  <tr><td><b>g</b></td><td>12-hour format of an hour without leading zeros </td><td>0 through 12</td></tr>
  <tr><td><b>G</b></td><td>24-hour format of an hour without leading zeros </td><td>0 through 23</td></tr>
  <tr><td><b>h</b></td><td>12-hour format of an hour with leading zeros </td><td>01 through 12</td></tr>
@@ -885,7 +902,6 @@ Runs the script like with "include" tag, from  /<i>cgi_ident</i>/ subdirectory
 
  </table>
  </center>
-
 
  <p><b>echo </b><br>
 &lt;!--#echo var="var" --&gt;<br>
@@ -906,9 +922,9 @@ Runs the script like with "include" tag, from  /<i>cgi_ident</i>/ subdirectory
 &lt;!--#else --&gt;<br>
  <i> text </i><br>
 &lt;!--#endif --&gt;<br><br>
-The text will be either shown or not depending on the outcomes of specified
-conditions. The conditions can consist of variables and values as well as
-different logical operators between them:
+ The text will be either shown or not depending on the outcomes of
+specified conditions. The conditions can consist of variables and values as
+well as different logical operators between them:
 <br><br>
  ! -- "Not"<br>
  = or == -- "Equal to"<br>
@@ -918,7 +934,7 @@ different logical operators between them:
  ~ -- "Part of..."
  <i>str1 ~ str2</i> -- the result is true, if the string <i>str2</i>
  is the part of string <i>str1</i><br>
-str1 =~ /pattern/<i>ig</i> -- pattern it is <a href=#re>Regular expressions like Unix</a>.
+str1 =~ /pattern/<i>ig</i> -- pattern it is <a href=#re>Regular expressions</a>.
 The result is be true, if  in the string <i>str1</i>
 has been found substring equal by pattern. <br>
 
@@ -935,12 +951,12 @@ them is somewhat restricted.
 
 <p><a href=#C>Contents</a><hr><center><a name=re><p></a>
 <br><h2>Regular Expressions</h2></center>
+A pattern search is available to check incoming variables.
+A pattern is a regular expression with the accepted Unix syntax.
+A regular expression is a substring to be found that may also contain metacharacters and variables.
 
- To checking incomming variables finding by pattern avilable.
-Pattern is  regular expressions,  with syntax accepted in Unix.
-Regular expressions it is substring to find. Into this substring also
-may be present  metacharacters,quantifiers and variables.
-The following metacharacters understen:
+The following metacharacters are understood:
+
 <li><b> ^ </b> -- begin of line.
 <li><b> . </b> -- any char except new line.
 <li><b> \ </b> -- if next character is metacharacter
@@ -955,20 +971,19 @@ Also known the following sequensies:
   <li><b> \o### or \0### </b> -- octal code of char.
   <li><b> \###  </b> -- decimal code of char.
  </ul>
-<li><b> [] </b> -- in square bracket may be directed avilable or
-unavilable values for next char:
-If first char in the bracket is '^', this mean char may be any
-except other chars directed in bracket. Otherwise the char
-may be only one char from the bracket.
-'-' inside bracket mean all chars from preveous of '-' to char after
-'-'.  The char '\' inside bracket also changed interpretation of next
-char.
+<li><b> [] </b> -- The square brackets may indicate available or unavailable values for the next character:
+If the first character in the brackets is "^", it means that the character can be any
+except the other characters specified in the brackets. Otherwise, the character
+can only be one character from the brackets.
+"-" inside the brackets means all characters from the preceding "-" to the character after
+"-".
+The "\" character inside the brackets also changes the interpretation of the next character.
 Examples:
 <ul>
-<li>[0-9]   -- mean all  diget.
-<li>[a-zA-Z]   -- mean  all letter.
-<li>[^@$\-\n\o008\x01]   -- mean any char exept
- @,$,-,new line, and chars with codes 8 and 1.
+<li>[0-9]   -- means any number.
+<li>[a-zA-Z]   -- means any letter.
+<li>[^@$\-\n\o007\x01]   -- means any symbol except
+ @,$,-,new line, and symbols with codes 7 and 1.
 </ul>
 <li><b> () </b>  -- prescribe to save substring by pattern
 inside bracket  for using in futures.
@@ -978,15 +993,16 @@ avilable as <b>$`</b> .  The string after last result
 avilable as <b>$'</b> <br>
 <li><b> | </b> -- or.
 <br>
-After metachar may be present quantifier:
+A repeater may be specified after the metacharacter:
 <li><b> * </b> -- repeat 0 or more times.
 <li><b> + </b> -- repeat 1 or more times.
 <li><b> ? </b> -- may be absent
-<li><b> {n} </b> -- repeat 0 or more times.
+<li><b> {n} </b> -- repeat n times.
 <li><b> {n,} </b> -- repeat n or more times.
 <li><b> {n,m} </b> -- repeat at least n but not more then m times.
-After any quantifier may by following modifer '?' to lessen pattern
-distribution up to first posible coincidence.
+After any repeater, you can use another modifier "?", which reduces the pattern distribution
+to the first possible match. Without this modifier, the pattern part greedily takes
+all the characters that match it.
 An example when finding in string '123abcdefff567'
 <ul>
  <li> with pattern /([a-z]*)/    $1 will be "abcdefff"
@@ -994,19 +1010,17 @@ An example when finding in string '123abcdefff567'
  <li> with pattern /([a-z]*?)f/  $1 will be "abcde"
 </ul>
 <br>
-At end of patern, after last slash, may be flowing various modifiers.
-Nov the program understan next various modifiers:
+At the end of the pattern, after the last slash, modifiers can be placed.
+The program understands the following modifiers:
 <li><b> i </b> -- case-insensitive pattern
-<li><b> v </b> -- force disable to clear the list of variables ($1 - $9).
-Without this modifier the program will clear the list in new logical
-expressions, when the first regular expressions into this logical will begin checking.
-<li><b> c </b> -- force clear the list of variables ($1 - $9) before begin.
-In one logical expressions may be more then one regular expressions.
-By default all of them use the same list of variables, and e.g. if
-first expression filled $1 and $2, the second may fill only from $3
-If you use this modifer expressions will fill variables begin from $1
-independency of result of preveuse part of logical expression.<br>
-
+<li><b> v </b> -- Force clearing of the variable list ($1-$9).
+Without this modifier, the program will clear the list in new logical
+expressions when it starts checking the first regular expressions in this logical expression.
+<li><b> c </b> -- Force clearing of the variable list ($1-$9) before starting.
+There can be multiple regular expressions in one logical expression.
+By default, they all use the same variable list, and for example, if
+the first expression filled $1 and $2, the second may only fill $3.
+Using this modifier, the expressions will fill the variables starting with $1, regardless of the result of the previous part of the logical expression.<br>
 <br>
 Also next function available:
 <li> exist(filename)  - returns 1 if file exist, otherwise 0.
@@ -1017,7 +1031,7 @@ Also next function available:
 <br>
 
 <p><a href=#C>Contents</a><hr><center><a name=cf><p></a>
-<br><h2>Countries features</h2></center>
+<br><h2>IP Country Database Functions</h2></center>
 
 The program can show statistic by countries and server may add
 REMOTE_COUNTRY variably with country name to SSI/CGI enviroment.
@@ -1064,14 +1078,14 @@ the files there.
 See also <a href=#H2>command line keys descriptions</a>
 
 <p><a href=#C>Contents</a><hr><a name=D></a><center><br><h2>DNS server</h2></center><p>
+This version contains a DNS server. To run it, you must specify the description file <b><i>hosts</i></b>.
+On the one hand, the file format can be extremely simple and compatible with the system hosts file,
+and on the other hand, it can correspond to the master file format recommended by RFC 1035.
 
-This version content DNS server. To run you must specify <b>hosts</b> file.
-File has format on the one hand compatible with system hosts file and on
-the other hand may be alike with master file format recomended by RFC 1035.
+For compatibility with the system hosts file, each line can contain an IP address and a host name.
+Comments begin with the symbol <b>'#'</b>.
+The domain name in this file can begin with '*.' to describe all subdomains.
 
-For compatible with system hosts file, each lines may content IP address
-and name of the host. Comments begin with symbol <b>'#'</b>. Domain name in
-this file could begin from '*.' to descript all subdomain.
 Example:<br>
 <pre>
 # Here is an example of hosts file for local network.
@@ -1092,9 +1106,9 @@ Example:<br>
 # end of hosts file
 </pre>
 
-Also each line may content domain-name and RR description and comment may
-begin with ';' Next lines are supported:<br>
-$ORIGIN <i>&lt;domain-name&gt;</i><br>
+Each line may also contain a domain name and a resource record (RR) description. A comment may
+begin with ';' The following records are supported:
+<br>$ORIGIN <i>&lt;domain-name&gt;</i><br>
 $TTL <i>&lt;validate-time&gt;</i> -- a 32 bit unsigned integer that specifies
 the time interval (in seconds) that the resource record may be cached before
 it should be discarded.<br>
@@ -1102,11 +1116,12 @@ $SLAVE <i>&lt;domain-name&gt; &lt;ip-address-of-master&gt; [&lt;filename&gt;]</i
 $IF_DOWN <i>&lt;host:port&gt; &lt;interval&gt; Old.IP=New.IP</i> -- By this option server will try to connect to the host:port for time interval (in seconds), and if fail in each record with Old.IP it will replasing to New.IP. <br>
 [<i>&lt;domain-name&gt;</i>] <i>&lt;blank&gt;</i> [<i>&lt;TTL&gt;</i>] IN <i>&lt;type&gt; &lt;RDATA&gt;</i><br>
 
-For domain description  unlike RFC recomendation you must
-direct full <i>&lt;domain-name&gt;</i> ('@' dosen't interpretate, last point may be skipped or
-present it's the same). You may skip <i>&lt;domain-name&gt;</i> in this case
-preveus name will be used. Unlike RFC recomendation you must
-direct  class "IN" for each line with RR format.
+Unlike the RFC recommendation, to describe a domain, you must specify the full <i>&lt;domain-name&gt;</i>
+('@' is not interpreted, the final dot may be omitted).
+You can also omit <i>&lt;domain-name&gt;</i>, in which case the previous name will be used.
+Unlike the RFC recommendation, you must specify the "IN" class for each line in the RR format.
+
+
 <i>&lt;type&gt;</i> may be:
 <li> A  <i>&lt;IP-address&gt;</i> - a host IPv4 address
 <li> AAAA  <i>&lt;IPv6-address&gt;</i> - a host IPv6 address
@@ -1115,8 +1130,8 @@ direct  class "IN" for each line with RR format.
 for original name MUST present in this file.
 <li> SOA <i>&lt;full-name&gt;</i> <i>&lt;e-mail by owner&gt;</i> (<i>&lt;SERIAL&gt;</i>,<i>&lt;REFRESH&gt;</i>,<i>&lt;RETRY&gt;</i>,<i>&lt;EXPIRE&gt;</i>,<i>&lt;MINIMUM&gt;</i>)
  - marks the start of a zone of authority
-<li> MX <i>&lt;preference&gt;</i> <i>&lt;full-name&gt;</i> - mail exchange. <i>&lt;preference&gt;</i> is numbre
-from 1 to 255.  Lower values are preferred.
+<li> MX <i>&lt;preference&gt;</i> <i>&lt;full-name&gt;</i> - mail exchange. <i>&lt;preference&gt;</i> a number from 1 to 255. The server with the lower value is chosen first.
+
 <li> PTR <i>&lt;full-name&gt;</i> - a name. Host at left side must be #.#.#.#.in-addr.arpa
 <LI> TXT text
 <LI> SPF text
@@ -1124,17 +1139,14 @@ from 1 to 255.  Lower values are preferred.
 <LI> TLSA <i>usage</i>  <i>selector</i> <i>matching_type</i> <i>data</i>  <sup>* <A HREF=#DANE>See more in TLS caption.</a></sup>
 <LI> TYPE<i>number  \\# length hex hex hex...</i>  - for new, unknow types.
 <br> Other types are ignored.<br>
-Also for PTR requests, if PTR record not found, RDATA for reply server gives from
-first 'A' record with such IP, or from lines compatible with system hosts file.
-For each type of record domain-name may begin from wildcard '*.' to descrpibe all
-sub domains. Server supports '*' type of request to return all about domain. For
-domain with wildcard  reply also will content wildcard. For other types
-of request reply will be without wildcard.
-<p>Server may support reqursion call. To release resolving for any domain
-you MUST direct NS record for root servers. If you check "Recursion call to
-up level servers only" you must direct DNS server of your provider, instead
-root servers, and program will call only to these servers. Otherwise,
-server will call to different zone servers.
+The server also automatically supports PTR queries if the requested PTR record is missing. The server returns RDATA for the response from the first "A" record with that IP address or from lines compatible with the system hosts file.
+
+For each record type, the domain name can begin with the "*." pattern to cover all
+subdomains. The server supports "*" queries to return all information about a domain. For a domain with a wildcard, the response will also contain the wildcard. For other queries, the response will contain the requested domain without the wildcard.
+
+<p>The server can support recursive calls. To allow searching for any
+domain, you MUST specify NS records for the root servers.
+If you check "Recursive calls only to top-level servers", you must specify the DNS server of your provider, not the root servers, and the program will only contact these servers. Without this setting, the server itself will sequentially send requests to servers in other zones.
 
 Example:<br>
 <pre>
@@ -1208,18 +1220,18 @@ $IF_DOWN 192.168.12.2:80 300 192.168.12.2=192.168.12.1
 
 <br><br>See also <a href=#H2>command line keys descriptions</a>
 <hr><a name=M></a><center><br><h2>SMTP server</h2></center><p>
-SMTP server can:
-<li>Receive messages for defined users. Target address must be <i>user_name</i>@<i>your.domain.name</i>
-This messages store in user's home\mbox directory and it's available via POP3.
-<li>Receive messages from defined users for anybody. Source address must be <i>user_name</i>@<i>your.domain.name</i>
-You can enable to receive messages from anybody to anyone, and you can restrict remote IP range, for which this type of messages is enable.
-To get mail routing info, SMTP server asks DNS server. You must direct DNS IP in options.
-<li>You may add some spamers addresses into blacklist. Messages from these addresses will be never received.
-Also server can support common and personal badlist, goodlist, graylist files.
-The names of common lists you may direct in options. Also in options you may
-enable check personal files named "badlist", "graylist" and "goodlist" in user's home
+The SMTP server can:
+<li>Accept messages for specified users. The recipient address must be <i>username</i>@<i>your_domain_name</i>
+These messages are stored in the user's home directory/mbox folder and are accessible via POP3.
+<li>Accept messages from its users for any user. The sender address must be <i>username</i>@<i>your_domain_name</i>
+You can also allow any user to accept messages from any user and limit the range of remote IP addresses for which this type of message is allowed.
+To obtain mail routing information, the SMTP server contacts the DNS server. You must specify the DNS IP address in the settings.
+<li>You can add spammer addresses to the blacklist. Messages from these addresses will never be accepted.
+The server also supports general and personal lists of blocked and allowed addresses.
+The names of the common lists can be specified in the settings. Also in the settings you can
+enable checking of personal files named "badlist" and "goodlist" in the user's home
 directories.
-Each line of these file may be:
+Each line in these files can be:
 <ul>
   <li> E-mail address or any part of address.
   <li> IP address or part of IP address.
@@ -1250,9 +1262,10 @@ lotto
 </pre>
 <br>
 
-<li>You may enable server to check user's "forward" files, to redirect or percolate messages.<br>
- File named "forward" could be placed into user's home directory. When option is
-enable server parses each line of this file and understands next instruction:
+<li> You can allow the server to check the user's "forward" files to forward or filter messages.<br>
+A file named "forward" can be placed in the user's home directory.
+If enabled, the server parses each line of this file and recognizes the following instructions:
+
 <li><b>#if </b><i>expression</i> -- next lines will be checked if expression is true
 <li><b>#elif </b><i>expression</i> --  if previous condition is false then next lines will be checked if expression is true
 <li><b>#else</b> -- next lines will be checked if previous condition is false
@@ -1287,7 +1300,7 @@ and values as well as different logical operators between them:
 is the part of string <i>str1</i><br>
 && --"AND"<br>
 || --"OR"<br><br>
-str1 =~ /pattern/<i>ig</i> -- pattern it is <a href=#re>Regular expressions like Unix</a>.
+str1 =~ /pattern/<i>ig</i> -- pattern it is <a href=#re>Regular expressions</a>.
 The result is be true, if  in the string <i>str1</i>
 has been found substring equal by pattern. <br>
 
@@ -1351,7 +1364,7 @@ messages will be stopped before begin of data transfer.<br>
 <tt>"From sender (remote_hello [IP]) date and time For receptors\r\n"</tt>
 <br>
 You may include the same actions as in '#if' operator:
-||,&&,<,>,>=,<=,==,!=,=~
+||,&&,&lt;,&gt;,&gt;=,&lt;=,==,!=,=~
 <br>
 
 
@@ -1373,42 +1386,43 @@ and last line try to detect some strings like "To unsubscribe do something..."
 <br>
 If any of these condition will be true the message will be detect as spam.
 
-
 See also <a href=#H2>command line keys descriptions</a>
 
 
-<hr><a name=P></a><center><br><h2>POP3 server & proxy</h2></center><p>
-POP3 server provide access to incomming mail. If POP3 proxy is enabled
-then users may option their E-mail client's program to get mail from
-another remote POP3 through this POP3. For it, <i>user</i> option in client's program must be:
+<hr><a name=P></a><center><br><h2>POP3 Server and POP3 Proxy Server</h2></center><p>
+POP3 server provides access to incoming mail.
+If POP3 proxy is enabled,
+users can configure their mail program to receive mail from
+another remote POP3 server via this POP3 server. To do this, the <i>user</i> parameter in the client program must be as follows:
 <i><b>local_user@remote_user@remote_host</b></i><br>
-Password must be: <i><b>local_password@remote_password</b></i><br>
-Or <i>@remote_password</i> part may be added to <i>user</i> option.
-Anywhere instead <b>'@'</b> may be used <b>'#'</b>.
+The password must be as follows: <i><b>local_password@remote_password</b></i><br>
+Or the <i>@remote_password</i> part can be added to the <i>user</i> parameter.
+You can use <b>'#'</b> anywhere instead of <b>'@'</b>.
+<br><br>If webmail is enabled, users with POP3 access can use it at the URL <A HREF=http://127.0.0.1/$_wmail_$ >http://host.name/$_wmail_$ </a>.
+Webmail is only accessible from IP addresses in the POP3 range.
 
-<hr><a name=F></a><center><br><h2>FTP server & proxy</h2></center><p>
-FTP server provide access to home directories of users and if option
-"Enable virtual directories for FTP" is selected then provide access
-to <b>private</b> virtual directories.  Public virtual directories
-are unavilable through FTP.<br>
+<hr><a name=F></a><center><br><h2>FTP Server and FTP Proxy Server</h2></center><p>
+The FTP server provides access to users' home directories, and if the option
+"Enable virtual directories for FTP" is selected, then access is provided to
+<b>private</b> virtual directories. Public virtual directories
+are not accessible via FTP.<br>
 
-If FTP proxy is enabled
-then users may option their FTP client's program to work with
-remote FTP through this FTP. For it, <i>user</i> option in client's program must be:
+If the FTP proxy server is enabled,
+users can configure their FTP client program to work with a
+remote FTP server via this FTP server. To do this, the <i>user</i> parameter in the client program must be as follows:
+
 <i><b>local_user@remote_user@remote_host</b></i><br>
-Password must be: <i><b>local_password@remote_password</b></i><br>
-Or <i>@remote_password</i> part may be added to <i>user</i> option.
-Anywhere instead <b>'@'</b> may be used <b>'#'</b>.
+The password must be as follows: <i><b>local_password@remote_password</b></i><br>
+Or the <i>@remote_password</i> part can be added to the <i>user</i> parameter.
+You can use <b>'#'</b> anywhere instead of <b>'@'</b>.
 
-<br> Some FTP clients (e.g. FTP plugin for Far manager) support alike type of
-FTP proxy. In this cliens you may option firewall setting to
-your_host:FTP_port, and dirrect FTP URL like this:
+<br> Some FTP clients (for example, the FTP plugin for Far Manager) support a similar type of FTP proxy. In this client, you can specify the firewall settings
+your_host:FTP_port and direct FTP address as follows:
 ftp://local_user#remote_user:local_password#remote_password@ftp_host/
 
 
 <hr><a name=T></a><center><br><h2>TLS/SSL server</h2></center><p>
-The server doesn't content real buildin TLS/SSL cryptographic functions,
-but includes interface to connect external TLS/SSL library. You may
+The server does not contain built-in TLS/SSL cryptographic functions, but includes an interface for connecting an external TLS/SSL library. You can
 connect <a href=http://www.OpenSSL.org>OpenSSL</a> or
 <a href=http://www.gnutls.org>GNU TLS</a> to the server. Foe Windows version simple
 DLL based on OpenSSL 3.2.0 avilable here:
@@ -1426,10 +1440,10 @@ openssl req -x509 -new -key ks.key -days 3650 &gt; ks.pem
 ks.pem -- is result file that may be used as "Certificate file" <br>
 ks.key -- is result file that may be used as "Key file" <br>
 
-Self-signed certificate will not provide the security guarantees.
-An attacker on intermediate routers can include a bidirectional proxy in your connection, put his certificate in place of yours, and the browser will not be able to recognize that it is not your certificate.<br>
+A self-signed certificate does not guarantee security.
+An attacker on intermediate routers can insert a bidirectional proxy into your connection, substituting their certificate for yours, and the browser will not be able to recognize that it is not your certificate.<br> To avoid this, you need to obtain certificates from an issuer known to browsers.
 <a name=DANE></a>
-Some browsers or TLS clients may support the DANE (RFC6698) method for certificate validation. For this method, you need to add specific DNS records for your domain. The format of this entry is:
+Some browsers or TLS clients may support the DANE method (RFC6698) for verifying certificates. This method requires adding special DNS records for your domain. The format of these records is as follows:
 <br>
 <tt>_<i>port</i>._<i>base_protocol</i>.host.name IN TLSA <i>usage</i>  <i>selector</i> <i>matching_type</i> <i>data</i></tt>
 <br><br>
@@ -1479,35 +1493,34 @@ The server supports both VPN types, and both VPNs can run simultaneously, but ea
 What is the difference? On a TAP connection, each packet also includes a 14-byte Ethernet header. This gives some advanced features, e.g. The TAP interface can be included in the bridge, and any type of packet can be broadcast through TAP. The TUN connection only supports IPv4 and IPv6 packets.
 <li> <b>Link between clients</b> <br>
 In this version, the server does not filter anything. Communication between clients will work and may be filtered by an external firewall.<br>
-<li> <b>Link to Linux and Windows</b> <br>
+<li> <b>Connection between Linux and Windows</b> <br>
 Linux and Windows VPN use the same protocols and can be connected to each other.<br>
 <li> <b>Tap driver for Windows.</b> <br>
-Windows does not have a built-in TUN/TAP driver. This means an external driver is required. This program can work with the free and open source TAP-windows driver from the <a href="https://openvpn.net/" >OpenVPN</A> project. Available <a href="https://build.openvpn.net/downloads/releases/" >here</a>. (Select Tap-Windows-9.24.7 for your system). If you want to set up the server on a Windows PC and use both TUN and TAP adapters, add two adapters after installing the driver. If you are already using OpenVPN and would like to use this server as well, add new adapters for it. In the server settings, you can specify the TAP adapter index starting with zero, or the name of the network connection. A simple way to specify an index is to leave the connection name empty, the server will fill it in itself.
-<b>To access the driver, the server MUST be started with administrator rights for the first time.</b> Perhaps this is a feature of the Tap-windows adapter, or it is a feature of my test environment, or I did not understand something, but a good way To configure the IP address when using Tun mode, an external .bat script is used. The server can start it automatically. Also in this script you can change routing and other network parameters, such as DNS servers.
+Windows does not have a built-in TUN/TAP driver. An external driver is required. This program works with the free and open source TAP-Windows driver from the <a href="https://openvpn.net/" >OpenVPN</A> project. It is available <a href="https://build.openvpn.net/downloads/releases/" >here</a>. (Select Tap-Windows-9.24.7 for your system). If you want to set up the server on a Windows machine and use both TUN and TAP adapters, add the two adapters after installing the driver. If you are already using OpenVPN and want to use this server, add new adapters for it. In the server settings, you can specify a zero-based TAP adapter index or a network connection name. An easy way is to specify the index and leave the connection name blank, the server will fill it in automatically. <b>The server MUST be started with administrator rights on first startup to access the driver.</b> .
 <li> <b>Scripts.</b> <br>
-The VPN server and client run scripts in three cases: <br>
+The VPN server and client can run scripts in three cases: <br>
 <ul>
-    <li>When the server initializes the TUN/TAP adapter. In this case, the arguments are: <tt>Interface_name IP_address Subnet_mask Gateway</tt> In this case, the gateway is the same as IP.
-    <li> When the client connects to the server and the connection is established. In this case the arguments are:
-    <tt>Interface_name Interface_name IP_address Net_mask Gateway DNS_servers IP_address of remote_vpn_server</tt>
-    <li> When the client connection is closed. In this case the arguments are:
-    <tt>Interface_name Interface_name IP_address Remote_disconnected_vpn_server IP_address</tt>
+<li>When the server initializes the TUN/TAP adapter. In this case, the arguments are as follows: <tt>Interface_name IP address Subnet_mask Gateway</tt> In this case, the gateway is the same as the IP address.
+<li>When the client connects to the server and establishes a connection. In this case, the arguments are as follows:
+<tt>Interface_name Interface_name IP_address Network_mask Gateway DNS_servers IP_address of the remote_vpn_server</tt>
+<li> When the client connection is closed. In this case, the arguments are:
+<tt>Interface_name Interface_name IP_address of the remote_vpn_server IP_address</tt>
 </ul>
 <SUP>*</SUP>)In the Windows Interface_name is the same as the connection name in Windows.<br>
 <li> <b>Authorized access.</b> <br>
-You can select the option to make the HTTP TLS VPN server publicly accessible to anyone who knows the URL. Otherwise, the server will require HTTP-style authentication. In the server settings you need to add a user with "Proxy" access, and in the client settings specify this username and password.<br>
+You can select the option to make the HTTP TLS VPN server publicly available to anyone who knows the URL. Otherwise, the server will require HTTP authentication. In the server settings, you must add a user with "Proxy" access, and in the client settings, specify the username and password.
+<br>
 <li> <b>Security library.</b> <br>
-External libraries seclib111 and seclibgnutls have been updated. Older versions will not work with VPN as they lack the necessary functions.
-If you were using an older version of the server and want to use a VPN, please update the library.
-<li> <b>Verifying the server certificate.</b> <br>
-If you want to enable server certificate verification, then in the TLS/SSL parameters you need to specify the directory with trusted certificates. You can put your remote server's certificate or root certificates there. If you are using OpenSSL, you will need to create hashes for your certificates. Run:
+The external libraries seclib111 and seclibgnutls have been updated. Older versions will not work with VPN, as they lack the necessary functions.
+If you were using an older version of the server and want to use VPN, update the library.
+<li> <b>Server certificate verification.</b> <br>
+If you want to enable server certificate verification, you need to specify a directory with trusted certificates in the TLS/SSL settings. You can put the remote server certificate or root certificates there. If you are using OpenSSL, you will need to generate hashes for your certificates. Run:
 <pre>
 openssl rehash -compat -v path_to_this_directory
 </pre>
-If you are using GnuTLS there are a few additional options, e.g. you can disable certificate time checking and enable SSH style verification. In this case, the host's certificate will be accepted as valid the first time, and the public key will be stored for the host. The next time the public key will be verified.
-<li> <b>MTU</b> <br>
-In the Linux version, you can specify the MTU for each interface. In the Windows version, the same can be done using external tools for "Network connection".
-It's probably best to choose an MTU smaller than your actual MTU (typically 1500) for header sizes (14-byte Ethernet header for TAP, TLS header, and the server adds 2 bytes for each packet) to run faster. But I think the best way is to set a large MTU. For example 9000 or even 15000. In this case TLS will receive large packets, encrypt them, and when they are transmitted, at the upper TCP layer they will be divided into packets according to your real Ethernet MTU. But on the other hand, when several clients are connected, a large MTU may give priority to the transfer of large files, to the detriment of those who do not transfer large files.
+If you are using GnuTLS, there are some additional options, for example, you can disable certificate time verification and enable SSH-style verification. In this case, the host certificate will be accepted as valid on the first connection, and its public key will be saved. On subsequent connections, the public key will be verified. <li> <b>MTU</b> <br>
+In the Linux version, you can specify the MTU for each interface. In the Windows version, the same can be done using external tools for the "Network connection" parameter.
+For speed, it is probably best to choose an MTU smaller than the actual MTU (usually 1500) for the header sizes (14-byte Ethernet header for TAP, IP headers, TCP, TLS, and the server adds 2 bytes to each packet). But I think the best way is to set a large MTU. For example, 9000 or even 15000. In this case, TLS will accept large packets, encrypt them, and when transmitted at the IP layer, they will be divided into packets according to your actual Ethernet MTU value. On the other hand, when several clients are connected, a large MTU value may prioritize the transfer of large files to the detriment of those who do not transfer large files.
 <br>
 
 

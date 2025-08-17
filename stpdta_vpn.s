@@ -26,6 +26,10 @@
 .data
 .globl _fe_ind
 .globl _fb_ind
+
+.globl _fe_ind_ru
+.globl _fb_ind_ru
+
 .globl _fb_uttp
 .globl _fe_uttp
 .globl _fb_lis
@@ -112,6 +116,11 @@ _fe_uttp:
 _fb_ind:
 .include "ind1.bin"
 _fe_ind:
+
+_fb_ind_ru:
+.include "ind1r.bin"
+_fe_ind_ru:
+
 _fb_ipbase:
 /* .include "ipbase.s" */
 _fe_ipbase:

@@ -1,13 +1,8 @@
-smallsrv (3.06.37test4) unstable; urgency=low
+smallsrv (3.06.37) unstable; urgency=low
 
   * The word "certificate" in the text has been corrected.
   * Added locale files for 25 languages
     (Translated with help AI)
-
- -- Maksim Feoktistov <max@smallsrv.com>  Sun, 03 Aug 2025 21:34:42 +0400
-
-smallsrv (3.06.37test2) unstable; urgency=low
-
   * Some fixes in VPN client
   * To VPN server added 'welcome' ping from the server, that sometime
     required for TAP Windows clients.
@@ -15,7 +10,7 @@ smallsrv (3.06.37test2) unstable; urgency=low
     income packets for TAP or send ping if packets with wrong MAC detected
     to fix remote ARP table.
 
- -- Maksim Feoktistov <max@smallsrv.com>  Sun, 06 Jul 2025 10:10:58 +0400
+ -- Maksim Feoktistov <max@smallsrv.com>  Sun, 17 Aug 2025 11:30:27 +0400
 
 smallsrv (3.06.36) unstable; urgency=low
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2020 Maksim Feoktistov.
+ * Copyright (C) 1999-2025 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov
@@ -132,7 +132,9 @@ rs_lang[10], rs_lange[10],
 ru_lang[10], ru_lange[10],
 sw_lang[10], sw_lange[10],
 tu_lang[10], tu_lange[10],
-ua_lang[10], ua_lange[10]
+ua_lang[10], ua_lange[10],
+
+fb_ind_ru[10], fe_ind_ru[10]
 ;
 char *easyfl[]=
 {
@@ -192,6 +194,8 @@ char *easyfl[]=
  "langpacks\\tu\\shs_lang.cfg", tu_lang, tu_lange,
  "langpacks\\ua\\shs_lang.cfg", ua_lang, ua_lange,
 
+  "langpacks\\ru\\desc.htm",fb_ind_ru,fe_ind_ru,
+
 
  0,0,0
 };
@@ -236,6 +240,8 @@ struct LangItem {
   char  *beg;
   char  *end;
   const char **setup_str;
+  char  *subfld;
+ // char  *desc_name;
 };
 
 const char *lang_en[] =
@@ -285,7 +291,7 @@ LangItem languages[] = {
  { "Polish", pl_lang, pl_lange, lang_pl},
  { "Romanian", rm_lang, rm_lange, lang_ro},
  { "Serbian", rs_lang, rs_lange, lang_rs},
- { "Russian", ru_lang, ru_lange, lang_ru},
+ { "Russian", ru_lang, ru_lange, lang_ru, "ru"},
  { "Swedish", sw_lang, sw_lange, lang_sv},
  { "Turkish", tu_lang, tu_lange, lang_tr},
  { "Ukranian", ua_lang, ua_lange, lang_uk},
@@ -428,6 +434,7 @@ char *  cmdInstall="[CreateGroup(\"Small HTTP server\")]\n"
 
 ;
 
+#if 0
 const char *LinkNames[] = {
 
 #ifndef VPNCLIENT_ONLY
@@ -445,6 +452,7 @@ const char *LinkNames[] = {
 "Uninstall",
 0
 };
+#endif
 
 HDDEDATA CALLBACK ProgDdeCallback(
 UINT wType,UINT wFmt,HCONV hConv,HSZ hsz1,HSZ hsz2,HDDEDATA hData,
@@ -571,6 +579,36 @@ int SetDlgItemTextUTF(HWND hwnd, int id, uchar *txt )
   return  SetDlgItemText(hwnd, id, (LPCSTR) txt);
 };
 
+void RemoveAll(char *dir)
+{
+  WIN32_FIND_DATA fd;
+  HANDLE hf;
+  char ptrn[512];
+
+  sprintf(ptrn, "%s\\*", dir);
+
+  if((hf=FindFirstFile(ptrn, &fd) )== INVALID_HANDLE_VALUE)
+  {
+    char t[600];
+
+    sprintf(t, "Can't remove directory %s\n", ptrn);
+    MessageBox(0, t, dir, MB_OK|MB_ICONSTOP);
+    return;
+  }
+
+  do {
+    if(fd.cFileName[0]!='.') {
+      sprintf(ptrn, "%s\\%s", dir, fd.cFileName);
+      DeleteFile(ptrn);
+    }
+
+  } while(FindNextFile(hf,&fd));
+
+  FindClose(hf);
+  RemoveDirectory(dir);
+
+}
+
 void  ProgmanMSG(char *dta)
 {ulong idInst=0;
  HCONV hConv;
@@ -646,6 +684,7 @@ long CALLBACK  dlgFnc(HWND hwnd, UINT msg,UINT wparam, LONG lparam)
 
     if( (m=strrchr(uninst,'\\')))
     {
+#if 0
       const char **lnk;
       for(lnk = LinkNames; *lnk; lnk++ )
       {
@@ -653,11 +692,17 @@ long CALLBACK  dlgFnc(HWND hwnd, UINT msg,UINT wparam, LONG lparam)
         DeleteFile(uninst);
       }
 
-     *m=0;
-     RemoveDirectory(uninst);
+      *m=0;
+       RemoveDirectory(uninst);
+#else
+      *m=0;
+       RemoveAll(uninst);
+#endif
+
     }
 
     if(0){
+      uint lng;
    case 110: // Install
     if(hs)ControlService(hs,SERVICE_CONTROL_STOP,&SerStat);
     GetDlgItemText(hwnd,180,target,256);
@@ -695,16 +740,19 @@ long CALLBACK  dlgFnc(HWND hwnd, UINT msg,UINT wparam, LONG lparam)
        _hwrite(i,t[1],l);
        _lclose(i);
      }
-     xx = SendDlgItemMessage(mwnd, 183, CB_GETCURSEL, 0, 0);
-     if( xx != CB_ERR &&  (uint)xx < ARRAY_SIZE(languages) && xx>1 && languages[xx].name)
+     lng = SendDlgItemMessage(mwnd, 183, CB_GETCURSEL, 0, 0);
+     if( lng != CB_ERR &&  (uint)lng < ARRAY_SIZE(languages) && lng>1 && languages[lng].name)
      {
        i =_lcreat("shs_lang.cfg", 0);
        if(i>0) {
-         l = languages[xx].end - languages[xx].beg;
-         _hwrite(i, languages[xx].beg, l);
+         l = languages[lng].end - languages[lng].beg;
+         _hwrite(i, languages[lng].beg, l);
          _lclose(i);
        }
+
      }
+     else
+       lng = 0;
 
 #ifdef SERVICE
 
@@ -718,12 +766,21 @@ long CALLBACK  dlgFnc(HWND hwnd, UINT msg,UINT wparam, LONG lparam)
 #endif //SERVICE
 
      if(IsDChk(hwnd,147)&1)
-     {HGLOBAL hgl=GlobalAlloc(GMEM_DDESHARE,1024);
-      m=(char *)GlobalLock(hgl);
-      sprintf(m,cmdInstall,target,target,target,target,target,target,target,target);
-      ProgmanMSG(m);
-      GlobalUnlock(hgl);
-      GlobalFree(hgl);
+     {
+       int ll;
+       HGLOBAL hgl=GlobalAlloc(GMEM_DDESHARE,1024);
+       m=(char *)GlobalLock(hgl);
+       ll = sprintf(m,cmdInstall,target,target,target,target,target,target,target,target);
+       if(lng && languages[lng].subfld)
+       {
+         DBG("ru")
+         sprintf(m + ll, "\n[AddItem(\"%s\\langpacks\\%s\\desc.htm\",\"Description (%s)\")]",
+           target, languages[lng].subfld, languages[lng].subfld);
+       }
+       DBG("cmd: %s\r\n", m)
+       ProgmanMSG(m);
+       GlobalUnlock(hgl);
+       GlobalFree(hgl);
      }
 
      if(startup)
@@ -847,7 +904,7 @@ int InitApplication()
     }
     dlg1[9].Style&=~WS_DISABLED;
    }
-   else MessageBox(0,"Can't open SCM","Error",MB_OK);
+   else MessageBox(0,"Can't open SCM. To install the server as a service, run as Administrator","Error",MB_OK);
 #endif
 #ifndef RICON
    memcpy(ticon,icn2,132);

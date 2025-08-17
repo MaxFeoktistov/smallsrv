@@ -22,7 +22,7 @@
 #
 #
 
-VERSION=3.06.37test4
+VERSION=3.06.37
 
 prefix ?=/usr/local/
 CONFIG_BASE   ?= $(prefix:%/=%)/
@@ -57,7 +57,6 @@ OPTCVPN= -pipe  \
   -fno-stack-protector -fno-stack-check -fno-verbose-asm -fno-nonansi-builtins -fno-access-control  -fno-optional-diags -momit-leaf-frame-pointer\
  -DUSE_IPV6 -DUSE_FUTEX -DUSE_POOL -fno-exceptions  -Wno-deprecated -Wno-address-of-packed-member -fno-bounds-check -fno-tree-bit-ccp -fno-builtin -mno-red-zone -DFREEVER  -DWITHMD5 -DFIX_EXCEPT -DPF_LONG_LONG \
   -DUSEVALIST $(ADVOPT) -DVPN_LINUX -DTLSVPN -DUSE_SYSPASS -DSHS_VERSION=$(VERSION)
-
 
 OPTTLS= $(OPT) -DTLSWODLL
 
@@ -179,7 +178,6 @@ GENERATED=S2_lf.hh lS2_lf.cfg g4strc.h S3_lf.hh lS3_lf.cfg g4strcwm.h
 OOBJS_TLS=$(COBJS) $(addprefix o/tls_,$(POBJS))
 
 OOBJS64_TLS=$(COBJS64) $(addprefix o64/tls_,$(AOBJS64))
-
 
 #FLIBS=libc.so libdl.so libpthread.so libgnutls.so libssl.so
 FLIBS ?= libc.so libpthread.so libdl.so libgnutls.so libssl.so libcrypto.so libgnutls.so.30
@@ -505,17 +503,17 @@ wo/shttps_mg.exe: wo/stpdta.o wo/sethttp3.o wo/mstring1.o wo/updr.res
 	$(WINEGCC)  -s -Os $^ -o $@  -L$(MGDIR)\\lib -luser32 -lkernel32 -lgdi32 -lcomdlg32 -ladvapi32 -lshell32 -Wl,--subsystem,windows -nostartfiles  -Xlinker -Map -Xlinker wo/flxmaps  -Xlinker --entry=_start  -nostartfiles -nodefaultlibs -Xlinker -Map -Xlinker wo/flxmap  -Xlinker --entry=_start    -fno-optional-diags -momit-leaf-frame-pointer  -mno-red-zone -fno-exceptions  -fno-stack-protector -fno-ms-extensions -no-pie -fno-stack-check -mno-stack-arg-probe
 	upx -9 $@
 
-wo/shttpsr_mg.exe: wo/stpdtar.o wo/sethttp3r.o wo/mstring1.o wo/updr.res
-	$(WINEGCC)  -s -Os $^ -o $@  -L$(MGDIR)\\lib -luser32 -lkernel32 -lgdi32 -lcomdlg32 -ladvapi32 -lshell32 -Wl,--subsystem,windows -nostartfiles  -Xlinker -Map -Xlinker wo/flxmaps  -Xlinker --entry=_start  -nostartfiles -nodefaultlibs -Xlinker -Map -Xlinker wo/flxmap  -Xlinker --entry=_start    -fno-optional-diags -momit-leaf-frame-pointer  -mno-red-zone -fno-exceptions  -fno-stack-protector -fno-ms-extensions -no-pie -fno-stack-check -mno-stack-arg-probe
-	upx -9 $@
+# wo/shttpsr_mg.exe: wo/stpdtar.o wo/sethttp3r.o wo/mstring1.o wo/updr.res
+# 	$(WINEGCC)  -s -Os $^ -o $@  -L$(MGDIR)\\lib -luser32 -lkernel32 -lgdi32 -lcomdlg32 -ladvapi32 -lshell32 -Wl,--subsystem,windows -nostartfiles  -Xlinker -Map -Xlinker wo/flxmaps  -Xlinker --entry=_start  -nostartfiles -nodefaultlibs -Xlinker -Map -Xlinker wo/flxmap  -Xlinker --entry=_start    -fno-optional-diags -momit-leaf-frame-pointer  -mno-red-zone -fno-exceptions  -fno-stack-protector -fno-ms-extensions -no-pie -fno-stack-check -mno-stack-arg-probe
+# 	upx -9 $@
 
 wo/shttps_mgi.exe: wo/stpdtai.o wo/sethttp3i.o wo/mstring1.o wo/updr.res
 	$(WINEGCC)  -s -Os $^ -o $@  -L$(MGDIR)\\lib -luser32 -lkernel32 -lgdi32 -lcomdlg32 -ladvapi32 -lshell32 -Wl,--subsystem,windows -nostartfiles  -Xlinker -Map -Xlinker wo/flxmaps  -Xlinker --entry=_start  -nostartfiles -nodefaultlibs -Xlinker -Map -Xlinker wo/flxmap  -Xlinker --entry=_start    -fno-optional-diags -momit-leaf-frame-pointer  -mno-red-zone -fno-exceptions  -fno-stack-protector -fno-ms-extensions -no-pie -fno-stack-check -mno-stack-arg-probe
 	upx -9 $@
 
-wo/shttpsr_mgi.exe: wo/stpdtari.o wo/sethttp3ri.o wo/mstring1.o wo/updr.res
-	$(WINEGCC)  -s -Os $^ -o $@  -L$(MGDIR)\\lib -luser32 -lkernel32 -lgdi32 -lcomdlg32 -ladvapi32 -lshell32 -Wl,--subsystem,windows -nostartfiles  -Xlinker -Map -Xlinker wo/flxmaps  -Xlinker --entry=_start  -nostartfiles -nodefaultlibs -Xlinker -Map -Xlinker wo/flxmap  -Xlinker --entry=_start    -fno-optional-diags -momit-leaf-frame-pointer  -mno-red-zone -fno-exceptions  -fno-stack-protector -fno-ms-extensions -no-pie -fno-stack-check -mno-stack-arg-probe
-	upx -9 $@
+# wo/shttpsr_mgi.exe: wo/stpdtari.o wo/sethttp3ri.o wo/mstring1.o wo/updr.res
+# 	$(WINEGCC)  -s -Os $^ -o $@  -L$(MGDIR)\\lib -luser32 -lkernel32 -lgdi32 -lcomdlg32 -ladvapi32 -lshell32 -Wl,--subsystem,windows -nostartfiles  -Xlinker -Map -Xlinker wo/flxmaps  -Xlinker --entry=_start  -nostartfiles -nodefaultlibs -Xlinker -Map -Xlinker wo/flxmap  -Xlinker --entry=_start    -fno-optional-diags -momit-leaf-frame-pointer  -mno-red-zone -fno-exceptions  -fno-stack-protector -fno-ms-extensions -no-pie -fno-stack-check -mno-stack-arg-probe
+# 	upx -9 $@
 
 wo/shvpnclient.exe: wo/stpdta_vpn.o wo/vpnclient/sethttp3.o wo/mstring1.o wo/updr.res
 	$(WINEGCC)  -s -Os $^ -o $@  -L$(MGDIR)\\lib -luser32 -lkernel32 -lgdi32 -lcomdlg32 -ladvapi32 -lshell32 -Wl,--subsystem,windows -nostartfiles  -Xlinker -Map -Xlinker wo/flxmaps  -Xlinker --entry=_start  -nostartfiles -nodefaultlibs -Xlinker -Map -Xlinker wo/flxmap  -Xlinker --entry=_start    -fno-optional-diags -momit-leaf-frame-pointer  -mno-red-zone -fno-exceptions  -fno-stack-protector -fno-ms-extensions -no-pie -fno-stack-check -mno-stack-arg-probe
@@ -828,8 +826,6 @@ oo/dist/% : oo/%
 # 	mkdir -p $@
 
 
-%/langpacks/en:
-	mkdir -p $@
 define inst_lang
 $(2)/langpacks/$(1):
 	echo $(2)/langpacks/$(1)
@@ -1275,7 +1271,7 @@ bvprintfv.cpp cstat.cpp get4def.pl ico.h mrc.cpp onelog.cpp regular.h S5_lf.hh s
  c4char.pl descr.htm gz.cpp lang_notes.txt makefile.in mstring1.cpp pklz.cpp restart.cpp srv.h strcwmr.h vpn.cpp vpn.h tools.cpp mkfakelib_cros.pl sndmsg.cpp \
  icfg_vpnclient.cpp reqfunc.cpp slloop_vpnclient.cpp srv0a_vpnclient.cpp srvdat_vpnclient.cpp  srvmd5.cpp \
  httpd.exe.1 sndmsg.1 shs_vpnclient.1 sndmsg_usage.1.in httpd_usage.1.in shs_vpnclient_usage.1.in def4str2.pl httpd.cfg vpnclient.cfg \
- openssl_sert_templ gnutls_sert_templ stpdta_vpn.s
+ openssl_sert_templ gnutls_sert_templ stpdta_vpn.s sethttp_lang.h
 
 WSRC = $(addprefix winclude/,winsock_IPv6.h zconf.h zlib.h tap-windows.h nethdr.h)
 LSRC = $(SRC_LANG_FILES)
@@ -1293,7 +1289,7 @@ VPNSRC := $(subst .o,.cpp, $(CVPNCLOBJ) $(VVPNCLOBJ) $(CCOBJS)) fwnd.cpp mstring
  dhhosts.h g4s1.hh  lS2_lf.cfg  ndpdbg.s README.md   stpdtamg.s t3_g4strc.h bin2s.cpp g4strc.h lS3_lf.cfg  realloc.s S1_lf.hh \
  g4strcwm.h lS5_lf.cfg ndp.s S2_lf.hh stpdtar.s tlsdll.h bvprintf.h g4strhtm.hh ico2.h mlist.h nommc_dlfcn.h S3_lf.hh \
  ico.h regular.h S5_lf.hh _strc.h  getstr mrc.h pe_m.h strc.h to_linux.h desc.htm fcgi.h isapi.h ress1.s strcwm.h to_win.h \
- descr.htm srv.h strcwmr.h vpn.h shs_vpnclient.1  openssl_sert_templ gnutls_sert_templ stpdta_vpn.s makefile.in
+ descr.htm srv.h strcwmr.h vpn.h shs_vpnclient.1  openssl_sert_templ gnutls_sert_templ stpdta_vpn.s makefile.in sethttp_lang.h
 vpncsrc_name=o/shs-vpnclient-$(VERSION).tar.gz
 vpncsrc_dir=shs-vpnclient-$(VERSION)
 
