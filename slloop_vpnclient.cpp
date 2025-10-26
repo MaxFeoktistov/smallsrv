@@ -246,7 +246,8 @@ fd_set er_set;
 
 #ifdef SEPLOG
  gLog.Init(0);//"");
- PreInitSepLog();
+ //PreInitSepLog(sepLog[0]);
+ sepLog[0] = &gLog;
 #endif
 
  if(argc>1 )

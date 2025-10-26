@@ -623,7 +623,7 @@ if(0){
           {
             hh[i]=0;
             if(i==6 || i==8 || j==5) continue;
-            if((i) && sepLog[i] == &gLog )   continue;
+            if((i) && sepLog[i] == sepLog[0] )   continue;
             if( j!=255 && j )
             {
                l= isCountAr[i]>>4;
@@ -643,7 +643,7 @@ if(0){
       }
       else
       {
-         gLog.MkFileName(b,k);
+         sepLog[0]->MkFileName(b,k);
          memset(hh,0,sizeof(hh));
          l=0;
          MyLock(mutex_pcnt);
@@ -744,7 +744,7 @@ if(0){
        for(i=0;i<10;i++)
        {
          if(i==6 || i==8) continue;
-         if((!i) || sepLog[i] !=&gLog )
+         if((!i) || sepLog[i] !=sepLog[0] )
          {
             memcpy(u+i2,sepLog[i]->lb_prot,l=sepLog[i]->lpprot-sepLog[i]->lb_prot);
             i2+=l;
@@ -777,8 +777,8 @@ if(0){
 #endif
    case 0x6C676F6C x4CHAR("logl") :
 #ifdef SEPLOG
-    b_prot=gLog.lb_prot;
-    pprot=gLog.lpprot;
+    b_prot=sepLog[0]->lb_prot;
+    pprot=sepLog[0]->lpprot;
     if( FL2_SEPARATELOG & s_flgs[2]     )
     {
       j=0;
@@ -795,7 +795,7 @@ if(0){
 
       bfl.bprintf( "<h2>%s</h2><table border=0 width=100%%><tr align=center><td><a href=\"?t=0\">General</a></td>" LF, u );
       for(j=1; j < N_LOG; j++)
-        if(sepLog[j]!=&gLog)
+        if(sepLog[j]!=sepLog[0])
         {
             u=SrvNameSufix[j];
             if(*u != '.')continue;

@@ -120,7 +120,13 @@ CfgParam ConfigParams[]={
 {"limitlog",0,4096,(uint *)&trim_log_lines, CXS(S1t2T_4078374, "Limit the length of the log lines. The length of each line should not exceed this value"  )},
 #ifdef SEPLOG
 {"seplog",2,FL2_SEPARATELOG,(uint *)0, CXS(S1t2T_2946294, "Separate log for each server")},
-#endif
+{"shmlog",3,FL3_SHMLOG,(uint *)0, CXS(S1T_20249992, "Use shared memory for additional management and logging.")},
+#ifdef SYSUNIX
+{"shmkey",0,0xFFFFFFE,(uint *)&shmkey, CXS(S1T_9774568, "Shared memory identifier (key).")},
+#else
+{"shmkey",64,0,(uint *)&shmkey, CXS(S1T_9774568, "Shared memory identifier (key).")},
+#endif // SYSUNIX
+#endif // SEPLOG
 
 {"dbgle",2,FL2_DEBUG_RE,(uint *)0, CXS(S1t2T_2189963, "Add to log debug info from logical expresion in SSI and Antivirus/Forward files" )},
 #endif

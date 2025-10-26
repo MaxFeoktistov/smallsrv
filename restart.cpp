@@ -618,9 +618,9 @@ int InitApplication()
 #endif // SYSUNIX
 
 #ifdef SEPLOG
-#define  pprot  gLog.lpprot
-#define  GetProt() gLog.GetProt()
-#define  RelProt() gLog.RelProt()
+#define  pprot  sepLog[0]->lpprot
+#define  GetProt() sepLog[0]->GetProt()
+#define  RelProt() sepLog[0]->RelProt()
   InitSepLog();
 #endif
 

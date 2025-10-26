@@ -543,6 +543,8 @@ int FndLimit(int lst,LimitBase **ip, LimitBase **net, sockaddr_in *sa );
 #define FL3_VPNSR_FIXIP     0x00400000
 #define FL3_VPN_UPDMAC      0x00800000
 
+#define FL3_SHMLOG          0x01000000
+
 #define USE_TUN       (s_flgs[3] & FL3_VPN_TUN)
 #define USE_TAP       (s_flgs[3] & FL3_VPN_TAP)
 #define TAP_CLIENT    (s_flgs[3] & FL3_TAP_CLIENT)
@@ -1192,7 +1194,8 @@ extern const int ChunkedHeadSize;
 
 struct TLog
 {
-  const char *suffix;
+  //const char *suffix;
+  int  idx;
   char *lpprot,*lf_prot,*loldprot;
   int  lpcnt;
   int  msk,llastday;
@@ -1207,11 +1210,12 @@ struct TLog
   void Init(int n);
   //{lpprot=lf_prot=lb_prot; suffix=s ;  lb_prot[0]=0; lpcnt=0; msk=1<<n;};
   void GetProt();
-void ShowProt();
-void Ldebug(const char *a,...);
-void Lvdebug(const char *a,  mva_list v);
-
-
+  void ShowProt();
+  void Ldebug(const char *a,...);
+  void Lvdebug(const char *a,  mva_list v);
+  void FixPtr(char *old_base, int n);
+  int  Save(SYSTEMTIME *stime);
+  int  Save();
 };
 
 extern TLog gLog;
@@ -1236,13 +1240,56 @@ extern TLog gLog;
 extern TLog *sepLog[N_LOG];
 extern TLog  *shown_log;
 
+struct SHMdata {
+  u32  size;
+  u32  vers;  // Version of this header << 24 | Server version code
+  u32  n_log;
+  volatile int lock;
+  u32  status;
+#define SHMST_START      0
+#define SHMST_RUN        1
+#define SHMST_WAIT_EXIT  2
+#define SHMST_EXIT       4
+#define SHMST_VPNCL      8
+#define SHMST_REMOVED    0x10
+#define SHMST_DONT_RM    0x20
+  u64  pid;
+  u32  cmd;
+#define  CMD_EXIT         1
+#define  CMD_SAVELOG      2
+#define  CMD_START_VPNCL  3
+#define  CMD_STOP_VPNCL   4
+#define  CMD_SEND_MAIL    5
+#define  CMD_LOAD_DOMENS  6
+  u32  reply;
+#define  REPLY_DONE       1
+#define  REPLY_INPROGRESS 2
+#define  REPLY_FAIL       3
+#define  REPLY_UNKNOWN_CMD 4
+ // int    in_use;
+
+  SHMdata *master_ptr;
+  TLog sepLog[0];
+};
+
+extern SHMdata *shm;
+#ifdef SYSUNIX
+extern int shm_id;
+extern int shmkey;
+#else
+extern char *shmkey;
+extern HANDLE hMapFile;
+#endif
+void  DoneShm();
+
 extern int oldchecked,mutex_pcnt;
 extern uint logsigmsk;
 
 void InitSepLog();
-void PreInitSepLog();
+void PreInitSepLog(TLog *);
 void DoneSepLog();
 void UDoneSepLog();
+void SaveAllLog();
 extern "C" void edebug(const char *a,...);
 extern "C" void tlsdebug(const char *a,...);
 
@@ -1253,9 +1300,9 @@ TLog *GetLogR(Req *r,int def=0);
 //inline TLog *GetLogN(int n){ return sepLog[n];  };
 
 
-#define debug(a...)  gLog.Ldebug(a)
-#define AddToLog(a...)  gLog.LAddToLog(a)
-#define AddToLogDNS(a...)  gLog.LAddToLogDNS(a)
+#define debug(a...)  sepLog[0]->Ldebug(a)
+#define AddToLog(a...)  sepLog[0]->LAddToLog(a)
+#define AddToLogDNS(a...)  sepLog[0]->LAddToLogDNS(a)
 extern char *b_prot,*pprot;
 extern char *SrvNameSufix[];
 #undef dbg

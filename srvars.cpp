@@ -364,6 +364,18 @@ char *pprot;
 uint logsigmsk;
 int mutex_pcnt;
 
+
+SHMdata *shm;
+#ifdef SYSUNIX
+int shm_id;
+int shmkey = 0x545F597;
+#else
+char *shmkey="SHSrv";
+HANDLE hMapFile;
+#endif
+
+
+
 #else
 char b_prot[LOG_SIZE+0x1280];
 char *pprot=b_prot,*f_prot=b_prot;

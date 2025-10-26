@@ -627,6 +627,8 @@ extern "C" int RMain(void *)
 // };
 #ifdef SEPLOG
  gLog.Init(0); //"");
+ //PreInitSepLog(&gLog);
+ sepLog[0] = &gLog;
 #endif
  if(strstr(cmdline," --v") )
  {

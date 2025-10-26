@@ -47,6 +47,48 @@ void  SignalUSR(int)
  signal(SIGUSR1,SignalUSR);
 }
 
+#ifdef SEPLOG
+void  SignalUSR2(int)
+{
+  if(shm)
+  {
+    shm->reply = REPLY_INPROGRESS;
+    switch(shm->cmd) {
+      case CMD_EXIT:
+        is_no_exit = 0;
+        break;
+      case CMD_SAVELOG:
+        SaveAllLog();
+        shm->reply = REPLY_DONE;
+        break;
+      case CMD_START_VPNCL:
+        is_no_exit = 3;
+        shm->reply = REPLY_DONE;
+        break;
+      case CMD_STOP_VPNCL :
+        is_no_exit = 3;
+        shm->reply = REPLY_DONE;
+        break;
+      case CMD_SEND_MAIL  :
+        SMTPCounter=0x7FF;
+        shm->reply = REPLY_DONE;
+        break;
+      case  CMD_LOAD_DOMENS:
+        LoadDomainM();
+        break;
+      default:
+        shm->reply = REPLY_UNKNOWN_CMD;
+    }
+    shm->cmd = 0;
+#ifdef USE_FUTEX
+    futex((int *)&shm->reply,FUTEX_WAKE,1,0,0,0);
+#endif
+
+  }
+  signal(SIGUSR2,SignalUSR2);
+}
+
+#endif
 
 void signalHUP(int )
 {
@@ -283,6 +325,8 @@ fd_set er_set;
  __argv=argv;
 #ifdef SEPLOG
  gLog.Init(0);//"");
+ //PreInitSepLog(&gLog);
+ sepLog[0] = &gLog;
 #endif
 
 #ifdef FIX_EXCEPT
@@ -439,6 +483,9 @@ fd_set er_set;
  signal(SIGABRT  ,SignalHandler);
  //signal(SIGSEGV,  ErrHandler);
  signal(SIGUSR1  ,SignalUSR);
+#ifdef SEPLOG
+ signal(SIGUSR2  ,SignalUSR2);
+#endif
  signal(SIGHUP, signalHUP);
  signal(SIGPIPE  ,SIG_IGN);
 // signal(SIGCHILD  ,SignalChild);
