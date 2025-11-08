@@ -25,7 +25,6 @@
 #ifdef SYSUNIX
 #include <sys/ipc.h>
 #include <sys/shm.h>
-#else
 #endif
 
 #define pprot  lpprot

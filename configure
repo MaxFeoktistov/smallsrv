@@ -816,7 +816,7 @@ N_DEP := $(N_FAKELIBS)
     }
     if($only_vpnc == 1)
     {
-      while(s/^([a-z_0-9]+):(.*) [^\/]+\/(httpd|sndmsg)([^ ]*)/$1:$2 /g)
+      while(s/^([a-z_0-9]+):(.*) [^\/]+\/(httpd|sndmsg|shs_ctl)([^ ]*)/$1:$2 /g)
       {
         ;
       }

@@ -799,40 +799,42 @@ long CALLBACK  dlgFnc(HWND hwnd, UINT msg,UINT wparam, LONG lparam)
 
 
 #ifdef SERVICE
-if(sch)
-{
- if(xx)
- {
-  strcat(target,"\\" MAIN_APP_NAME ".exe service");
+  if(sch)
+  {
+    if(xx)
+    {
+      char service_target[512];
+      sprintf(service_target, "\"%.480s\\" MAIN_APP_NAME ".exe\" service", target);
+      //strcat(target,"\\" MAIN_APP_NAME ".exe service");
 
-  if(!hs)
-  {
-    if(!(hs=CreateService(sch, SERVICE_NAME, DISPLAY_NAME,SERVICE_ALL_ACCESS,
-   SERVICE_WIN32_OWN_PROCESS /*_SHARE_PROCESS  */ |SERVICE_INTERACTIVE_PROCESS,
-   SERVICE_AUTO_START,SERVICE_ERROR_NORMAL,target,0,0,0,0,0)))
-   {
-lbsrverr:
-    sprintf(uninst,
-#ifdef RUS
-    "Невозможно установиться как NT служба %X %X %d"
-#else
-     "Can't setup server as service %X %X %d"
-#endif
-    ,sch,hs,GetLastError());
-    MessageBox(0,uninst,"Error",MB_OK);
-   }
+      if(!hs)
+      {
+        if(!(hs=CreateService(sch, SERVICE_NAME, DISPLAY_NAME,SERVICE_ALL_ACCESS,
+          SERVICE_WIN32_OWN_PROCESS /*_SHARE_PROCESS  */ |SERVICE_INTERACTIVE_PROCESS,
+          SERVICE_AUTO_START,SERVICE_ERROR_NORMAL,service_target,0,0,0,0,0)))
+        {
+          lbsrverr:
+          sprintf(uninst,
+                  #ifdef RUS
+                  "Невозможно установиться как NT служба %X %X %d"
+                  #else
+                  "Can't setup server as service %X %X %d"
+                  #endif
+                  ,sch,hs,GetLastError());
+          MessageBox(0,uninst,"Error",MB_OK);
+        }
+      }
+      else if(Service.lpBinaryPathName && !strstr(service_target,Service.lpBinaryPathName))
+      {
+        if( !ChangeServiceConfig(hs,SERVICE_WIN32_OWN_PROCESS|SERVICE_INTERACTIVE_PROCESS,
+          SERVICE_AUTO_START,SERVICE_ERROR_NORMAL,service_target,0,0,0,0,0,0)
+        )goto lbsrverr;
+        //   goto lsecset;
+      }
+      //  else goto lsecset;
+    }
+    else if(hs)DeleteService(hs);
   }
-  else if(Service.lpBinaryPathName && !strstr(target,Service.lpBinaryPathName))
-  {
-   if( !ChangeServiceConfig(hs,SERVICE_WIN32_OWN_PROCESS|SERVICE_INTERACTIVE_PROCESS,
-    SERVICE_AUTO_START,SERVICE_ERROR_NORMAL,target,0,0,0,0,0,0)
-   )goto lbsrverr;
-//   goto lsecset;
-  }
-//  else goto lsecset;
- }
- else if(hs)DeleteService(hs);
-}
 #endif
 
     _lclose(i);

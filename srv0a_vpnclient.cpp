@@ -309,11 +309,11 @@ char *TrimLogLines(char *s)
 }
 
 
-#ifdef  SEPLOG
-#include "seplog.cpp"
-#else
+// #ifdef  SEPLOG
+// #include "seplog.cpp"
+// #else
 #include "onelog.cpp"
-#endif
+//#endif
 
 #ifdef SERVICE
 void CloseService()

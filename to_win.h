@@ -219,7 +219,7 @@ extern HICON  hicon;
 
 #define FORLINUX
 #define S_ADDR S_un.S_addr
-int utf2unicode(uchar *s,ushort *cm);
+
 uchar *   unicode2utf(uchar *utf8_buf,ushort *ucs4_buf, int l);
 
 

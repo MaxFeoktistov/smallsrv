@@ -1,9 +1,9 @@
-shs-vpnclient (3.06.38test1) unstable; urgency=low
+shs-vpnclient (3.06.38) unstable; urgency=low
 
   * Added the ability to use shared memory for additional management
     and logging.
 
- -- Maksim Feoktistov <max@smallsrv.com>  Sun, 26 Oct 2025 22:44:54 +0400
+ -- Maksim Feoktistov <max@smallsrv.com>  Sat, 08 Nov 2025 13:11:42 +0400
 
 shs-vpnclient (3.06.37) unstable; urgency=low
 

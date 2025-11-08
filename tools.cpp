@@ -480,3 +480,79 @@ uint GetIPv4(sockaddr_in* xsa)
    return xsa->sin_addr.s_addr;
 #endif
 }
+
+int utf2unicode(uchar *s,ushort *cm)
+{
+  int r=0;
+  uint a,b,c,d;
+  do
+  {
+    a=*s++;
+    if(a<0x80)
+    {
+      d=a;
+    }
+    else if(a>=0xC0 && a <=0xDF)
+    {
+      b=*s++;
+      if( b<0x80 || b>0xbf )
+      {
+        return -1;
+      }
+      d=((a&0x1F)<<6)|(b&0x3F);
+      r++;
+    }
+    else if(a>=0xE0 && a <=0xEF)
+    {
+      b=*s++;
+      c=*s++;
+      if( b<0x80 || b>0xbf || c<0x80 || c>0xbf )
+      {
+        return -1;
+      }
+      d=((a&0xF)<<12)|((b&0x3F)<<6)|(c&0x3F);
+      r++;
+    }
+    else if(a>=0xF0 && a <=0xF5)
+    {
+      b=*s++;
+      c=*s++;
+      d=*s++;
+      if( b<0x80 || b>0xbf || c<0x80 || c>0xbf || d<0x80 || d>0xbf )
+      {
+        return -1;
+      }
+      d=((a&0xF)<<18)|((b&0x3F)<<12)|((c&0x3F)<<6)|(d&0x3F);
+      r++;
+    }
+    else return -1;
+    #define UNI_SUR_HIGH_START  0xD800
+    #define UNI_SUR_HIGH_END    0xDBFF
+    #define UNI_SUR_LOW_START   0xDC00
+    #define UNI_SUR_LOW_END     0xDFFF
+    if(d<0xFFFE)
+    {
+      if(d >= UNI_SUR_HIGH_START && d < UNI_SUR_LOW_END)
+      {
+        return -2;
+      }
+      else {
+        if(d < 0x80)
+          return -3;
+        if(cm)
+          *cm++ = d;
+      }
+    }
+    else
+    {
+      if(cm) {
+        *cm++=(d>>10)  + UNI_SUR_HIGH_START ;
+        *cm++=(d&0x3FF)  + UNI_SUR_LOW_START ;
+      }
+    }
+
+  }while( a );
+
+  return r;
+};
+

@@ -37,6 +37,10 @@
 
 #endif
 
+#ifdef VPNCLIENT_ONLY
+#undef SEPLOG
+#endif
+
 #define NEWSTRUCT 1
 
 void dbgf(char *er,int s);
@@ -1007,6 +1011,7 @@ char* StrVar(char *p,char *n);
 char* Encode64(char *t,char *s,int cnt);
 char* Decode64(char *t, char *s, int max_size);
 int split(char *src, char *separators, char **result, int max_result);
+int utf2unicode(uchar *s,ushort *cm);
 
 //#define HTML_LN "\n"
 #define HTML_LN

@@ -125,6 +125,10 @@ char* CheckBadName(char *in_buf)
   // if(s_flgs[2]&FL2_UTF) if( (t=ConvertUtf( in_buf,wbuf ) ) ) p=t;
   #endif
   pp=in_buf;
+
+  if (utf2unicode((uchar *) pp, 0) < 0)
+    return 0;
+
   while((pp=strstr(pp,"..")))
   {
     if(! (s_flgs[1]&FL1_2P) )return 0;
