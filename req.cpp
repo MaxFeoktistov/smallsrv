@@ -112,6 +112,7 @@ char* ConvertUtf(char *s,ushort *w)
 char* CheckBadName(char *in_buf)
 {char *t,*p,*pp;
   int ii;
+  DBGLA("%s", in_buf)
   for(p=t=in_buf; *t; ++t,++p)
     if(*t=='/')
     {
@@ -125,12 +126,18 @@ char* CheckBadName(char *in_buf)
   // if(s_flgs[2]&FL2_UTF) if( (t=ConvertUtf( in_buf,wbuf ) ) ) p=t;
   #endif
   pp=in_buf;
+  DBGLA("%s", pp)
 
-  if (utf2unicode((uchar *) pp, 0) < 0)
+  if (utf2unicode((uchar *) pp, 0) < 0) {
+
+    DBGLA("Bad utf8 %s", pp)
+
     return 0;
+  }
 
   while((pp=strstr(pp,"..")))
   {
+    DBGLA("%s %X", pp, s_flgs[1]&FL1_2P);
     if(! (s_flgs[1]&FL1_2P) )return 0;
     if( pp[-1]<0x20 || strchr(bbch,pp[-1]) || pp[2]<0x20 || strchr(bbch,pp[2]))return 0;
     ++pp;

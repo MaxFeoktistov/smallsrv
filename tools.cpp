@@ -490,9 +490,10 @@ int utf2unicode(uchar *s,ushort *cm)
     a=*s++;
     if(a<0x80)
     {
-      d=a;
+      d = a;
+      b = 0;
     }
-    else if(a>=0xC0 && a <=0xDF)
+    else if(a>=0xC0 && a <= 0xDF)
     {
       b=*s++;
       if( b<0x80 || b>0xbf )
@@ -537,7 +538,7 @@ int utf2unicode(uchar *s,ushort *cm)
         return -2;
       }
       else {
-        if(d < 0x80)
+        if(d < 0x80 && b)
           return -3;
         if(cm)
           *cm++ = d;

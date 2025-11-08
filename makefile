@@ -22,8 +22,8 @@
 #
 #
 
-VERSION=3.06.38
-VERSIONT=3.06.38
+VERSION=3.06.38a
+VERSIONT=3.06.38a
 VERSION_CODE=0x30638
 BUDIR=../site/30638/
 
@@ -952,6 +952,12 @@ sinst: o/dist/httpd.exe $(DIST_DIR)shttplnx.$(TAR_EXT) $(DIST_DIR)shttplnxu.$(TA
 	for i in wo/shttps_mg.exe wo/shvpnclient.exe $(DIST_DIR)*.$(TAR_EXT) o/smallsrv_$(VERSION)_amd64.deb o/smallsrv-$(VERSION).tar.gz $(IWDIST)  o/shs-vpnclient_$(VERSION)_amd64.deb ; do echo $$i ; cp $$i /mnt/d/var/www/pre/ ; cp $$i $(BUDIR) ; done
 	if [ "$(VERSION)" != "$(VERSIONT)" ] ; then ln -sf smallsrv_$(VERSION)_amd64.deb /mnt/d/var/www/pre/smallsrv_$(VERSIONT)_amd64.deb ; ln -sf shs-vpnclient_$(VERSION)_amd64.deb /mnt/d/var/www/pre/shs-vpnclient_$(VERSIONT)_amd64.deb ; fi
 
+sinstvpn:
+	chmod 0666 wo/shttps*.exe wo/shvpnclient.exe
+	mkdir -p $(BUDIR)
+	for i in  wo/shvpnclient.exe o/smallsrv-$(VERSION).tar.gz o/shs-vpnclient_$(VERSION)_amd64.deb ; do echo $$i ; cp $$i /mnt/d/var/www/pre/ ; cp $$i $(BUDIR) ; done
+	if [ "$(VERSION)" != "$(VERSIONT)" ] ; then ln -sf smallsrv_$(VERSION)_amd64.deb /mnt/d/var/www/pre/smallsrv_$(VERSIONT)_amd64.deb ; ln -sf shs-vpnclient_$(VERSION)_amd64.deb /mnt/d/var/www/pre/shs-vpnclient_$(VERSIONT)_amd64.deb ; fi
+
 # 	for i in wo/shttps_mg.exe wo/shttpsr_mg.exe $(DIST_DIR)shttplnx.tgz $(DIST_DIR)shttplnxu.tgz $(DIST_DIR)shttparmlnx.tgz $(DIST_DIR)shttplnx64.tgz $(DIST_DIR)shttplnx64u.tgz ; do cp $$i /mnt/d/var/www/pre/ ; done
 
 # 	mv /mnt/d/shttps/httpd.exe /mnt/d/shttps/oldhttpd_$(shell date "+%F_%R").exe
@@ -1469,7 +1475,7 @@ VPNSRC := $(subst .o,.cpp, $(CVPNCLOBJ) $(VVPNCLOBJ) $(CCOBJS)) fwnd.cpp mstring
  dhhosts.h g4s1.hh  lS2_lf.cfg  ndpdbg.s README.md   stpdtamg.s t3_g4strc.h bin2s.cpp g4strc.h lS3_lf.cfg  realloc.s S1_lf.hh \
  g4strcwm.h lS5_lf.cfg ndp.s S2_lf.hh stpdtar.s tlsdll.h bvprintf.h g4strhtm.hh ico2.h mlist.h nommc_dlfcn.h S3_lf.hh \
  ico.h regular.h S5_lf.hh _strc.h  getstr mrc.h pe_m.h strc.h to_linux.h desc.htm fcgi.h isapi.h ress1.s strcwm.h to_win.h \
- descr.htm srv.h strcwmr.h vpn.h shs_vpnclient.1  openssl_sert_templ gnutls_sert_templ stpdta_vpn.s makefile.in sethttp_lang.h
+ descr.htm srv.h strcwmr.h vpn.h shs_vpnclient.1  openssl_sert_templ gnutls_sert_templ stpdta_vpn.s makefile.in sethttp_lang.h def4str.pl
 vpncsrc_name=o/shs-vpnclient-$(VERSION).tar.gz
 vpncsrc_dir=shs-vpnclient-$(VERSION)
 

@@ -22,7 +22,7 @@
 #
 #
 
-VERSION=3.06.38
+VERSION=3.06.38a
 VERSION_CODE=0x30638
 
 prefix ?=/usr/local/

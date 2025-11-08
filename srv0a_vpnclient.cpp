@@ -577,25 +577,29 @@ extern "C"  int WINAPI WinMain1( HINSTANCE hinst, HANDLE prev_inst, LPSTR cmline
 #else
 int PASCAL WinMain( HINSTANCE hinst, HANDLE prev_inst, LPSTR cmline, int cmdshow )
 #endif
-{hinstance=hinst;
- cmdline=cmline;
+{
+  hinstance=hinst;
+  cmdline=cmline;
 #ifdef SERVICE
- if( (! (s_aflg=(GetVersion() & 0x80000000)) ) )
-   //NTSERVISE)
- {DWORD_PTR(b_prot[0])=255;
-  GetUserName(b_prot+4, (ulong *) b_prot);
-  if((!(b_prot[0]))
-    || stristr(b_prot+4,"SYSTEM")
-    || stristr(cmline," service")
-  )
-  {NTSERVISE=1;
-   if(StartServiceCtrlDispatcher(DispatchTable))return 0;
-   debug( sRUN_AS_AP );
+  if( (! (s_aflg=(GetVersion() & 0x80000000)) ) )
+    //NTSERVISE
+  {
+    char uname[260];
+    DWORD_PTR(uname[0])=255;
+    GetUserName(uname + 4, (ulong *) uname);
+    if((!(uname[0]))
+      || stristr(uname + 4,"SYSTEM")
+      || (cmline && stristr(cmline," service"))
+    )
+    {
+      NTSERVISE=1;
+      if(StartServiceCtrlDispatcher(DispatchTable))return 0;
+      debug( sRUN_AS_AP );
+    }
   }
- }
   hstdout=(int)GetStdHandle((ulong)STD_OUTPUT_HANDLE);
   DBGLINE
- return RMain(0);
+  return RMain(0);
 }
 
 //int WINAPI RMain(void *)
