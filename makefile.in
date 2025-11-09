@@ -284,6 +284,22 @@ o64/vpnclient/%.o: %.cpp
 o64/vpnclient/tls_%.o :  %.cpp
 	   $(GPP64) -c -Dx86_64 -DNOTINTEL -DSYSUNIX -DVPNCLIENT_ONLY -DV_FULL=1 $(G) $(OPT64TLS)  $< -o $@
 
+
+o64/shs_ctl: o64/shs_ctl.o
+	$(GPP64)  $(G) $(OPT64)  $< -o $@
+
+o/shs_ctl: o/shs_ctl.o o/mstring1.o
+	$(GPP)  $(G) $(OPT)  $^ -o $@
+
+o64/of/shs_ctl: o64/shs_ctl.o
+	$(GPP64)  $(G) $(LOPT64) $(LIB64F)  $< -o $@
+
+o/of/shs_ctl: o/shs_ctl.o o/mstring1.o
+	$(GPP)  $(G) $(LOPT) $(LIBF) $^ -o $@
+
+oo/shs_ctl: oo/shs_ctl.o
+	$(A_GCC)  $(G)  $^ -o $@ -lc
+
 r/%.o :  %.cpp
 	   $(GPP) -c -DSYSUNIX -DV_FULL=1 $(G) $(OPT) -DRUS  $< -o $@
 
@@ -1290,7 +1306,7 @@ VPNSRC := $(subst .o,.cpp, $(CVPNCLOBJ) $(VVPNCLOBJ) $(CCOBJS)) fwnd.cpp mstring
  dhhosts.h g4s1.hh  lS2_lf.cfg  ndpdbg.s README.md   stpdtamg.s t3_g4strc.h bin2s.cpp g4strc.h lS3_lf.cfg  realloc.s S1_lf.hh \
  g4strcwm.h lS5_lf.cfg ndp.s S2_lf.hh stpdtar.s tlsdll.h bvprintf.h g4strhtm.hh ico2.h mlist.h nommc_dlfcn.h S3_lf.hh \
  ico.h regular.h S5_lf.hh _strc.h  getstr mrc.h pe_m.h strc.h to_linux.h desc.htm fcgi.h isapi.h ress1.s strcwm.h to_win.h \
- descr.htm srv.h strcwmr.h vpn.h shs_vpnclient.1  openssl_sert_templ gnutls_sert_templ stpdta_vpn.s makefile.in sethttp_lang.h
+ descr.htm srv.h strcwmr.h vpn.h shs_vpnclient.1  openssl_sert_templ gnutls_sert_templ stpdta_vpn.s makefile.in sethttp_lang.h def4str.pl
 vpncsrc_name=o/shs-vpnclient-$(VERSION).tar.gz
 vpncsrc_dir=shs-vpnclient-$(VERSION)
 
