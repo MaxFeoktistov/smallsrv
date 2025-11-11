@@ -60,7 +60,7 @@ int Req::ChkValidPth(char *p,char *b)
 };
 //--
 #ifdef SYSUNIX
-int a_is_no_exit=1;
+int a_is_no_exit = 1;
 #define is_no_exit a_is_no_exit
 #endif
 

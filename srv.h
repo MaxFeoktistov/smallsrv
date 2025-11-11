@@ -837,6 +837,9 @@ extern int def_dirlen,one,zero,max_cln_host,max_tsk,s_aflg,
  ip_cach_mtx,dns_s,addr_dns,up_proxy_port,max_cont_st,SMTPCounter,
  count_of_tr,post_limit,DnsTms,time_btw,proxy_antivirus_port,trim_log_lines;
 
+#define RUN_SERVERS   2
+#define RUN_VPNCL     1
+
 #define s_flg s_flgs[0]
 #define s_flg1 s_flgs[1]
 typedef int (*ReqWork)(int s);

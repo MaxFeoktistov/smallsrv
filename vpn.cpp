@@ -2902,7 +2902,7 @@ ulong WINAPI VPNClient(void *)
 
 
   vpn.ipv4 = 0;
-  while(is_no_exit&1)
+  while(is_no_exit & RUN_VPNCL)
   {
     if( (r=vpn.ClientConnect(&vpn.tls)) < 0 )
     {
@@ -2919,7 +2919,7 @@ ulong WINAPI VPNClient(void *)
       for(r=0; r<60; r++)
       {
         Sleep(1000);
-        if (!(is_no_exit&1))
+        if(!(is_no_exit & RUN_VPNCL))
           break;
       }
     }
@@ -2934,7 +2934,7 @@ ulong WINAPI VPNClient(void *)
       if(vpn_client_fd < vpn.s) max_fd = vpn.s;
 #endif
 
-      while(is_no_exit&1)
+      while(is_no_exit & RUN_VPNCL)
       {
 #ifndef VPN_WIN
         FD_SET(vpn_client_fd, &set);

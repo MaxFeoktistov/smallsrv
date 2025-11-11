@@ -22,10 +22,10 @@
 #
 #
 
-VERSION=3.06.38a
-VERSIONT=3.06.38a
-VERSION_CODE=0x30638
-BUDIR=../site/30638/
+VERSION=3.06.39test1
+VERSIONT=3.06.39test
+VERSION_CODE=0x30639
+BUDIR=../site/30639/
 
 prefix ?=/usr/local/
 CONFIG_BASE   ?= $(prefix:%/=%)/
@@ -1179,7 +1179,7 @@ OBJDIRS_TLS := $(addsuffix tls_,$(OBJDIRS))
 
 ${OBJDIRSNAMES} :
 	mkdir -p ${TMPRAM}/$@
-	ln -s ${TMPRAM}/$@ .
+	[ -d $@ ] || ln -sf ${TMPRAM}/$@ .
 
 $(addsuffix srv0a.o,$(OBJDIRS) $(OBJDIRS_TLS)): g4strc.h srv0a.cpp slloop.cpp srvars.cpp seplog.cpp onelog.cpp
 $(addsuffix srv0a_vpnclient.o,$(OBJDIRS) $(OBJDIRS_TLS)): g4strc.h srv0a_vpnclient.cpp slloop_vpnclient.cpp srvars.cpp seplog.cpp onelog.cpp g4s1.hh

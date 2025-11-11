@@ -1,11 +1,17 @@
-smallsrv (3.06.38) unstable; urgency=low
+smallsrv (3.06.39test1) unstable; urgency=low
+
+  *  shs_ctl updated to print log by name and all logs
+
+ -- Maksim Feoktistov <max@smallsrv.com>  Tue, 11 Nov 2025 09:45:08 +0400
+
+smallsrv (3.06.38a) unstable; urgency=low
 
   * Added the ability to use shared memory for additional management
     and logging.
   * Added shs_ctl application.
   * Fixed critical error in version for Windows
 
- -- Maksim Feoktistov <max@smallsrv.com>  Sat, 08 Nov 2025 13:11:42 +0400
+ -- Maksim Feoktistov <max@smallsrv.com>  Sat, 08 Nov 2025 21:22:05 +0400
 
 smallsrv (3.06.37) unstable; urgency=low
 

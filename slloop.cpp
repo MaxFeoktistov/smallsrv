@@ -62,11 +62,11 @@ void  SignalUSR2(int)
         shm->reply = REPLY_DONE;
         break;
       case CMD_START_VPNCL:
-        is_no_exit = 3;
+        is_no_exit = RUN_SERVERS | RUN_VPNCL;
         shm->reply = REPLY_DONE;
         break;
       case CMD_STOP_VPNCL :
-        is_no_exit = 3;
+        is_no_exit = RUN_SERVERS;
         shm->reply = REPLY_DONE;
         break;
       case CMD_SEND_MAIL  :
