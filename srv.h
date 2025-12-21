@@ -879,7 +879,9 @@ void CopyXor64(uchar *t, const char *s, uint pad);
 int IsPwdMD5C(char *p, char *pas,char *u);
 void CvtHex(uint  *cd, char * Hex    );
 void ConvPwdMD5L4(uint *t4,char *u,char *pas, char *realmm);
+#ifdef WITHMD5
 void MD5UpdateL(MD5_CTX *c, char *u);
+#endif
 
 int Pass2Txt(char *pbfr, char *t);
 void UpdPwdCrypt(char *p);
@@ -1224,6 +1226,7 @@ struct TLog
   void FixPtr(char *old_base, int n);
   int  Save(SYSTEMTIME *stime);
   int  Save();
+  void SkipLastLF();
 };
 
 extern TLog gLog;

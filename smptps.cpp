@@ -267,7 +267,7 @@ ulong GetMsgName(SYSTEMTIME  &stime)
    )+(tv.tv_usec/15873);
 #endif
 
-  if(i<=SmtpLast)i=SmtpLast+1;
+  if(i <= SmtpLast && ! ((i^SmtpLast) & 0x80000000)) i = SmtpLast + 1;
   SmtpLast=i;
   MyUnlock(SmtpMutex);
   return i;

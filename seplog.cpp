@@ -58,6 +58,13 @@ void TLog::FixPtr(char *old_base, int n)
   //suffix=SrvNameSufix[n];
 }
 
+
+void TLog::SkipLastLF()
+{
+  if(pprot[-1] <= 0xD && pprot > lb_prot) --pprot;
+}
+
+
 //void TLog::LAddToLog(char *t,int s,const char *fmt,...)
 void TLog::LAddToLog(char *t,int s, TSOCKADDR *psa, const char *fmt,...)
 {SYSTEMTIME stime;
@@ -123,19 +130,25 @@ void TLog::LAddToLog(char *t,int s, TSOCKADDR *psa, const char *fmt,...)
    x=pprot;
    if(t)
      pprot+= //sprintf(pprot,fmt+1,t)-2;
-           msprintfchk(pprot,aabfr+256,fmt+1,t)-2;
+           msprintfchk(pprot,aabfr+256,fmt+1,t);
    else
    {
 #ifdef  USEVALIST
       va_list v;
       va_start(v,fmt);
-      pprot+=mvsprintfchk(pprot,aabfr+256,fmt+1,v)-2;
+      pprot+=mvsprintfchk(pprot,aabfr+256,fmt+1,v);
       va_end(v);
 #else
-      pprot+=mvsprintfchk(pprot,aabfr+256,fmt+1,(mva_list) (void *) ((&fmt)+1) )-2;
+      pprot+=mvsprintfchk(pprot,aabfr+256,fmt+1,(mva_list) (void *) ((&fmt)+1) );
 #endif
    }
-   if(trim_log_lines)pprot=TrimLogLines(x)-2;
+   SkipLastLF();
+   SkipLastLF();
+   if(trim_log_lines) {
+     pprot=TrimLogLines(x);
+     SkipLastLF();
+     SkipLastLF();
+   }
    if(FL1_DELPAS&s_flgs[1])
    {for(l=0;DLST[l];++l)if((y=stristr(x,DLST[l])))
     {y+=strlen(DLST[l]); while(*((uchar *)y)>0xD) *y++='*';}
