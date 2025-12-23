@@ -39,7 +39,7 @@ int cmpPopName(PopName *a, PopName *b)
   uint bb = b->name;
 
   if((aa^bb)&0x80000000) {
-    return (int)bb;
+    return (int)aa;
   }
   return (int)(aa - bb);
 }
