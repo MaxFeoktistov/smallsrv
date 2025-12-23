@@ -22,7 +22,7 @@
 #
 #
 
-VERSION=3.06.39test2
+VERSION=3.06.39test3
 VERSIONT=3.06.39test
 VERSION_CODE=0x30639
 BUDIR=../site/30639/
@@ -69,12 +69,12 @@ endif
 OPT= -pipe  \
   -fno-stack-protector -fno-stack-check -fno-verbose-asm -fno-nonansi-builtins -fno-access-control  -fno-optional-diags -momit-leaf-frame-pointer\
  -DUSE_IPV6 -DUSE_FUTEX -DUSE_POOL -fno-exceptions  -Wno-deprecated -Wno-address-of-packed-member -fno-bounds-check -fno-tree-bit-ccp -fno-builtin -mno-red-zone -DFREEVER  -DWITHMD5 -DFIX_EXCEPT -DPF_LONG_LONG \
-  -DUSEVALIST -DSEPLOG $(ADVOPT) -DVPN_LINUX -DTLSVPN -DUSE_SYSPASS -DSHS_VERSION=$(VERSION) -DVERSION_CODE=$(VERSION_CODE)
+  -DUSEVALIST -DSEPLOG $(ADVOPT) -DVPN_LINUX -DTLSVPN -DUSE_SYSPASS -DSHS_VERSION=$(VERSION) -DVERSION_CODE=$(VERSION_CODE) -DWITHTLS_1_3
 
 OPTCVPN= -pipe  \
   -fno-stack-protector -fno-stack-check -fno-verbose-asm -fno-nonansi-builtins -fno-access-control  -fno-optional-diags -momit-leaf-frame-pointer\
  -DUSE_IPV6 -DUSE_FUTEX -DUSE_POOL -fno-exceptions  -Wno-deprecated -Wno-address-of-packed-member -fno-bounds-check -fno-tree-bit-ccp -fno-builtin -mno-red-zone -DFREEVER  -DWITHMD5 -DFIX_EXCEPT -DPF_LONG_LONG \
-  -DUSEVALIST $(ADVOPT) -DVPN_LINUX -DTLSVPN -DUSE_SYSPASS -DSHS_VERSION=$(VERSION) -DVERSION_CODE=$(VERSION_CODE)
+  -DUSEVALIST $(ADVOPT) -DVPN_LINUX -DTLSVPN -DUSE_SYSPASS -DSHS_VERSION=$(VERSION) -DVERSION_CODE=$(VERSION_CODE) -DWITHTLS_1_3
 
 OPTTLS= $(OPT) -DTLSWODLL
 
@@ -151,7 +151,8 @@ WINEBIN2S=./bin2s
 #WINECFLG=  -Iwinclude  -I$(MGDIR)\\include -fpack-struct -O2 -fno-verbose-asm -fno-implicit-templates -mno-svr3-shlib -mno-align-double -mno-fancy-math-387 -fconserve-space  -DSERVICE -DFREE_VER  -DFREEVER -DV_FULL=1 -DUSE_IPV6 -DMINGW -DRICON -mrtd
 #  -fno-implicit-templates
 
-WINECFLG= -Os -nostdinc -Iwinclude  $(WININC) -mno-align-double -mno-fancy-math-387 -fconserve-space  -fno-rtti -fno-threadsafe-statics -fno-access-control -fno-nonansi-builtins -fno-elide-constructors -fno-enforce-eh-specs -DSERVICE -DFREE_VER  -DFREEVER -DV_FULL=1 -DUSE_IPV6 -DMINGW -DRICON -mwindows -fno-optional-diags -momit-leaf-frame-pointer -mno-red-zone -fno-exceptions  -fno-stack-protector -no-pie -fno-ms-extensions -fno-stack-check -mno-stack-arg-probe -fmax-errors=10 -DSEPLOG -DSELECT1  -DVPN_WIN -DTLSVPN -DWITHMD5 -DSHS_VERSION=$(VERSION) -DVERSION_CODE=$(VERSION_CODE) -DUSEVALIST
+WINECFLG= -Os -nostdinc -Iwinclude  $(WININC) -mno-align-double -mno-fancy-math-387 -fconserve-space  -fno-rtti -fno-threadsafe-statics -fno-access-control -fno-nonansi-builtins -fno-elide-constructors -fno-enforce-eh-specs -DSERVICE -DFREE_VER  -DFREEVER -DV_FULL=1 -DUSE_IPV6 -DMINGW -DRICON -mwindows -fno-optional-diags -momit-leaf-frame-pointer -mno-red-zone -fno-exceptions  -fno-stack-protector -no-pie -fno-ms-extensions -fno-stack-check -mno-stack-arg-probe -fmax-errors=10 -DSEPLOG -DSELECT1  -DVPN_WIN -DTLSVPN -DWITHMD5 -DSHS_VERSION=$(VERSION) -DVERSION_CODE=$(VERSION_CODE) \
+-DUSEVALIST -DWITHTLS_1_3
 
 WINELFLG=  -mwindows $(WINLIB) -luser32 -lkernel32 -lws2_32 -lgdi32 -lshell32 -lcomdlg32  -ladvapi32  -liphlpapi -Xlinker --heap  -Xlinker 0x20000000 -Wl,--subsystem,windows  -nostartfiles -nodefaultlibs -Xlinker -Map -Xlinker wo/flxmap  -Xlinker --entry=_start    -fno-optional-diags -momit-leaf-frame-pointer  -mno-red-zone -fno-exceptions  -fno-stack-protector -fno-ms-extensions -no-pie -fno-stack-check -mno-stack-arg-probe
 

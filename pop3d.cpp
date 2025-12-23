@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2023 Maksim Feoktistov.
+ * Copyright (C) 1999-2025 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov
@@ -33,6 +33,18 @@
 #endif
 
 
+int cmpPopName(PopName *a, PopName *b)
+{
+  uint aa = a->name;
+  uint bb = b->name;
+
+  if((aa^bb)&0x80000000) {
+    return (int)bb;
+  }
+  return (int)(aa - bb);
+}
+
+typedef int (*cmp_t)(const void *, const void *);
 
 
 int Req::POPReq()
@@ -196,6 +208,7 @@ int Req::POPReq()
        }
       }while(FindNextFile(hdl,&fnds));
       FindClose(hdl);
+      qsort(pn, mboxCount, sizeof(*pn), (cmp_t) cmpPopName);
      }
      if(mboxCount<0x2000)bb=(char *) (pn+mboxCount+2);
      else bb=new char[0x8100];

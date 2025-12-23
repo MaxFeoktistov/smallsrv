@@ -63,6 +63,7 @@ int  mvsprintfchk(char *t,char *et,const char *fmt, mva_list v)
   char  b[BFR_LIM*2];
   th.t=t;
   th.l=et-t-1;
+  if( (int) th.l <= 0) return 0;
   bf.Init(&th,(PrintFlush)SPrintChkFlush,b);
   r=bf.bvprintf(fmt,v);
   bf.fflush();

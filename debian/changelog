@@ -1,8 +1,10 @@
-smallsrv (3.06.39test1) unstable; urgency=low
+smallsrv (3.06.39test3) unstable; urgency=low
 
+  *  Added defined sequence of messages for POP3
+  *  Fixed message name overflow bug in SMTP
   *  shs_ctl updated to print log by name and all logs
 
- -- Maksim Feoktistov <max@smallsrv.com>  Tue, 11 Nov 2025 09:45:08 +0400
+ -- Maksim Feoktistov <max@smallsrv.com>  Sun, 21 Dec 2025 14:45:57 +0400
 
 smallsrv (3.06.38a) unstable; urgency=low
 
