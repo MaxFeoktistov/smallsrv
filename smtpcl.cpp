@@ -382,7 +382,7 @@ ulong WINAPI SMTPcl(void *)
   char *remote_host;
   int y;
   int original_l;
-  int reload_file = 0;
+  int reload_file;
 
 
   #define STARTTLS_SUPPORTED 2
@@ -459,7 +459,9 @@ ulong WINAPI SMTPcl(void *)
       last_file=0;
     }
     if(n)
-    {sprintf(pth,"%.255s" FSLUSHS "%8.8X.msg",out_path,n);
+    {
+      reload_file = 0;
+      sprintf(pth,"%.255s" FSLUSHS "%8.8X.msg",out_path,n);
       if((h=_lopen(pth,0))>0)
       {++dir_loop;
         debug("Send %s",pth);
