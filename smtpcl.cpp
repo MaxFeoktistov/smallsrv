@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2023 Maksim Feoktistov.
+ * Copyright (C) 1999-2026 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov
@@ -370,383 +370,406 @@ void MLChk::SndErrMsg(char *mg,char *sbj)
 ulong SmtpLErr;
 ulong WINAPI SMTPcl(void *)
 {
- char pth[512],*bb;
- MLChk chk;
- ulong last;
- WIN32_FIND_DATA fnds;
- HANDLE hdl=INVALID_HANDLE_VALUE,hdlf;
- User *puser;
- int h,i,x,sent_cnt,no_move,dir_loop,esmtp;
- Req req;
- OpenSSLConnection tls;
- char *remote_host;
- int y;
+  char pth[512],*bb;
+  MLChk chk;
+  ulong last;
+  WIN32_FIND_DATA fnds;
+  HANDLE hdl=INVALID_HANDLE_VALUE,hdlf;
+  User *puser;
+  int h,i,x,sent_cnt,no_move,dir_loop,esmtp;
+  Req req;
+  OpenSSLConnection tls;
+  char *remote_host;
+  int y;
+  int original_l;
+  int reload_file = 0;
 
 
-#define STARTTLS_SUPPORTED 2
-//#define TLS_USED           3
+  #define STARTTLS_SUPPORTED 2
+  //#define TLS_USED           3
 
-#define b  chk.b
-#define t  chk.t
-#define t1 chk.t1
-#define t2 chk.t2
-#define t3 chk.t3
-#define t4 chk.t4
-#define t5 chk.t5
-#define t6 chk.t6
-#define t7 chk.t7
-#define t8 chk.t8
-#define t9 chk.t9
-#define pth2 chk.pth2
-#define pth3 chk.pth3
-#define l chk.l
-#define n chk.n
-#define stime chk.stime
-#define pwd chk.pwd
-#define piFwd chk.piFwd
+  #define b  chk.b
+  #define t  chk.t
+  #define t1 chk.t1
+  #define t2 chk.t2
+  #define t3 chk.t3
+  #define t4 chk.t4
+  #define t5 chk.t5
+  #define t6 chk.t6
+  #define t7 chk.t7
+  #define t8 chk.t8
+  #define t9 chk.t9
+  #define pth2 chk.pth2
+  #define pth3 chk.pth3
+  #define l chk.l
+  #define n chk.n
+  #define stime chk.stime
+  #define pwd chk.pwd
+  #define piFwd chk.piFwd
 
-#ifdef SYSUNIX
+  #ifdef SYSUNIX
   pwd=0;
-#endif
-goto lbFind;
+  #endif
+  goto lbFind;
 
-while( is_no_exit )
-{no_move=0;
- if(hdl!=INVALID_HANDLE_VALUE)
- {
-   n=atouix(fnds.cFileName);
-   ++no_close_req;
-   for(i=0;i<max_tsk;i++)
-    if( ((u_long)(rreq[i])>1) &&
-          rreq[i]->postsize == n && rreq[i]->dirlen==dlNOW_SENDING_SIGN)
+  while( is_no_exit )
+  {
+    no_move=0;
+    if(hdl!=INVALID_HANDLE_VALUE)
     {
-     dec_no_close_req();
-     goto lbDxx;
+      n=atouix(fnds.cFileName);
+      ++no_close_req;
+      for(i=0;i<max_tsk;i++)
+        if( ((u_long)(rreq[i])>1) &&
+          rreq[i]->postsize == n && rreq[i]->dirlen==dlNOW_SENDING_SIGN)
+        {
+          dec_no_close_req();
+          goto lbDxx;
 
-    }
-   dec_no_close_req();
- }
- else
- {
-#ifndef SYSUNIX
-  i=WAIT_TIMEOUT;
-  hdlf=FindFirstChangeNotification(out_path,0,FILE_NOTIFY_CHANGE_LAST_WRITE);
-  while(!last_file)
-  {DEBUGVAR(tmout);
-   if(-1!=(int)hdlf) i=WaitForSingleObjectEx(hdlf,1000,1);
-   else
-   {SleepEx(1000,1);
-    i=WAIT_TIMEOUT;
-   }
-   if( (!(++SMTPCounter&0x7FF)) || i!=WAIT_TIMEOUT)
-   {if(-1!=(int)hdlf)FindCloseChangeNotification(hdlf);
-    goto lbX;
-   }
-   smtp_chk.CheckProxy();
-  }
-  FindCloseChangeNotification(hdlf);
-#else
-  while( !last_file)
-  {sleep(1);
-   if(! (++SMTPCounter&0x7FF) ) goto lbX;
-   if(!is_no_exit) return 0;
-  }
-#endif
-  n=last_file;
-  last_file=0;
- }
-if(n)
-{sprintf(pth,"%.255s" FSLUSHS "%8.8X.msg",out_path,n);
- if((h=_lopen(pth,0))>0)
- {++dir_loop;
-  debug("Send %s",pth);
-  sent_cnt=0;
-  l=FileSize(h);
-  if(l>max_msg_size)
-  {_lclose(h);
-   goto lbXX;
-  };
-  if(! (bb=new char[l+64]) )
-  {debug("Error. No enought memory. Can't send %s size %u",pth,l);
-   _lclose(h);
-   if(l<0xC0000)Restart();
-   goto lbXX;
-  }
-  b=bb+sizeof(ReseivF)-2;
-  _hread(h,b,l);
-  _lclose(h);
-  b[l]=0;
-  if( (t1=strstr(b,"\r\n")) )
-  {*t1=0;
-   t1+=2;
-   l-=t1-b;
-   if( !(t=strstr(b," For ")))goto lBadFile;
-   DWORD_PTR(*t)=0x0A0D;
-   memcpy(bb,(void *)ReseivF,sizeof(ReseivF)-1);
-   t2=t+5;
-
-  debug("to: %s",t2);
-  if(antiv)
-  {sprintf(pth2,"%.255s",antiv);
-   t8=out_path;
-   if(chk.RunForward(""))goto lexcnt2;
-  }
-  do{
-    if( (t3=strchr(t2,' ') ) )*t3=0;
-    if( !(t4=strchr(t2,'@') ) )break;
-    if(IsUsHost(t4))
-    { //Local
-     *t4=0;
-     puser=FindUser(t2,UserPOP3,0,0);
-     *t4='@';
-     if(!puser)
-     {
-     lerrMsg1:;
-      no_move=0;
-      chk.SndErrMsg(pth2);
-     }
-     else
-     {sprintf(pth2,"%.255s" FSLUSHS "mbox" FSLUSHS "%8.8X.msg",t8=puser->dir(),n);
-      if( (h=_lcreat(pth2,0))<0)goto lerrMsg1;
-#ifdef SYSUNIX
-      if( (pwd=getpwnam(puser->name)) || (pwd=getpwnam("ftp")) )
-      {fchown(h,pwd->pw_uid,pwd->pw_gid); }
-#endif
-      _hwrite(h,bb,(t-bb)+2);
-      _hwrite(h,t1,l);
-      _lclose(h);
-      ++sent_cnt;
-      sprintf(pth2,"%.255s" FSLUSHS "forward",t8);
-      if(s_flg&FL_FORWARD) chk.RunForward( FSLUSHS "mbox");
-     }
+        }
+        dec_no_close_req();
     }
     else
-    {//Remote
-     no_move=1;
-     pth3[512]=0;
-     pth3[512+68]=0;
-     if(smtproxy)
-     {strncpy(pth3+512,smtproxy,64);
-      t5=0; //pth2;
-      DWORD_PTR(*pth2)=0;
-     }
-     else if( (!(t5=GetMailHost(t4+1,(d_msg *)pth3,0))))//||(pth3[3]&0x7F)
-     {strcpy(pth2,"Mail host not found...");
-      debug(pth2);
-      if(n>SmtpLErr)
-      {chk.SndErrMsg("Mail host not found...", "Can't send message. May be it is temporary, server will try again" );
-       SmtpLErr=n;
+    {
+      #ifndef SYSUNIX
+      i=WAIT_TIMEOUT;
+      hdlf=FindFirstChangeNotification(out_path,0,FILE_NOTIFY_CHANGE_LAST_WRITE);
+      while(!last_file)
+      {DEBUGVAR(tmout);
+        if(-1!=(int)hdlf) i=WaitForSingleObjectEx(hdlf,1000,1);
+        else
+        {SleepEx(1000,1);
+          i=WAIT_TIMEOUT;
+        }
+        if( (!(++SMTPCounter&0x7FF)) || i!=WAIT_TIMEOUT)
+        {if(-1!=(int)hdlf)FindCloseChangeNotification(hdlf);
+          goto lbX;
+        }
+        smtp_chk.CheckProxy();
       }
-      goto lbErr2;
-     }
-     else
-     {
-      x=0;
-  loopNextMH:
-      if(! (t5=(char *)GetNextMH((uchar *)pth3 //,(uchar *)t5,pth3+512
-        )))
-      { if(x<=499)goto lbErr2;
-        goto lerrMsg1;
+      FindCloseChangeNotification(hdlf);
+      #else
+      while( !last_file)
+      {sleep(1);
+        if(! (++SMTPCounter&0x7FF) ) goto lbX;
+        if(!is_no_exit) return 0;
       }
-  lbAgain:
-      debug("MAILHOST: %s %s",pth3+512,pth3+512+68);
-     }
-     memset(&req,0,sizeof(req));
-     req.fl=F_SMTP|F_SMTP_CL;
-     if( (req.s=call_socket2(remote_host = (pth3+ (pth3[512+68]?512+68:512)),25) )>0 )
-     {
-       AddToLog("|Open",req.s,0,FmtShrtR);
-       req.Snd=(tfSnd) &JustSnd;
-       req.Rcv=(tfRcv) &JustRcv;
-       req.timout = POPTimeout;
-       y = sizeof(req.sa_c);
-       getpeername(req.s,(sockaddr*) (&req.sa_c), &y);
-
-#define GetCMD(a,b,c) req.RGetCMD(b)
-       x=0;
-
-       if((x=GetCMD(s,pth2,0))!=220)goto lerrmsg;
-       esmtp = (NULL != stristr(pth2,"ESMTP"));
-       while( ! strstr(pth2,"220 ") ) //pth2[3]=='-')
-       {
-         GetCMD(s,pth2,0);
-         if( esmtp && stricmp(pth2,"STARTTLS") ) esmtp = STARTTLS_SUPPORTED;
-       }
-
-
-       for(i=0;i<2;i++)
-       {
-         SendCMD(pth2, sprintf(pth2,( (!i) && (y=(esmtp || (s_flgs[3] & (FL3_SMTP_TLS|FL3_SMTP_TLSONLY) ) )  )?"EHLO %s\r\n": "HELO %s\r\n"),smtp_name ) );
-         if( ((x=GetCMD(s,pth2,0))==250) && stricmp(pth2+4,smtp_name) ) break;
-         if( (!i) && y && x!=250 && ! (s_flgs[3] & FL3_SMTP_TLSONLY) ) continue;
-      lerrmsg:
-         SendConstCMD("QUIT\r\n" );
-         brkConn:
-         debug("!SMTP error send to %.127s message %X <%.127s> \r\n",t2,n,pth2);
-         //shutdown(s,2);
-         //closesocket( (int) s);
-         //if(esmtp == +) SecClose(&tls);
-         //CloseSocket(s);
-         req.Close();
-
-         //if(t5 && (t5=(char *)GetNextMH((uchar *)pth2,(uchar *)t5,pth2+512))) goto lbAgain;
-         if(t5)goto loopNextMH;
-         if(x<0)strcpy(pth2,"Connection error");
-         if(n>SmtpLErr)
-         {
-           chk.SndErrMsg(pth2,"Can't send message. May be it is temporary, server will try again" );
-           SmtpLErr=n;
-         }
-
-
-         //if((x/10)==45) goto lbErr2;
-         if(x<=499) goto lbErr2;
-         goto lerrMsg1;
-       }
-
-       if( stricmp(pth2,"STARTTLS") ) esmtp = STARTTLS_SUPPORTED;
-       while( ! strstr(pth2,"250 ") )
-       {
-         GetCMD(s,pth2,0);
-         if( stricmp(pth2,"STARTTLS") ) esmtp = STARTTLS_SUPPORTED;
-       }
-
-       if( esmtp == STARTTLS_SUPPORTED && (s_flgs[3] & (FL3_SMTP_TLS|FL3_SMTP_TLSONLY) ) )
-       {
-         SendConstCMD("STARTTLS\r\n");
-         if( (x=GetCMD(s,pth2,0)) == 220 )
-         {
-
-           i = 0;
-           if(s_flgs[3] & FL3_SMTP_CHKTLS    ) i |= tbtVerfyRequired;
-           if(s_flgs[3] & FL3_VPN_TLSIGNTIME) i |= tbtDontVerfyTyme;
-           if(s_flgs[3] & FL3_VPN_TLSSSIGN  ) i |= tbtDontVerfySigner;
-           if(s_flgs[3] & FL3_VPN_TLSSHSTYLE ) i |= tbtSSHstyleVerfy;
-
-           if( req.TLSBegin(&tls,i,(s_flgs[3] & FL3_SMTP_CHKTLS)? remote_host : 0 ) )
-           {
-             AddToLog("|TLS connection inited",req.s,0,FmtShrtR);
-             // esmtp = TLS_USED;
-             SendCMD(pth2, sprintf(pth2,"EHLO %s\r\n",smtp_name ) );
-             GetCMD(s,pth2,0);
-             while( ! strstr(pth2,"250 ") )
-               GetCMD(s,pth2,0);
-           }
-           else
-           {
-             AddToLog("|Error to init TLS connection",req.s,0,FmtShrtR);
-             if(s_flgs[3] & FL3_SMTP_TLSONLY) goto lerrmsg;
-           }
-         }
-       }
-       else if(s_flgs[3] & FL3_SMTP_TLSONLY)
-       {
-         AddToLog("|TLS unsupported but required",req.s,0,FmtShrtR);
-         goto lerrmsg;
-       }
-
-       if(!(t4=strchr(b+5,' ')))goto lexsend;
-       x=' ';
-
-       do{
-        *t4=0;
-        SendCMD(pth2, sprintf(pth2,(esmtp)?"MAIL FROM:<%s> SIZE=%u\r\n":"MAIL FROM:<%s>\r\n",b+5,l+(t-bb)+2) );
-        *t4=x;
-        if( (x=GetCMD(s,pth2,0))==250) break;
-        if( (!striin(b+5,"MAILER-DAEMON")) || !striin(b+5+sizeof("MAILER-DAEMON"),smtp_name ) ) goto lerrmsg;
-        t4=b+5;
-        x='M';
-       }while(1);
-       SendCMD(pth2, sprintf(pth2,"RCPT TO:<%s>\r\n",t2) );
-       if( (x=GetCMD(s,pth2,0))!=250) goto lerrmsg;
-       SendConstCMD( "DATA\r\n" );
-       if( (x=GetCMD(s,pth2,0))!=354) goto lerrmsg;
-       send(s,bb,(t-bb)+2,0);
-       send(s,t1,l,0);
-       SendConstCMD("\r\n.\r\n" );
-       if( (x=GetCMD(s,pth2,0))!=250){t5=0; goto lerrmsg;}
-       if( (s_flgs[1]&FL1_CONFIRM) && (t4=stristr(t1,"\nGenerate-Delivery-Report:")) && t4<stristr(t1,"\r\n\r\n")  )
-       { chk.SndErrMsg(pth2, "Delivery success"); }
-       ++sent_cnt;
-       no_move=0;
-     lexsend:
-      SendConstCMD("QUIT\r\n" );
-      //shutdown(s,2);
-      //closesocket( (int) s);
-       //if(esmtp == TLS_USED) SecClose(&tls);
-       //CloseSocket(req.s);
-      req.Close();
-
-      if(time_btw<2)time_btw=2;
-      Sleep(time_btw*1024 ); //2048);
-     }
-     else if(!t5) *pth2=0;
-     if(no_move )
-     {
-     lbErr3:
-      debug("Call to %s failed",pth3+512);
-      if(t5)goto loopNextMH;
-     lbErr2:
-     // no_move=1;
-      debug("!SMTP connect to %.127s failed. (Msg %X)\r\n",t2,n);
-
-      if(hdl!=INVALID_HANDLE_VALUE)
-      {GetSystemTimeAsFileTime(&fnds.ftLastAccessTime );
-       if(
-#ifndef SYSUNIX
-          (fnds.ftLastAccessTime.dwHighDateTime
-           - fnds.ftCreationTime.dwHighDateTime)>201
-#else
-     (fnds.ftLastAccessTime - fnds.ftCreationTime) > 86400
-#endif
-         ){no_move=0; goto lerrMsg1; }
-       }
-      }
-     }
-  lexcnt:
-     t2=t3+1;
-   }while(t3);
-  }
-  else
-  {lBadFile:
-   debug("Bad file %s",pth);
-  }
- lexcnt2:
-
-  delete bb;
-  if(sent_cnt || !no_move)
-  {
- lbXX:
-   if( (!(t6=(sent_cnt)?sent_path:err_path)) ||
-      (sprintf(pth2,"%.255s" FSLUSHS "%8.8X.msg",t6,n), !MoveFile(pth,pth2))
-     )DeleteFile(pth);
-  }
- }
-}
-lbX:
-
- if(hdl==INVALID_HANDLE_VALUE)
- {
- lbFind:;
-   sprintf(pth,"%.255s" FSLUSHS "*.msg",out_path);
-   hdl=FindFirstFile(pth,&fnds);
-   dir_loop=0;
- }else goto lbDxx;
- if(hdl!=INVALID_HANDLE_VALUE)
- { while( (!fnds.nFileSizeLow) || (fnds.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
-    ||fnds.cFileName[8]!='.')
-   {
-   lbDxx:
-    if(! (FindNextFile(hdl,&fnds)))
-    {FindClose(hdl);
-     hdl=INVALID_HANDLE_VALUE;
-     if(dir_loop && !no_move)goto lbFind;
-     break;
+      #endif
+      n=last_file;
+      last_file=0;
     }
-   };
- }
-}
- return 0;
+    if(n)
+    {sprintf(pth,"%.255s" FSLUSHS "%8.8X.msg",out_path,n);
+      if((h=_lopen(pth,0))>0)
+      {++dir_loop;
+        debug("Send %s",pth);
+        sent_cnt=0;
+        original_l = l = FileSize(h);
+      lb_reload:
+        if(l>max_msg_size)
+        {_lclose(h);
+          goto lbXX;
+        };
+        if(! (bb=new char[l+64]) )
+        {debug("Error. No enought memory. Can't send %s size %u",pth,l);
+          _lclose(h);
+          if(l<0xC0000)Restart();
+          goto lbXX;
+        }
+      lb_reload2:
+        b=bb+sizeof(ReseivF)-2;
+        _hread(h,b,l);
+        _lclose(h);
+        b[l]=0;
+        if( (t1=strstr(b,"\r\n")) )
+        {*t1=0;
+          t1+=2;
+          l-=t1-b;
+          if( !(t=strstr(b," For ")))goto lBadFile;
+          DWORD_PTR(*t)=0x0A0D;
+          memcpy(bb,(void *)ReseivF,sizeof(ReseivF)-1);
+          t2=t+5;
+
+          debug("to: %s",t2);
+
+          if(antiv && ! reload_file)
+          {
+            int ll;
+            sprintf(pth2,"%.255s",antiv);
+            t8=out_path;
+            if(chk.RunForward(""))goto lexcnt2;
+            ll = FileSizeByName(pth);
+            if(ll < 0) goto lexcnt2;
+            if(ll != original_l)
+            {
+              reload_file = 1;
+              l = ll;
+              if((h=_lopen(pth,0))<=0)
+                goto lexcnt2;
+              if(original_l < ll) {
+                delete bb;
+                goto lb_reload;
+              }
+              goto lb_reload2;
+            }
+          }
+
+          do{
+            if( (t3=strchr(t2,' ') ) )*t3=0;
+            if( !(t4=strchr(t2,'@') ) )break;
+            if(IsUsHost(t4))
+            { //Local
+              *t4=0;
+              puser=FindUser(t2,UserPOP3,0,0);
+              *t4='@';
+              if(!puser)
+              {
+                lerrMsg1:;
+                no_move=0;
+                chk.SndErrMsg(pth2);
+              }
+              else
+              {sprintf(pth2,"%.255s" FSLUSHS "mbox" FSLUSHS "%8.8X.msg",t8=puser->dir(),n);
+                if( (h=_lcreat(pth2,0))<0)goto lerrMsg1;
+                #ifdef SYSUNIX
+                if( (pwd=getpwnam(puser->name)) || (pwd=getpwnam("ftp")) )
+                {fchown(h,pwd->pw_uid,pwd->pw_gid); }
+                #endif
+                _hwrite(h,bb,(t-bb)+2);
+                _hwrite(h,t1,l);
+                _lclose(h);
+                ++sent_cnt;
+                sprintf(pth2,"%.255s" FSLUSHS "forward",t8);
+                if(s_flg&FL_FORWARD) chk.RunForward( FSLUSHS "mbox");
+              }
+            }
+            else
+            {//Remote
+              no_move=1;
+              pth3[512]=0;
+              pth3[512+68]=0;
+              if(smtproxy)
+              {strncpy(pth3+512,smtproxy,64);
+                t5=0; //pth2;
+                DWORD_PTR(*pth2)=0;
+              }
+              else if( (!(t5=GetMailHost(t4+1,(d_msg *)pth3,0))))//||(pth3[3]&0x7F)
+              {strcpy(pth2,"Mail host not found...");
+                debug(pth2);
+                if(n>SmtpLErr)
+                {chk.SndErrMsg("Mail host not found...", "Can't send message. May be it is temporary, server will try again" );
+                  SmtpLErr=n;
+                }
+                goto lbErr2;
+              }
+              else
+              {
+                x=0;
+                loopNextMH:
+                if(! (t5=(char *)GetNextMH((uchar *)pth3 //,(uchar *)t5,pth3+512
+                )))
+                { if(x<=499)goto lbErr2;
+                  goto lerrMsg1;
+                }
+                lbAgain:
+                debug("MAILHOST: %s %s",pth3+512,pth3+512+68);
+              }
+              memset(&req,0,sizeof(req));
+              req.fl=F_SMTP|F_SMTP_CL;
+              if( (req.s=call_socket2(remote_host = (pth3+ (pth3[512+68]?512+68:512)),25) )>0 )
+              {
+                AddToLog("|Open",req.s,0,FmtShrtR);
+                req.Snd=(tfSnd) &JustSnd;
+                req.Rcv=(tfRcv) &JustRcv;
+                req.timout = POPTimeout;
+                y = sizeof(req.sa_c);
+                getpeername(req.s,(sockaddr*) (&req.sa_c), &y);
+
+                #define GetCMD(a,b,c) req.RGetCMD(b)
+                x=0;
+
+                if((x=GetCMD(s,pth2,0))!=220)goto lerrmsg;
+                esmtp = (NULL != stristr(pth2,"ESMTP"));
+                while( ! strstr(pth2,"220 ") ) //pth2[3]=='-')
+                {
+                  GetCMD(s,pth2,0);
+                  if( esmtp && stricmp(pth2,"STARTTLS") ) esmtp = STARTTLS_SUPPORTED;
+                }
+
+
+                for(i=0;i<2;i++)
+                {
+                  SendCMD(pth2, sprintf(pth2,( (!i) && (y=(esmtp || (s_flgs[3] & (FL3_SMTP_TLS|FL3_SMTP_TLSONLY) ) )  )?"EHLO %s\r\n": "HELO %s\r\n"),smtp_name ) );
+                  if( ((x=GetCMD(s,pth2,0))==250) && stricmp(pth2+4,smtp_name) ) break;
+                  if( (!i) && y && x!=250 && ! (s_flgs[3] & FL3_SMTP_TLSONLY) ) continue;
+                  lerrmsg:
+                  SendConstCMD("QUIT\r\n" );
+                  brkConn:
+                  debug("!SMTP error send to %.127s message %X <%.127s> \r\n",t2,n,pth2);
+                  //shutdown(s,2);
+                  //closesocket( (int) s);
+                  //if(esmtp == +) SecClose(&tls);
+                  //CloseSocket(s);
+                  req.Close();
+
+                  //if(t5 && (t5=(char *)GetNextMH((uchar *)pth2,(uchar *)t5,pth2+512))) goto lbAgain;
+                  if(t5)goto loopNextMH;
+                  if(x<0)strcpy(pth2,"Connection error");
+                  if(n>SmtpLErr)
+                  {
+                    chk.SndErrMsg(pth2,"Can't send message. May be it is temporary, server will try again" );
+                    SmtpLErr=n;
+                  }
+
+
+                  //if((x/10)==45) goto lbErr2;
+                  if(x<=499) goto lbErr2;
+                  goto lerrMsg1;
+                }
+
+                if( stricmp(pth2,"STARTTLS") ) esmtp = STARTTLS_SUPPORTED;
+                while( ! strstr(pth2,"250 ") )
+                {
+                  GetCMD(s,pth2,0);
+                  if( stricmp(pth2,"STARTTLS") ) esmtp = STARTTLS_SUPPORTED;
+                }
+
+                if( esmtp == STARTTLS_SUPPORTED && (s_flgs[3] & (FL3_SMTP_TLS|FL3_SMTP_TLSONLY) ) )
+                {
+                  SendConstCMD("STARTTLS\r\n");
+                  if( (x=GetCMD(s,pth2,0)) == 220 )
+                  {
+
+                    i = 0;
+                    if(s_flgs[3] & FL3_SMTP_CHKTLS    ) i |= tbtVerfyRequired;
+                    if(s_flgs[3] & FL3_VPN_TLSIGNTIME) i |= tbtDontVerfyTyme;
+                    if(s_flgs[3] & FL3_VPN_TLSSSIGN  ) i |= tbtDontVerfySigner;
+                    if(s_flgs[3] & FL3_VPN_TLSSHSTYLE ) i |= tbtSSHstyleVerfy;
+
+                    if( req.TLSBegin(&tls,i,(s_flgs[3] & FL3_SMTP_CHKTLS)? remote_host : 0 ) )
+                    {
+                      AddToLog("|TLS connection inited",req.s,0,FmtShrtR);
+                      // esmtp = TLS_USED;
+                      SendCMD(pth2, sprintf(pth2,"EHLO %s\r\n",smtp_name ) );
+                      GetCMD(s,pth2,0);
+                      while( ! strstr(pth2,"250 ") )
+                        GetCMD(s,pth2,0);
+                    }
+                    else
+                    {
+                      AddToLog("|Error to init TLS connection",req.s,0,FmtShrtR);
+                      if(s_flgs[3] & FL3_SMTP_TLSONLY) goto lerrmsg;
+                    }
+                  }
+                }
+                else if(s_flgs[3] & FL3_SMTP_TLSONLY)
+                {
+                  AddToLog("|TLS unsupported but required",req.s,0,FmtShrtR);
+                  goto lerrmsg;
+                }
+
+                if(!(t4=strchr(b+5,' ')))goto lexsend;
+                x=' ';
+
+                do{
+                  *t4=0;
+                  SendCMD(pth2, sprintf(pth2,(esmtp)?"MAIL FROM:<%s> SIZE=%u\r\n":"MAIL FROM:<%s>\r\n",b+5,l+(t-bb)+2) );
+                  *t4=x;
+                  if( (x=GetCMD(s,pth2,0))==250) break;
+                  if( (!striin(b+5,"MAILER-DAEMON")) || !striin(b+5+sizeof("MAILER-DAEMON"),smtp_name ) ) goto lerrmsg;
+                  t4=b+5;
+                  x='M';
+                }while(1);
+                SendCMD(pth2, sprintf(pth2,"RCPT TO:<%s>\r\n",t2) );
+                if( (x=GetCMD(s,pth2,0))!=250) goto lerrmsg;
+                SendConstCMD( "DATA\r\n" );
+                if( (x=GetCMD(s,pth2,0))!=354) goto lerrmsg;
+                send(s,bb,(t-bb)+2,0);
+                send(s,t1,l,0);
+                SendConstCMD("\r\n.\r\n" );
+                if( (x=GetCMD(s,pth2,0))!=250){t5=0; goto lerrmsg;}
+                if( (s_flgs[1]&FL1_CONFIRM) && (t4=stristr(t1,"\nGenerate-Delivery-Report:")) && t4<stristr(t1,"\r\n\r\n")  )
+                { chk.SndErrMsg(pth2, "Delivery success"); }
+                ++sent_cnt;
+                no_move=0;
+                lexsend:
+                SendConstCMD("QUIT\r\n" );
+                //shutdown(s,2);
+                //closesocket( (int) s);
+                //if(esmtp == TLS_USED) SecClose(&tls);
+                //CloseSocket(req.s);
+                req.Close();
+
+                if(time_btw<2)time_btw=2;
+                Sleep(time_btw*1024 ); //2048);
+              }
+              else if(!t5) *pth2=0;
+              if(no_move )
+              {
+                lbErr3:
+                debug("Call to %s failed",pth3+512);
+                if(t5)goto loopNextMH;
+                lbErr2:
+                // no_move=1;
+                debug("!SMTP connect to %.127s failed. (Msg %X)\r\n",t2,n);
+
+                if(hdl!=INVALID_HANDLE_VALUE)
+                {GetSystemTimeAsFileTime(&fnds.ftLastAccessTime );
+                  if(
+                    #ifndef SYSUNIX
+                    (fnds.ftLastAccessTime.dwHighDateTime
+                    - fnds.ftCreationTime.dwHighDateTime)>201
+                    #else
+                    (fnds.ftLastAccessTime - fnds.ftCreationTime) > 86400
+                    #endif
+                  ){no_move=0; goto lerrMsg1; }
+                }
+              }
+            }
+            lexcnt:
+            t2=t3+1;
+          }while(t3);
+        }
+        else
+        {lBadFile:
+          debug("Bad file %s",pth);
+        }
+        lexcnt2:
+
+        delete bb;
+        if(sent_cnt || !no_move)
+        {
+          lbXX:
+          if( (!(t6=(sent_cnt)?sent_path:err_path)) ||
+            (sprintf(pth2,"%.255s" FSLUSHS "%8.8X.msg",t6,n), !MoveFile(pth,pth2))
+          )DeleteFile(pth);
+        }
+      }
+    }
+    lbX:
+
+    if(hdl==INVALID_HANDLE_VALUE)
+    {
+      lbFind:;
+      sprintf(pth,"%.255s" FSLUSHS "*.msg",out_path);
+      hdl=FindFirstFile(pth,&fnds);
+      dir_loop=0;
+    }else goto lbDxx;
+    if(hdl!=INVALID_HANDLE_VALUE)
+    { while( (!fnds.nFileSizeLow) || (fnds.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+      ||fnds.cFileName[8]!='.')
+    {
+      lbDxx:
+      if(! (FindNextFile(hdl,&fnds)))
+      {FindClose(hdl);
+        hdl=INVALID_HANDLE_VALUE;
+        if(dir_loop && !no_move)goto lbFind;
+        break;
+      }
+    };
+    }
+  }
+  return 0;
 };
 
 extern "C"{

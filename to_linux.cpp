@@ -253,6 +253,14 @@ int FileSize(int i)
  return st.st_size;
 }
 
+int FileSizeByName(char *pth)
+{
+ struct stat st;
+ if(stat(pth, &st))
+   return -1;
+ return st.st_size;
+}
+
 int GetFileAttributes(char *i)
 {
  struct stat st;

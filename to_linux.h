@@ -306,6 +306,7 @@ inline void* HeapReAlloc1(void *c,int d)
 #define RemoveDirectory  rmdir
 
 int FileSize(int i);
+int FileSizeByName(char *pth);
 #define GetFileSize(a,b) FileSize(a)
 int GetFileAttributes(char *);
 

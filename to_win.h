@@ -177,6 +177,7 @@ int WINAPI llseek(int h,int n,int t);
 
 #define _lclose(h) CloseHandle((HANDLE)(h))
 #define FileSize(h) GetFileSize((HANDLE)(h),0)
+int FileSizeByName(char *pth);
 
 #define _lopen lopen
 #define _lcreat(a,b) lcreat(a)

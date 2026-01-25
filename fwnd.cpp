@@ -635,3 +635,13 @@ void UpdateVPNStatInfo(int force)
 
 #endif
 
+int FileSizeByName(char *pth)
+{
+  WIN32_FILE_ATTRIBUTE_DATA st;
+
+  if(!GetFileAttributesEx(pth, GetFileExInfoStandard, &st))
+    return -1;
+
+  return st.nFileSizeLow;
+}
+
