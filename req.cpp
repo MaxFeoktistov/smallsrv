@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2024 Maksim Feoktistov.
+ * Copyright (C) 1999-2026 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov
@@ -274,10 +274,26 @@ int Req::HttpReq()
     long long l1;
     ulong l1l[2];
   };
-
-
   LimitBase *lipo,*lneto;
-  proxy_flg= (ServerNumber()==1); /*F_PROXY*/
+
+
+#ifdef SEPLOG
+  TLog *log;
+
+#undef debug
+#undef AddToLog
+
+#define debug(a...)  log->Ldebug(a)
+#define AddToLog(a...)  log->LAddToLog(a)
+
+#endif
+
+
+  proxy_flg = (ServerNumber()==1); /*F_PROXY*/
+#ifdef SEPLOG
+  log = sepLog[proxy_flg];
+#endif
+
 
   DBGLA("proxy_flg:%X fl:%X ", proxy_flg, fl)
 
@@ -724,7 +740,7 @@ int Req::HttpReq()
         // debug("CGI: %X %X h=%X\n", (fl&F_PHP), (s_flgs[3] & FL3_FCGI_PHP), h);
         if((fl&F_PHP) && (s_flgs[3] & FL3_FCGI_PHP) && phtml_dir)
         {
-          DBGLA("Tout=%u",Tout)
+          DBGLA("Tout=%llu",Tout)
           CallFCGI(phtml_dir);
         }
         else if(
@@ -1113,6 +1129,10 @@ int Req::CheckNonce(char *nonce,char *opaque)
   char nonce2[64];
   char ipv6[40];
   char *p;
+#ifdef SEPLOG
+  TLog *log =  sepLog[ServerNumber()==1];
+#endif
+
 #ifdef USE_IPV6
   uint l;
   p=nonce+9;

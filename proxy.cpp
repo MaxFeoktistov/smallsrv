@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2022 Maksim Feoktistov.
+ * Copyright (C) 1999-2026 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov
@@ -573,730 +573,748 @@ int ProxyAntivirus(char *fname,char *url)
 */
 int Req::ProxyReq()
 {
- char *p,*in_buf,*ibf,*t,*t2,*t3,*t4,*t6,*u,
- *nocashe,*auth,*pp,*ModifiedSince,*fname;
- int l,h,i,rcode,pr,j;
- ulong xu;
- union {sockaddr prt; sockaddr_in prti;};
- Req *r;
-struct{
- int ss,fs,fss,tin,tout,ss_ftp,tocashe,cl,post,xu2,xu3,exe_state,avs;
- ulong nm4; //,oldurl,oldurl1;
- User *puser;
- char *d,*t1,*t5;
- char *tend;
-// CacheTag * csh;
- int new_st;
- int cont_st;
- int up_prox;
- char *cook;
-}zz;
-#define ss      zz.ss
-#define ss_ftp  zz.ss_ftp
-#define fs      zz.fs
-#define fss     zz.fss
-#define tin     zz.tin
-#define tout    zz.tout
-#define DelFlag zz.DelFlag
-#define puser   zz.puser
-#define d       zz.d
-#define nm4     zz.nm4
-#define csh     zz.csh
-#define post    zz.post
-#define tocashe zz.tocashe
-#define cont_st zz.cont_st
-#define t1 zz.t1
-#define t5 zz.t5
-#define xu2 zz.xu2
-#define xu3 zz.xu3
-#define up_prox zz.up_prox
- //LimitCntr *lip,*lnet;
- int ttimeout;
+  char *p,*in_buf,*ibf,*t,*t2,*t3,*t4,*t6,*u,
+  *nocashe,*auth,*pp,*ModifiedSince,*fname;
+  int l,h,i,rcode,pr,j;
+  ulong xu;
+  union {sockaddr prt; sockaddr_in prti;};
+  Req *r;
+  struct{
+    int ss,fs,fss,tin,tout,ss_ftp,tocashe,cl,post,xu2,xu3,exe_state,avs;
+    User *puser;
+    char *d,*t1,*t5;
+    char *tend;
+    // CacheTag * csh;
+    int new_st;
+    int cont_st;
+    int up_prox;
+    char *cook;
+  } zero_init;
+  #define ss      zero_init.ss
+  #define ss_ftp  zero_init.ss_ftp
+  #define fs      zero_init.fs
+  #define fss     zero_init.fss
+  #define tin     zero_init.tin
+  #define tout    zero_init.tout
+  #define DelFlag zero_init.DelFlag
+  #define puser   zero_init.puser
+  #define d       zero_init.d
+  #define csh     zero_init.csh
+  #define post    zero_init.post
+  #define tocashe zero_init.tocashe
+  #define cont_st zero_init.cont_st
+  #define t1 zero_init.t1
+  #define t5 zero_init.t5
+  #define xu2 zero_init.xu2
+  #define xu3 zero_init.xu3
+  #define up_prox zero_init.up_prox
+  //LimitCntr *lip,*lnet;
+  int ttimeout;
 
- ttimeout=PRXTimeout;
- /*
- if( FndLimit(2,&lip,&lnet,sa_c.sin_addr. S_ADDR) )
- {HttpReturnError("Limit overflow");
-  return 1;
- }
- */
+  ttimeout=PRXTimeout;
+  /*
+    if( FndLimit(2,&lip,&lnet,sa_c.sin_addr. S_ADDR) )
+    {HttpReturnError("Limit overflow");
+     return 1;
+    }
+  */
   timout=PRXTimeout;
   DBGLA( "timout %u", timout );
-  memset(&zz,0,sizeof(zz));
+  memset(&zero_init,0,sizeof(zero_init));
   http_var=(char **)((ibf=(in_buf=rq)+0x4000)+1024);
   if(!(nocashe=stristr(in_buf,/*"PRAGMA*/": NO-CACHE\r\n" )))
     nocashe=stristr(in_buf,"\nCACHE-CONTROL:");
 
+  DBGLA("puser: %lX %lX", (long) puser, ((long) puser) < 0x1000 ? 0: (long) puser->name)
+
   auth=StrVar(in_buf,"Authorization"); //stristr(in_buf,"\nAuthorization:" );
   ModifiedSince=StrVar(in_buf,"If-modified-since"); //stristr(in_buf,"\nIf-modified-since");
-  if(FL1_PRXHRD&s_flgs[1])zz.cook=stristr(in_buf,"\nCookie");
+  if(FL1_PRXHRD&s_flgs[1])zero_init.cook=stristr(in_buf,"\nCookie");
 
   if( (t=stristr(in_buf,"\nProxy-Authorization:") )  )
   {
-#ifdef A_64
-   DDWORD_PTR(ibf[1024]) =(u_long) "Authorization";
-   DDWORD_PTR(ibf[1032])=(u_long) (t+sizeof("\nProxy-Authorization:"));
-#else
-   DWORD_PTR(ibf[1024]) =(ulong) "Authorization";
-   DWORD_PTR(ibf[1028])=(ulong) (t+sizeof("\nProxy-Authorization:"));
-#endif
-   t6 = strchr(t+1,'\n');
-   loc = in_buf;
-   if((t1=CheckAuth(p=ibf+1048))) puser=FindUser(t1,UserHTTP,p,this);
+    http_var[0] = "Authorization";
+    http_var[1] = t + sizeof("\nProxy-Authorization:");
+    /*
+     #ifdef A_64
+       DDWORD_PTR(ibf[1024]) =(u_long) "Authorization";
+       DDWORD_PTR(ibf[1032])=(u_long)  (t+sizeof("\nProxy-Authorization:"));
+     #else
+       DWORD_PTR(ibf[1024]) =(ulong) "Authorization";
+       DWORD_PTR(ibf[1028])=(ulong) (t+sizeof("\nProxy-Authorization:"));
+     #endif
+     */
+    t6 = strchr(t+1,'\n');
+    loc = in_buf;
+    if((t1=CheckAuth(p=ibf+1048))) puser=FindUser(t1,UserHTTP,p,this);
 
-   if(t6)
-   {
-     memcpy(t,t6,dirlen-(t6-in_buf));
-     dirlen-=t6-t;
-     in_buf[dirlen] = 0;
-   };
+    DBGLA("puser: %lX %lX", (long) puser, ((long) puser) < 0x1000 ? 0: (long) puser->name)
 
-   //dirlen=DelStr(t+1,in_buf,dirlen);
+    if(t6)
+    {
+      memcpy(t,t6,dirlen-(t6-in_buf));
+      dirlen-=t6-t;
+      in_buf[dirlen] = 0;
+    };
 
-   DBGLA("%lX t1:%lX dirlen:%u %s", (long)puser, (long)t1, dirlen, in_buf)
+    //dirlen=DelStr(t+1,in_buf,dirlen);
+
+    DBGLA("%lX t1:%lX dirlen:%u %s", (long)puser, (long)t1, dirlen, in_buf)
   }
+
+  DBGLA("puser: %lX %lX", (long) puser, ((long) puser) < 0x1000 ? 0: (long) puser->name)
+
+
   if( (s_flg&FL_PRXUSER) && !puser)
   {KeepAlive=0;
-#define STRAVTPR "HTTP/1.1 407 deny\r\nProxy-Authenticate: Basic realm=\"Proxy\"\r\nContent-Type: text/plain\r\n\r\nAccess denyed"
+    #define STRAVTPR "HTTP/1.1 407 deny\r\nProxy-Authenticate: Basic realm=\"Proxy\"\r\nContent-Type: text/plain\r\n\r\nAccess denyed"
 
     DBGLA("proxy auth basic: (%X ||  !%X) && %X && %X ",
-            (s_flgs[2] & FL2_MD5PASS), (s_flgs[1]&FL1_CRYPTPWD) , (s_flgs[2] & FL2_USEMD5D) , !(fl&F_DIGET_UNAVILABLE) )
+          (s_flgs[2] & FL2_MD5PASS), (s_flgs[1]&FL1_CRYPTPWD) , (s_flgs[2] & FL2_USEMD5D) , !(fl&F_DIGET_UNAVILABLE) )
 
-   return
-#ifdef WITHMD5
-      (  ( (s_flgs[2] & FL2_MD5PASS) || ! (s_flgs[1]&FL1_CRYPTPWD) )  &&  (s_flgs[2] & FL2_USEMD5D) && !(fl&F_DIGET_UNAVILABLE) )?
-      SendDigestAuthReq(in_buf):
-#endif
-      Send(STRAVTPR,sizeof(STRAVTPR)-1);
+    return
+    #ifdef WITHMD5
+    (  ( (s_flgs[2] & FL2_MD5PASS) || ! (s_flgs[1]&FL1_CRYPTPWD) )  &&  (s_flgs[2] & FL2_USEMD5D) && !(fl&F_DIGET_UNAVILABLE) )?
+    SendDigestAuthReq(in_buf):
+    #endif
+    Send(STRAVTPR,sizeof(STRAVTPR)-1);
 
   }
 
+  DBGLA("puser: %lX %lX", (long) puser, ((long) puser) < 0x1000 ? 0: (long) puser->name)
+
   xu=(s_flgs[1]&FL1_BBPROXY)? MkPName(in_buf+6,ibf):
-    MkName(in_buf+6);
+  MkName(in_buf+6);
   if(proxy_antivirus && CheckInVirusURL(xu,inf)) //in_buf+6))
   {
-   KeepAlive=0;
-  #define STRVIRUS "HTTP/1.1 400 deny\r\n\r\nContent-Type: text/html\r\n\r\n<h1>Virus. Access denyed</h1>"
-   return Send(STRVIRUS,sizeof(STRVIRUS)-1);
+    KeepAlive=0;
+    #define STRVIRUS "HTTP/1.1 400 deny\r\n\r\nContent-Type: text/html\r\n\r\n<h1>Virus. Access denyed</h1>"
+    return Send(STRVIRUS,sizeof(STRVIRUS)-1);
 
 
   }
   if(cnt_same)
   {dir=0;
-   l=0;
-   do{
-    h=0;
-    ++no_close_req;
-    for(i=0;i<max_tsk;++i)
-      if( ((u_long)(r=rreq[i]))>1 &&
+    l=0;
+    do{
+      h=0;
+      ++no_close_req;
+      for(i=0;i<max_tsk;++i)
+        if( ((u_long)(r=rreq[i]))>1 &&
           (r->fl & F_SERV_MASK)== F_SERV_PROXY &&
           r->sa_c.sin_addr.s_addr==sa_c.sin_addr.s_addr &&
           DWORD_PTR(r->dir)==xu
         ) ++h;
-    dec_no_close_req();
-    if(h<cnt_same)break;
-    if(RESelect(1,1,1,s) || ++l>PRXTimeout)return 0;
-   }while(1);
+      dec_no_close_req();
+      if(h<cnt_same)break;
+      if(RESelect(1,1,1,s) || ++l>PRXTimeout)return 0;
+    }while(1);
   }
   DWORD_PTR(dir)=xu;
   if(proxy_dir)
   {fname=ibf;
-   if(!(s_flgs[1]&FL1_BBPROXY))
-   {xu2=MkOldPath(ibf,in_buf,xu);
-    ++xu3;
-   }
+    if(!(s_flgs[1]&FL1_BBPROXY))
+    {xu2=MkOldPath(ibf,in_buf,xu);
+      ++xu3;
+    }
   }
   p=in_buf+(h=dirlen);
   //debug("--------%u |%s|",h,in_buf);
   if( !(t=StrVar(in_buf,"HOST") ) )
   {
-   if((t=strstr(in_buf,"tp://"))) t+=5;
-   else t=in_buf+8;
-   //if( *t == ':' )t+=3;
-   //if( t[-1] == ':' )t+=2;
-   zz.tend=strpbrk(t,":/ ");
+    if((t=strstr(in_buf,"tp://"))) t+=5;
+    else t=in_buf+8;
+      //if( *t == ':' )t+=3;
+      //if( t[-1] == ':' )t+=2;
+    zero_init.tend=strpbrk(t,":/ ");
   }
   else if( (!(t5=strchr(t,'\r'))) || (ulong)(t5-t)>64ul ) goto errz2x;
   else *t5=0;
 
+  DBGLA("puser: %lX %lX", (long) puser, ((long) puser) < 0x1000 ? 0: (long) puser->name)
+
   if(IsHostFromList(t,bad_hosts,t5))
   {KeepAlive=0; return HttpReturnError("Access denied");}
   if(up_proxy && up_proxy[0] && !IsHostFromList(t,nohosts,t5) ) ++up_prox;
-if(!up_prox)
-{ pr=80;
-  if(DWORD_PTR(in_buf[4])==0x3A707466 x4CHAR("ftp:") )
-  {pr=21;
-   ss_ftp=-1;
-  // url--;
-   if(strstr(in_buf,"/ "))goto lb_nocashe;
-   KeepAlive=0;
+  if(!up_prox)
+  { pr=80;
+    if(DWORD_PTR(in_buf[4])==0x3A707466 x4CHAR("ftp:") )
+    { pr=21;
+      ss_ftp=-1;
+      // url--;
+      if(strstr(in_buf,"/ "))goto lb_nocashe;
+      KeepAlive=0;
+    }
   }
-}
-//* Cashe:
- if( (DWORD_PTR(*in_buf) == 0x20544547 x4CHAR("GET ") )
-     && ( (i=t5-t)<255 )
-     && (!ModifiedSince)
-     && !zz.cook
-   )
- {
-// */ tocashe=0;
+  //* Cashe:
+  if( (DWORD_PTR(*in_buf) == 0x20544547 x4CHAR("GET ") )
+    && ( (i=t5-t)<255 )
+    && (!ModifiedSince)
+    && !zero_init.cook
+  )
+  {
+    // */ tocashe=0;
 
     if(proxy_dir)
     {
-     if(!nocashe)
-     {
-    lpag:
-      if((fs=_lopen(ibf,0)) >=0)
-      {if( GetFileSize(
-#ifndef A_64
-          (HANDLE)
-#endif
-          fs,0) )
-       {goto oklxx;}
-       _lclose(fs);
-       fs=0;
-      }
-      else
+      if(!nocashe)
       {
-       if((s_flgs[1]&FL1_BBPROXY) && !xu3)
-       { xu2=MkOldPath(ibf+512,in_buf,xu);
-         ++xu3;
-         MkDirs(ibf);
-         if( MoveFile(ibf+512,ibf) ) goto lpag;
-       }
+        lpag:
+        if((fs=_lopen(ibf,0)) >=0)
+        {if( GetFileSize(
+          #ifndef A_64
+          (HANDLE)
+          #endif
+          fs,0) )
+        { goto oklxx;}
+          _lclose(fs);
+          fs=0;
+        }
+        else
+        {
+          if((s_flgs[1]&FL1_BBPROXY) && !xu3)
+          { xu2=MkOldPath(ibf+512,in_buf,xu);
+            ++xu3;
+            MkDirs(ibf);
+            if( MoveFile(ibf+512,ibf) ) goto lpag;
+          }
 
-       if(s_flgs[1]&FL1_BIGPROXY && xu2)
-       {sprintf(ibf+512,"%s" FSLUSHS "%8.8X.asi",proxy_dir,xu);
-        xu2=0;
-        if( MoveFile(ibf+512,ibf) ) goto lpag;
-       }
+          if(s_flgs[1]&FL1_BIGPROXY && xu2)
+          { sprintf(ibf+512,"%s" FSLUSHS "%8.8X.asi",proxy_dir,xu);
+            xu2=0;
+            if( MoveFile(ibf+512,ibf) ) goto lpag;
+          }
+        }
       }
-     }
     }
- }
+  }
 
-if(up_prox)
-{t=up_proxy;
- pr=up_proxy_port;
- if(up_user)
- {t2=Encode64(ibf+=512,up_user,strlen(up_user));
-  t3=in_buf;
-  t4=in_buf-=sizeof("\r\nProxy-Authorization: Basic")+(t2-ibf);
-  while(*t3!='\n' && *t3)*t4++=*t3++;
-  i=sprintf(t4,"\nProxy-Authorization: Basic %s\r",ibf);
-  t4[i]='\n';
-  ibf-=512;
-  h+=i;
- }
-}
+  DBGLA("puser: %lX %lX", (long) puser, ((long) puser) < 0x1000 ? 0: (long) puser->name)
 
-lb_nocashe:
+  if(up_prox)
+  { t=up_proxy;
+    pr=up_proxy_port;
+    if(up_user)
+    { t2=Encode64(ibf+=512,up_user,strlen(up_user));
+      t3=in_buf;
+      t4=in_buf-=sizeof("\r\nProxy-Authorization: Basic")+(t2-ibf);
+      while(*t3!='\n' && *t3)*t4++=*t3++;
+      i=sprintf(t4,"\nProxy-Authorization: Basic %s\r",ibf);
+      t4[i]='\n';
+      ibf-=512;
+      h+=i;
+    }
+  }
+
+  DBGLA("puser: %lX %lX", (long) puser, ((long) puser) < 0x1000 ? 0: (long) puser->name)
+
+  lb_nocashe:
   if(
-     (*t=='[')? ( (t2=strstr(t,"]:") ) && ++t2 ) :
-     (
+    (*t=='[')? ( (t2=strstr(t,"]:") ) && ++t2 ) :
+    (
       (t2=strchr(t,':')) || ((t2=strchr(in_buf+11,':')) &&
       t2<strchr(in_buf+11,'/') && (pr!=21 || t2>strchr(in_buf+11,'@') ) )
-     )
     )
+  )
   {
-   *t2=0;
-   if((i=atoui(t2+1))==proxy_port)goto errz2x;
-   if(i && !up_prox)pr=i;
+    *t2=0;
+    if((i=atoui(t2+1))==proxy_port)goto errz2x;
+    if(i && !up_prox)pr=i;
   };
   i=MkName(t);
-  if(zz.tend){rcode=*zz.tend; *zz.tend=0;}
+  if(zero_init.tend){rcode=*zero_init.tend; *zero_init.tend=0;}
 
   if( (ss=trn_sock) >0 )
-  {if( (i==reqi) && !RESelect(0,0,1,ss))goto lbCn;
-lbCls:
-   //shutdown(ss,2); closesocket(ss);
-   CloseSocket(ss);
+  { if( (i==reqi) && !RESelect(0,0,1,ss))goto lbCn;
+    lbCls:
+    //shutdown(ss,2); closesocket(ss);
+    CloseSocket(ss);
   }
-tryNext:
+  tryNext:
   trn=0;
   SleepSpeed();
   if((ss=call_socket(t,pr))>0)
-  {trn_sock=ss;
-   zz.new_st++;
-   l=sizeof(prt);
-   getsockname(ss,(sockaddr *)&prt,&l);
-//   req_var=(char **)(prti.sin_addr.s_addr);
-   req_vari=(prti.sin_addr.s_addr);
-//   pst= (char*)(int) (prti.sin_port);
-   psti= (prti.sin_port);
-//   req=(char*)i;
-   reqi=i;
-lbCn:
-   if(zz.tend)*zz.tend=rcode;
-   if(t5)*t5='\r';
-   if(t2)*t2=':';
+  { trn_sock=ss;
+    zero_init.new_st++;
+    l=sizeof(prt);
+    getsockname(ss,(sockaddr *)&prt,&l);
+    //   req_var=(char **)(prti.sin_addr.s_addr);
+    req_vari=(prti.sin_addr.s_addr);
+    //   pst= (char*)(int) (prti.sin_port);
+    psti= (prti.sin_port);
+    //   req=(char*)i;
+    reqi=i;
+    lbCn:
+    if(zero_init.tend)*zero_init.tend=rcode;
+    if(t5)*t5='\r';
+    if(t2)*t2=':';
 
-if(!up_prox)
-{  if(ss_ftp)
-   {if((t6=strchr(in_buf,'@')))
-    {*t6=0; u=t6+1;
-     if( (t2=strchr(t3=in_buf+10,':')))
-     {*t2=0; t4=t2+1;}
-     else t4=def_pwd;
-    }
-    else {t3="anonymous";  t4=def_pwd; u=in_buf+10; }
-    if(auth)
-    {
-#ifdef A_64
-   DDWORD_PTR(ibf[1024]) =(u_long) "Authorization";
-   DDWORD_PTR(ibf[1032])=(u_long) auth;
-#else
-     DWORD_PTR(ibf[1024]) =(ulong) "Authorization";
-     DWORD_PTR(ibf[1028])=(ulong)auth;
-#endif
-     t3=CheckAuth(t4=ibf+1048);
-    }
-    //do{
-    if( (uint) (((ulong)FGetCMD(ss,p))/100)>2u)goto lerr3;
-    //}while(p[3]=='-' || p[0]<'0' || p[0]>'9' );
-    FlushIn(ss);
-    tout+=send(ss,p,sprintf(p,"USER %s\r\n",t3),0);
-    if((i=FGetCMD(ss,p))!=230)
-    {if( i!=331 )goto lerr3;
-     FlushIn(ss);
-     tout+=send(ss,p,sprintf(p,"PASS %s\r\n",t4),0);
-     //do{
-      if( (uint) (FGetCMD(ss,p)/100)>2u)
-      {//if(t4!=def_pwd)goto lerr3;
-       Send(AuthErr, strlen(AuthErr)  ) ;//sizeof(AuthErr)-1);
-       goto lerr4;
+    if(!up_prox)
+    { if(ss_ftp)
+      { if((t6=strchr(in_buf,'@')))
+        { *t6=0; u=t6+1;
+          if( (t2=strchr(t3=in_buf+10,':')))
+          { *t2=0; t4=t2+1; }
+          else t4=def_pwd;
+        }
+        else { t3="anonymous";  t4=def_pwd; u=in_buf+10; }
+        if(auth)
+        {
+          http_var[0] = "Authorization";
+          http_var[1] = auth;
+          http_var[2] = 0;
+          /*
+           #ifdef A_64
+             DDWORD_PTR(ibf[1024]) =(u_long) "Authorization";
+             DDWORD_PTR(ibf[1032])=(u_long) auth;
+           #else
+               DWORD_PTR(ibf[1024]) =(ulong) "Authorization";
+               DWORD_PTR(ibf[1028])=(ulong)auth;
+           #endif
+           */
+          t3=CheckAuth(t4=ibf+1048);
+        }
+        //do{
+        if( (uint) (((ulong)FGetCMD(ss,p))/100)>2u)goto lerr3;
+        //}while(p[3]=='-' || p[0]<'0' || p[0]>'9' );
+        FlushIn(ss);
+        tout+=send(ss,p,sprintf(p,"USER %s\r\n",t3),0);
+        if((i=FGetCMD(ss,p))!=230)
+        { if( i!=331 )goto lerr3;
+          FlushIn(ss);
+          tout+=send(ss,p,sprintf(p,"PASS %s\r\n",t4),0);
+          //do{
+          if( (uint) (FGetCMD(ss,p)/100)>2u)
+          {//if(t4!=def_pwd)goto lerr3;
+            Send(AuthErr, strlen(AuthErr)  ) ;//sizeof(AuthErr)-1);
+            goto lerr4;
+          }
+          //}while(p[3]=='-');
+        }
+        if(p[3]=='-')Sleep(100);
+        FlushIn(ss);
+        tout+=send(ss,"TYPE I\r\n",sizeof("TYPE I\r\n")-1 ,0);
+        FGetCMD(ss,p);
+        if(t6){*t6='@'; if(t2)*t2=':';}
+
+        if( !(t3=strchr(u,' ')))goto lerr3;
+        *t3=0;
+        if( !(t4=strchr(u,'/')))goto lerr3;
+
+        //CheckBadName(t4);
+        DelMime(t4);
+
+        utfAgain:
+        FlushIn(ss);
+        if( t3[-1] != '/' )
+        { tout+=send(ss,p,sprintf(p,"SIZE %s\r\n",t4),0);
+          if(FGetCMD(ss,p)==213)
+          { for(t6=p+3; *t6==' ';++t6);
+            zero_init.cl=atoui(t6);
+          }
+        }
+
+        if(cont_st)
+        { tout+=send(ss,p,sprintf(p,"REST %u\r\n",tin),0);
+          if( ((ulong)FGetCMD(ss,p))>400) goto lerr3;
+          //     FlushIn(ss);
+        }
+        tout+=send(ss,"PASV\r\n",sizeof("PASV\r\n")-1 ,0);
+        if( (FGetCMD(ss,p)!=227) || ! (t6=strchr(p,'(')) )goto lerr3;
+        ++t6;
+        prti.sin_addr.s_addr=ConvertIP(t6); ++t6;
+        prti.sin_port =atouis(t6); ++t6;
+        prti.sin_port |=atoui(t6)<<8;
+        //    debug("XXX2a %s",t4);
+        //    FlushIn(ss);
+
+        tout+=send(ss,p,sprintf(p,(char *)((t3[-1] == '/' )?"LIST %s\r\n":"RETR %s\r\n"),t4),0);
+        //    debug("%s",p);
+        if((ss_ftp=socket(AF_INET,SOCK_STREAM,IPPROTO_TCP)) <= 0)goto lerr3;
+        prti.sin_family=AF_INET;
+        Sleep(20);
+        if(connect(ss_ftp,&prt,sizeof(prt)) < 0 || (FGetCMD(ss,p)/100) != 1 ) {
+          if( ConvertUtf8(t4) )
+          {
+            //shutdown(ss_ftp,2);
+            //closesocket(ss_ftp);
+
+            //CloseSocket(s);
+            CloseSocket(ss_ftp);
+            goto utfAgain;
+          }
+          goto lerr3; }
+          //if( (FGetCMD(ss,p)/100) != 1  // !=150)
+          //  )goto lerr3;
+          if(t3[-1] == '/')
+          { OutDirTop();
+            i=0;
+            while( (i+=Xrecv(ss_ftp,in_buf+i,0x8000,fs,PRXTimeout))>0 )
+            {tin+=i;
+              in_buf[i]=0;  t4=PutFTPDir(in_buf,in_buf+i+20);
+              if( (i-=t4-in_buf)>0)memcpy(in_buf,t4,i); else i=0;
+              tin-=i;
+            }
+            OutDirBottom(in_buf);
+            goto lerr4;
+          }
+          if(proxy_dir && (!auth) && fs<=0 )
+            if(fss<=0 && ((!max_pfile) || zero_init.cl<max_pfile)) // || zero_init.exe_state) )
+              if(cont_st)
+              { fss=_lopen(fname,OF_WRITE);
+                _llseek(fss,0,2);
+              }else fss=_lcreatd(fname,0);
+              #define FTP_PROXY_REPLY  "HTTP/1.0 200\r\nContent-type: application/octet-stream\r\n\r\n"
+              #define FTP_PROXY_REPLY2 "HTTP/1.0 200\r\nContent-Length: %u\r\nContent-type: application/octet-stream\r\n\r\n"
+              if(!cont_st)
+              {Ysend(s,p,sprintf(p,(zero_init.cl)?FTP_PROXY_REPLY2:FTP_PROXY_REPLY,zero_init.cl ),fss );
+                tin=0;
+              }
+              xchg(ss,ss_ftp); // tocashe=0;
+              if( proxy_antivirus )
+              {
+                zero_init.exe_state=1;
+                zero_init.avs=AvSockBeg(proxy_antivirus,proxy_antivirus_port);
+              }
+              goto  lbRe;
       }
-     //}while(p[3]=='-');
-    }
-    if(p[3]=='-')Sleep(100);
-    FlushIn(ss);
-    tout+=send(ss,"TYPE I\r\n",sizeof("TYPE I\r\n")-1 ,0);
-    FGetCMD(ss,p);
-    if(t6){*t6='@'; if(t2)*t2=':';}
 
-    if( !(t3=strchr(u,' ')))goto lerr3;
-    *t3=0;
-    if( !(t4=strchr(u,'/')))goto lerr3;
-
-    //CheckBadName(t4);
-    DelMime(t4);
-
-utfAgain:
-    FlushIn(ss);
-    if( t3[-1] != '/' )
-    { tout+=send(ss,p,sprintf(p,"SIZE %s\r\n",t4),0);
-      if(FGetCMD(ss,p)==213)
-      {for(t6=p+3; *t6==' ';++t6);
-       zz.cl=atoui(t6);
-      }
-    }
-
-    if(cont_st)
-    {tout+=send(ss,p,sprintf(p,"REST %u\r\n",tin),0);
-     if( ((ulong)FGetCMD(ss,p))>400) goto lerr3;
-//     FlushIn(ss);
-    }
-    tout+=send(ss,"PASV\r\n",sizeof("PASV\r\n")-1 ,0);
-    if( (FGetCMD(ss,p)!=227) || ! (t6=strchr(p,'(')) )goto lerr3;
-    ++t6;
-    prti.sin_addr.s_addr=ConvertIP(t6); ++t6;
-    prti.sin_port =atouis(t6); ++t6;
-    prti.sin_port |=atoui(t6)<<8;
-//    debug("XXX2a %s",t4);
-//    FlushIn(ss);
-
-    tout+=send(ss,p,sprintf(p,(char *)((t3[-1] == '/' )?"LIST %s\r\n":"RETR %s\r\n"),t4),0);
-//    debug("%s",p);
-    if((ss_ftp=socket(AF_INET,SOCK_STREAM,IPPROTO_TCP)) <= 0)goto lerr3;
-    prti.sin_family=AF_INET;
-    Sleep(20);
-    if(connect(ss_ftp,&prt,sizeof(prt)) < 0 || (FGetCMD(ss,p)/100) != 1 ) {
-      if( ConvertUtf8(t4) )
+      if((ibf=strchr(in_buf+12,'/') ) && ibf[4] != '\r'
+        && ((in_buf[8] == ':' ) || (in_buf[9] == ':' ) ) )
       {
-        //shutdown(ss_ftp,2);
-        //closesocket(ss_ftp);
+        if(in_buf[9] == ':' )
+        {  //zero_init.oldurl1=ibf[-1];
+          *--ibf=' ';}
+        //zero_init.oldurl=DWORD_PTR( *(ibf-4) );
+        DWORD_PTR( *(ibf-=4) )=DWORD_PTR(in_buf[0]); //C4CHAR(in_buf);
+        h-=ibf-in_buf;
+      }else ibf=in_buf;
 
-        CloseSocket(s);
-        goto utfAgain;
-      }
-      goto lerr3; }
-    //if( (FGetCMD(ss,p)/100) != 1  // !=150)
-    //  )goto lerr3;
-    if(t3[-1] == '/')
-    {OutDirTop();
-     i=0;
-     while( (i+=Xrecv(ss_ftp,in_buf+i,0x8000,fs,PRXTimeout))>0 )
-     {tin+=i;
-      in_buf[i]=0;  t4=PutFTPDir(in_buf,in_buf+i+20);
-      if( (i-=t4-in_buf)>0)memcpy(in_buf,t4,i); else i=0;
-      tin-=i;
-     }
-     OutDirBottom(in_buf);
-     goto lerr4;
-    }
-    if(proxy_dir && (!auth) && fs<=0 )
-     if(fss<=0 && ((!max_pfile) || zz.cl<max_pfile)) // || zz.exe_state) )
-      if(cont_st)
-      {fss=_lopen(fname,OF_WRITE);
-       _llseek(fss,0,2);
-      }else fss=_lcreatd(fname,0);
-#define FTP_PROXY_REPLY  "HTTP/1.0 200\r\nContent-type: application/octet-stream\r\n\r\n"
-#define FTP_PROXY_REPLY2 "HTTP/1.0 200\r\nContent-Length: %u\r\nContent-type: application/octet-stream\r\n\r\n"
-    if(!cont_st)
-    {Ysend(s,p,sprintf(p,(zz.cl)?FTP_PROXY_REPLY2:FTP_PROXY_REPLY,zz.cl ),fss );
-     tin=0;
-    }
-    xchg(ss,ss_ftp); // tocashe=0;
-    if( proxy_antivirus )
+      if((t4=stristr(ibf,"\nProxy-Connection:")))
+      { h-=6; memcpy(t4+1,t4+7,h-(t4-ibf)); }
+
+    }else ibf=in_buf;
+    if(DWORD_PTR(*ibf)==0x4E4E4F43 x4CHAR("CONN") )
     {
-     zz.exe_state=1;
-     zz.avs=AvSockBeg(proxy_antivirus,proxy_antivirus_port);
-    }
-    goto  lbRe;
-   }
-
-   if((ibf=strchr(in_buf+12,'/') ) && ibf[4] != '\r'
-      && ((in_buf[8] == ':' ) || (in_buf[9] == ':' ) ) )
-   {
-    if(in_buf[9] == ':' )
-    {  //zz.oldurl1=ibf[-1];
-      *--ibf=' ';}
-    //zz.oldurl=DWORD_PTR( *(ibf-4) );
-    DWORD_PTR( *(ibf-=4) )=DWORD_PTR(in_buf[0]); //C4CHAR(in_buf);
-    h-=ibf-in_buf;
-   }else ibf=in_buf;
-
-   if((t4=stristr(ibf,"\nProxy-Connection:")))
-   {h-=6; memcpy(t4+1,t4+7,h-(t4-ibf)); }
-
-}else ibf=in_buf;
-if(DWORD_PTR(*ibf)==0x4E4E4F43 x4CHAR("CONN") )
-{
- if(!up_prox) {
-#define CONN_PROXY_REPLY "HTTP/1.1 200\r\nProxy-Connection: Keep-Alive\r\n\r\n"
-   //JustSend("HTTP/1.1 200\r\n\r\n",sizeof("HTTP/1.1 200\r\n\r\n")-1);
-   JustSend(CONN_PROXY_REPLY, sizeof(CONN_PROXY_REPLY)-1);
- }
- else
- {
-//  l=dirlen;
-//  xchg(i,h);
-//  goto lb5;
-  send(ss,in_buf,dirlen,0);
- }
- p2p(ss,in_buf);
- tin+=Tin;
- tout+=Tout;
- goto lerr4;
-}
-//debug("PP: %X %X %X",fl&F_GZ,zlibstate, DWORD_PTR(ibf[h-4]) );
-   if((t4=StrVar(ibf,"Content-Length")) )post=atoui(t4)-postsize;
-   else if( (!(fl&F_GZ)) && (s_flgs[1]&FL1_GZPRX) && zlibstate>0 && (t6=strstr(ibf,"\r\n\r\n")) ) // && DWORD_PTR(ibf[h-4])==0xA0D0A0D && ibf[h-5]!='\n'  )
-   {
-     h=sprintf(t6+2,"Accept-Encoding: gzip\r\n\r\n")+(t6-ibf)+2 ;
-
-    //  h+=sprintf(ibf+h-2,"Accept-Encoding: gzip\r\n\r\n")-2;
-    //debug("a*------%u |%s|",h,in_buf);
-
-   }
-
-   i=h;
-   do{
-    if( (i=Xsend(ss,ibf,i,0) )<0 )
-    {lerr3:
-     if(!cont_st)HttpReturnError("Error. Can\'t send request...");
-     goto lerr4;
-    }
-    tout+=i;
-    if(post<=0)break;
-    post-=i=XRecv(s,ibf,4000,0,PRXTimeout);
-   }while(i>0);
-   /*
-   if(oldurl1)
-   {
-     ibf[-1]=oldurl1;
-     DWORD_PTR(ibf[-5]=oldurl;
-   }
-   else if(oldurl) DWORD_PTR(ibf[-4]=oldurl;
-   */
-  oklxx:;
-   l=0;
-   do{
-     if((i=Xrecv(ss,p+l,5000-l,fs,PRXTimeout))<=0)
-     {if(l){t2=p+l; if(cont_st)goto lerr4; break;};
-// debug("Last error %d i=%d ss=%d s=%d fs=%d trn=%d",WSAGetLastError(),i,ss,s,fs,trn);
-      if((!zz.new_st) && !t4){ if(t5)*t5=0; goto lbCls;}
-      HttpReturnError("Error. Can\'t receive header...");
+      if(!up_prox) {
+        #define CONN_PROXY_REPLY "HTTP/1.1 200\r\nProxy-Connection: Keep-Alive\r\n\r\n"
+        //JustSend("HTTP/1.1 200\r\n\r\n",sizeof("HTTP/1.1 200\r\n\r\n")-1);
+        JustSend(CONN_PROXY_REPLY, sizeof(CONN_PROXY_REPLY)-1);
+      }
+      else
+      {
+        //  l=dirlen;
+        //  xchg(i,h);
+        //  goto lb5;
+        send(ss,in_buf,dirlen,0);
+      }
+      p2p(ss,in_buf);
+      tin+=Tin;
+      tout+=Tout;
       goto lerr4;
-     }
-    tin+=i;
-    l+=i; p[l]=0;
-    if((t2=strstr(p,"\n\r\n")) )
-    {
-     if(t2[-1]!='\r' && t2[3]=='\r' ) ++t2;
-     break;
     }
-    if((t2=strstr(p,"\n\n"))){--t2; break;}
-    if(l>=5000){t2=p+l; if(cont_st)goto lerr4;  break;}
-   }while(1);
+    //debug("PP: %X %X %X",fl&F_GZ,zlibstate, DWORD_PTR(ibf[h-4]) );
+    if((t4=StrVar(ibf,"Content-Length")) )post=atoui(t4)-postsize;
+    else if( (!(fl&F_GZ)) && (s_flgs[1]&FL1_GZPRX) && zlibstate>0 && (t6=strstr(ibf,"\r\n\r\n")) ) // && DWORD_PTR(ibf[h-4])==0xA0D0A0D && ibf[h-5]!='\n'  )
+    {
+      h=sprintf(t6+2,"Accept-Encoding: gzip\r\n\r\n")+(t6-ibf)+2 ;
 
+      //  h+=sprintf(ibf+h-2,"Accept-Encoding: gzip\r\n\r\n")-2;
+      //debug("a*------%u |%s|",h,in_buf);
 
-   rcode=atoui(p+9);
+    }
 
-   i=t2[1];
-   t2[1]=0;
-   if(KeepAlive)
-     KeepAlive=stristr(p,"Connection: Keep-Alive");
-   AddToLog(p,ss,0,FmtShrtR);
-// * Cashe
-   t2[1]=i;
-
-   if( (!(fl&F_GZ)) && // (s_flgs[1]&FL1_GZPRX) &&
-       zlibstate>0 &&
-       (t6=StrVar(p,"Content-Encoding")) &&
-       (striin(t6,"gzip") || striin(t6,"deflate"))
-     )
-   {
-//     debug("Unpack gzip..");
-     if(IGZU())
-     {
-       if(KeepAlive)l=DelStr(KeepAlive,p,l);
-       //l=DelStr(strstr(p,"Content-Encoding"),p,l);
-       //if((t6=strstr(p,"Content-Length")) ) l=DelStr(t6,p,l);
-       KeepAlive=0;
-     }
-//     else  debug("P_ERROR: %X %X %X",fl&F_GZ,zlibstate,t6 );
-
-   }
-//   debug("P: %X %X %X",fl&F_GZ,zlibstate,t6 );
-
-   if(rcode!=206 && cont_st && !stristr(p,"\nContent-Range:") ) goto lerr4;
-   if((t1=StrVar(p,"Content-Length")))
-   {zz.cl=atoui(t1) ; //+(t2-p)+3;
-    if(!zz.cl)zz.cl=-1;
- //   debug("zz.cl=%u t1=%s",zz.cl,t1);
-   }
-
-   if(zz.cl<=0)
-   {
-     if(KeepAlive)
-     {
-      l=DelStr(KeepAlive,p,l);
-      if((t1=stristr(p,"Keep-Alive:") ))
-      {l=DelStr(t1,p,l);
+    i=h;
+    do{
+      if( (i=Xsend(ss,ibf,i,0) )<0 )
+      {lerr3:
+        if(!cont_st)HttpReturnError("Error. Can\'t send request...");
+        goto lerr4;
       }
-      KeepAlive=0;
-     }
-     ttimeout=5;
-   }
+      tout+=i;
+      if(post<=0)break;
+      post-=i=XRecv(s,ibf,4000,0,PRXTimeout);
+    }while(i>0);
+    /*
+        if(oldurl1)
+        {
+          ibf[-1]=oldurl1;
+          DWORD_PTR(ibf[-5]=oldurl;
+        }
+        else if(oldurl) DWORD_PTR(ibf[-4]=oldurl;
+     */
+    oklxx:;
+    l=0;
+    do{
+      if((i=Xrecv(ss,p+l,5000-l,fs,PRXTimeout))<=0)
+      { if(l){ t2=p+l; if(cont_st)goto lerr4; break;};
+        // debug("Last error %d i=%d ss=%d s=%d fs=%d trn=%d",WSAGetLastError(),i,ss,s,fs,trn);
+        if((!zero_init.new_st) && !t4){ if(t5)*t5=0; goto lbCls;}
+        HttpReturnError("Error. Can\'t receive header...");
+        goto lerr4;
+      }
+      tin+=i;
+      l+=i; p[l]=0;
+      if((t2=strstr(p,"\n\r\n")) )
+      {
+        if(t2[-1]!='\r' && t2[3]=='\r' ) ++t2;
+        break;
+      }
+      if((t2=strstr(p,"\n\n"))){--t2; break;}
+      if(l>=5000){t2=p+l; if(cont_st)goto lerr4;  break;}
+    }while(1);
 
-   if(proxy_antivirus &&
-       (
+
+    rcode=atoui(p+9);
+
+    i=t2[1];
+    t2[1]=0;
+    if(KeepAlive)
+      KeepAlive=stristr(p,"Connection: Keep-Alive");
+    AddToLog(p,ss,0,FmtShrtR);
+    // * Cashe
+    t2[1]=i;
+
+    if( (!(fl&F_GZ)) && // (s_flgs[1]&FL1_GZPRX) &&
+      zlibstate>0 &&
+      (t6=StrVar(p,"Content-Encoding")) &&
+      (striin(t6,"gzip") || striin(t6,"deflate"))
+    )
+    {
+      //     debug("Unpack gzip..");
+      if(IGZU())
+      {
+        if(KeepAlive)l=DelStr(KeepAlive,p,l);
+        //l=DelStr(strstr(p,"Content-Encoding"),p,l);
+        //if((t6=strstr(p,"Content-Length")) ) l=DelStr(t6,p,l);
+        KeepAlive=0;
+      }
+      //     else  debug("P_ERROR: %X %X %X",fl&F_GZ,zlibstate,t6 );
+
+    }
+    //   debug("P: %X %X %X",fl&F_GZ,zlibstate,t6 );
+
+    if(rcode!=206 && cont_st && !stristr(p,"\nContent-Range:") ) goto lerr4;
+    if((t1=StrVar(p,"Content-Length")))
+    { zero_init.cl=atoui(t1) ; //+(t2-p)+3;
+      if(!zero_init.cl)zero_init.cl=-1;
+      //   debug("zero_init.cl=%u t1=%s",zero_init.cl,t1);
+    }
+
+    if(zero_init.cl<=0)
+    {
+      if(KeepAlive)
+      {
+        l=DelStr(KeepAlive,p,l);
+        if((t1=stristr(p,"Keep-Alive:") ))
+        {l=DelStr(t1,p,l);
+        }
+        KeepAlive=0;
+      }
+      ttimeout=5;
+    }
+
+    if(proxy_antivirus &&
+      (
         (s_flgs[2]&FL2_PAVALL) ||
         stristr(p,"\nContent-type: application") ||
         (t2 &&  t2[3]=='M' && t2[4]=='Z') ||
         (s_flgs[2]&FL2_PAVHTML &&  stristr(p,"\nContent-type: text/html") )
-       )
-     )
-   {
-    zz.exe_state=1;
-    zz.avs=AvSockBeg(proxy_antivirus,proxy_antivirus_port);
-   }
+      )
+    )
+    {
+      zero_init.exe_state=1;
+      zero_init.avs=AvSockBeg(proxy_antivirus,proxy_antivirus_port);
+    }
 
-   if( rcode >= 300 ||  rcode == 302 ||
-       ((!(s_flg&FL_IGNNOCH)) &&
-         ( stristr(p,/*"PRAGMA*/": NO-CACHE\r\n" ) ||
-       stristr(p,"\nCACHE-CONTROL: Private" ) ||
-           (
-             (FL1_PRXHRD&s_flgs[1]) &&
-             ( //zz.cook ||
-               stristr(p,"\nCACHE-CONTROL:")
-             )
-           )
-       //                               */
-         )
-     ) )
-   {tocashe=0; }
-//   else tocashe=1;
-/*
-   else if(fs>0)
-   {
-     if( (t3=stristr(p,"\nCACHE-CONTROL: max-age=") ) )
-     {
+    if( rcode >= 300 ||  rcode == 302 ||
+      ((!(s_flg&FL_IGNNOCH)) &&
+      ( stristr(p,/*"PRAGMA*/": NO-CACHE\r\n" ) ||
+      stristr(p,"\nCACHE-CONTROL: Private" ) ||
+      (
+        (FL1_PRXHRD&s_flgs[1]) &&
+        ( //zero_init.cook ||
+        stristr(p,"\nCACHE-CONTROL:")
+        )
+      )
+      //                               */
+      )
+      ) )
+    {tocashe=0; }
+    else
+      if( //(tocashe //||zero_init.exe_state
+        //) &&
 
-     }
-   }
-*/
-   else
-   if( //(tocashe //||zz.exe_state
-       //) &&
-
-       proxy_dir && (!auth) && /* ModifiedSince &&*/ rcode < 300 && fs<=0 )
-   {
-    if( ( //zz.exe_state ||
-          !max_pfile) || zz.cl<max_pfile)
-     if(cont_st && (!fss))
-     {fss=_lopen(fname,OF_WRITE);
-      _llseek(fss,0,2);
-     }else if( (!fss) && rcode!=206) fss=_lcreatd(fname,0);
-    if((s_flg&FL_IGNNOCH) && (t3=stristr(p,"\nEXPIRES:") ) )t3[1]='N';
-   }
-
-
-   t1=stristr(p,"\nContent-type:");
-   t3=stristr(p,"Transfer-Encoding: chunked");
-   t6=p;
-   if(cont_st)
-   {
-     l-=t2+3-p;
-     p=t2+3;
-     if(zz.avs>0 && l>0)
-     {
-       AvSend(zz.avs,p,l);
-
-     }
-   }
-   else if(zz.avs>0 && (i=l-3-(t2-p) )>0 )
-   {
-      AvSend(zz.avs,t2+3,l);
-      if(zz.cl && l>=zz.cl)
+        proxy_dir && (!auth) && /* ModifiedSince &&*/ rcode < 300 && fs<=0 )
       {
-       j=AvEnd(zz.avs,inf);
-       zz.avs=0;
-       if(j>0)
-       {
-        Ysend(s,STRVIRUS,sizeof(STRVIRUS)-1,0);
-        t2[4]=0;
-        KeepAlive=0;
-        goto lerr5;
-       }
-
+        if( ( //zero_init.exe_state ||
+          !max_pfile) || zero_init.cl<max_pfile)
+          if(cont_st && (!fss))
+          { fss=_lopen(fname,OF_WRITE);
+            _llseek(fss,0,2);
+          }else if( (!fss) && rcode!=206) fss=_lcreatd(fname,0);
+          if((s_flg&FL_IGNNOCH) && (t3=stristr(p,"\nEXPIRES:") ) )t3[1]='N';
       }
-   }
-
-   if(l>0)if( Ysend(s,p,l,fss)<0){t2[4]=0; goto lerr5; }
 
 
-   p=t6;
+      t1=stristr(p,"\nContent-type:");
+      t3=stristr(p,"Transfer-Encoding: chunked");
+      t6=p;
+      if(cont_st)
+      {
+        l-=t2+3-p;
+        p=t2+3;
+        if(zero_init.avs>0 && l>0)
+        {
+          AvSend(zero_init.avs,p,l);
 
-   //Tout+=l;
-////////!!!////////
+        }
+      }
+      else if(zero_init.avs>0 && (i=l-3-(t2-p) )>0 )
+      {
+        AvSend(zero_init.avs,t2+3,l);
+        if(zero_init.cl && l>=zero_init.cl)
+        {
+          j=AvEnd(zero_init.avs,inf);
+          zero_init.avs=0;
+          if(j>0)
+          {
+            Ysend(s,STRVIRUS,sizeof(STRVIRUS)-1,0);
+            t2[4]=0;
+            KeepAlive=0;
+            goto lerr5;
+          }
 
-   if( (cont_st) || ! zz.cl ){zz.cl=0;  KeepAlive=0; }
-// */
-   //if(!cont_st)
-   {
-    tin-=(t2-p)+3;
-   }
-lbRe:
-//   debug("***%u %u",tin,zz.cl);
-   while( ( ( //(!KeepAlive) &&   //rcode!=304
-             !zz.cl) || ((int)tin<zz.cl)) && (i=Xrecv(ss,p,0x2000,fs,(rcode<300 || zz.cl || t1)? ttimeout :3))>0 )
-   {tin+=i;
-    if(t3)ttimeout=12;
-//    debug("!**%u %u",tin,zz.cl);
-#ifdef MEMPRX
-    if(tocashe>0){memcpy(pp,p,MIN(tocashe,i)); tocashe-=i; pp+=i;}
-#endif
-    if(zz.avs>0)
-    {
-     AvSend(zz.avs,p,i);
-     if(zz.cl)
-     {
-       if(tin>=zz.cl)
-       {
-         j=AvEnd(zz.avs,inf);
-         zz.avs=0;
-         if(j>0)
-         {
+        }
+      }
+
+      if(l>0)if( Ysend(s,p,l,fss)<0){t2[4]=0; goto lerr5; }
+
+
+      p=t6;
+
+      //Tout+=l;
+      ////////!!!////////
+
+      if( (cont_st) || ! zero_init.cl ){zero_init.cl=0;  KeepAlive=0; }
+      // */
+      //if(!cont_st)
+      {
+        tin-=(t2-p)+3;
+      }
+      lbRe:
+      //   debug("***%u %u",tin,zero_init.cl);
+      while( ( ( //(!KeepAlive) &&   //rcode!=304
+        !zero_init.cl) || ((int)tin<zero_init.cl)) && (i=Xrecv(ss,p,0x2000,fs,(rcode<300 || zero_init.cl || t1)? ttimeout :3))>0 )
+      {tin+=i;
+        if(t3)ttimeout=12;
+        //    debug("!**%u %u",tin,zero_init.cl);
+        #ifdef MEMPRX
+        if(tocashe>0){memcpy(pp,p,MIN(tocashe,i)); tocashe-=i; pp+=i;}
+        #endif
+        if(zero_init.avs>0)
+        {
+          AvSend(zero_init.avs,p,i);
+          if(zero_init.cl)
+          {
+            if(tin>=zero_init.cl)
+            {
+              j=AvEnd(zero_init.avs,inf);
+              zero_init.avs=0;
+              if(j>0)
+              {
+                KeepAlive=0;
+                break ;
+              }
+            }
+          }
+        }
+        /*
+             if(zero_init.exe_state && proxy_antivirus && fss>0 && ( zero_init.cl?tin>=zero_init.cl:( i<0x2000 && RESelect(0,0,1,ss)) ) )
+             {
+               if(ProxyAntivirus(fname,in_buf+6) )break;
+             }
+        */
+        if(Ysend(s,p,i,fss)<0)
+        {
+          #ifdef MEMPRX
+          if(tocashe>0)tin+=Xrecv(ss,pp,tocashe,fs,PRXTimeout);
+          #endif
+          cont_st=max_cont_st;
           KeepAlive=0;
-          break ;
-         }
-       }
-     }
-    }
-/*
-    if(zz.exe_state && proxy_antivirus && fss>0 && ( zz.cl?tin>=zz.cl:( i<0x2000 && RESelect(0,0,1,ss)) ) )
-    {
-      if(ProxyAntivirus(fname,in_buf+6) )break;
-
-    }
-*/
-    if(Ysend(s,p,i,fss)<0)
-    {
-#ifdef MEMPRX
-     if(tocashe>0)tin+=Xrecv(ss,pp,tocashe,fs,PRXTimeout);
-#endif
-     cont_st=max_cont_st;
-     KeepAlive=0;
-     break;
-    }
-    //Tout+=i;
-    if(ss)SleepSpeed(); //sa_c.sin_addr.s_addr);
-   }
-//debug("X %d cl=%d %d tin=%d %d L=%d\r\n",i,zz.cl,ss,tin,fs,WSAGetLastError());
-   if( /* fs>0 && */ zz.cl >0 && tin<zz.cl && cont_st<max_cont_st)
-   {*p=0;
-     if(ss_ftp>0){ //shutdown(ss_ftp,2); closesocket(ss_ftp);
-                   CloseSocket(ss_ftp); ss_ftp=0; }
-     else h=dirlen+=sprintf(in_buf+dirlen-2,"Range: bytes=%u-\r\n\r\n",tin)-2;
-     cont_st++;
-     t2=0;
-     if(t5)*t5=0;
-     //tin=0;
-     if(fs>0)
-     {_lclose(fs);
-      fs=0;
-     }
-     if(ss>0){  //shutdown(ss,2); closesocket(ss);
-         CloseSocket(ss); ss=0;}
- debug("Broken. %u of %u loaded. Try continue...",tin,zz.cl);
-     goto tryNext;
-   }
- lurl:;
+          break;
+        }
+        //Tout+=i;
+        if(ss)SleepSpeed(); //sa_c.sin_addr.s_addr);
+      }
+      //debug("X %d cl=%d %d tin=%d %d L=%d\r\n",i,zero_init.cl,ss,tin,fs,WSAGetLastError());
+      if( /* fs>0 && */ zero_init.cl >0 && tin<zero_init.cl && cont_st<max_cont_st)
+      {*p=0;
+        if(ss_ftp>0){ //shutdown(ss_ftp,2); closesocket(ss_ftp);
+          CloseSocket(ss_ftp); ss_ftp=0;
+        }
+        else h=dirlen+=sprintf(in_buf+dirlen-2,"Range: bytes=%u-\r\n\r\n",tin)-2;
+        cont_st++;
+        t2=0;
+        if(t5)*t5=0;
+        //tin=0;
+        if(fs>0)
+        { _lclose(fs);
+          fs=0;
+        }
+        if(ss>0){  //shutdown(ss,2); closesocket(ss);
+          CloseSocket(ss); ss=0;
+        }
+        debug("Broken. %u of %u loaded. Try continue...",tin,zero_init.cl);
+        goto tryNext;
+      }
+      lurl:;
   }else{errz2x:;
     if(ModifiedSince) Send("HTTP/1.0 304\r\n\r\n",sizeof("HTTP/1.0 304\r\n\r\n")-1);
     else HttpReturnError("Error. Can\'t connect...");
-lerr4:
+    lerr4:
     KeepAlive=0;
   };
-lerr5:;
+  lerr5:;
   if(ss_ftp>0){  //shutdown(ss_ftp,2); closesocket(ss_ftp);
-     CloseSocket(ss_ftp);
+    CloseSocket(ss_ftp);
   }
-//  if(gz)((GZObj *)(gz))->End();
+  //  if(gz)((GZObj *)(gz))->End();
   GZEnd();
   if(fs>0)_lclose(fs);
   if(fss>0)
   {
-   _lclose(fss);
-   if(max_pfile && tin>max_pfile)DeleteFile(fname);
+    _lclose(fss);
+    if(max_pfile && tin>max_pfile)DeleteFile(fname);
   }
-  if(zz.avs>0)AvEnd(zz.avs,inf); //in_buf+6);
+  if(zero_init.avs>0)AvEnd(zero_init.avs,inf); //in_buf+6);
 
-  sprintf(in_buf,"Proxy in:%u out:%u %s\r\n",Tout,tout,puser?puser->name:"");
+  DBGLA("%lX %lX", (long) puser, ((long) puser) < 0x1000 ? 0: (long) puser->name)
+  msprintf(in_buf,"Proxy in:%llu out:%u %s\r\n",Tout,tout,puser?puser->name:"");
   AddToLog(in_buf,s,&sa_c46,FmtShort);
-#undef d
-/*
-  if(lip && lnet)
-  {i=(Tout+1023)>>10;
-   lip->cnt+=i;
-   lnet->cnt+=i;
-   ipcnts[2].d[0].cnt+=i;
-  }
-*/
+  #undef d
+  /*
+     if(lip && lnet)
+     {
+      i=(Tout+1023)>>10;
+      lip->cnt+=i;
+      lnet->cnt+=i;
+      ipcnts[2].d[0].cnt+=i;
+     }
+  */
   if(ss>0)
-  {if(!KeepAlive)
-   { //shutdown(ss,2); closesocket(ss);
-    CloseSocket(ss);
-   // debug("Close socket %u %u %X",tin,zz.cl,t3);
+  {
+    if(!KeepAlive)
+    { //shutdown(ss,2); closesocket(ss);
+      CloseSocket(ss);
+      // debug("Close socket %u %u %X",tin,zero_init.cl,t3);
 
-     trn=0;
-   }
+      trn=0;
+    }
   }
- // debug("After close %u %u %X s=%d KA:%X trn:%d",tin,zz.cl,t3,ss,KeepAlive,trn);
+  // debug("After close %u %u %X s=%d KA:%X trn:%d",tin,zero_init.cl,t3,ss,KeepAlive,trn);
 
-//  proxy_chk.CheckProxy();
+  //  proxy_chk.CheckProxy();
   DEBUGVAR(tmout);
   return 0;
 };
@@ -1314,7 +1332,6 @@ lerr5:;
 #undef puser
 #undef d
 #undef tocashe
-#undef nm4
 #undef csh
 #undef post
 #undef t1

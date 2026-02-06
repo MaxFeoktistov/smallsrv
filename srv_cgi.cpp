@@ -88,7 +88,7 @@ int Req::SendChk(const char *b,int l)
    return 1;
   }
  }
- DBGLA("SendChk %d %d fl=%X",l,Tout,fl);
+ DBGLA("SendChk %d %d fl=%X",l,(uint)Tout,fl);
 
  if(fl&F_STDERRSEL)
  {
@@ -176,8 +176,10 @@ int MyCreateProcess(char *p,void *env,char *loc, STARTUPINFO *cb,PROCESS_INFORMA
    uchar uc[2048];
  };
   ushort ut2[512];
+  DBGLA("Exec %s %s", p, loc);
   if(utf2unicode((uchar *)p,ut)>0)
   {
+     DBGLA("ExecUni %s %s", p, loc);
      utf2unicode((uchar *)loc,ut2);
      return   CreateProcessW(0,(WCHAR *) ut,&secat,&secat,1,NORMAL_PRIORITY_CLASS,env,(WCHAR *)ut2,(STARTUPINFOW *)cb,pi);
   }
@@ -963,7 +965,7 @@ DBG();
 DBG();
 
         lberr:
-      //  debug("error in script %u %u",ll,Tout);
+      //  debug("error in script %u %llu",ll,Tout);
          if(RESelect(0,0x10000,1,hrd)) goto lbrd;
          if(! (s_flgs[2]&FL2_NOERROUT) )
             if(!ll)
