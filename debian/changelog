@@ -1,4 +1,4 @@
-smallsrv (3.06.39test7) unstable; urgency=low
+smallsrv (3.06.39test8) unstable; urgency=low
 
   *  Added defined sequence of messages for POP3
   *  Fixed message name overflow bug in SMTP
@@ -6,8 +6,9 @@ smallsrv (3.06.39test7) unstable; urgency=low
   *  The SMTP client now checks the message file size after running the
      antivirus script, and if it has changed, the message is reloaded.
   *  Fixed bugs in proxy.
+  *  Improved VPN client.
 
- -- Maksim Feoktistov <max@smallsrv.com>  Fri, 06 Feb 2026 21:11:10 +0400
+ -- Maksim Feoktistov <max@smallsrv.com>  Sun, 15 Feb 2026 00:15:39 +0400
 
 smallsrv (3.06.38a) unstable; urgency=low
 

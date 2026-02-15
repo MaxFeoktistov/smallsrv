@@ -22,6 +22,9 @@
  *
  */
 
+#ifdef TLSVPN
+#include "vpn.h"
+#endif
 
 timeval  TVal;
 void  SignalHandler(int)
@@ -62,7 +65,12 @@ void  SignalUSR2(int)
         shm->reply = REPLY_DONE;
         break;
       case CMD_START_VPNCL:
+#ifdef TLSVPN
+        if ((!(s_aflg & AFL_VPNCLN)) && vpn_remote_host && vpn_remote_host[0]) {
+          CreateThread(&secat,(0x5000 + sizeof(VPNclient) + MAX_MTU + 0xFFF)& ~0xFFF ,VPNClient,(void *)0,0,&trd_id);
+        }
         is_no_exit = RUN_SERVERS | RUN_VPNCL;
+#endif
         shm->reply = REPLY_DONE;
         break;
       case CMD_STOP_VPNCL :

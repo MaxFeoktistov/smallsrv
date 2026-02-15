@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2025 Maksim Feoktistov.
+ * Copyright (C) 1999-2026 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov
@@ -38,7 +38,7 @@
 #define STRVER STRVERVS(SHS_VERSION)  /* DONT_AUTO_CHANGE */
 
 #else
-#define STRVER  "3.06.39test7"   /* DONT_AUTO_CHANGE */
+#define STRVER  "3.06.39test8"   /* DONT_AUTO_CHANGE */
 #endif
 #define sSMALL_HTT "Small HTTP Server ver. " STRVER /* DONT_AUTO_CHANGE */
 

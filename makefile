@@ -1,5 +1,5 @@
 #
-# Copyright (C) 1999-2025 Maksim Feoktistov.
+# Copyright (C) 1999-2026 Maksim Feoktistov.
 #
 # This file is part of Small HTTP server project.
 # Author: Maksim Feoktistov
@@ -22,7 +22,7 @@
 #
 #
 
-VERSION=3.06.39test7
+VERSION=3.06.39test8
 VERSIONT=3.06.39test
 VERSION_CODE=0x30639
 BUDIR=../site/30639/
