@@ -1501,3 +1501,6 @@ vpncdeb: vpncsources
 	cp debian/vpnc.changelog o/$(vpncsrc_dir)/debian/changelog
 	cd o/$(vpncsrc_dir) ; DEBEMAIL="max@smallsrv.com" ; DEBFULLNAME="Maksim Feoktistov" ; debmake -b "binarypackage:bin" ; debuild -i -us -uc -b
 
+fix_style: $(wildcard *.cpp)
+	for i in $^ ; do if [[ $$i -nt .git/index ]] ; then astyle --indent=spaces=2 --keep-one-line-blocks --keep-one-line-statements --pad-oper --indent-switches --pad-comma $$i ; fi ; done
+
