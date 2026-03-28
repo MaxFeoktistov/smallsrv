@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2024 Maksim Feoktistov.
+ * Copyright (C) 1999-2026 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov
@@ -2042,6 +2042,78 @@ void  PrepareDefAReply(char *t)
   WORD_PTR(t[10]) =0x400; // size
 }
 
+#ifndef SYSUNIX
+struct WinFixSelect
+{
+  OVERLAPPED pipeOverlapped;
+  HANDLE waitHandles[11];
+  int  nCount;
+  Req  *dreq;
+  int    pipeState;
+  int    waitRet;
+
+
+  void AddSocket(int s);
+  void InitHandles();
+  int  Select(timeval *tv);
+  int  IsSet(int n, int s);
+};
+
+void WinFixSelect::AddSocket(int s)
+{
+  WSAEVENT socketEvent;
+
+  waitHandles[nCount] = socketEvent = WSACreateEvent();
+  WSAEventSelect(s, socketEvent, FD_READ);
+  nCount++;
+}
+
+void WinFixSelect::InitHandles()
+{
+  int k;
+  int soik;
+
+  pipeOverlapped.hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
+  waitHandles[0] = pipeOverlapped.hEvent;
+  nCount = 1;
+  for(soik=0;(k=soc_srv[SRV_SDNS+soik*MAX_SERV])>0 && soik<9 ; ++soik )
+    AddSocket(k);
+
+}
+
+int  WinFixSelect::Select(timeval *tv)
+{
+  if(!pipeState)
+  {
+    ReadFile((HANDLE)doh_r, &dreq, sizeof(dreq), NULL, &pipeOverlapped);
+    pipeState = 1;
+  }
+
+  waitRet = WaitForMultipleObjects(nCount, waitHandles, FALSE, tv->tv_sec * 1000 + ((tv->tv_usec + 1023) >> 10));
+
+  return waitRet >= WAIT_OBJECT_0;
+}
+
+int  WinFixSelect::IsSet(int n, int s)
+{
+  WSANETWORKEVENTS ev;
+
+  if(n > (waitRet - WAIT_OBJECT_0))
+    return 0;
+
+  if(!n)
+  {
+    ResetEvent(pipeOverlapped.hEvent);
+    pipeState = 0;
+    return 1;
+  }
+
+  WSAEnumNetworkEvents(s, waitHandles[n], &ev);
+  return ev.lNetworkEvents & FD_READ;
+}
+#endif
+
+
 ulong WINAPI SetDNSServ(void * fwrk)
 {
   int s,ss,sudp2=-1,stcp=0;
@@ -2086,15 +2158,17 @@ ulong WINAPI SetDNSServ(void * fwrk)
     ulong z;
     uchar bff[4];
   };
-  int isTCP;
+  int isTCP = ((long) fwrk) % MAX_SERV;
 
-  isTCP=(
-    #ifdef A_64
-    *(uint *) &fwrk
-    #else
-    (uint)fwrk
-    #endif
-  ) % MAX_SERV;
+#ifndef SYSUNIX
+  WinFixSelect *winfix = 0;
+
+  if(s_flgs[2]&FL2_DOH && ! isTCP) {
+    winfix = (WinFixSelect *) Malloc(sizeof(*winfix));
+    winfix->InitHandles();
+  }
+#endif
+
   #define mxnsoff ((uchar *)tp)
   #define mxnsnip nm1
 
@@ -2159,7 +2233,7 @@ ulong WINAPI SetDNSServ(void * fwrk)
         soi=0;
         goto lb_tcpudp;
     }
-    else
+    else  // UDP
     {
       s=ss; //sdns;
 
@@ -2176,11 +2250,13 @@ ulong WINAPI SetDNSServ(void * fwrk)
         if(j<sudp2)j=sudp2;
       }
       else --soik;
+      #ifdef SYSUNIX
       if(s_flgs[2]&FL2_DOH)
       {
         FD_SET(doh_r,&set);
         if(j<doh_r)j=doh_r;
       }
+      #endif
 
     }
     th.s_in[0]=s;
@@ -2189,20 +2265,18 @@ ulong WINAPI SetDNSServ(void * fwrk)
     tval.tv_usec=250000;
 
     // debug("j=%u soik=%u fwrk=%u",j,soik,fwrk);
+#ifdef MINGW
+#undef fd_set
+#endif
+
     if(
-      (k=select(
         #ifdef SYSUNIX
-        j+1
-        #else
-        0
+        select(j+1, &set,0,0,&tval)
+        #else // WIN
+        ((winfix) ? winfix->Select(&tval) :
+                    select(0, (fd_set *)&set,0,0,&tval) )
         #endif
-        ,
-        #ifdef MINGW
-        #undef fd_set
-        (fd_set *)
-        #endif
-        &set,0,0 //&er_set
-        ,&tval))  >0
+        >0
     )
     {
       for(soi=0; soi<=soik  ; soi++ )
@@ -2210,8 +2284,10 @@ ulong WINAPI SetDNSServ(void * fwrk)
         s=( isTCP )? stcp : (soi==soik && sudp2>0)? sudp2 : soc_srv[SRV_SDNS+soi*MAX_SERV];
 
         if(
+          #ifndef SYSUNIX
+          (winfix) ?  winfix->IsSet(soi + 1, s) :
+          #endif
           #ifdef MINGW
-
           FD_ISSET(s, (fd_set *) &set)
           #else
           FD_ISSET(s,  &set)
@@ -2480,10 +2556,16 @@ ulong WINAPI SetDNSServ(void * fwrk)
                   #ifdef SYSUNIX
                   i=IPTOS_DNS;
                   setsockopt(sudp2,IPPROTO_IP,IP_TOS,(char *)&i,4 );
-                  #endif
+                  #endif // SYSUNIX
                   #else
                   #warning  IP_TTL not defined
-                  #endif
+                  #endif // IP_TTL
+
+                  #ifndef SYSUNIX
+                  if(s_flgs[2]&FL2_DOH && ! isTCP) {
+                    winfix->AddSocket(sudp2);
+                  }
+                  #endif // !SYSUNIX
                 }
 
                 lbFindCashe:
@@ -2675,18 +2757,28 @@ ulong WINAPI SetDNSServ(void * fwrk)
         } // IS_SET
       } // for Select
 
-      if( (s_flgs[2]&FL2_DOH) && FD_ISSET(doh_r, (fd_set *) &set)   )
+      if( (s_flgs[2]&FL2_DOH) && (
+      #ifndef SYSUNIX
+        (winfix) ?  winfix->IsSet(0, doh_r) : 0
+      #else
+        FD_ISSET(doh_r, (fd_set *) &set)
+      #endif
+        )
+      )
       {
         s =soc_srv[SDNS_IND];
+        #ifdef SYSUNIX
         FD_CLR(doh_r,(fd_set *) &set);
         _hread(doh_r,(char *) &th.doh_ptr,sizeof(th.doh_ptr) );
+        #else
+        th.doh_ptr = winfix->dreq;
+        #endif
         th.l=th.doh_ptr->postsize;
         memcpy(dmmc,th.doh_ptr->pst,th.l);
         memcpy(&sa_client,& (th.doh_ptr->sa_c),sizeof(sa_client) );
         DBGLA("DOH size %d s=%d\n", th.l, s)
         goto lbDOH;
       }
-
     }// Select
     else
     {
@@ -2741,9 +2833,11 @@ ulong WINAPI SetDNSServ(void * fwrk)
         gettimeofday(&old_time,0);
       }
     }
-
   } //while
-
+  #ifndef SYSUNIX
+        if (winfix)
+          free(winfix);
+#endif
 }
 
 
@@ -3469,7 +3563,7 @@ int InitDnsSrv2(int is_ip6)
 int InitDnsSrv()
 {
   if(!LoadDomain(dns_file))return 0;
-  #endif
+#endif
 
   ROOTSERVERHASH=MkName(ROOTSERVERNAME);
 
@@ -3481,7 +3575,7 @@ int InitDnsSrv()
   #else
   struct sockaddr_in sa_server;
   #endif
-  int i,sdn,sdnt=0,k=0,kk;
+  int i,sdn,sdnt=0,k=0,kk=0;
   char  *pbnd=bind_a[SDNS_IND];
 
   if( dns_cach_size )

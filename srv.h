@@ -248,6 +248,7 @@ struct Req
  union {
    void *gz;
    int  pass_port;
+   BFILE *pbfl;
  };
  union {
    host_dir *vhdir;

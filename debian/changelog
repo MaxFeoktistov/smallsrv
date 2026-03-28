@@ -1,3 +1,9 @@
+smallsrv (3.06.40test1) unstable; urgency=low
+
+  *  A little changes in DNS server. Fixed DOH in version for Windows
+
+ -- Maksim Feoktistov <max@smallsrv.com>  Sat, 28 Mar 2026 14:54:20 +0400
+
 smallsrv (3.06.39) unstable; urgency=low
 
   *  Added defined sequence of messages for POP3
