@@ -2058,6 +2058,8 @@ struct WinFixSelect
   void InitHandles();
   int  Select(timeval *tv);
   int  IsSet(int n, int s);
+  void DelLastSocket(){ WSACloseEvent(waitHandles[--nCount]); }
+  void ChangeSocket(int n){ WSAEventSelect(soc_srv[SRV_SDNS + n * MAX_SERV], waitHandles[n + 1], FD_READ); }
 };
 
 void WinFixSelect::AddSocket(int s)
@@ -2071,15 +2073,14 @@ void WinFixSelect::AddSocket(int s)
 
 void WinFixSelect::InitHandles()
 {
-  int k;
+  int s;
   int soik;
 
   pipeOverlapped.hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
   waitHandles[0] = pipeOverlapped.hEvent;
   nCount = 1;
-  for(soik = 0; (k = soc_srv[SRV_SDNS + soik * MAX_SERV]) > 0 && soik < 9 ; ++soik )
-    AddSocket(k);
-
+  for(soik = 0; (s = soc_srv[SRV_SDNS + soik * MAX_SERV]) > 0 && soik < 9 ; ++soik )
+    AddSocket(s);
 }
 
 int  WinFixSelect::Select(timeval *tv)
@@ -2242,20 +2243,20 @@ ulong WINAPI SetDNSServ(void * fwrk)
       {
         FD_SET(k, &set);
         //FD_SET(k,&er_set);
-        if(j < k)j = k;
+        if(j < k) j = k;
       }
 
       if(sudp2 > 0)
       {
         FD_SET(sudp2, &set);
-        if(j < sudp2)j = sudp2;
+        if(j < sudp2) j = sudp2;
       }
       else --soik;
 #ifdef SYSUNIX
       if(s_flgs[2]&FL2_DOH)
       {
         FD_SET(doh_r, &set);
-        if(j < doh_r)j = doh_r;
+        if(j < doh_r) j = doh_r;
       }
 #endif
 
@@ -2746,12 +2747,19 @@ lbNS_notfound:
               debug("Bad message received %u %u %u %d %d %d", s, soi, soik, i, th.l, fwrk);
               if(s == sudp2)
               {
+#ifndef SYSUNIX
+                if(winfix) winfix->DelLastSocket();
+#endif
                 closesocket(sudp2);
+
                 sudp2 = 0;
               }
               else  // if(! ( isTCP) )
               {
                 ReinitDNSSocket(soi);
+#ifndef SYSUNIX
+                if(winfix) winfix->ChangeSocket(soi);
+#endif
               }
             }
           }
