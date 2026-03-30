@@ -168,7 +168,7 @@ lbRenErr:;
  if(!wstate)ShowProt();
 #endif
  pval++;
- MyUnlock(pcnt);
+ MyUnlock(mutex_pcnt);
 };
 void RelProt()
 {SYSTEMTIME stime;

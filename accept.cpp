@@ -42,7 +42,7 @@
 
 
 struct linger lngr={1,0};
-int MutexEr;
+my_mutex_t MutexEr;
 int SrvChecker[16];
 int SrvErr[16];
 
@@ -286,8 +286,7 @@ int WINAPI SetServ(uint fnc)
    debug( "Error %d. Can't accept (port %u,%d,%d,%d,%X)" SER ,WSAGetLastError(),soc_port[serv],serv2,soc_srv[serv2],clen,sa_client.sin_addr. S_ADDR  Xstrerror(errno) );
 
    Sleep(10);
-   if(MutexEr)return -1;
-   MyLock(MutexEr);
+   if(!MyTryLock(MutexEr)) return -1;
    closesocket(soc_srv[serv2]);
    debug( "Reinit port %u",soc_port[serv]);
 

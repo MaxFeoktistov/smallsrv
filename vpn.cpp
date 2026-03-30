@@ -125,7 +125,7 @@ maxFdSet maxVPNset;
 int vpn_max;
 int vpn_count;
 //volatile
-int vpn_mutex;
+my_mutex_t vpn_mutex;
 #ifdef VPN_LINUX
 char *tundev="/dev/net/tun";
 #ifndef USE_TUN_PI
@@ -1602,6 +1602,7 @@ lb_reconnect:
    }
    l += sprintf(t + l,"\r\n");
    cl->Send(t,l);
+   DBGLA("send: %s", t)
    if(p && (mac = strtoll(SkipSpace(p) , 0, 16)) )
    {
      cl->macl = mac;
@@ -2179,7 +2180,7 @@ int VPNUserLimit::UpdateOut(uint l)
   return -1;
 }
 
-int vpn_limit_mutex;
+my_mutex_t vpn_limit_mutex;
 
 void ClearLimits(uint end, uint pp)
 {

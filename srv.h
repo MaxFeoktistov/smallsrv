@@ -101,6 +101,21 @@ extern "C"{
 #define win_fd_set fd_set
 #endif
 
+struct my_mutex_t
+{
+  volatile int lock;
+#ifdef USE_FUTEX
+#elif  defined(USE_PTHREAD_MUTEX)
+  pthread_mutex_t hMutex;
+#elif  defined(USE_WINMUTEX)
+  HANDLE  hMutex;
+#endif
+
+  void Init(){lock = 0;}
+  void Destroy();
+};
+
+
 struct LogInfo ;
 struct MemList;
 
@@ -400,7 +415,7 @@ extern maxFdSet maxKeepAliveSet;
 
 extern int maxKeepAlive;
 extern Req **KeepAliveList;
-extern int KeepAliveMutex;
+extern my_mutex_t KeepAliveMutex;
 extern int KeepAliveCount;
 extern int TimeoutKeepAlive;
 extern int keepalive_idle;
@@ -673,7 +688,7 @@ struct SysUser: public User
 
 };
 
-extern int user_mutex;
+extern my_mutex_t user_mutex;
 #define N_ACESS_FLAGS 7
 extern gid_t access_gids[N_ACESS_FLAGS];
 extern const char* access_groups[N_ACESS_FLAGS];
@@ -739,13 +754,15 @@ int onCfgToStrExt(CfgParam *th, char *bfr);
 
 
 
-int MyLock(volatile int &x);
-#ifdef USE_FUTEX
-void MyUnlock(int &x);
+int MyLockTimeout(my_mutex_t &x, int dedlock);
+int MyLock(my_mutex_t &x);
+int MyTryLock(my_mutex_t &x);
+#if defined(USE_FUTEX) || defined(USE_PTHREAD_MUTEX) || defined(USE_WINMUTEX)
+void MyUnlock(my_mutex_t &x);
 #else
-inline void MyUnlock(int &x){x=0;}
+inline void MyUnlock(my_mutex_t &x){x.lock = 0;}
 #endif
-void MyUnlockOwn(volatile int &x);
+void MyUnlockOwn(my_mutex_t &x);
 
 extern int FTPTimeout,POPTimeout,PRXTimeout;
 int GetCMD(int s,char *b,int timo=POPTimeout);
@@ -833,10 +850,12 @@ inline void Free_if_heap2(char *a){if(a>last_cfg && a>&end)delete a;}
 extern THREADHANDLE HSmtpSendThrd;
 #define def_dir (hsdr.d)
 extern int def_dirlen,one,zero,max_cln_host,max_tsk,s_aflg,
- is_no_exit,wstate,pcnt,cash_size,cash_max,maxnm,cash_max_kb,leenv,CurPrxCnt,
+ is_no_exit,wstate,cash_size,cash_max,maxnm,cash_max_kb,leenv,CurPrxCnt,
  max_clndns,dns_cach_size,ttl_avr,cnt_same,unsave_limit,time_update,iip_cach,
- ip_cach_mtx,dns_s,addr_dns,up_proxy_port,max_cont_st,SMTPCounter,
+ dns_s,addr_dns,up_proxy_port,max_cont_st,SMTPCounter, pcnt,
  count_of_tr,post_limit,DnsTms,time_btw,proxy_antivirus_port,trim_log_lines;
+
+extern my_mutex_t ip_cach_mtx;
 
 #define RUN_SERVERS   2
 #define RUN_VPNCL     1
@@ -1003,7 +1022,8 @@ extern char *user_name,NullString[],about[],*wkday[],*month[],
  *CApath,*CAfile,*s_cert_file,*s_key_file,*TLSLibrary,*loc_sent,*loc_draft,*loc_trash,*tls_priority;
 extern HANDLE htrd;
 extern ulong trd_id;
-extern int iofs,no_close_req,MutexEr;
+extern int iofs,no_close_req;
+extern my_mutex_t MutexEr;
 extern int close_wait;
 extern CfgParam ConfigParams[];
 extern CfgParam ConfigParams2[];
@@ -1200,6 +1220,34 @@ void dec_no_close_req();
 #define  HTTP_HEAD_BEGIN "HTTP/1.1 200 Ok\r\nConnection: close\r\n"
 extern const char ChunkedHead[];
 extern const int ChunkedHeadSize;
+extern my_mutex_t mutex_pcnt;
+extern const struct timespec timeout_50ms;
+extern my_mutex_t mutexASyncIO;
+
+#ifndef SYSUNIX
+struct WinFixSelect
+{
+  HANDLE waitHandles[11];
+  int  nCount;
+  Req  *dreq;
+  uint waitRet;
+  my_mutex_t mutex;
+
+
+  void AddSocket(int s);
+  void InitHandles();
+  int  Select(timeval *tv);
+  int  IsSet(int n, int s);
+  void DelLastSocket(){ WSACloseEvent(waitHandles[--nCount]); }
+  void ChangeSocket(int n);
+  void Write(Req *d);
+};
+
+extern WinFixSelect *doh_winfix;
+void InitDOH();
+
+#endif
+
 
 #ifdef SEPLOG
 
@@ -1208,7 +1256,7 @@ struct TLog
   //const char *suffix;
   int  idx;
   char *lpprot,*lf_prot,*loldprot;
-  int  lpcnt;
+  my_mutex_t lpcnt;
   int  msk,llastday;
   char lb_prot[LOG_SIZE];
   char aabfr[0x1000];
@@ -1294,7 +1342,7 @@ extern HANDLE hMapFile;
 #endif
 void  DoneShm();
 
-extern int oldchecked,mutex_pcnt;
+extern int oldchecked;
 extern uint logsigmsk;
 
 void InitSepLog();
@@ -1328,7 +1376,7 @@ extern char *SrvNameSufix[];
 #define  UDoneSepLog()  RelProt()
 extern char b_prot[],*pprot,*f_prot;
 
-inline void GetProt(){MyLock(pcnt);
+inline void GetProt(){MyLock(mutex_pcnt);
 #ifdef SYSUNIX
  oldprot=pprot;
 #endif

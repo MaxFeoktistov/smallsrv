@@ -29,7 +29,6 @@
 
 #define pprot  lpprot
 #define f_prot lf_prot
-//#define pcnt   lpcnt
 #define b_prot lb_prot
 
 #if defined(_BSD_VA_LIST_) && ! defined(USEVALIST)
@@ -45,7 +44,7 @@ void TLog::Init(int n)
   //suffix=SrvNameSufix[n] ;
   idx = n;
   lb_prot[0]=0;
-  lpcnt=0;
+  lpcnt.Init();
   msk=1<<n;
   llastday=0;
 }
@@ -456,15 +455,8 @@ void TLog::MkFileName(char *t,int n)
 }
 
 void TLog::GetProt(){
-    int dead_lock_chk=512;
-    while(mutex_pcnt && --dead_lock_chk>0)
-#ifdef USE_FUTEX
-      futex((int *)&mutex_pcnt,FUTEX_WAIT,mutex_pcnt,&timeout_50ms,0,0);
-#else
-      Sleep(50);
-#endif
-     MyLock(lpcnt);
-     pcnt|=msk;
+    MyLock(lpcnt);
+    pcnt|=msk;
 #ifdef SYSUNIX
      loldprot=lpprot;
 #endif
@@ -484,6 +476,8 @@ int TLog::Save(SYSTEMTIME *stime)
 
   MkFileName(flogname,0);
   LOGDBG("%s l = %u", flogname, l)
+
+  MyLockTimeout(mutex_pcnt, 512);
 #ifndef SYSUNIX
   if( (ll=_lopen(flogname,1))>0)
   {
@@ -654,6 +648,7 @@ int TLog::Save(SYSTEMTIME *stime)
     }
  lbRenErr:;
     lf_prot=lpprot;
+    MyUnlock(mutex_pcnt);
     return 0;
 }
 
@@ -797,6 +792,5 @@ TLog *GetLogR(Req *r,int def)
 
 #undef pprot
 #undef f_prot
-#undef pcnt
 #undef b_prot
 

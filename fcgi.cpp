@@ -570,7 +570,7 @@ int Req::DoFCGI(FCGI_task *fcgi)
 //
 // }
 
-int lock_FCGItask;
+my_mutex_t lock_FCGItask;
 void CloseFCGI_tasks()
 {
   FCGI_task *p,*t;

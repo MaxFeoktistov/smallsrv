@@ -479,7 +479,7 @@ char *GetVarS(char **varlist,char *var)
 }
 */
 
-int UTFMutex;
+my_mutex_t UTFMutex;
 uchar *utfbfr;
 int lovUtfCode=0xC0;
 int utfShift=0x410;
@@ -565,7 +565,8 @@ void WMail::SubTempl(char *t,char *s)
 };
 //-----------
 
-int wbmMutex,wmlg_cntr;
+int wmlg_cntr;
+my_mutex_t wbmMutex;
 ulong lloutIP;
 
 //extern const char *anFnd[];

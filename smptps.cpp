@@ -37,7 +37,7 @@
 
 #endif
 
-int   SmtpMutex;
+my_mutex_t SmtpMutex;
 ulong SmtpLast;
 
 struct MListCntr ipcnts[10];

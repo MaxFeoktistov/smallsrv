@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2024 Maksim Feoktistov.
+ * Copyright (C) 1999-2026 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov
@@ -251,10 +251,13 @@ void OkCfgWindow()
   else
   {
     CheckValidCGIIdent();
+#ifndef VPNCLIENT_ONLY
     if( (s_flgs[2]&FL2_DOH) && doh_w <= 0 )
     {
-      CreatePipe((HANDLE *)&doh_r, (HANDLE *)&doh_w, &secat, 0x400);
+      //CreatePipe((HANDLE *)&doh_r, (HANDLE *)&doh_w, &secat, 0x400);
+      InitDOH();
     }
+#endif
   }
 }
 #endif
@@ -263,10 +266,9 @@ void Restart()
 {
   CloseServer();
 }
-
 #endif
 
-int hLock, hcLock;
+my_mutex_t hLock, hcLock;
 int FreeThreads()
 {
   int i, j = -1;

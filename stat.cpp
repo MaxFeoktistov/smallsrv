@@ -33,7 +33,7 @@
 
 
 #ifdef A_64
-static int StatMutex;
+static my_mutex_t StatMutex;
 static char *statbasepoint;
 #endif
 

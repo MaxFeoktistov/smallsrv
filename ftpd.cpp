@@ -393,7 +393,7 @@ int FindNextFile_UTF(HANDLE a, LPWIN32_FIND_DATA lpFindFileData)
 
 inline char* LL2STR(long long x,char *t){return OutLL( ((long*)&x)[0],((long*)&x)[1],t); };
 
-int FTPPortMtx;
+my_mutex_t FTPPortMtx;
 /*
 struct FTPSecCon
 {

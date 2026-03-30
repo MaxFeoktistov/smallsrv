@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2021 Maksim Feoktistov.
+ * Copyright (C) 1999-2026 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov
@@ -408,7 +408,6 @@ struct ASyncIOHelper_t
 extern HANDLE  ASyncIOhevent[MAX_ASYNC_IO];
 extern ASyncIOHelper_t ASyncIOHelper[MAX_ASYNC_IO];
 extern int countASyncIO;
-extern int mutexASyncIO;
 extern ulong ASyncIOtrd_id;
 
 ulong WINAPI ASyncIOThread(void *);
@@ -435,5 +434,8 @@ int AddASyncIO(tfASyncIOHelperCB cb, void  *par, HANDLE h);
 #ifdef DJGPP
 #define Malloc malloc
 #endif
+
 }
+
+
 

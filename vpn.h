@@ -244,7 +244,7 @@ extern maxFdSet maxVPNset;
 extern int vpn_max;
 extern int vpn_count;
 //volatile
-extern int vpn_mutex;
+extern my_mutex_t vpn_mutex;
 
 extern char* tuntap_ipv4[3];
 extern char* tuntap_ipv4nmask[3];

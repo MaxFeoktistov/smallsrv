@@ -226,7 +226,7 @@ ulong DTick(ulong tick1, ulong tick2)
 }
 
 ulong tmSpd;
-int   SpdMut;
+my_mutex_t SpdMut;
 int Req::SleepSpeed()
 {
   ulong uspd;
@@ -556,4 +556,95 @@ int utf2unicode(uchar *s,ushort *cm)
 
   return r;
 };
+
+
+#ifdef USE_FUTEX
+const  struct timespec timeout_50ms={0,50000000};
+#endif
+volatile int lock_cnt;
+
+
+int MyLockTimeout(my_mutex_t &x, int dead_lock_chk)
+{
+   int a=(int) GetCurrentThreadId();
+   if(a == x.lock) return 0;
+#ifdef USE_WINMUTEX
+   if(!hMutex)
+     hMutex = CreateMutex(NULL, FALSE, NULL);
+
+   WaitForSingleObject(hMutex, 50 * dead_lock_chk);
+   x.lock = a;
+#elif 1
+   if( ++lock_cnt > 1)
+   {
+     #ifdef SYSUNIX
+     sched_yield();
+     #else
+     Sleep(1);
+     #endif
+   }
+
+   do{
+     while(x.lock && x.lock!=a && --dead_lock_chk>0)
+#ifdef USE_FUTEX
+        futex((int *)&x.lock,FUTEX_WAIT,x.lock,&timeout_50ms,0,0);
+#else
+        Sleep(50);
+#endif
+#ifdef SYSUNIX
+     if(dead_lock_chk<=0) {
+       printf("Lock timeout %lX %X %X\r\n", (long) &x, x.lock, a);
+     }
+#endif
+     x.lock=a;
+     if(lock_cnt > 1)
+     {
+       #ifdef SYSUNIX
+       sched_yield();
+       #else
+       Sleep(1);
+       #endif
+     }
+   } while(x.lock!=a);
+ //Sleep(0); do{ while(x){ Sleep(30);}  if(++x==1)break; --x; }while(1);
+   if(--lock_cnt < 0) lock_cnt = 0;
+
+   return 1;
+
+#else
+ int b;
+ while(x!=a){
+  while(x)
+  {
+       Sleep(20);
+       if(x==a)goto ex2;
+       if(--dead_lock_chk<0){ x=a; goto ex2; }
+  }
+  if((b=InterlockedExchange((long *)&x,a)))x=b;
+ }
+ ex2:;
+ return 1;
+
+#endif
+}
+
+int MyLock(my_mutex_t &x)
+{
+  return MyLockTimeout(x, 128);
+}
+
+int MyTryLock(my_mutex_t &x)
+{
+  if(x.lock) return 0;
+  return MyLockTimeout(x, 1);
+}
+
+
+void MyUnlockOwn(my_mutex_t &x){
+  if(x.lock==(int) GetCurrentThreadId())
+  {
+    MyUnlock(x);
+  }
+}
+
 

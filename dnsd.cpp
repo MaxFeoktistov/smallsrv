@@ -721,7 +721,7 @@ NSRecord  * FindFree(NSRecordArray  * thi, NSRecord  *first)
 };
 
 char *hsfile;
-int nsmut;
+my_mutex_t nsmut;
 
 uchar DefaultSOA[] = {
   0, 0, 0, 1, // SERIAL
@@ -823,7 +823,7 @@ const char *FmtShortDNS2[] = { "<%s\r\n", ">%s\r\n"};
 
 #define pprot  lpprot
 #define f_prot lf_prot
-#define pcnt   lpcnt
+//#define pcnt   lpcnt
 #define b_prot lb_prot
 
 void TLog::LAddToLogDNS(const char *t, int n, TSOCKADDR  *sa, char *ad)
@@ -1014,13 +1014,12 @@ struct DNSReq
 #define MAX_DNS_REQ  96
 DNSReq   dreq[MAX_DNS_REQ + 1];
 const DNSReq* lastDNSReq = dreq + MAX_DNS_REQ;
-int dnsreq_mutex;
+my_mutex_t dnsreq_mutex;
 ulong cdreq;
 ushort dns_id;
-int DOHmutex;
+my_mutex_t DOHmutex;
+my_mutex_t MxNextSend;
 
-
-int MxNextSend;
 int DNSReq::NextSend(int rs)
 {
 
@@ -2044,30 +2043,28 @@ void  PrepareDefAReply(char *t)
 }
 
 #ifndef SYSUNIX
-struct WinFixSelect
+void WinFixSelect::Write(Req  *d)
 {
-  OVERLAPPED pipeOverlapped;
-  HANDLE waitHandles[11];
-  int  nCount;
-  Req  *dreq;
-  int    pipeState;
-  int    waitRet;
-
-
-  void AddSocket(int s);
-  void InitHandles();
-  int  Select(timeval *tv);
-  int  IsSet(int n, int s);
-  void DelLastSocket(){ WSACloseEvent(waitHandles[--nCount]); }
-  void ChangeSocket(int n){ WSAEventSelect(soc_srv[SRV_SDNS + n * MAX_SERV], waitHandles[n + 1], FD_READ); }
-};
+  MyLock(mutex);
+  dreq = d;
+  SetEvent(waitHandles[0]);
+}
 
 void WinFixSelect::AddSocket(int s)
 {
   WSAEVENT socketEvent;
 
   waitHandles[nCount] = socketEvent = WSACreateEvent();
-  WSAEventSelect(s, socketEvent, FD_READ);
+  if(socketEvent == WSA_INVALID_EVENT) {
+    debug("socketEvent error %d " SER, WSAGetLastError() Xstrerror(errno));
+    return;
+  }
+  if(WSAEventSelect(s, socketEvent, FD_READ) == SOCKET_ERROR)
+  {
+    debug("WSAEventSelect error %d " SER, WSAGetLastError() Xstrerror(errno));
+    return;
+  }
+
   nCount++;
 }
 
@@ -2076,43 +2073,59 @@ void WinFixSelect::InitHandles()
   int s;
   int soik;
 
-  pipeOverlapped.hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
-  waitHandles[0] = pipeOverlapped.hEvent;
+  waitHandles[0] = CreateEvent(NULL, TRUE, FALSE, NULL);
   nCount = 1;
+
   for(soik = 0; (s = soc_srv[SRV_SDNS + soik * MAX_SERV]) > 0 && soik < 9 ; ++soik )
     AddSocket(s);
+
+  doh_w = 1;
 }
 
 int  WinFixSelect::Select(timeval *tv)
 {
-  if(!pipeState)
+
+  DBGLA("select %d", nCount);
+  waitRet = WaitForMultipleObjects(nCount, waitHandles, FALSE, tv->tv_sec * 1000 + ((tv->tv_usec + 1023) >> 10));
+  if(waitRet == WAIT_FAILED)
   {
-    ReadFile((HANDLE)doh_r, &dreq, sizeof(dreq), NULL, &pipeOverlapped);
-    pipeState = 1;
+    debug("WaitForMultipleObjects error %d " SER, GetLastError() Xstrerror(errno));
   }
 
-  waitRet = WaitForMultipleObjects(nCount, waitHandles, FALSE, tv->tv_sec * 1000 + ((tv->tv_usec + 1023) >> 10));
-
-  return waitRet >= WAIT_OBJECT_0;
+  return (waitRet >= WAIT_OBJECT_0 && waitRet < (WAIT_OBJECT_0 + 11));
 }
+
+inline void WinFixSelect::ChangeSocket(int n){ WSAEventSelect(soc_srv[SRV_SDNS + n * MAX_SERV], waitHandles[n + 1], FD_READ); }
 
 int  WinFixSelect::IsSet(int n, int s)
 {
   WSANETWORKEVENTS ev;
 
-  if(n > (waitRet - WAIT_OBJECT_0))
+  if(n < (waitRet - WAIT_OBJECT_0))
     return 0;
 
   if(!n)
   {
-    ResetEvent(pipeOverlapped.hEvent);
-    pipeState = 0;
+    ResetEvent(waitHandles[0]);
     return 1;
   }
 
   WSAEnumNetworkEvents(s, waitHandles[n], &ev);
   return ev.lNetworkEvents & FD_READ;
 }
+
+WinFixSelect *doh_winfix;
+
+void InitDOH()
+{
+  if(! doh_winfix)
+  {
+    doh_winfix = (WinFixSelect *) Malloc(sizeof(*doh_winfix));
+    if(doh_winfix)
+      doh_winfix->InitHandles();
+  }
+}
+
 #endif
 
 
@@ -2160,14 +2173,11 @@ ulong WINAPI SetDNSServ(void * fwrk)
     ulong z;
     uchar bff[4];
   };
-  int isTCP = ((long) fwrk) % MAX_SERV;
+  int isTCP = ((unsigned long) fwrk) % MAX_SERV;
 
 #ifndef SYSUNIX
-  WinFixSelect *winfix = 0;
-
   if(s_flgs[2]&FL2_DOH && ! isTCP) {
-    winfix = (WinFixSelect *) Malloc(sizeof(*winfix));
-    winfix->InitHandles();
+    InitDOH();
   }
 #endif
 
@@ -2275,7 +2285,7 @@ ulong WINAPI SetDNSServ(void * fwrk)
 #ifdef SYSUNIX
       select(j + 1, &set, 0, 0, &tval)
 #else // WIN
-      ((winfix) ? winfix->Select(&tval) :
+      ((doh_winfix) ? doh_winfix->Select(&tval) :
        select(0, (fd_set *)&set, 0, 0, &tval) )
 #endif
       > 0
@@ -2287,7 +2297,7 @@ ulong WINAPI SetDNSServ(void * fwrk)
 
         if(
 #ifndef SYSUNIX
-          (winfix) ?  winfix->IsSet(soi + 1, s) :
+          (doh_winfix) ?  doh_winfix->IsSet(soi + 1, s) :
 #endif
 #ifdef MINGW
           FD_ISSET(s, (fd_set *) &set)
@@ -2565,7 +2575,7 @@ lbEnd2:
 
 #ifndef SYSUNIX
                   if(s_flgs[2]&FL2_DOH && ! isTCP) {
-                    winfix->AddSocket(sudp2);
+                    doh_winfix->AddSocket(sudp2);
                   }
 #endif // !SYSUNIX
                 }
@@ -2748,7 +2758,7 @@ lbNS_notfound:
               if(s == sudp2)
               {
 #ifndef SYSUNIX
-                if(winfix) winfix->DelLastSocket();
+                if(doh_winfix) doh_winfix->DelLastSocket();
 #endif
                 closesocket(sudp2);
 
@@ -2758,7 +2768,7 @@ lbNS_notfound:
               {
                 ReinitDNSSocket(soi);
 #ifndef SYSUNIX
-                if(winfix) winfix->ChangeSocket(soi);
+                if(doh_winfix) doh_winfix->ChangeSocket(soi);
 #endif
               }
             }
@@ -2768,7 +2778,7 @@ lbNS_notfound:
 
       if( (s_flgs[2]&FL2_DOH) && (
 #ifndef SYSUNIX
-            (winfix) ?  winfix->IsSet(0, doh_r) : 0
+            (doh_winfix) ?  doh_winfix->IsSet(0, doh_r) : 0
 #else
             FD_ISSET(doh_r, (fd_set *) &set)
 #endif
@@ -2780,7 +2790,8 @@ lbNS_notfound:
         FD_CLR(doh_r, (fd_set *) &set);
         _hread(doh_r, (char *) &th.doh_ptr, sizeof(th.doh_ptr) );
 #else
-        th.doh_ptr = winfix->dreq;
+        th.doh_ptr = doh_winfix->dreq;
+        MyUnlock(doh_winfix->mutex);
 #endif
         th.l = th.doh_ptr->postsize;
         memcpy(dmmc, th.doh_ptr->pst, th.l);
@@ -2844,8 +2855,8 @@ lbNS_notfound:
     }
   } //while
 #ifndef SYSUNIX
-  if (winfix)
-    free(winfix);
+  if (doh_winfix)
+    free(doh_winfix);
 #endif
 }
 
@@ -3557,7 +3568,7 @@ int InitDnsSrv()
     if(InitDnsSrv2(1) > 0)
     { sdns6 = sdns;
       sdnst6 = sdnst;
-      do { Sleep(300); } while(nsmut);
+      do { Sleep(300); } while(nsmut.lock);
     }
     else MyUnlock(nsmut);
   }
@@ -3617,7 +3628,7 @@ int InitDnsSrv()
 #ifdef SYSUNIX
     pipe(doh_pipe);
 #else
-    CreatePipe((HANDLE *)&doh_r, (HANDLE *)&doh_w, &secat, 0x100 * sizeof(void *));
+    //CreatePipe((HANDLE *)&doh_r, (HANDLE *)&doh_w, &secat, 0x100 * sizeof(void *));
 #endif
   }
 
@@ -4189,6 +4200,6 @@ er1:
 
 #undef pprot
 #undef f_prot
-#undef pcnt
+//#undef pcnt
 #undef b_prot
 

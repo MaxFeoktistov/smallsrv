@@ -563,7 +563,7 @@ lEx:
 extern HANDLE  ASyncIOhevent[MAX_ASYNC_IO];
 extern ASyncIOHelper_t ASyncIOHelper[MAX_ASYNC_IO];
 extern int countASyncIO;
-extern int mutexASyncIO;
+extern my_mutex_t mutexASyncIO;
 
 int AddASyncIO(tfASyncIOHelperCB cb, void  *par, HANDLE h)
 {

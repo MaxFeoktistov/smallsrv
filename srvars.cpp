@@ -65,7 +65,7 @@ int PRXTimeout=120;
 char *up_proxy;
 u32  ip_cach[33];
 int  iip_cach;
-int  ip_cach_mtx;
+my_mutex_t ip_cach_mtx;
 ulong *Range[MAX_SERV*2];
 const char full_rng[]=
 #ifndef CD_VER
@@ -333,6 +333,8 @@ char *DNS_DoS_hosts="";
 #endif
 ;
 */
+my_mutex_t mutex_pcnt;
+
 #ifdef SEPLOG
 TLog gLog;
 
@@ -362,7 +364,6 @@ TLog *sepLog[N_LOG]; // ARRAY_SIZE(SrvNameSufix) ];
 char *b_prot=gLog.lb_prot;
 char *pprot;
 uint logsigmsk;
-int mutex_pcnt;
 
 
 SHMdata *shm;
@@ -398,7 +399,7 @@ maxFdSet maxKeepAliveSet;
 int maxKeepAlive;
 int KeepAliveCount;
 Req **KeepAliveList;
-int KeepAliveMutex;
+my_mutex_t KeepAliveMutex;
 int TimeoutKeepAlive;
 int keepalive_idle;
 unsigned long NullLong=0;
@@ -442,14 +443,14 @@ char *det_var_err[]={"",
 HANDLE  ASyncIOhevent[MAX_ASYNC_IO];
 ASyncIOHelper_t ASyncIOHelper[MAX_ASYNC_IO];
 int countASyncIO;
-int mutexASyncIO;
+my_mutex_t mutexASyncIO;
 ulong ASyncIOtrd_id;
 #endif
 
 #ifdef USE_SYSPASS
 #ifdef SYSUNIX
 
-int user_mutex;
+my_mutex_t user_mutex;
 gid_t access_gids[N_ACESS_FLAGS];
 const char* access_groups[N_ACESS_FLAGS]={
   "mail",

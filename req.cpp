@@ -530,8 +530,13 @@ bdreq:
       if(postsize < 17) goto bdreq;
       dirlen = 0;
       next_doh = 0;
+#ifdef SYSUNIX
       t = (char *) this;
       _hwrite(doh_w, (char *)&t, sizeof(t));
+#else
+      if(!doh_winfix) goto err_doh;
+      doh_winfix->Write(this);
+#endif
       ii = 0;
       while(!dirlen)
       {
@@ -563,6 +568,7 @@ bdreq:
       }
       else
       {
+      err_doh:
         HttpReturnError("Resolving error");
       }
       goto ex2b;

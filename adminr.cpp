@@ -233,7 +233,8 @@ int Req::Admin()
 #ifdef SYSUNIX
         pipe(doh_pipe);
 #else
-        CreatePipe((HANDLE *)&doh_r,(HANDLE *)&doh_w,&secat,0x400);
+        //CreatePipe((HANDLE *)&doh_r,(HANDLE *)&doh_w,&secat,0x400);
+        InitDOH();
 #endif
      }
 
@@ -694,7 +695,7 @@ if(0){
       l=sprintf(b,"%s",flog);
       if( !(t=strrchr(b,'.')) )t=b+l;
       if(k)sprintf(t,"%4.4u",k);
-      MyLock(pcnt);
+      MyLock(mutex_pcnt);
 
 
       if((i=_lopen(b,0))>0)
@@ -706,7 +707,8 @@ if(0){
         debug("No enought memory to load log (%u) bytes. Try half (%u)",l,l>>1);
         if((l>>=1)<0x4000)
         {_lclose(i);
-         goto lbStat;
+          MyUnlock(mutex_pcnt);
+          goto lbStat;
         };
        }while(1);
 
@@ -719,7 +721,7 @@ if(0){
        }
        _lclose(i);
 
-       MyUnlock(pcnt);
+       MyUnlock(mutex_pcnt);
        if(i2<=0)goto lbStat;
        l=i2;
        for(i2=0;i2<l;i2++)if(!u[i2])u[i2]=' ';
@@ -731,7 +733,7 @@ if(0){
        free(u);
        break;
       }
-      MyLock(pcnt);
+      MyUnlock(mutex_pcnt);
 
 #endif
      }

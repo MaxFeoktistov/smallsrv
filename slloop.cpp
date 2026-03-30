@@ -594,9 +594,8 @@ lbSkipCfg:
             else if(FD_ISSET(soc_srv[i + k * MAX_SERV], &er_set))
             {
               debug("Socket error: %u(%u)", soc_port[i], i);
-              if(!MutexEr)
+              if(MyTryLock(MutexEr))
               {
-                MyLock(MutexEr);
                 for(kk = 0; kk < MAX_ADAPT; ++kk)
                   if(soc_srv[i + kk * MAX_SERV] > 0)
                   {

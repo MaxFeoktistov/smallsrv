@@ -44,9 +44,8 @@
 
 
 struct DHCPbase *dhcp_ar,*last_dhcp_loaded;
-int DHCPMutex, sizeSize,dhcp_need_save;
-
-
+int sizeSize,dhcp_need_save;
+my_mutex_t DHCPMutex;
 
 ulong first_dhcp_ip,last_dhcp_ip,allocated_dhcp_ip, gateway,netmask,dhcp_dns[3];
 //ulong first_dhcp_ip,total_dhcp_ip,last_dhcp_ip,allocated_dhcp_ip, gateway,netmask,dhcp_dns[3];

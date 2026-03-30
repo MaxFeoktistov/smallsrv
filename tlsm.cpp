@@ -231,7 +231,7 @@ int InitSecDLL()
 #endif
 
 char *chunke_bfr;
-int chunke_mutex;
+my_mutex_t chunke_mutex;
 #define MAX_FRAG_SIZE 0x10000
 
 int TLSSend(Req *th, const void *b,int l)
@@ -281,7 +281,7 @@ int TLSRecv(Req *th,void *b,int l)
  return r;
 };
 
-int TLSmutex;
+my_mutex_t TLSmutex;
 int Req::TLSBegin(OpenSSLConnection *x, int type, char *verfyhost)
 {
   Snd=(tfSnd) &TLSSend;
