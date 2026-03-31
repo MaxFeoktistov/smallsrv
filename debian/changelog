@@ -1,9 +1,10 @@
-smallsrv (3.06.40test3) unstable; urgency=low
+smallsrv (3.06.40test4) unstable; urgency=low
 
-  *  A little changes in DNS server. Fixed DOH in version for Windows
-  *  Updated mutexes
+  *  DNS server changes. Fixed a bug when loading a domain from a
+     file for secondary mode. Fixed DOH in version for Windows.
+  *  Mutexes have been updated.
 
- -- Maksim Feoktistov <max@smallsrv.com>  Mon, 30 Mar 2026 09:36:51 +0400
+ -- Maksim Feoktistov <max@smallsrv.com>  Tue, 31 Mar 2026 09:19:58 +0400
 
 smallsrv (3.06.39) unstable; urgency=low
 

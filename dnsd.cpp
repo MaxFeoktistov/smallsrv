@@ -474,6 +474,7 @@ NSRecord  * FindRec(NSRecordArray  * thi, NSRecord  *first, ulong hash, char *nm
   {
     return FastFindRec(thi, first, hash, nm);
   }
+  //DBGLA("%s thi:%lX first:%lX cnt:%u", nm, (long)thi, (long)first, thi->cnt)
 
   if(!first)first = thi->d;
   do {
@@ -481,10 +482,11 @@ NSRecord  * FindRec(NSRecordArray  * thi, NSRecord  *first, ulong hash, char *nm
     //debug("find2 %u %s %X %X",thi->cnt,nm,first,last);
     if( first < thi->d || first >= last )
     {
-      //     debug("find2 outside %u %s %X %X",thi->cnt,nm,first,last);
-      if(!thi->next)return 0;
+      //DBGLA("find2 outside %u %s %X %X",thi->cnt,nm,first,last);
       thi = thi->next;
+      if(!thi)return 0;
       if(first == last)first = thi->d;
+      //DBGLA("%s %lX %lX", nm, (long)thi, (long)first)
     }
     else
     {
@@ -520,9 +522,9 @@ NSRecord  * FindRec(NSRecordArray  * thi, NSRecord  *first, ulong hash, char *nm
         }
         first++;
       }
-      //debug("not found %u %s %X %X",thi->cnt,nm,first,last);
-      if(!thi->next)return 0;
+      DBGLA("not found %u %s %X %X",thi->cnt,nm,first,last);
       thi = thi->next;
+      if(!thi)return 0;
       first = thi->d;
     }
   } while(1);
@@ -597,6 +599,8 @@ NSRecord  * FastFindRec(NSRecordArray  * thi, NSRecord  *first, ulong hash, char
 
   if(thi->need_rehash > 128)thi->Rehash();
 
+  //DBGLA("%s thi:%lX first:%lX cnt:%u", nm, (long)thi, (long)first, thi->cnt)
+
   i = hash & 0x3FF;
   if(!first)
   {
@@ -604,10 +608,10 @@ NSRecord  * FastFindRec(NSRecordArray  * thi, NSRecord  *first, ulong hash, char
   }
   do {
     last = thi->d + thi->hash_list_hi[i]  ; //thi->cnt;
-    //debug("find2 %u %s %X %X",thi->cnt,nm,first,last);
+    //DBGLA("find2 %u %s %X %X",thi->cnt,nm,first,last);
     if( first < thi->d || first >= last )
     {
-      //     debug("find2 outside %u %s %X %X",thi->cnt,nm,first,last);
+      //DBGLA("find2 outside %u %s %X %X",thi->cnt,nm,first,last);
       if(!thi->next)return 0;
       thi = thi->next;
       if(first == last)first = thi->d;
@@ -634,7 +638,7 @@ NSRecord  * FastFindRec(NSRecordArray  * thi, NSRecord  *first, ulong hash, char
         }
         first++;
       }
-      //   debug("not found %u %s %X %X",thi->cnt,nm,first,last);
+      DBGLA("not found %u %s %X %X",thi->cnt,nm,first,last);
       if(!thi->next)return 0;
       thi = thi->next;
       first = thi->d;
@@ -3446,7 +3450,7 @@ er1:
     i = 0;
     for(sec = seconds ; sec ; sec = sec->next)
     {
-      // debug("DNS:%u) Secondary %s\r\n",++i,sec->host);
+      DBGLA("DNS:%u) Secondary %s\r\n",++i,sec->host);
       sec->LoadFile();
     }
 
@@ -3857,6 +3861,14 @@ int Secondary::CheckSecondary()
   return 0;
 };
 
+NSRecordArray  * LastArray()
+{
+  NSRecordArray  *rr1;
+
+  for(rr1 = host_rr; rr1->next ; rr1 = rr1->next) ;
+
+  return rr1;
+}
 
 void Secondary::LoadSecondary()
 {
@@ -3998,7 +4010,7 @@ err_reply2:
   rr->next = 0;
   if(!parr)
   {
-    for(rr1 = host_rr; rr1->next ; rr1 = rr1->next) ;
+    rr1 = LastArray();
   }
   else
   {
@@ -4148,7 +4160,7 @@ void Secondary::LoadFile()
 
   if(fname)
   {
-    // debug("DNS: Try to load %s\r\n",fname);
+    DBGLA("DNS: Try to load %s\r\n",fname);
     if( (s = _lopen(fname, 0) ) < 0 )
     {
 er1:
@@ -4185,6 +4197,9 @@ er1:
       if(refresh < 20)refresh = 20;
       if(refresh > 86400)refresh = 86400;
       parr = arr;
+      trr = LastArray();
+      if(trr)
+        trr->next = arr;
       debug("DNS: domain %s loaded from file %s refresh set to %u\r\n", host, fname, refresh);
     }
     else
