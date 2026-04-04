@@ -45,7 +45,7 @@
 
 struct DHCPbase *dhcp_ar,*last_dhcp_loaded;
 int sizeSize,dhcp_need_save;
-my_mutex_t DHCPMutex;
+shs_mutex_t DHCPMutex = SHS_MUTEX_INITIALIZER;
 
 ulong first_dhcp_ip,last_dhcp_ip,allocated_dhcp_ip, gateway,netmask,dhcp_dns[3];
 //ulong first_dhcp_ip,total_dhcp_ip,last_dhcp_ip,allocated_dhcp_ip, gateway,netmask,dhcp_dns[3];
@@ -73,7 +73,7 @@ int isIpFree(ulong i)
 
 ulong NextDHCPIP()
 {
- int i,k,j;
+ int k,j;
  DHCPbase *d;
  j=0;
  ulong ip,ip2;
@@ -197,8 +197,7 @@ int Req::ShowDHCP(char *b)
 void DelDHCPIP(ulong ip,char *n,char *t)
 {
  DHCPbase *d,*pd;
- char *p;
- int l,i;
+ //int l,i;
  pd=0;
  for(d=dhcp_ar;d;d=d->next)
  {
@@ -291,7 +290,6 @@ void OptDHCP()
 {
  char *t;
  int i;
- ulong ip;
  first_dhcp_ip   = ConvertIP(t=first_dhcpc);
  gateway      = ConvertIP(t=gatewayc   );
  netmask      = ConvertIP(t=netmaskc   );

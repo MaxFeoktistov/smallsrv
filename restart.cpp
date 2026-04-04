@@ -70,7 +70,7 @@ void Restart()
 }
 
 void RestartServer(char *u, int cnt)
-{ int l, i;
+{ int i;
   is_no_exit = 0;
 
 #ifdef _BSD_VA_LIST_
@@ -268,7 +268,7 @@ void Restart()
 }
 #endif
 
-my_mutex_t hLock, hcLock;
+shs_mutex_t hLock, hcLock;
 int FreeThreads()
 {
   int i, j = -1;
@@ -412,7 +412,8 @@ int ChkWaitBind()
 #ifndef VPNCLIENT_ONLY
 int CreateSrv(int j)
 {
-  int i, s, k = 0, jj = j % MAX_SERV;
+  //todel int i, s, k = 0, jj = j % MAX_SERV;
+  int s, k = 0, jj = j % MAX_SERV;
   char  *pbnd = bind_a[jj];
 #ifdef USE_IPV6
   union {
@@ -550,19 +551,19 @@ int InitApplication()
   RECT rc;
 #endif
 
-  SYSTEMTIME  tm;
+//  SYSTEMTIME  tm;
   int i, j;
-  char *t, *p;
+//  char *t, *p;
 
-  int l;
+//  int l;
 #ifndef SYSUNIX
 
   if( WSAStartup(0x202, &tmp) )
     WSAStartup(0x2, &tmp) ;
 #endif
-
+#ifndef VPNCLIENT_ONLY
   tmSpd = GetTickCount();
-
+#endif
   max_tsk = max_cln + max_ftp + max_pop + max_smtp + max_prx + max_ssl + 8;
   hndls = (THREADHANDLE*) (
 // saddr=(

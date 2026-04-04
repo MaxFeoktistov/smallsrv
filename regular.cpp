@@ -117,7 +117,7 @@ char *SkipSpace(char *a){
 
 int IsInGrp(char *b,int c)
 {
- int pre=0,st,a,d;
+ int pre=0,st,a;
  st=0;
  if(*b=='^'){++b; ++st;};
  while(*b)
@@ -829,7 +829,7 @@ int OutVarTbl(Req *s,char **tv,char *xbbf)
  return s->Send(xbbf,pbbf-xbbf);
 }
 void RegVars::PrintEnv(Req *s)
-{ char *xbbf,*t;
+{ char *xbbf;
   int i;
   if((xbbf=new char[0x3000]))
   {

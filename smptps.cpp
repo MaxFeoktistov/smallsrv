@@ -37,7 +37,7 @@
 
 #endif
 
-my_mutex_t SmtpMutex;
+shs_mutex_t SmtpMutex = SHS_MUTEX_INITIALIZER;
 ulong SmtpLast;
 
 struct MListCntr ipcnts[10];
@@ -195,7 +195,7 @@ inline void AddSendMessage(int i){last_file=i;}
 int GetCMD(int s,char *b,int timo)
 {
   int x,l,ll;
-  int c,ttimo=timo;
+  int ttimo=timo;
   l=0; ll=0;
   if(!ttimo)ttimo=POPTimeout;
   *b=0;
@@ -560,7 +560,7 @@ int Req::SMTPReq()
   };
 
   User *puser_a = 0;
-  int rcnt, x=0, i, h, ll, us_ip, chkl=0, chkspm=0, em;
+  int rcnt, x=0, i, h, us_ip, chkl=0, chkspm=0, em; // ll,
 
   int l=sizeof(sockaddr_in);
   SYSTEMTIME stime;

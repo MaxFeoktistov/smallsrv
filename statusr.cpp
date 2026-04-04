@@ -51,7 +51,7 @@ inline ulong GetVarI(char **varlist,char *var)
 
 StatLog *ParseFile(char *log,char *b) //=0)
 {
- StatLog *tsl,*tsl1;
+ StatLog *tsl;
  char *t1,*t,*p;
  int n=0;
  if( (p=strstr(log,"\r\n!->") ) )
@@ -265,7 +265,7 @@ void Req::HTTPUserStat()
  const char **strs;
 // ulong *dt;
  int typ,day2,mnt2,l,k,i,h;
- StatLog *tsl,*tsl1;
+ StatLog *tsl;
  uchar funcType[32];
  union {
  ulong long pars[88];

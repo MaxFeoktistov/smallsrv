@@ -25,7 +25,10 @@
 void RelProt(SYSTEMTIME *stime)
 {int l,ll;
  SYSTEMTIME lTime;
- FILETIME CrTime1,CrTime;
+ FILETIME CrTime1;
+#ifndef SYSUNIX
+ FILETIME CrTime;
+#endif
  char *t;
 #ifdef SYSUNIX
  if(!(s_flg&FL_NOICON))printf("%s",oldprot);
@@ -220,7 +223,7 @@ void AddToLog(char *t,int s, TSOCKADDR *psa, const char *fmt,...)
 
 #define sa  (*(sockaddr_in *)psa)
 #define san (*(sockaddr_in *)(xsa+1))
- int ll,l;
+ int l;
  l=sizeof(xsa[0]);
  char *x,*y;
 

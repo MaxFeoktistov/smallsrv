@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2020 Maksim Feoktistov.
+ * Copyright (C) 1999-2026 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov
@@ -368,7 +368,7 @@ int AddCfgListEdit(int pos,char *name,ListNext fln,void *lst,int base,int cntrl,
 
 void CreatCfgWindow()
 {
- CfgParam *cp;
+ //CfgParam *cp;
  char  bfr[512],*t;
  HWND  tw;
  int i,j,k,l,chk=0,kk;

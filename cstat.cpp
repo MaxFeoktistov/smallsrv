@@ -2,7 +2,7 @@
  * Copyright (C) 1999-2022 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
- * Author: Maksim Feoktistov 
+ * Author: Maksim Feoktistov
  *
  *
  * Small HTTP server is free software: you can redistribute it and/or modify it
@@ -15,11 +15,11 @@
  * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see https://www.gnu.org/licenses/ 
+ * along with this program.  If not, see https://www.gnu.org/licenses/
  *
  * Contact addresses for Email:  support@smallsrv.com
  *
- * 
+ *
  */
 
 
@@ -51,7 +51,7 @@ CntrCode  *cntr_dat,*cntr_dat_last;
 
 ulong CntrCode::FastFind(ulong s)
 {
- uint *first, *last,*mid,f,ff,l,ll,m,c,k;
+ uint *first, *last,*mid,f,ff,l,ll,m,c;
   first=ip;
   last=ip+cnt-1;
 
@@ -121,9 +121,9 @@ void InitContries(CntrFile * m)
  ADBG("m->cnt=%u\n",m->cnt);
  if(!country_names)
  {
-   ADBG("Cant alloc %u %u for country_names\n",(m->cnt +4) * sizeof(void *) ,m->cnt );  
-   return ;    
- }    
+   ADBG("Cant alloc %u %u for country_names\n",(m->cnt +4) * sizeof(void *) ,m->cnt );
+   return ;
+ }
  m->cnt++;
  for(i=0; i< m->cnt ;  )
  {
@@ -204,9 +204,9 @@ int LoadContries()
  char *pkdat;
   if(cntr_file)return 1;
   if( !ipbsfile)
-  {   
+  {
       return 0;
-  }//  else 
+  }//  else
   if((h=_lopen(ipbsfile,0))<0)
   {
    if( DEF_IP_BASE_FN != ipbsfile)debug("Can\'t open %s",ipbsfile);
@@ -254,7 +254,7 @@ int LoadContries()
     goto lbErr;
    }
   // printf("Bunpack... %u\n",DWORD_PTR(pkdat[4]));
-  
+
 #if 0
 //ndef NOTINTEL
    if(!LZZUnpk((uchar *)cntr_file,(uchar *)pkdat+8) )
@@ -308,39 +308,39 @@ char *GetCntr(ulong ip)
 int Req::IP2country()
 {
   char *t,*tc,*l;
-  ulong ip=0;  
+  ulong ip=0;
   char *p,*cn;
   CntrCode  *cc;
   char ipaddr[64];
-  
+
   if(s_flgs[2]& FL2_IPCNTRAUT)
   {
 
    if( ! (ChUser(0x80)) )
    {
 #ifdef WITHMD5
-    SendDigestAuthReq(loc); 
+    SendDigestAuthReq(loc);
 #else
-    Send(AuthErr, strlen(AuthErr)  ) ;// sizeof(AuthErr)-1); 
-#endif   
+    Send(AuthErr, strlen(AuthErr)  ) ;// sizeof(AuthErr)-1);
+#endif
     return -1;
    }
-       
-       
+
+
   }
-  
-  prepare_Req_var();  
+
+  prepare_Req_var();
   t=GetVar(req_var,"ip");
   l=GetVar(req_var,"l");
-      
+
   if(t)ip=ConvertIP(tc=t);
   else
   {
-    t=ipaddr;  
+    t=ipaddr;
     IP2S(ipaddr,&sa_c);
     ip= IPv4addr(&sa_c);
     /*
-    (sa_c6.sin6_family==AF_INET6)? 
+    (sa_c6.sin6_family==AF_INET6)?
         (
           sa_c6.sin6_addr.s6_addr32[2]==0xFFFF0000?
           sa_c6.sin6_addr.s6_addr32[3]:0
@@ -348,24 +348,24 @@ int Req::IP2country()
         sa_c.sin_addr.s_addr;
         */
 
-  }    
+  }
   p=loc+8192+260;
-  
+
   cn="??";
   tc="unknown";
   if(cntr_dat && ip &&  (cc=FindCntr(htonl(ip))) )
   {
     cn=cc->nm;
-    tc=country_names[cc->ind];     
+    tc=country_names[cc->ind];
   }
-  
-  return Send(p,sprintf(p, 
+
+  return Send(p,sprintf(p,
                         (l && *l=='j')?
                         "HTTP/1.0 200\r\nContent-Type: application/x-javascript\r\n\r\n//<!-- \nvar county_code=\"%2.2s\",country=\"%s\",country_ip=\"%s\";\n// -->\n"
                         :(l && *l=='h')?
-                        "HTTP/1.0 200\r\nContent-Type: text/html\r\n\r\n<center> <h1>This page convert IP to country.</h1></center> <form method=get> <br> County code:%2.2s<br>Country=%s<BR>IP:<input type=text  name=ip value=\"%s\" ><input type=hidden name=l value=h > <input type=submit value=\"Get country\" ></form>\r\n"                       
-                        :"HTTP/1.0 200\r\nnContent-Type: text/plain\r\n\r\n%2.2s,%s\r\n",cn,tc,t));     
-    
+                        "HTTP/1.0 200\r\nContent-Type: text/html\r\n\r\n<center> <h1>This page convert IP to country.</h1></center> <form method=get> <br> County code:%2.2s<br>Country=%s<BR>IP:<input type=text  name=ip value=\"%s\" ><input type=hidden name=l value=h > <input type=submit value=\"Get country\" ></form>\r\n"
+                        :"HTTP/1.0 200\r\nnContent-Type: text/plain\r\n\r\n%2.2s,%s\r\n",cn,tc,t));
+
 }
 
 

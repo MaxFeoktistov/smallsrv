@@ -401,7 +401,7 @@ int GZSnd2(Req *th,const void *b,int l)
 typedef int (*tfGZSnd2)(Req *th,const void *b,int l);
 int GZSndChu(Req *th,uchar *x,int ll)
 {
- char *t;
+ // char *t;
  int i,j;
  int r=0;
  //x[ll]=0;

@@ -43,6 +43,7 @@
 #pragma GCC diagnostic ignored "-Wnarrowing"
 #pragma GCC diagnostic ignored "-Wliteral-suffix"
 #pragma GCC diagnostic ignored "-Waddress-of-packed-member"
+#pragma GCC diagnostic error "-Wunused-variable"
 
 
 #ifdef  DJGPP

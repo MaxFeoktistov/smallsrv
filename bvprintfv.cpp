@@ -184,7 +184,8 @@ int BFILE::bprintf(const char *fmt,...)
 
 int BFILE::bvprintf(const char *fmt,va_list vl)
 {
- char *t1,*p,*pp;
+// char *t1,*p,*pp;
+ char *p;
 #ifdef  PF_LONG_LONG
   union{
    long long lx;
@@ -424,6 +425,16 @@ int main()
     ,0x123456789ABCDEF ,0x1234ll
     ,0x123456789ABCDEF ,0x1234ll
     );
+
+  bf.bprintf(
+    "8.8u:%8.8u\n"
+    "8.8X:%8.8X\n"
+    "8.8o:%8.8o\n"
+    ,0x1234
+    ,0x1234
+    ,0x1234
+    );
+
   bf.fflush();
   return 0;
 }

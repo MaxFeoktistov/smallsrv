@@ -808,9 +808,9 @@ int Req::ExecCGIEx()
 #define  hwrp (phrdp[1])
 
 
-  char *p, *pp, *t, **tt, *e, **new_env, *t1; //,*ee=eenv;
+  char *p, *pp, *t, **new_env, *t1; // *e, **tt,*ee=eenv;
   long ll, ec = 0, pl = 0, cl = 0, l, i;
-  char *env, *penv; //,z[300];
+  char *env; //, *penv; //,z[300];
   ulong timeout = cgi_timeout + time(0);
   int status;
   int http_status = 200;

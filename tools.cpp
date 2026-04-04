@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2023 Maksim Feoktistov.
+ * Copyright (C) 1999-2026 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov
@@ -133,7 +133,7 @@ int CmpIP(TSOCKADDR *a, TSOCKADDR *b)
 
 char* IPv6Addr(ushort *t, char *s)
 {int i,j,k,n;
-  ushort r1[12];
+  //ushort r1[12];
   char *p;
   j=0;
   i=0;
@@ -225,8 +225,9 @@ ulong DTick(ulong tick1, ulong tick2)
   return (0xFFFFffff - tick2 + tick1);
 }
 
+#ifndef VPNCLIENT_ONLY
 ulong tmSpd;
-my_mutex_t SpdMut;
+shs_mutex_t SpdMut = SHS_MUTEX_INITIALIZER;
 int Req::SleepSpeed()
 {
   ulong uspd;
@@ -271,7 +272,7 @@ int Req::SleepSpeed()
     }
     return 0;
 }
-
+#endif
 
 int anychars(char *name)
 {for(; *name; name++) if(*name>='A') return 1;
@@ -392,7 +393,6 @@ char *PrFinVar(char *s,const char *v)
 
 void SetKeepAliveSock(int s)
 {
-  int v;
   setsockopt(s,SOL_SOCKET,SO_KEEPALIVE,(char *)&one,sizeof(int));
   if(keepalive_idle)
   {int v = 3;
@@ -564,7 +564,7 @@ const  struct timespec timeout_50ms={0,50000000};
 volatile int lock_cnt;
 
 
-int MyLockTimeout(my_mutex_t &x, int dead_lock_chk)
+int MyLockTimeout(shs_mutex_t &x, int dead_lock_chk)
 {
    int a=(int) GetCurrentThreadId();
    if(a == x.lock) return 0;
@@ -628,19 +628,19 @@ int MyLockTimeout(my_mutex_t &x, int dead_lock_chk)
 #endif
 }
 
-int MyLock(my_mutex_t &x)
+int MyLock(shs_mutex_t &x)
 {
   return MyLockTimeout(x, 128);
 }
 
-int MyTryLock(my_mutex_t &x)
+int MyTryLock(shs_mutex_t &x)
 {
   if(x.lock) return 0;
   return MyLockTimeout(x, 1);
 }
 
 
-void MyUnlockOwn(my_mutex_t &x){
+void MyUnlockOwn(shs_mutex_t &x){
   if(x.lock==(int) GetCurrentThreadId())
   {
     MyUnlock(x);

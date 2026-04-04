@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2025 Maksim Feoktistov.
+ * Copyright (C) 1999-2026 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov
@@ -696,7 +696,7 @@ int onCfgChangeUser(CfgParam *th)
 int onCfgChangeVHost(CfgParam *th)
 {
   host_dir *a;
-  host_dir *b;
+  //host_dir *b;
   char *p, *t;
 
   p = *(char **)th->v;
@@ -836,8 +836,8 @@ void InitParam(char *s)
 
 int PrepCfg(char *fname)
 {
-  char *t,*a,*b;
-  int h,l,q;
+  char *t;
+  int h,l;
 
   DBGLA("Fname: %s", fname)
   if( ( h=_lopen(fname,0) )>0 )
@@ -920,11 +920,7 @@ void SaveConfigFile(char *bfr,char *fnm)
 {
 #ifndef CD_VER
 
- int h,i;
- host_dir *a;
- char **tt;
- User *tuser;
- char *p;
+ int h;
 
 #ifdef SYSUNIX
  int j=2;
@@ -1175,7 +1171,7 @@ int LoadLangCfg(char *fname)
 {
 #if 1
  char *t,*a,*b,*p,*e;
- int i,l,q,line;
+ int i,l,line;
  CfgParam *cp;
  if( ( i=_lopen(fname,0) )<=0 )
  {

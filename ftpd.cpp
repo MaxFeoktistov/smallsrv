@@ -111,7 +111,6 @@ int LPath::MkFName(char *t,const char *p,uint vh) //=FL_FTPVDIR)
   if(vh&s_flg)
   {
     host_dir *a;
-    char *vdir;
     DWORD_PTR(t[i])='/';
     t[SrcDirLen]='/';
     //  mode=0;
@@ -393,7 +392,7 @@ int FindNextFile_UTF(HANDLE a, LPWIN32_FIND_DATA lpFindFileData)
 
 inline char* LL2STR(long long x,char *t){return OutLL( ((long*)&x)[0],((long*)&x)[1],t); };
 
-my_mutex_t FTPPortMtx;
+shs_mutex_t FTPPortMtx = SHS_MUTEX_INITIALIZER;
 /*
 struct FTPSecCon
 {

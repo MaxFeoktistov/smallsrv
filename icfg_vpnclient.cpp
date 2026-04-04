@@ -58,7 +58,7 @@
 #ifdef CD_VER
 char *phtml_ini="";
 #endif
-static char *tmp_var;
+//static char *tmp_var;
 
 #ifdef USE_IPV6
 

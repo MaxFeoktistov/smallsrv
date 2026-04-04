@@ -479,7 +479,7 @@ char *GetVarS(char **varlist,char *var)
 }
 */
 
-my_mutex_t UTFMutex;
+shs_mutex_t UTFMutex = SHS_MUTEX_INITIALIZER;
 uchar *utfbfr;
 int lovUtfCode=0xC0;
 int utfShift=0x410;
@@ -502,7 +502,7 @@ charset
 #define UTFSNDBFRSIZE 0x4000
 int ConvertUTFSnd(Req* r,uchar *s,int l)
 {
- int i,j,k,ll,ret=0;
+ int i,j,k,ret=0;
  MyLock(UTFMutex);
  if(!utfbfr)utfbfr=(uchar *)malloc(UTFSNDBFRSIZE+32);
  for(j=i=0;i<l;++i)
@@ -541,7 +541,7 @@ WMail * InitWMail(Req *rr, char *b,int utf)
 
 void WMail::SubTempl(char *t,char *s)
 {
- char c,*p,*v,*vv;
+ char c,*p;
 // debug("%s",s);
  while(*s)
  {
@@ -566,7 +566,7 @@ void WMail::SubTempl(char *t,char *s)
 //-----------
 
 int wmlg_cntr;
-my_mutex_t wbmMutex;
+shs_mutex_t wbmMutex = SHS_MUTEX_INITIALIZER;
 ulong lloutIP;
 
 //extern const char *anFnd[];
@@ -907,7 +907,7 @@ void WMail::ChPwd(User *usr)
 {
   int i,j;
   char *t,*p,*d;
-  User * tuser=0,*pu;
+  User * tuser=0;
      if( (t=GetVar(r->req_var,"p") ) )
      {
        i=strlen(t);
@@ -946,11 +946,9 @@ void WMail::OutMbox()
  ulong *d;
  int h;
  ulong i,n,j;
- char **ch;
  char *from,*to,*dat,*subj,*t,*fromemail, *text;
  HANDLE hdl;
  // POP3Ac *pc;
- ulong *pl;
 
  //DBGLA("XDD5 %X |%.8s|",anFnd[0],anFnd[0])
  DBGLA("XDD5 %lX ", s_METHOD_P)
@@ -1399,7 +1397,7 @@ void ConvertBQ(char *from)
 void OMsg::CheckDel()
 {
  WIN32_FIND_DATA fnds;
- char bb[512],bb2[512],*t;
+ char bb[512],bb2[512];
  HANDLE hdl;
  ulong j,k=0;
     sprintf(bb,"%.128s" FSLUSHS  "mbox%.128s" FSLUSHS   "*.msg",mbox,subdir);
@@ -1643,8 +1641,7 @@ void OMsg::OutQV(char *txt,char *sf)
 }
 
 void OMsg::OutMSG()
-{char *t,*tl;
- int j;
+{
 
  if( Load() )
  {
@@ -1688,9 +1685,9 @@ int WMail::OutMSGSrc()
 {
 
  char bb[bb_SIZE + 4]; //,*bfr;
- char *t,*b;
+ char *t;
  ulong n;
- int h,j;
+ int h;
 
  if(!(t=GetVar(r->req_var,"r")))
  {
@@ -1721,7 +1718,7 @@ int WMail::OutMSGSrc()
 
 char *EEname(char *t,char *s,int l=1024)
 {
- int i=0,j;
+ int j;
  char *e=t+l-3;
 
   while( (j=*(uchar *)s) )
@@ -2015,7 +2012,7 @@ void OMsg::OutMSGEdt()
 void OMsg::OutQuote()
 {
  char qq[8];
- char *t,*tt,*x,c,*y;
+ char *t,*tt,*x,c;
  int i;
  if(type==2)html2text(txt,txt);
  i=0;
@@ -2201,8 +2198,8 @@ void MCfgParam::FindEndConfig()
 #ifdef SYSUNIX
 void WMail::CHUsr(int h)
 {
- struct passwd *pwd,*upwd;
- struct group  *grp;
+ struct passwd *upwd;
+ //struct group  *grp;
  char *uname;
   if( (upwd=getpwnam(uname=puser->name)) || (upwd=getpwnam(uname="ftp")) )
   {
@@ -2218,11 +2215,9 @@ void  WMail::SaveAll()
   char *t;
   ulong *tl;
  };
- ulong *pl;
- int h,i;
+ int h;
  MCfgParam *pcp;
  char bb[1024];
- int j;
  sprintf(bb,"%s" FSLUSHS "wmail.cfg" , mbox);
 
 // debug("save file %s<br>",fname);
@@ -2348,7 +2343,7 @@ void WMail::OutList(int nn)
 {
  char bb[512];
  char *tt;
- int l,i,j,h,n;
+ int j,h,n;
  n=nn&0x3F;
  //debug("%u %u %X",n,nn,*advname[n]);
 
@@ -2399,7 +2394,7 @@ void WMail::SaveList(int nn)
 {
  char bb[512];
  char *tt;
- int l,i,j,h,n,save=0;
+ int l,h,n,save=0;
  if(! (tt=GetVar(r->req_var,"v") )) return;
  n=nn&0x3F;
 

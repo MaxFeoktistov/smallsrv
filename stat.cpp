@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2022 Maksim Feoktistov.
+ * Copyright (C) 1999-2026 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov
@@ -33,7 +33,7 @@
 
 
 #ifdef A_64
-static my_mutex_t StatMutex;
+static shs_mutex_t StatMutex;
 static char *statbasepoint;
 #endif
 
@@ -135,7 +135,7 @@ char* TmpStr2(char *t,char &tc,char *fnd)
 };
 
 char* fFindSubStr(StatLog *psl,char *bfr,char *s)
-{char *t,*t2,t2c,*t3,*t4,t4c,*p;
+{char *t,*t2,t2c; //,*t3,*t4,t4c,*p;
  if( !(t=stristr(((char*)psl)+sizeof(StatLog),s)))return 0;
  t+=strlen(s);
  if((t2=TmpStr(t,t2c)))
@@ -156,7 +156,7 @@ inline int IfFindSubStr(StatLog *psl,char *bfr,char *s){char *t=fFindSubStr(psl,
 
 
 char* fFindSubStr2(StatLog *psl,char *bfr,char *s, char *brk)
-{char *t,*t2,t2c,*t3,*t4,t4c,*p;
+{char *t,*t2,t2c;
  if( !(t=strstr(((char*)psl)+sizeof(StatLog),s)))return 0;
  t+=strlen(s);
  if((t2=TmpStr2(t,t2c,brk))){
@@ -262,7 +262,7 @@ uint fFindDNSHost(StatLog *psl,char *bfr){if(53==psl->port) return IfFindSubStr(
 #endif
 
 uint fFindEventSumary(StatLog *psl,char *bfr)
-{char *t,t2;
+{char *t;
  if( (t=strstr(((char*)psl)+sizeof(StatLog)," in:")
      ) &&
       t<strchr(((char*)psl)+sizeof(StatLog),'\n') ) return 0;
@@ -774,7 +774,7 @@ typedef  int (* cmpf)(const void *,const void *);
 int  cmpw(ushort *a,ushort *b){return *a-*b; }
 
 int Req::HTTPOutStatistics(char *bfr,char *log,int tbl,int dt)
-{int i,n,err,j,x;
+{int i,n,j;
  union {
   char *p;
   StatLog *psl;
@@ -784,8 +784,8 @@ int Req::HTTPOutStatistics(char *bfr,char *log,int tbl,int dt)
   StatLog *psl1;
  // ushort *st1;
  };
- StatLog *tsl,*tsl1;
- char *t2,*t3,*t;
+ //StatLog *tsl,*tsl1;
+ char *t3,*t;
  WIN32_FIND_DATA fnds;
  HANDLE hdl;
  n=0;

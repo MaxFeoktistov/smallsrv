@@ -180,11 +180,11 @@ int User::Parse(char *x)
 int User::Parse()
 {
 
-  char *t;
+  // char *t;
   char *x;
   char *pasw;
   char *dir;
-  char bfr[264];
+ // char bfr[264];
   if(state&UserPARSED)return 1;
   if((pasw=strchr(name,';')))
   {*pasw++=0;

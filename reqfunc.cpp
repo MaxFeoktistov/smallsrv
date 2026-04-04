@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2024 Maksim Feoktistov.
+ * Copyright (C) 1999-2026 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov
@@ -255,7 +255,9 @@ int JustSnd(Req *th,const void *b,int l)
   int r;
   char chu[16];
   //DBGLA("%lX %d %d",(long)th, th->s, l)
+#ifndef VPNCLIENT_ONLY
   th->SleepSpeed();
+#endif
   if(th->fl & F_CHUNKED && th->Rcv != &TLSRecv )
   {
     //DBGL("chunked!")

@@ -88,8 +88,9 @@ HTML_LN
 
 
 int Req::HTTPOutCfg(BFILE *bf)//char *bfr)
-{int r,nn=0,j;
- char *d,*t,tmpx[300],tmpy[300],*cpdesc;
+{
+ int nn=0;
+ char *d,tmpx[300],tmpy[300],*cpdesc;
  CfgParam *cp;
  d=def_dir;
 
@@ -183,7 +184,7 @@ int Req::HTTPOutCfg(BFILE *bf)//char *bfr)
 
 int Req::HTTPOutHosts(BFILE *bf ) //char *bfr)
 {host_dir *a;
- int i,j;
+ int i;
 
  //j=sprintf(bfr,
  bf->bprintf(
@@ -337,7 +338,8 @@ int Req::HTTPUserAdd(BFILE *bf)//char *bfr)
 };
 
 int Req::HTTPMimeTypesOut(BFILE *bf) // char *bfr)
-{int i,j;
+{
+ int i;
  char *p,*t,*t1;
  //j=sprintf(bfr,
   bf->bprintf(

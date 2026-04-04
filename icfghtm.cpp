@@ -327,8 +327,8 @@ int sOutLine::OutConnLine(Req *r, char *alt_text)
   #else
   struct sockaddr_in  san;
   #endif
-  int ll,l; //=sizeof(sockaddr_in);
-  char *t1;
+  int l; //=sizeof(sockaddr_in);
+  //char *t1;
   char   xs[72];
   //CntrCode  *cc;
   //char contry[8];
@@ -526,7 +526,7 @@ void OutLimitLine(BFILE *bfl, char *nm, VPNUserLimit* p)
 
 int Req::OutVPNLimit(char *bfr)
 {
-  int j;
+  //int j;
 
   if(vpn_limits) //  s_flgs[3] & (FL3_VPN_ULIMIT|FL3_VPN_IPLIMIT ) )
   {

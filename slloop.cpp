@@ -28,7 +28,7 @@
 
 timeval  TVal;
 void  SignalHandler(int)
-{ int ll;
+{
   if(is_no_exit)
   { is_no_exit = 0;
     debug("\nBye...\n");

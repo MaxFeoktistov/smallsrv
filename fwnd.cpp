@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2025 Maksim Feoktistov.
+ * Copyright (C) 1999-2026 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov
@@ -207,10 +207,7 @@ lPgDn:
         if(wstate)
         { ShowWindow(hwnd, SW_RESTORE);
           wstate = 0;
-#ifdef SEPLOG
-          shown_log->
-#endif
-          ShowProt();
+          ShowLogNow();
         }
         SetForegroundWindow(hwnd);
         if(msg == WM_CLOSE) if(MessageBox(0, sDO_YOU_WA, wnd_name, MB_YESNO | MB_ICONQUESTION) != IDNO)break;
@@ -223,6 +220,9 @@ lPgDn:
                          , ap.x, ap.y, hwnd, 0);
       }
       return 1;
+    case WM_MOUSEMOVE:
+      ShowLogNow();
+      break;
     case WM_SYSCOMMAND:
     case WM_COMMAND:
       switch( (((i = LOWORD(wparam)) < 800) || (i >= 3900) ) ? i : 700 + (i & 7) )
@@ -552,7 +552,13 @@ lbOk:
 
     case WM_SIZE:
       if( (wparam == SIZE_MAXHIDE) || (wparam == SIZE_MINIMIZED) )
-      {ShowWindow(hwnd, SW_HIDE); wstate = 1;} break;
+      {
+        ShowWindow(hwnd, SW_HIDE);
+        wstate = 1;
+      }
+      else ShowLogNow();
+
+      break;
 
   };
 lEx:
@@ -563,7 +569,7 @@ lEx:
 extern HANDLE  ASyncIOhevent[MAX_ASYNC_IO];
 extern ASyncIOHelper_t ASyncIOHelper[MAX_ASYNC_IO];
 extern int countASyncIO;
-extern my_mutex_t mutexASyncIO;
+extern shs_mutex_t mutexASyncIO;
 
 int AddASyncIO(tfASyncIOHelperCB cb, void  *par, HANDLE h)
 {
@@ -645,5 +651,62 @@ int FileSizeByName(char *pth)
     return -1;
 
   return st.nFileSizeLow;
+}
+
+ushort wb_prot[LOG_SIZE+0x1080];
+uint last_showlog_tick;
+volatile uint need_showlog_flg;
+#define SHOW_TIMEOUT  (1024*3)
+#ifdef SEPLOG
+TLog  *shown_log=&gLog;
+int oldchecked;
+void TLog::ShowProt()
+{
+  if(shown_log!=this)return ;
+#define b_prot lb_prot
+#else
+void ShowProt()
+{
+#endif
+  uint t = GetTickCount();
+
+ if( (t - last_showlog_tick) < SHOW_TIMEOUT) {
+   need_showlog_flg = 1;
+   return ;
+ }
+ last_showlog_tick = t;
+ need_showlog_flg = 0;
+ if( (s_flgs[2]&FL2_UTF)  && utf2unicode((uchar *)b_prot,wb_prot)>0)
+ {
+    SetWindowTextW(ewnd,(LPCWSTR)wb_prot);
+ }
+ else SetWindowText(ewnd,b_prot);
+ SendMessage(ewnd,EM_LINESCROLL,0,SendMessage(ewnd,EM_GETLINECOUNT,0,0)-4);
+};
+
+#undef b_prot
+
+void ShowLogNow()
+{
+  if(need_showlog_flg && !wstate)
+  {
+#ifdef SEPLOG
+    MyLock(shown_log->lpcnt);
+    if(need_showlog_flg)
+    {
+      last_showlog_tick = 0;
+      shown_log->ShowProt();
+    }
+    MyUnlock(shown_log->lpcnt);
+#else
+    MyLock(mutex_pcnt);
+    if(need_showlog_flg)
+    {
+      last_showlog_tick = 0;
+      ShowProt();
+    }
+    MyUnlock(mutex_pcnt);
+#endif
+  }
 }
 

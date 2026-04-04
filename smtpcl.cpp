@@ -90,13 +90,16 @@ void FndRedir(char **t, char *n, int x)
 char *FwdVars[12] =
 {"size_kb", 0, "errorlevel", 0, "text", 0, "msgfile", 0, "body", 0, 0, 0};
 int MLChk::RunForward(char *mbx)
-{ int h, i, s, x, r;
+{
+  int h, s, x, r; //i,
   r = 0;
   rez = 0;
   char *vars[12];
   char vsz[12];
   char verr[12];
+#ifndef SYSUNIX
   char  *nm[8];
+#endif
   RegVars rv;
 
   if( (h = _lopen(pth2, 0)) > 0 )
@@ -368,9 +371,13 @@ ulong WINAPI SMTPcl(void *)
 {
   char pth[512], *bb;
   MLChk chk;
-  ulong last;
+  // ulong last;
   WIN32_FIND_DATA fnds;
-  HANDLE hdl = INVALID_HANDLE_VALUE, hdlf;
+  HANDLE hdl = INVALID_HANDLE_VALUE; //, hdlf;
+#ifndef SYSUNIX
+  HANDLE hdlf;
+#endif
+
   User *puser;
   int h, i, x, sent_cnt, no_move, dir_loop, esmtp;
   Req req;
@@ -857,7 +864,7 @@ void CheckFileTime::CheckDir(char *bfr, char *pdir, long d)
   WIN32_FIND_DATA fnds;
   HANDLE  hdl;
   ToDel dlst;
-  long dd, c = 0;
+  long  c = 0;
 
   dlst.Init();
   sprintf(bfr, "%s" FSLUSHS "%s*.%s", dir, pdir, ext);
@@ -888,14 +895,17 @@ void CheckFileTime::CheckDir(char *bfr, char *pdir, long d)
 }
 void CheckFileTime::CheckProxy()
 {
-  WIN32_FIND_DATA fnds;
+  //WIN32_FIND_DATA fnds;
+#ifndef SYSUNIX
   HANDLE  hdl;
   SYSTEMTIME  stime;
+#endif
+
   FILETIME FTime;
-  long d, dd;
+  long d; //, dd;
   char bfr[512];
   char pdir[12];
-  ToDel dlst;
+  // ToDel dlst;
   int i = 0;
   if(dir && time)
   {

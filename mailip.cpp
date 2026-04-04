@@ -42,7 +42,7 @@ struct d_msgt {
 
 char* CopyDName(char *t, char *s)
 {
- char *tt,*t1,x;
+ char *tt,*t1;
  strcpy(t+1,s);
  tt=t;
  do{
@@ -186,9 +186,8 @@ char* GetMailHost(char *adr, d_msg  *dmm,int jchk)
  struct sockaddr_in sa;
  //d_msg  dm;
 #define dm  (*dmm)
- char *t,*t1,*t2;
+ char *t;
  int i;
- int h;
  int j=4;
 // if(dns_s<=0)
  {

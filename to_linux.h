@@ -114,7 +114,7 @@ extern int __REDIRECT (fcntl32, (int __fd, int __cmd, ...), fcntl);
 #pragma GCC diagnostic ignored "-Wwrite-strings"
 #pragma GCC diagnostic ignored "-Wformat-security"
 #pragma GCC diagnostic ignored "-Wformat-extra-args"
-#pragma GCC diagnostic ignored "-Wunused-result"
+//#pragma GCC diagnostic ignored "-Wunused-result"
 #pragma GCC diagnostic ignored "-Wregister"
 #ifndef AT_ARM
 #pragma GCC diagnostic ignored "-Wliteral-suffix"
@@ -122,6 +122,7 @@ extern int __REDIRECT (fcntl32, (int __fd, int __cmd, ...), fcntl);
 //#pragma GCC diagnostic ignored "-fpermissive"
 
 #pragma GCC diagnostic ignored "-Waddress-of-packed-member"
+#pragma GCC diagnostic error "-Wunused-variable"
 
 #define CloseHandle  close
 #define closesocket  close

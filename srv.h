@@ -57,11 +57,13 @@ void xdie(char *);
 #define DBGL(a)  debug("%s:%u:%s " a "\r\n",__FILE__ , __LINE__, __func__ );
 #define DBGLA(a,b...) debug("%s:%u:%s " a "\r\n",__FILE__ , __LINE__, __func__, ## b );
 //printf("%s:%u:%s " a "\r\n",__FILE__ , __LINE__, __func__, b );
+#define DBG_CODE(a...)  a;
 #else
 
 #define DBGLS(a)
 #define DBGL(a)
 #define DBGLA(a,b...)
+#define DBG_CODE(a)
 
 #endif
 
@@ -101,14 +103,19 @@ extern "C"{
 #define win_fd_set fd_set
 #endif
 
-struct my_mutex_t
+struct shs_mutex_t
 {
   volatile int lock;
 #ifdef USE_FUTEX
+#define SHS_MUTEX_INITIALIZER  {0}
 #elif  defined(USE_PTHREAD_MUTEX)
   pthread_mutex_t hMutex;
+#define SHS_MUTEX_INITIALIZER  {0, PTHREAD_MUTEX_INITIALIZER}
 #elif  defined(USE_WINMUTEX)
   HANDLE  hMutex;
+#define SHS_MUTEX_INITIALIZER  {0}
+#else
+#define SHS_MUTEX_INITIALIZER  {0}
 #endif
 
   void Init(){lock = 0;}
@@ -415,7 +422,7 @@ extern maxFdSet maxKeepAliveSet;
 
 extern int maxKeepAlive;
 extern Req **KeepAliveList;
-extern my_mutex_t KeepAliveMutex;
+extern shs_mutex_t KeepAliveMutex;
 extern int KeepAliveCount;
 extern int TimeoutKeepAlive;
 extern int keepalive_idle;
@@ -688,7 +695,7 @@ struct SysUser: public User
 
 };
 
-extern my_mutex_t user_mutex;
+extern shs_mutex_t user_mutex;
 #define N_ACESS_FLAGS 7
 extern gid_t access_gids[N_ACESS_FLAGS];
 extern const char* access_groups[N_ACESS_FLAGS];
@@ -754,15 +761,15 @@ int onCfgToStrExt(CfgParam *th, char *bfr);
 
 
 
-int MyLockTimeout(my_mutex_t &x, int dedlock);
-int MyLock(my_mutex_t &x);
-int MyTryLock(my_mutex_t &x);
+int MyLockTimeout(shs_mutex_t &x, int dedlock);
+int MyLock(shs_mutex_t &x);
+int MyTryLock(shs_mutex_t &x);
 #if defined(USE_FUTEX) || defined(USE_PTHREAD_MUTEX) || defined(USE_WINMUTEX)
-void MyUnlock(my_mutex_t &x);
+void MyUnlock(shs_mutex_t &x);
 #else
-inline void MyUnlock(my_mutex_t &x){x.lock = 0;}
+inline void MyUnlock(shs_mutex_t &x){x.lock = 0;}
 #endif
-void MyUnlockOwn(my_mutex_t &x);
+void MyUnlockOwn(shs_mutex_t &x);
 
 extern int FTPTimeout,POPTimeout,PRXTimeout;
 int GetCMD(int s,char *b,int timo=POPTimeout);
@@ -855,7 +862,7 @@ extern int def_dirlen,one,zero,max_cln_host,max_tsk,s_aflg,
  dns_s,addr_dns,up_proxy_port,max_cont_st,SMTPCounter, pcnt,
  count_of_tr,post_limit,DnsTms,time_btw,proxy_antivirus_port,trim_log_lines;
 
-extern my_mutex_t ip_cach_mtx;
+extern shs_mutex_t ip_cach_mtx;
 
 #define RUN_SERVERS   2
 #define RUN_VPNCL     1
@@ -1023,7 +1030,7 @@ extern char *user_name,NullString[],about[],*wkday[],*month[],
 extern HANDLE htrd;
 extern ulong trd_id;
 extern int iofs,no_close_req;
-extern my_mutex_t MutexEr;
+extern shs_mutex_t MutexEr;
 extern int close_wait;
 extern CfgParam ConfigParams[];
 extern CfgParam ConfigParams2[];
@@ -1220,24 +1227,24 @@ void dec_no_close_req();
 #define  HTTP_HEAD_BEGIN "HTTP/1.1 200 Ok\r\nConnection: close\r\n"
 extern const char ChunkedHead[];
 extern const int ChunkedHeadSize;
-extern my_mutex_t mutex_pcnt;
+extern shs_mutex_t mutex_pcnt;
 extern const struct timespec timeout_50ms;
-extern my_mutex_t mutexASyncIO;
+extern shs_mutex_t mutexASyncIO;
 
 #ifndef SYSUNIX
 struct WinFixSelect
 {
   HANDLE waitHandles[11];
   int  nCount;
-  Req  *dreq;
+  Req  * volatile dreq;
   uint waitRet;
-  my_mutex_t mutex;
+  shs_mutex_t mutex;
 
 
   void AddSocket(int s);
   void InitHandles();
   int  Select(timeval *tv);
-  int  IsSet(int n, int s);
+  int  IsSet(uint n, int s);
   void DelLastSocket(){ WSACloseEvent(waitHandles[--nCount]); }
   void ChangeSocket(int n);
   void Write(Req *d);
@@ -1256,7 +1263,7 @@ struct TLog
   //const char *suffix;
   int  idx;
   char *lpprot,*lf_prot,*loldprot;
-  my_mutex_t lpcnt;
+  shs_mutex_t lpcnt;
   int  msk,llastday;
   char lb_prot[LOG_SIZE];
   char aabfr[0x1000];
@@ -1384,6 +1391,7 @@ inline void GetProt(){MyLock(mutex_pcnt);
 
 
 #endif
+void ShowLogNow();
 
 struct FCGI_req
 {

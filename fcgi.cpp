@@ -477,7 +477,7 @@ int Req::DoFCGI(FCGI_task *fcgi)
   char *t,**tt;
   int cl = ( ( t=GetVar(http_var,"CONTENT_LENGTH") )?atoui(t): 0);
   int pl;
-  timeval  tval;
+  //timeval  tval;
   char  *bfr;
 
 
@@ -570,7 +570,7 @@ int Req::DoFCGI(FCGI_task *fcgi)
 //
 // }
 
-my_mutex_t lock_FCGItask;
+shs_mutex_t lock_FCGItask = SHS_MUTEX_INITIALIZER;
 void CloseFCGI_tasks()
 {
   FCGI_task *p,*t;
@@ -595,7 +595,7 @@ int FCGI_req::FCGIDoInput(char *bfr)
   int j,l;
   char *data;
   int type;
-  timeval  tval;
+  //timeval  tval;
   //FCGI_req *f_req;
   union {
     char *pbfr;

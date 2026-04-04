@@ -42,7 +42,7 @@
 
 
 struct linger lngr={1,0};
-my_mutex_t MutexEr;
+shs_mutex_t MutexEr = SHS_MUTEX_INITIALIZER;
 int SrvChecker[16];
 int SrvErr[16];
 
@@ -106,7 +106,7 @@ int RemoveExpired()
   int deleted=0;
   int fix_max_expired=0;
   int fix_max_fd=0;
-  int max=KeepAliveList[0]->KeepAliveExpired;
+  // int max=KeepAliveList[0]->KeepAliveExpired;
   time_t tt = time(0);
   DBGL("rm exp")
   MyLock(KeepAliveMutex);
@@ -246,11 +246,12 @@ void no_close_wait()
 }
 
 int WINAPI SetServ(uint fnc)
-{int clen,j,min_tick,min_tick_tsk;
- ulong tck,k;
+{
+ int clen,j; //,min_tick,min_tick_tsk;
+ ulong k;
  union{int i; ulong *pi;};
 #define sa_client req.sa_c
- int l,rq_cnt,serv,serv2;
+ int serv,serv2;
  Req req;
 
  memset(&req,0,sizeof(req) );

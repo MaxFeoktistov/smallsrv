@@ -71,7 +71,7 @@ void TLog::LAddToLog(char *t,int s, TSOCKADDR *psa, const char *fmt,...)
   //TSOCKADDR lsa = xsa + 1;
 #define sa  (*(sockaddr_in *)psa)
 #define san (*(sockaddr_in *)(xsa+1))
- int ll,l;
+ int l;
  l=sizeof(xsa[0]);
  char *x,*y;
 
@@ -467,10 +467,13 @@ int TLog::Save(SYSTEMTIME *stime)
 {
   int l = lpprot - lf_prot;
   int ll;
-  int tl;
+//  int tl;
   int r;
   SYSTEMTIME lTime;
-  FILETIME CrTime1,CrTime;
+  FILETIME CrTime1;
+#ifndef SYSUNIX
+  FILETIME CrTime;
+#endif
   char flogname[256];
   char ddir[280];
 
@@ -654,7 +657,7 @@ int TLog::Save(SYSTEMTIME *stime)
 
 void TLog::RelProt(SYSTEMTIME *stime)
 {
- int l,ll;
+ int l;
  int tl;
  //SYSTEMTIME lTime;
  //FILETIME CrTime1,CrTime;

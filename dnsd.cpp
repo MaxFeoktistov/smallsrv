@@ -380,8 +380,8 @@ NSRecord  *NSRecordArray::SetRecord(char *name, ulong hash, int type, ulong ttl,
 //char errfile[]="00.dat";
 int NSRecordArray::AddRRfromReply(d_msg *pdm, char *t, char *et, int rtyp)
 {
-  NSRecord  *rr, *rd;
-  ulong  hsh, ttl, type, i, j, ret, r1;
+  NSRecord  *rr;
+  ulong  hsh, ttl, i, j, ret, r1;
   char *t1, *t2;
   char bfr[68];
   char bfr1[68];
@@ -563,7 +563,7 @@ void NSRecordArray::UpdHash(ulong hash, ulong i)
 
 void NSRecordArray::Rehash()
 {
-  ulong i, j;
+  ulong i;
 
   memset(hash_list_hi, 0, 0x1000);
   for(i = 0; i < 0x400 ;  ++i )hash_list_lo[i] = cnt;
@@ -594,8 +594,8 @@ void NSRecordArray::DelHash(int k)
 NSRecord  * FastFindRec(NSRecordArray  * thi, NSRecord  *first, ulong hash, char *nm)
 {
   NSRecord  *last;
-  char *t;
-  int i, j, k;
+  //char *t;
+  int i, j;
 
   if(thi->need_rehash > 128)thi->Rehash();
 
@@ -650,9 +650,8 @@ NSRecord  * FastFindRec(NSRecordArray  * thi, NSRecord  *first, ulong hash, char
 void  DelDup(NSRecordArray  * thi, NSRecord  *rr)
 {
   NSRecord  *last, *first;
-  char *t;
   register ulong hash;
-  int i, j, k;
+  int i;
   if( (! thi->hash_list_lo)  || ! rr->l ) return;
 
   hash = rr->hash;
@@ -725,7 +724,7 @@ NSRecord  * FindFree(NSRecordArray  * thi, NSRecord  *first)
 };
 
 char *hsfile;
-my_mutex_t nsmut;
+shs_mutex_t nsmut = SHS_MUTEX_INITIALIZER;
 
 uchar DefaultSOA[] = {
   0, 0, 0, 1, // SERIAL
@@ -1018,11 +1017,11 @@ struct DNSReq
 #define MAX_DNS_REQ  96
 DNSReq   dreq[MAX_DNS_REQ + 1];
 const DNSReq* lastDNSReq = dreq + MAX_DNS_REQ;
-my_mutex_t dnsreq_mutex;
+shs_mutex_t dnsreq_mutex = SHS_MUTEX_INITIALIZER;
 ulong cdreq;
 ushort dns_id;
-my_mutex_t DOHmutex;
-my_mutex_t MxNextSend;
+shs_mutex_t DOHmutex = SHS_MUTEX_INITIALIZER;
+shs_mutex_t MxNextSend = SHS_MUTEX_INITIALIZER;
 
 int DNSReq::NextSend(int rs)
 {
@@ -1271,10 +1270,10 @@ char *GetWorld(char * &s)
 
 char * NSRecord::AddRR(d_msg *dm, char *t, int wc)
 {
-  char *p, *s, *x, *z;
+  char *p, *z;
   CheckPoint *cp;
 
-  int i, j;
+  int i;
   ulong tt;
   DDEBUG("")
   //debug("AddRR %s %u ttl=%u",dt,type,ttl);
@@ -1432,7 +1431,7 @@ struct linger dnschklng = {1, 2};
 
 ulong CheckRemoteDown(void * )
 {
-  CheckPoint *cp, *ocp;
+  CheckPoint *cp;
   ulong tt, i;
   char *p;
   int s, port, r;
@@ -1638,7 +1637,6 @@ void NSRecordLst::UpdateNS(char *tt, int fst)
 {
   NSRecord *f = 0;
   int j, on;
-  char *t;
   ulong hash;
   on = n;
   if( (s_flg & FL_DNSUPLVL) && !(n + fst)  )
@@ -1777,7 +1775,6 @@ int DNSReq::FindNSResend(int rs, NSRecordLst *ns, char *bfx, int min)
 
 void DNSReq::FreeDNSReq()
 {
-  int i;
   if(doh_ptr)
   {
     MyLock(DOHmutex);
@@ -1799,7 +1796,7 @@ int CheckDNSDoS(sockaddr_in * sa_c);
 
 DNSReq* GetFreeReq(DNSReq* th, ulong hsh)
 {
-  ulong k, bj, i, x;
+  ulong k, i, x;
   DNSReq* r = 0;
   DNSReq* pdreq;
   MyLock(dnsreq_mutex);
@@ -2096,21 +2093,29 @@ int  WinFixSelect::Select(timeval *tv)
     debug("WaitForMultipleObjects error %d " SER, GetLastError() Xstrerror(errno));
   }
 
-  return (waitRet >= WAIT_OBJECT_0 && waitRet < (WAIT_OBJECT_0 + 11));
+  if(waitRet >= WAIT_OBJECT_0 && waitRet < (WAIT_OBJECT_0 + 11))
+  {
+    waitRet -= WAIT_OBJECT_0;
+    return 1;
+  }
+
+  waitRet = ~0;
+  return 0;
 }
 
 inline void WinFixSelect::ChangeSocket(int n){ WSAEventSelect(soc_srv[SRV_SDNS + n * MAX_SERV], waitHandles[n + 1], FD_READ); }
 
-int  WinFixSelect::IsSet(int n, int s)
+int  WinFixSelect::IsSet(uint n, int s)
 {
   WSANETWORKEVENTS ev;
 
-  if(n < (waitRet - WAIT_OBJECT_0))
+  if(n < waitRet)
     return 0;
 
   if(!n)
   {
     ResetEvent(waitHandles[0]);
+    waitRet++;
     return 1;
   }
 
@@ -2126,7 +2131,10 @@ void InitDOH()
   {
     doh_winfix = (WinFixSelect *) Malloc(sizeof(*doh_winfix));
     if(doh_winfix)
+    {
       doh_winfix->InitHandles();
+      doh_winfix->mutex.Init();
+    }
   }
 }
 
@@ -2155,10 +2163,12 @@ ulong WINAPI SetDNSServ(void * fwrk)
   sockaddr_in *psa_client;
 
   ulong stt;
-  ulong crp, cap, cns, l1, l2, xhst, ttl, cname_hsh, errcounter = 0;
-  char *ptmp = 0, *t, *t1, *arpa, *et, *p, *lst, *ptyp, *pcn, *pns;
+  // ulong cap, cns, l1, l2, xhst, ttl, cname_hsh, errcounter = 0;
+  ulong l1, xhst, ttl;
+  //char *ptmp = 0, *t, *t1, *arpa, *et, *p, *lst, *ptyp, *pcn, *pns;
+  char *ptmp = 0, *t, *t1, *arpa, *et;
 
-  NSRecord *hst, *hst1;
+  NSRecord *hst; //, *hst1;
   FndRec   fnd;
   d_msg  *pdm;
   DNSReq *pdreq, *pdreq2;
@@ -2578,13 +2588,19 @@ lbEnd2:
 #endif // IP_TTL
 
 #ifndef SYSUNIX
-                  if(s_flgs[2]&FL2_DOH && ! isTCP) {
+                  if(doh_winfix && ! isTCP) {
                     doh_winfix->AddSocket(sudp2);
                   }
 #endif // !SYSUNIX
                 }
 
 lbFindCashe:
+
+                if(!pdreq)
+                {
+                  DBGLA("********* SOMETHING WRONG %s %X", bfx, th.typ)
+                  continue;
+                }
                 //   debug("Find in cashe |%s| %u",bfx,pdreq->typ);
                 if( fnd.Find(cash_rr, bfx, xhst, pdreq->typ) )
                 {
@@ -2782,7 +2798,7 @@ lbNS_notfound:
 
       if( (s_flgs[2]&FL2_DOH) && (
 #ifndef SYSUNIX
-            (doh_winfix) ?  doh_winfix->IsSet(0, doh_r) : 0
+            doh_winfix &&  doh_winfix->IsSet(0, 0)
 #else
             FD_ISSET(doh_r, (fd_set *) &set)
 #endif
@@ -2795,6 +2811,7 @@ lbNS_notfound:
         _hread(doh_r, (char *) &th.doh_ptr, sizeof(th.doh_ptr) );
 #else
         th.doh_ptr = doh_winfix->dreq;
+        doh_winfix->dreq = 0;
         MyUnlock(doh_winfix->mutex);
 #endif
         th.l = th.doh_ptr->postsize;
@@ -3384,13 +3401,13 @@ exLD:
 int LoadDomain(char *file)
 {
   register char *t;
-  int s, i, k, j, l, kk, x;
-  char *hostfile, *t1, *t2;
-  CheckPoint *cp;
+  int s, i, k, j;
+  char *hostfile;
+  //CheckPoint *cp;
 
   NSRecordArray  *arr, *trr;
 
-  FILETIME tft;
+  //FILETIME tft;
 
   if(file)
   {
@@ -3462,11 +3479,14 @@ er1:
 
 void LoadDomainM()
 {
-  int i;
   if(count_dns)
   {
     if(LoadDomain(dns_file))
     {
+#ifndef SYSUNIX
+      ulong i;
+#endif
+
       debug("DNS: Load host definetion file. %u hosts now are loaded", count_dns );
       if((DRList || seconds) && !ChkThread)
         CreateThread(&secat, 0x8000, (TskSrv)CheckRemoteDown, (void *)0, 0, (ulong *)&i);
@@ -4151,12 +4171,10 @@ void  NSRecordArray::Save(char *fname)
 void Secondary::LoadFile()
 {
   register char *t;
-  int s, i, k, j, l, kk, x;
-  char *hostfile, *t1, *t2;
+  int s, i, j;
+  char *hostfile, *t1;
 
   NSRecordArray  *arr, *trr;
-
-  FILETIME tft;
 
   if(fname)
   {

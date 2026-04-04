@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2025 Maksim Feoktistov.
+ * Copyright (C) 1999-2026 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov
@@ -77,28 +77,6 @@ void WINAPI NThandler(DWORD fdwControl)
 #endif
 
 #ifndef SYSUNIX
-ushort wb_prot[LOG_SIZE+0x1080];
-
-#ifdef SEPLOG
-TLog  *shown_log=&gLog;
-int oldchecked;
-void TLog::ShowProt()
-{
-  if(shown_log!=this)return ;
-#define b_prot lb_prot
-#else
-void ShowProt()
-{
-#endif
-
- if( (s_flgs[2]&FL2_UTF)  && utf2unicode((uchar *)b_prot,wb_prot)>0)
- {
-    SetWindowTextW(ewnd,(LPCWSTR)wb_prot);
- }
- else SetWindowText(ewnd,b_prot);
- SendMessage(ewnd,EM_LINESCROLL,0,SendMessage(ewnd,EM_GETLINECOUNT,0,0)-4);
-};
-#undef b_prot
 char err_msg[260];
 char* strerror(int ErrorCode)
 {
@@ -222,7 +200,7 @@ int IP2S(char *addr6,sockaddr_in* xsa)
 char *TrimLogLines(char *s)
 {
  int i=0,mtrim_log_lines;
- char *t=s,*e;
+ char *t=s;
 
  if(trim_log_lines<32)trim_log_lines=32;
  mtrim_log_lines=trim_log_lines+3;
@@ -271,7 +249,7 @@ void CloseSocket(int s){shutdown(s,2); closesocket(s);}
 */
 
 void CloseServer()
-{int i;
+{
 #ifdef SYSUNIX
  if(s_aflg&AFL_EXIT){Sleep(3000); }
  s_aflg|=AFL_EXIT;

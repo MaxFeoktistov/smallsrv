@@ -1,8 +1,9 @@
-shs-vpnclient (3.06.40test4) unstable; urgency=low
+shs-vpnclient (3.06.40test5) unstable; urgency=low
 
   * Mutexes have been updated
+  * Code optimized
 
- -- Maksim Feoktistov <max@smallsrv.com>  Mon, 30 Mar 2026 09:36:51 +0400
+ -- Maksim Feoktistov <max@smallsrv.com>  Sat, 04 Apr 2026 11:31:50 +0400
 
 shs-vpnclient (3.06.39) unstable; urgency=low
 

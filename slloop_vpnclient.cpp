@@ -25,7 +25,7 @@
 
 timeval  TVal;
 void  SignalHandler(int)
-{int ll;
+{
  if(is_no_exit)
  {is_no_exit=0;
   debug("\nBye...\n");
@@ -223,9 +223,8 @@ union{
  struct stat stt;
  int tmp[2];
 };
-fd_set er_set;
- int s,i,j,k,kk;
- char *t,*p;
+ int i;
+ char *t;
 
  __argv=argv;
 

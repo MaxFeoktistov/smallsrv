@@ -69,7 +69,6 @@ int Req::SendStr(char *b)
 int Req::SendSSI()
 {
   char *http_v[MAX_HTTP_VARS+12];
-  int i;
   memcpy(http_v,http_var,sizeof(http_v));
   http_var=http_v;
   prepare_Req_var();

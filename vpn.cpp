@@ -125,7 +125,7 @@ maxFdSet maxVPNset;
 int vpn_max;
 int vpn_count;
 //volatile
-my_mutex_t vpn_mutex;
+shs_mutex_t vpn_mutex = SHS_MUTEX_INITIALIZER;
 #ifdef VPN_LINUX
 char *tundev="/dev/net/tun";
 #ifndef USE_TUN_PI
@@ -305,7 +305,6 @@ int tun_up(uint index, uint ip, uint mask, uint gw, char *dns )
 {
   int aflag = 0;
   int r;
-  char *t;
   struct ifreq ifr;
   memset(&ifr, 0, sizeof(ifr));
 
@@ -373,7 +372,6 @@ int tun_up(uint index, uint ip, uint mask, uint gw, char *dns )
   {
     char  cmd[512];
     char  client_ip[48];
-    char  *dnsqt= NullString;
     client_ip[0] = 0;
 
     if(INDEX_CLIENT == index && vpn_cln_connected)
@@ -408,7 +406,6 @@ int tun_alloc(int index)
     struct ifreq ifr;
     int fd, err;
     uint ip=0,m=0;
-    uint aflag=0;
     int r;
     char *t;
 
@@ -1438,7 +1435,6 @@ int send_echo_request(u32 ip, int len)
 int Req::InsertVPNclient()
 {
   VPNclient *cl;
-  char *rnd, *pwdcode;
   int l;
   User *tuser = 0;
   char *t,*t1;
@@ -1880,7 +1876,7 @@ ulong WINAPI VPN_Thread(void *)
   fd_set set;
   fd_set er_set;
   timeval  TVal;
-  int    i,j,l,k,r;
+  int    i,j;
   union {
     short pkt_len;
     uchar pkt[MAX_MTU + 4];
@@ -2180,12 +2176,11 @@ int VPNUserLimit::UpdateOut(uint l)
   return -1;
 }
 
-my_mutex_t vpn_limit_mutex;
+shs_mutex_t vpn_limit_mutex = SHS_MUTEX_INITIALIZER;
 
 void ClearLimits(uint end, uint pp)
 {
   VPNUserLimit* p;
-  int i;
   MyLock(vpn_limit_mutex);
   for(p=vpn_limits; p; p=p->next)
   {
@@ -2542,7 +2537,7 @@ int VPNclient::ClientConnect(OpenSSLConnection *x)
   char HA2Hex[40];
   int  tryes = 0;
   static int AuthBasic;
-  uint m=0xFFFFFF;
+  // uint m=0xFFFFFF;
 
   vpn_cln_connected = 0;
   if(!vpn_remote_host) return -5;

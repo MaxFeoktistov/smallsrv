@@ -48,13 +48,13 @@ typedef int (*cmp_t)(const void *, const void *);
 
 
 int Req::POPReq()
-{char bfr[520],pth[512],subdir[128],tmp[80];
+{char bfr[520],pth[512],subdir[128]; //,tmp[80];
  WIN32_FIND_DATA fnds;
  User *puser;
  ulong mboxLen,mboxCount;
- char *t,*d,*tt,*p,*sf;
+ char *t,*d,*tt,*sf; // ,*p
  HANDLE hdl;
- int h,i,j,n,l;
+ int h,i,j,l; // ,n
  char *rcode;
  int rcodeLen;
  char *bb=0;

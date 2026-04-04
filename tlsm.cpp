@@ -231,14 +231,14 @@ int InitSecDLL()
 #endif
 
 char *chunke_bfr;
-my_mutex_t chunke_mutex;
+shs_mutex_t chunke_mutex = SHS_MUTEX_INITIALIZER;
 #define MAX_FRAG_SIZE 0x10000
 
 int TLSSend(Req *th, const void *b,int l)
 {
  int r;
  int lock=0;
- int ll=l; ///!!! debug
+ DBG_CODE(int ll=l) ///!!! debug
  DBG_WRITE((char *)b,l,2);
 
  if( (th->fl & F_CHUNKED) && l>0)
@@ -281,7 +281,7 @@ int TLSRecv(Req *th,void *b,int l)
  return r;
 };
 
-my_mutex_t TLSmutex;
+shs_mutex_t TLSmutex = SHS_MUTEX_INITIALIZER;
 int Req::TLSBegin(OpenSSLConnection *x, int type, char *verfyhost)
 {
   Snd=(tfSnd) &TLSSend;
