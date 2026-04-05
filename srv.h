@@ -76,10 +76,10 @@ void xdie(char *);
 #include "config.h"
 
 #ifndef SYSUNIX
-
+#define USE_WINMUTEX 1
 #include "to_win.h"
-
 #else
+#define USE_SEM 1
 #include "to_linux.h"
 #endif
 
@@ -105,15 +105,19 @@ extern "C"{
 
 struct shs_mutex_t
 {
-  volatile int lock;
-#ifdef USE_FUTEX
-#define SHS_MUTEX_INITIALIZER  {0}
-#elif  defined(USE_PTHREAD_MUTEX)
-  pthread_mutex_t hMutex;
+  volatile pthread_t lock;
+#if defined(USE_SEM)
+  int sem_state;
+#define SEM_INITED  1
+#define SEM_TRY_INIT  2
+  sem_t sem;
+#define SHS_MUTEX_INITIALIZER  {0, 0}
+#elif defined(USE_PTHREAD_MUTEX)
+  pthread_mutex_t pmutex;
 #define SHS_MUTEX_INITIALIZER  {0, PTHREAD_MUTEX_INITIALIZER}
-#elif  defined(USE_WINMUTEX)
-  HANDLE  hMutex;
-#define SHS_MUTEX_INITIALIZER  {0}
+#elif defined(USE_WINMUTEX)
+  HANDLE  hSem;
+#define SHS_MUTEX_INITIALIZER  {0,0}
 #else
 #define SHS_MUTEX_INITIALIZER  {0}
 #endif
@@ -122,6 +126,7 @@ struct shs_mutex_t
   void Destroy();
 };
 
+#define NSEC_PER_SEC 1000000000
 
 struct LogInfo ;
 struct MemList;
@@ -757,14 +762,10 @@ int onCfgChangeNoFlag(CfgParam *th);
 int onCfgChangeExt(CfgParam *th);
 int onCfgToStrExt(CfgParam *th, char *bfr);
 
-
-
-
-
 int MyLockTimeout(shs_mutex_t &x, int dedlock);
 int MyLock(shs_mutex_t &x);
 int MyTryLock(shs_mutex_t &x);
-#if defined(USE_FUTEX) || defined(USE_PTHREAD_MUTEX) || defined(USE_WINMUTEX)
+#if defined(USE_FUTEX) || defined(USE_PTHREAD_MUTEX) || defined(USE_WINMUTEX) ||  defined(USE_SEM)
 void MyUnlock(shs_mutex_t &x);
 #else
 inline void MyUnlock(shs_mutex_t &x){x.lock = 0;}
@@ -1255,6 +1256,7 @@ void InitDOH();
 
 #endif
 
+void SignalFreeMutex(int);
 
 #ifdef SEPLOG
 

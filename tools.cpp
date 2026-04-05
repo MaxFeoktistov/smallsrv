@@ -563,18 +563,152 @@ const  struct timespec timeout_50ms={0,50000000};
 #endif
 volatile int lock_cnt;
 
+#ifdef USE_SEM
 
 int MyLockTimeout(shs_mutex_t &x, int dead_lock_chk)
 {
-   int a=(int) GetCurrentThreadId();
+  int a=(int) GetCurrentThreadId();
+  if(a == x.lock) return 0;
+
+  int ms = dead_lock_chk * 50;
+
+  while(! (x.sem_state & SEM_INITED))
+  {
+    if(x.sem_state & SEM_TRY_INIT)
+    {
+      sched_yield();
+      continue;
+    }
+    x.sem_state |= SEM_TRY_INIT;
+    sched_yield();
+    if(x.sem_state & SEM_INITED) break;
+    sem_init(&x.sem, 0, 1);
+    x.sem_state |= SEM_INITED;
+  }
+
+  while(sem_trywait(&x.sem))
+  {
+    struct timespec ts;
+
+    clock_gettime(CLOCK_REALTIME, &ts);
+
+    ts.tv_sec += ms >> 10;
+    ts.tv_nsec += (ms & 0xFFF) * 1000000;
+    while(ts.tv_nsec >= NSEC_PER_SEC)
+    {
+      ts.tv_nsec -= NSEC_PER_SEC;
+      ts.tv_sec ++;
+    }
+    if(!sem_timedwait(&x.sem, &ts))
+      break;
+    if(dead_lock_chk-- < 0)
+      return -1;
+    MyUnlock(x);
+  }
+  x.lock = a;
+  return 0;
+}
+void MyUnlock(shs_mutex_t &x)
+{
+  if(! x.lock) return;
+  x.lock = 0;
+  sem_post(&x.sem);
+}
+
+#elif defined(USE_PTHREAD_MUTEX)
+int MyLockTimeout(shs_mutex_t &x, int dead_lock_chk)
+{
+  int a=(int) GetCurrentThreadId();
+  if(a == x.lock) return 0;
+
+  uint ms = dead_lock_chk * 50;
+
+  while(pthread_mutex_trylock(&mutex))
+  {
+    struct timespec ts;
+
+    clock_gettime(CLOCK_REALTIME, &ts);
+
+    ts.tv_sec += ms >> 10;
+    ts.tv_nsec += (ms & 0xFFF) * 1000000;
+    while(ts.tv_nsec >= NSEC_PER_SEC)
+    {
+      ts.tv_nsec -= NSEC_PER_SEC;
+      ts.tv_sec ++;
+    }
+    if(!pthread_mutex_timedlock(&mutex, &ts))
+      break;
+    if(dead_lock_chk-- < 0)
+      return -1;
+    MyUnlock(x);
+  }
+  x.lock = a;
+  return 1;
+}
+static pthread_mutex_t sig_mutex = PTHREAD_MUTEX_INITIALIZER;
+static shs_mutex_t *dead_mutex;
+
+void MyUnlock(shs_mutex_t &x)
+{
+  if(! x.lock) return;
+  pthread_t a = GetCurrentThreadId();
+  if(a == x.lock)
+  {
+    x.lock = 0;
+    pthread_mutex_unlock(&mutex);
+  }
+  else
+  {
+    while(1)
+    {
+      pthread_mutex_lock(&sig_mutex);
+
+      if(dead_mutex) {
+        bool cond;
+
+        cond = dead_mutex == &x;
+        pthread_mutex_unlock(&sig_mutex);
+        if(cond)
+          break;
+        sched_yield();
+        continue;
+      }
+      dead_mutex = &x;
+      pthread_kill(x.lock, SIGRTMIN);
+      pthread_mutex_unlock(&sig_mutex);
+      sched_yield();
+      break;
+    }
+  }
+}
+
+void SignalFreeMutex(int)
+{
+  if (dead_mutex && dead_mutex->lock == GetCurrentThreadId())
+  {
+    dead_mutex->lock = 0;
+    pthread_mutex_unlock(&dead_mutex->mutex);
+    dead_mutex = 0;
+  }
+  signal(SIGRTMIN, SignalFreeMutex);
+}
+
+#else // USE_SEM, USE_PTHREAD_MUTEX
+int MyLockTimeout(shs_mutex_t &x, int dead_lock_chk)
+{
+   pthread_t a = GetCurrentThreadId();
    if(a == x.lock) return 0;
 #ifdef USE_WINMUTEX
-   if(!hMutex)
-     hMutex = CreateMutex(NULL, FALSE, NULL);
+   if(!x.hSem)
+     x.hSem = CreateSemaphore(0, 1, 1, 0);
 
-   WaitForSingleObject(hMutex, 50 * dead_lock_chk);
+   while(x.lock)
+   {
+     if(WaitForSingleObject(x.hSem, 50 * dead_lock_chk) != WAIT_OBJECT_0)
+       MyUnlock(x);
+   }
    x.lock = a;
-#elif 1
+#else
    if( ++lock_cnt > 1)
    {
      #ifdef SYSUNIX
@@ -591,7 +725,7 @@ int MyLockTimeout(shs_mutex_t &x, int dead_lock_chk)
 #else
         Sleep(50);
 #endif
-#ifdef SYSUNIX
+#if defined(SYSUNIX) && defined(DEBUG_VERSION)
      if(dead_lock_chk<=0) {
        printf("Lock timeout %lX %X %X\r\n", (long) &x, x.lock, a);
      }
@@ -609,24 +743,19 @@ int MyLockTimeout(shs_mutex_t &x, int dead_lock_chk)
  //Sleep(0); do{ while(x){ Sleep(30);}  if(++x==1)break; --x; }while(1);
    if(--lock_cnt < 0) lock_cnt = 0;
 
-   return 1;
-
-#else
- int b;
- while(x!=a){
-  while(x)
-  {
-       Sleep(20);
-       if(x==a)goto ex2;
-       if(--dead_lock_chk<0){ x=a; goto ex2; }
-  }
-  if((b=InterlockedExchange((long *)&x,a)))x=b;
- }
- ex2:;
- return 1;
-
 #endif
+   return 1;
 }
+void MyUnlock(shs_mutex_t &x)
+{
+  x.lock = 0;
+#ifdef USE_FUTEX
+  futex((int *)&x, FUTEX_WAKE, 1, 0, 0, 0);
+#elif defined(USE_WINMUTEX)
+  ReleaseSemaphore(x.hSem, 1, NULL);
+#endif // USE_FUTEX, USE_WINMUTEX
+}
+#endif // USE_SEM, USE_PTHREAD_MUTEX
 
 int MyLock(shs_mutex_t &x)
 {
@@ -639,12 +768,23 @@ int MyTryLock(shs_mutex_t &x)
   return MyLockTimeout(x, 1);
 }
 
-
 void MyUnlockOwn(shs_mutex_t &x){
-  if(x.lock==(int) GetCurrentThreadId())
+  if(x.lock == GetCurrentThreadId())
   {
     MyUnlock(x);
   }
 }
 
 
+#ifdef SYSUNIX
+shs_mutex_t MemMtx;
+char * Malloc(int c)
+{
+  register char *r;
+  MyLock(MemMtx);
+  r = (char *)malloc(c);
+  MyUnlock(MemMtx);
+  if(r) memset(r, 0, c);
+  return r;
+};
+#endif

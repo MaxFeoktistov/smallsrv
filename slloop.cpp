@@ -494,6 +494,10 @@ lbSkipCfg:
 #ifdef SEPLOG
   signal(SIGUSR2, SignalUSR2);
 #endif
+#ifdef USE_PTHREAD_MUTEX
+  signal(SIGRTMIN, SignalFreeMutex);
+#endif
+
   signal(SIGHUP, signalHUP);
   signal(SIGPIPE, SIG_IGN);
 // signal(SIGCHILD  ,SignalChild);

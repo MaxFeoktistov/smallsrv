@@ -70,7 +70,7 @@ int  Req::CallFCGI(char *name)
 #ifndef SYSUNIX
 char fcgi_env[] = "S=FCGI\x00";
 
-static int  unix_socket_number;
+//static int  unix_socket_number;
 #else
 int unix_socket_number;
 #endif

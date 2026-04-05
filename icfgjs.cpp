@@ -399,9 +399,8 @@ int Req::HTTPMimeTypesOut(BFILE *bf) // char *bfr)
 
 #ifndef SYSUNIX
 int Req::HTTPCGIAppOut(BFILE *bf) //char *bfr)
-{int i,j;
- char *t,**tt;
- //j=sprintf(bfr,
+{int i;
+ char **tt;
  bf->bprintf(
  "<h2>Interpreters for diferent types of CGI.</h2>"
  "<table bgcolor=#fcf0e0 border=1>"
@@ -412,7 +411,7 @@ int Req::HTTPCGIAppOut(BFILE *bf) //char *bfr)
  "</tr>" HTML_LN );
  i=0;
  for(tt=ext; *tt; tt+=2) if(*tt[0]=='.')
- { //j+=sprintf(bfr+j,
+ {
   bf->bprintf(
   "<tr valign=center><td><font size=2 class=f2>"
   "<form method=GET action=/$_admin_$aple>"
@@ -429,7 +428,6 @@ int Req::HTTPCGIAppOut(BFILE *bf) //char *bfr)
   if(++i>10)break;
  }
 
- //j+=sprintf(bfr+j,
  bf->bprintf(
             (i<10)?
  "<tr valign=center><td><font size=2 class=f2>"
@@ -445,7 +443,6 @@ int Req::HTTPCGIAppOut(BFILE *bf) //char *bfr)
  :"</table><hr>" HTML_LN
  ,i);
 
- //if(send(s,bfr,j,0)<=0)return -1;
  return 0;
 };
 #endif

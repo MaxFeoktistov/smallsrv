@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2024 Maksim Feoktistov.
+ * Copyright (C) 1999-2026 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov
@@ -628,7 +628,6 @@ HANDLE win_tun_open(int index)
 {
   HANDLE h;
   DWORD len;
-  int i;
   char *guid = vpnIfGuid[index];
   char path[256];
 

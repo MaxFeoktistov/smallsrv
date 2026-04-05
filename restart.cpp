@@ -164,8 +164,7 @@ void OkCfgWindow()
 {
   CfgParam *cp;
   char  u[512], *t, *x;
-  HWND  tw;
-  int i, j, k, l, chk = 0;
+  int i, k, l;
 
   int lis_no_exit = is_no_exit;
   for(k = 0; ConfigParams[k].desc; ++k)
@@ -550,11 +549,12 @@ int InitApplication()
   WSADATA tmp;
   RECT rc;
 #endif
-
 //  SYSTEMTIME  tm;
-  int i, j;
+  int i;
 //  char *t, *p;
-
+#ifndef VPNCLIENT_ONLY
+  int j;
+#endif
 //  int l;
 #ifndef SYSUNIX
 

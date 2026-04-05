@@ -190,8 +190,8 @@ int MyCreateProcess(char *p, void *env, char *loc, STARTUPINFO *cb, PROCESS_INFO
 }
 
 int Req::MakeEnv(char *env, char *ee)
-{ char *t, **tt, *penv, *z, *y;
-  struct sockaddr_in sa;
+{ char *t, **tt, *penv;
+  //struct sockaddr_in sa;
   int l;//=sizeof(sockaddr_in);
 // getpeername(s,(sockaddr *)&sa,&l);
   //z=inet_ntoa(sa.sin_addr);
@@ -310,7 +310,7 @@ int Req::ExecCGIEx()
   STARTUPINFO cb;
   char *p = 0, *pp, *t, **tt, *e, *t1, *t2;
   long ll, ec, pl = 0, cl = 0, l, i;
-  char *env, *penv, z[300];
+  char *env, z[300];
   ulong timeout = cgi_timeout + time(0);
   int http_status = 200;
 

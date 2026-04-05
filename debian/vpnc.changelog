@@ -1,9 +1,10 @@
-shs-vpnclient (3.06.40test5) unstable; urgency=low
+shs-vpnclient (3.06.40test6) unstable; urgency=low
 
-  * Mutexes have been updated
+  *  Mutexes have been updated. Semaphore-based synchronization has been
+     added.
   * Code optimized
 
- -- Maksim Feoktistov <max@smallsrv.com>  Sat, 04 Apr 2026 11:31:50 +0400
+ -- Maksim Feoktistov <max@smallsrv.com>  Sun, 05 Apr 2026 15:05:56 +0400
 
 shs-vpnclient (3.06.39) unstable; urgency=low
 

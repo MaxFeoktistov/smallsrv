@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2022 Maksim Feoktistov.
+ * Copyright (C) 1999-2026 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov
@@ -32,38 +32,7 @@
 #include<grp.h>
 
 
-extern "C" {
-  void MyLock(int &x);
-#ifdef USE_FUTEX
-  void MyUnlock(int &x)
-  {
-    x = 0;
-    futex((int *)&x, FUTEX_WAKE, 1, 0, 0, 0);
-  }
-#else
-  inline void MyUnlock(int &x) {x = 0;}
-#endif
-  /*
-  void* zalloc(uint a)
-  {
-    char *r=(char *)  malloc(a);
-    if(r && a)memset(r,0,a);
-    return r;
-  }*/
-
-
-} //extern C
-
-int MemMtx;
-char * Malloc(int c)
-{
-  register char *r;
-  MyLock(MemMtx);
-  if((r = (char *)malloc(c))) {memset(r, 0, c); }
-  MyUnlock(MemMtx);
-  return r;
-};
-
+// extern "C" {
 
 void Sleep(uint ms_time)
 { ulong t;
@@ -331,10 +300,6 @@ lbChk:
     if(i >= 0)goto lbChk;
   }
   return -1;
-
-
-
-
 }
 
 

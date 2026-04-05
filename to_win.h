@@ -435,6 +435,7 @@ int AddASyncIO(tfASyncIOHelperCB cb, void  *par, HANDLE h);
 #ifdef DJGPP
 #define Malloc malloc
 #endif
+typedef DWORD pthread_t;
 
 }
 

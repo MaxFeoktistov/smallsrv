@@ -326,7 +326,6 @@ HANDLE FindFirstFile_UTF(char  *   a, LPWIN32_FIND_DATA lpFindFileData)
    ushort ut[512];
    uchar uc[2048];
  };
- uchar dbg[256];
    HANDLE r;
    int err;
    if(utf2unicode((uchar *)a,ut)>=0)
@@ -540,7 +539,7 @@ int Req::FTPReq()
     setlocale(LC_ALL,"en_US.UTF-8");
   }
   #else
-  int isFindUTF;
+  //int isFindUTF;
   #endif
   prti.sin_port=0;
   pass_port=0;

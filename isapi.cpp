@@ -93,7 +93,6 @@ BOOL WINAPI GetServerVariable(EXTENSION_CONTROL_BLOCK *e,LPSTR lpszVariableName,
 BOOL WINAPI WriteClient( EXTENSION_CONTROL_BLOCK *e,LPVOID Buffer,LPDWORD lpdwBytes,DWORD dwReserved )
 {
  char abuf[512];
- char *t;
 
  if(e->state&2)return 0;
 // debug("WriteClient state=%X flg=%X %.128s ",e->state,e->sock->fl,Buffer);
