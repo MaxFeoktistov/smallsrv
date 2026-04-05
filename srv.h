@@ -649,6 +649,7 @@ struct User
 #define UserSYSUSER 0x100
 #define FindUserMD5digest 0x10000
 #define FindUserMD5cram   0x20000
+#define FindUserCaseIns   0x40000
 
 #ifdef NEWSTRUCT
  char *name;

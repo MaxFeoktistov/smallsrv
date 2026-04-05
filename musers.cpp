@@ -364,7 +364,10 @@ User   *FindUser(char *bfr,int typ,char *pwd /*=0*/,Req *r) //=0)
   DBGLA("DEBUG 3 %s %s %X %X",tuser->name,bfr,tuser->state,typ);
   if( (tuser->state & UserPARSED) && (tuser->state&typ) )
   {
-    if( ! strcmp(tuser->name,bfr)  )
+    if( ! ( (typ & FindUserCaseIns)?
+               stricmp(tuser->name, bfr) :
+               strcmp(tuser->name, bfr)
+          ) )
     {
       if(pwd && r)
       {

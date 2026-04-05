@@ -801,14 +801,14 @@ int Req::SMTPReq()
             if(!t)status|=8;
             else if(IsUsHost(t))
             {
-              puser_s=FindUser(sender,UserSMTP,0,0);
+              puser_s=FindUser(sender,UserSMTP | FindUserCaseIns,0,0);
               *t=0;
               if( (s_flgs[3]&FL3_SMTP_AUTHSAME) && puser_a )
               {
                 if( puser_s != puser_a && stricmp(sender, puser_a->name) ) goto ler450;
               }
               if( ( ! ( (s_flgs[2]& FL2_MLNOIP) || us_ip)) ||
-                ! ( puser_s || ( puser_s=FindUser(sender,UserSMTP,0,0) ) ) )
+                ! ( puser_s || ( puser_s=FindUser(sender, UserSMTP | FindUserCaseIns,0,0) ) ) )
               {
                 // debug("us_ip(%u) puser_s:%lX\n", us_ip, (long) puser_s );
                 goto ler450;
@@ -839,9 +839,9 @@ int Req::SMTPReq()
 
               if(IsUsHost(t))
               {
-                puser_r=FindUser(recepter,UserPOP3,0,0);
+                puser_r=FindUser(recepter,UserPOP3 | FindUserCaseIns,0,0);
                 *t=0;
-                if( (!puser_r)  && !(puser_r=FindUser(recepter,UserPOP3,0,0))  )goto ler450;
+                if( (!puser_r)  && !(puser_r=FindUser(recepter,UserPOP3 | FindUserCaseIns,0,0))  )goto ler450;
               }
               else if( ((status&8) && ! us_ip ) ||
                        !( (us_ip)
