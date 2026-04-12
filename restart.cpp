@@ -801,6 +801,14 @@ afterTLS:
 #endif
                        , total_dhcp_ip );
     }
+#ifdef TFTP
+    if(max_tftp_files && TFTPdir && TFTPdir[0])
+    {
+      CreateThread(&secat, 0x1000, TFTPServer, (void *)0, 0, &trd_id);
+      pprot += sprintf(pprot, "TFTP server enabled (%s).\r\n", TFTPdir);
+    }
+
+#endif // TFTP
 #endif // V_FILL
 #endif // VPNCLIENT_ONLY
 

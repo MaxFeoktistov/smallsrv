@@ -1,13 +1,16 @@
-smallsrv (3.06.40test7) unstable; urgency=low
+smallsrv (3.06.40test8) unstable; urgency=low
 
-  *  DNS server changes. Fixed a bug when loading a domain from a
-     file for secondary mode.
-  *  Fixed DOH in version for Windows.
-  *  Mutexes have been updated. Semaphore-based synchronization has been
-     added.
-  *  Code optimized
+  * DNS server changes. Fixed a bug when loading a domain from a
+    file for secondary mode.
+  * Fixed DOH in version for Windows.
+  * Mutexes have been updated. Semaphore-based synchronization has been
+    added.
+  * Code optimized
+  * On the SMTP server, the username in the email address can be
+    optionally case-insensitive.
+  * Added a TFTP server
 
- -- Maksim Feoktistov <max@smallsrv.com>  Sun, 05 Apr 2026 19:05:26 +0400
+ -- Maksim Feoktistov <max@smallsrv.com>  Sun, 12 Apr 2026 12:08:21 +0400
 
 smallsrv (3.06.39) unstable; urgency=low
 

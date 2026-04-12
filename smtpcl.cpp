@@ -525,7 +525,8 @@ lb_reload2:
             if(IsUsHost(t4))
             { //Local
               *t4 = 0;
-              puser = FindUser(t2, UserPOP3, 0, 0);
+              puser = FindUser(t2, (s_flgs[3] & FL3_SMTP_USR_ICASE) ?
+                                      (UserPOP3 | FindUserCaseIns) : UserPOP3, 0, 0);
               *t4 = '@';
               if(!puser)
               {

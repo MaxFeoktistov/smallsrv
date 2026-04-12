@@ -365,6 +365,9 @@ int AddCfgListEdit(int pos,char *name,ListNext fln,void *lst,int base,int cntrl,
 #endif // VPNCLIENT_ONLY
 
 #define  HGH 50
+#define  WWIDTH 800
+#define  WIDTH_FIX(a) (a + 800 - 640)
+#define  WIDTH_FIXC(a) (a + 400 - 320)
 
 void CreatCfgWindow()
 {
@@ -377,7 +380,7 @@ void CreatCfgWindow()
    dwndc=CreateWindowEx(0,"FMFROM","Configuration",
    DS_3DLOOK|WS_CAPTION|WS_VISIBLE|WS_POPUP|WS_SYSMENU
    |WS_DLGFRAME|WS_VSCROLL|WS_THICKFRAME
-   ,0,0,640,480,0,MkMnu(mnu3,CreateMenu), hinstance, 0);
+   ,0,0,WWIDTH,480,0,MkMnu(mnu3,CreateMenu), hinstance, 0);
   SendMessage(dwndc,WM_SETFONT,j=(ulong)GetStockObject(17),1);
 
 
@@ -392,25 +395,25 @@ void CreatCfgWindow()
    if( ConfigParams[k].v )
    {
     tw=CreateWindowExX( 0,"STATIC", bfr,SS_RIGHT|WS_CHILD|WS_VISIBLE
-                   ,8,16+kk,380,HGH-2,dwndc,(HMENU)0,hinstance,0);
+                   ,8,16+kk,WIDTH_FIX(380),HGH-2,dwndc,(HMENU)0,hinstance,0);
     SendMessage(tw,WM_SETFONT,j,0);
     if(ConfigParams[k].max)
     {
       sprintf(bfr,"%u",*ConfigParams[k].v);
       SendMessage(tw=CreateWindowEx( WS_EX_CLIENTEDGE | WS_EX_NOPARENTNOTIFY | WS_EX_STATICEDGE,
        "BUTTON","<", BS_PUSHBUTTON|WS_CHILD|WS_VISIBLE|WS_TABSTOP|chk
-          , 400, 20+kk, 20, 20,
+          , WIDTH_FIX(400), 20+kk, 20, 20,
          dwndc,(HMENU)(801+k*8),hinstance,0)
       ,WM_SETFONT,j,0);
       SendMessage(tw=CreateWindowEx( WS_EX_CLIENTEDGE | WS_EX_NOPARENTNOTIFY | WS_EX_STATICEDGE,
        "BUTTON",">", BS_PUSHBUTTON|WS_CHILD|WS_VISIBLE|WS_TABSTOP|chk
-        , 480, 20+kk, 20, 20,
+        , WIDTH_FIX(480), 20+kk, 20, 20,
          dwndc,(HMENU)(802+k*8),hinstance,0)
       ,WM_SETFONT,j,0);
 
       tw=CreateWindowExX( WS_EX_STATICEDGE ,"EDIT",bfr,ES_LEFT|ES_AUTOHSCROLL|WS_CHILD|
                       WS_VISIBLE|WS_BORDER|WS_TABSTOP|ES_NUMBER|chk
-                   ,420,20+kk,60,20,dwndc,(HMENU)(800+k*8),hinstance,0);
+                   ,WIDTH_FIX(420),20+kk,60,20,dwndc,(HMENU)(800+k*8),hinstance,0);
     }
     else
     {
@@ -418,7 +421,7 @@ void CreatCfgWindow()
       if( (i=ConfigParams[k].min==255) || (ConfigParams[k].min==256) )
       SendMessage(CreateWindowEx( WS_EX_CLIENTEDGE | WS_EX_NOPARENTNOTIFY | WS_EX_STATICEDGE ,
        "BUTTON","..", BS_PUSHBUTTON|WS_CHILD|WS_VISIBLE|WS_TABSTOP|chk
-        , 587, 20+kk, 20, 20,
+        , WIDTH_FIX(587), 20+kk, 20, 20,
          dwndc,(HMENU)(803+k*8+i),hinstance,0)
       ,WM_SETFONT,j,0);
       l=20;
@@ -426,7 +429,7 @@ void CreatCfgWindow()
       {chk|=ES_AUTOVSCROLL|ES_MULTILINE|WS_VSCROLL|ES_WANTRETURN; l=40;}
       tw=CreateWindowExX( WS_EX_STATICEDGE,"EDIT",t?t:"",ES_LEFT|ES_AUTOHSCROLL|WS_CHILD|
                       WS_VISIBLE|WS_BORDER|WS_TABSTOP|chk
-                   ,394,20+kk,192,l,dwndc,(HMENU)(800+k*8),hinstance,0);
+                   ,WIDTH_FIX(394),20+kk,192,l,dwndc,(HMENU)(800+k*8),hinstance,0);
     };
     chk=0;
    }
@@ -434,7 +437,7 @@ void CreatCfgWindow()
    {
      tw=CreateWindowExX( 0,"BUTTON", bfr,
       BS_AUTOCHECKBOX | WS_CHILD | WS_VISIBLE | WS_TABSTOP |BS_MULTILINE,
-                     8,24+kk,600,40,dwndc,(HMENU)(l=805+(k<<3)),hinstance,0);
+                     8,24+kk,WIDTH_FIX(600),40,dwndc,(HMENU)(l=805+(k<<3)),hinstance,0);
      if(ConfigParams[k].max)
      {
       if( (ConfigParams[k].max&s_flgs[ConfigParams[k].min])==ConfigParams[k].max  )
@@ -456,7 +459,7 @@ void CreatCfgWindow()
     tw=CreateWindowExX(0
       ,"BUTTON", ConfigParams[k].desc,BS_GROUPBOX|BS_CENTER|WS_CHILD|WS_VISIBLE|WS_DISABLED
                    ,0,
-                   MnuOffset[iofs++]=24+kk,612,HGH*i-8,dwndc,(HMENU)0,hinstance,0);
+                   MnuOffset[iofs++]=24+kk,WIDTH_FIX(612),HGH*i-8,dwndc,(HMENU)0,hinstance,0);
 
    }
    SendMessage(tw,WM_SETFONT,j,0);
@@ -464,10 +467,10 @@ void CreatCfgWindow()
   }
 
   CreateWindowEx(0,
-       "BUTTON","Ok", BS_DEFPUSHBUTTON|WS_CHILD|WS_VISIBLE|WS_TABSTOP, 180, 70+kk,68, 30,
+       "BUTTON","Ok", BS_DEFPUSHBUTTON|WS_CHILD|WS_VISIBLE|WS_TABSTOP, WWIDTH / 4 - 34 , 70+kk,68, 30,
          dwndc,(HMENU)710,hinstance,0);
   CreateWindowEx(0,
-       "BUTTON","Cancel", BS_PUSHBUTTON|WS_CHILD|WS_VISIBLE|WS_TABSTOP, 420, 70+kk,68, 30,
+       "BUTTON","Cancel", BS_PUSHBUTTON|WS_CHILD|WS_VISIBLE|WS_TABSTOP,  WWIDTH * 3 / 4 - 34, 70+kk,68, 30,
          dwndc,(HMENU)150,hinstance,0);
 
 #ifndef VPNCLIENT_ONLY

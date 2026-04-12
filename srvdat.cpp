@@ -68,17 +68,18 @@ mrc_mnu  mnu3[]=
 // {0,3903,"Dynamic &IP" },
  {0,3903,"&Proxy" },
  {0,3904,"&FTP" },
- {0,3905,"&POP3" },
- {0,3906,"&SMTP" },
- {0,3907,"DH&СP" },
- {0,3908,"&TLS/SSL"},
+ {0,3905,"&TFTP" },
+ {0,3906,"&POP3" },
+ {0,3907,"&SMTP" },
+ {0,3908,"DH&СP" },
+ {0,3909,"&TLS/SSL"},
  {MF_POPUP,5,"&Другое" },
- {0,3909,"&CGI интерпретаторы" },
- {0,3910,"&MIME типы" },
- {0,3911,"&Пользователи" },
- {0,3912,"&Виртуальные каталоги и хосты" },
-#define MNU_CGI   10
-#define MNU_VHOST 13
+ {0,3910,"&CGI интерпретаторы" },
+ {0,3911,"&MIME типы" },
+ {0,3912,"&Пользователи" },
+ {0,3913,"&Виртуальные каталоги и хосты" },
+#define MNU_CGI   11
+#define MNU_VHOST 14
 #else
 #define MNU_CGI   3
 #define MNU_VHOST 4
@@ -171,19 +172,20 @@ mrc_mnu  mnu3[]=
 // {0,3903,"Dynamic &IP" },
  {0,3903,"&Proxy" },
  {0,3904,"&FTP" },
- {0,3905,"&POP3" },
- {0,3906,"&SMTP" },
- {0,3907,"DH&CP" },
- {0,3908,"&TLS/SSL"},
- {0,3909,"VP&N Server"},
- {0,3910,"VPN C&lient"},
+ {0,3905,"TFTP" },
+ {0,3906,"&POP3" },
+ {0,3907,"&SMTP" },
+ {0,3908,"DH&CP" },
+ {0,3909,"&TLS/SSL"},
+ {0,3910,"VP&N Server"},
+ {0,3911,"VPN C&lient"},
  {MF_POPUP,5,"&Other" },
- {0,3911,"&CGI Interpreters" },
- {0,3912,"&Mime types" },
- {0,3913,"&Users" },
- {0,3914,"&Virtual hosts and directories" },
-#define MNU_CGI   12
-#define MNU_VHOST 15
+ {0,3912,"&CGI Interpreters" },
+ {0,3913,"&Mime types" },
+ {0,3914,"&Users" },
+ {0,3915,"&Virtual hosts and directories" },
+#define MNU_CGI   13
+#define MNU_VHOST 16
 #else
 #define MNU_CGI   2
 #define MNU_VHOST 4

@@ -344,8 +344,8 @@ char * strerror(int ErrorCode);
 #define sdnst6 (soc_srv[7+9])
 
 
-#define MNU_CGI   12
-#define MNU_VHOST 15
+#define MNU_CGI   13
+#define MNU_VHOST 16
 #define  FNCATRIBUTE
 
 int GetFileAttributes_UTF(char *a);
@@ -416,6 +416,7 @@ int AddASyncIO(tfASyncIOHelperCB cb, void  *par, HANDLE h);
 
 #define open  lopen
 #define creat lcreat
+#define O_RDONLY 0
 #define read(a,b,c)  lread( (int) a, (char *) (b), c)
 #define write(a,b,c) lwrite( (int) a,(char *) (b), c)
 #define lseek llseek

@@ -380,7 +380,7 @@ void CheckValidCGIIdent()
  if(max_srv[0] && max_srv[0]<12 ) max_srv[0]=12;
  if(max_srv[1] && max_srv[1]<12 ) max_srv[1]=12;
 
- for(i=0;i<18;++i)
+ for(i=0; i<(MAX_SERV*2); ++i)
  {FREE_IF_HEAP(Range[i]);
   Range[i]=ParseIPList(i);
 #ifdef USE_IPV6

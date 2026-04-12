@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2024 Maksim Feoktistov.
+ * Copyright (C) 1999-2026 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov
@@ -584,6 +584,8 @@ int Req::SMTPReq()
   #define  hello_msg ul.hello_msg
   #define  sender    ul.sender
 
+  int  UserCaseFlag = (s_flgs[3] & FL3_SMTP_USR_ICASE) ? FindUserCaseIns : 0;
+
   bb=0;
   puser_s=0;
   puser_r=0;
@@ -801,14 +803,14 @@ int Req::SMTPReq()
             if(!t)status|=8;
             else if(IsUsHost(t))
             {
-              puser_s=FindUser(sender,UserSMTP | FindUserCaseIns,0,0);
+              puser_s=FindUser(sender,UserSMTP | UserCaseFlag,0,0);
               *t=0;
               if( (s_flgs[3]&FL3_SMTP_AUTHSAME) && puser_a )
               {
                 if( puser_s != puser_a && stricmp(sender, puser_a->name) ) goto ler450;
               }
               if( ( ! ( (s_flgs[2]& FL2_MLNOIP) || us_ip)) ||
-                ! ( puser_s || ( puser_s=FindUser(sender, UserSMTP | FindUserCaseIns,0,0) ) ) )
+                ! ( puser_s || ( puser_s=FindUser(sender, UserSMTP | UserCaseFlag,0,0) ) ) )
               {
                 // debug("us_ip(%u) puser_s:%lX\n", us_ip, (long) puser_s );
                 goto ler450;
@@ -839,9 +841,9 @@ int Req::SMTPReq()
 
               if(IsUsHost(t))
               {
-                puser_r=FindUser(recepter,UserPOP3 | FindUserCaseIns,0,0);
+                puser_r=FindUser(recepter,UserPOP3 | UserCaseFlag,0,0);
                 *t=0;
-                if( (!puser_r)  && !(puser_r=FindUser(recepter,UserPOP3 | FindUserCaseIns,0,0))  )goto ler450;
+                if( (!puser_r)  && !(puser_r=FindUser(recepter,UserPOP3 | UserCaseFlag,0,0))  )goto ler450;
               }
               else if( ((status&8) && ! us_ip ) ||
                        !( (us_ip)

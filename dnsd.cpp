@@ -1441,6 +1441,7 @@ ulong CheckRemoteDown(void * )
   do {
     Sleep(1000);
     tt = time(0);
+    cur_time = tt;
     i = 0;
     if(DRList) for(cp = DRList; cp->check ; cp++ )
       {
@@ -1488,7 +1489,6 @@ ulong CheckRemoteDown(void * )
         }
       }
 
-    cur_time = tt;
     for(sec = seconds; sec ; sec = sec->next)
     {
       if( sec->CheckSecondary() > 0 ) sec->LoadSecondary();

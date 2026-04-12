@@ -268,6 +268,7 @@ lPgDn:
         case 3913:
         case 3914:
         case 3915:
+        case 3916:
           if((i = LOWORD(wparam) - 3900) < iofs)
           { wparam = (MnuOffset[i] << 16) | SB_THUMBTRACK;
             goto lbScroll;

@@ -404,6 +404,21 @@ SPD(2,ftp)
 XLIMIT(ftpi, CXS(S1t2T_297279, "FTP download"),3),
 XLIMIT(ftpo, CXS(S1t2T_297855, "FTP upload"),4),
 
+#ifdef TFTP
+{0,0,0,0, CXS(S1T_589506, "TFTP server" )},
+
+{"notftp_max",0,0,(uint *)0, CXS(S1T_927158, "Disable TFTP" ), 0, 0, onCfgChangeDisable},
+{"tftp_dir",255,0 ,(uint *)& TFTPdir, CXS(S1T_6739833, "Public TFTP directory" )},
+{"tftp_port",1,0xFFFF ,(uint *)&tftp_port, CXS(S1T_148226, "TFTP port" )},
+OIPV6(tftp, STFTP_IND)
+{"tftp_max",0,0xFEFEFE ,(uint *)&max_tftp_files, CXS(S1T_18020201, "Total number of files simultaneously open via TFTP." )},
+{"tftp_timeout",10,0xFFFFF ,(uint *)&tftp_timeout, CXS(S1T_5632057, "TFTP timeout (seconds)" )},
+RANGES(tftp, CXS(S2sIP_RANGES, "IPs that can access this server."
+" Separe single IP by comma and IP ranges with hyphens."),CXS(S2sIP_RANGESD, "Deny IPs that can't access this server."
+" Separe single IP by comma and IP ranges with hyphens."))
+
+#endif
+
 {0,0,0,0, CXS(S2sPOP__SERV, "POP3 server setting")},
 {"nopop3_max",0,0,(uint *)0, CXS(S2sDISABLE_P0, "Disable POP3 server."), 0, 0, onCfgChangeDisable},
 {"pop3_max"  ,0,1024   ,(uint *)&max_pop, CXS(S2sHOW_MANY_1, "Number of simultaneous requests.")},
@@ -491,8 +506,7 @@ RANGES(smtp, CXS(S1t2T_281408, "Us IP ranges (allowed list)"), CXS(S2sIP_RANGESD
 {"smtpchktls",3,FL3_SMTP_CHKTLS ,(uint *)0,  CXS(S1T_13046591, "Verify the remote certificate signature." )},
 
 
-
-
+{"smtp_ign_case", 3,FL3_SMTP_USR_ICASE,(uint *)0, CXS(S1T_14004373, "Ignore username case in incoming messages" )},
 
 XLIMIT(smtp, "SMTP",0),
 
@@ -532,7 +546,6 @@ SPD(6,tel)
 {"tel_cmd",256,0,(uint *)&tel_cmd, CXS(S1t2T_2348618, "Path to telnet shell (e.g. /bin/bash)" )},
 
 #endif
-
 
 {0,0,0,0, CXS(S2sTLS__SERV, "TLS/SSL server")},
 {"notls_max",0,0,(uint *)0, CXS(S2sDISABLE_TLS, "Disable TLS/SSL server"), 0, 0, onCfgChangeDisable},

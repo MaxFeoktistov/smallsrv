@@ -521,39 +521,41 @@ int FndLimit(int lst,LimitBase **ip, LimitBase **net, sockaddr_in *sa );
 
 #define FL2_CHKMX        0x100
 #define FL2_NOMFTP       0x200
-#define FL2_MX_GLIST     0x400
+#define FL2_TFTP_IPV6    0x400
 #define FL2_MLNOIP       0x800
 #define FL2_DNSNO6       0x1000
 #define FL2_WMAIL        0x2000
-#define FL2_WMTLS       0x4000
-#define FL2_UTF         0x8000
+#define FL2_WMTLS        0x4000
+#define FL2_UTF          0x8000
 
-#define FL2_PAVHTML  0x10000
-#define FL2_PAVALL  0x20000
-#define FL2_WMUTF   0x40000
-#define FL2_CHUNKED 0x80000
-#define FL2_MD5PASS 0x100000
-#define FL2_USEMD5D 0x200000
-#define FL2_PARANOIDMD5 0x400000
-#define FL2_IPCONTRY 0x800000
-#define FL2_IPCNTRAUT 0x1000000
-#define FL2_DOH 0x2000000
-#define FL2_FTPTLS 0x4000000
+#define FL2_PAVHTML      0x10000
+#define FL2_PAVALL       0x20000
+#define FL2_WMUTF        0x40000
+#define FL2_CHUNKED      0x80000
+#define FL2_MD5PASS      0x100000
+#define FL2_USEMD5D      0x200000
+#define FL2_PARANOIDMD5  0x400000
+#define FL2_IPCONTRY     0x800000
+#define FL2_IPCNTRAUT    0x1000000
+#define FL2_DOH          0x2000000
+#define FL2_FTPTLS       0x4000000
 
-#define FL2_NOERROUT    0x08000000
-#define FL2_SEPARATELOG 0x10000000
-#define FL2_DUBSTDERR   0x20000000
-#define FL2_DEBUG_RE   0x40000000
+#define FL2_NOERROUT     0x08000000
+#define FL2_SEPARATELOG  0x10000000
+#define FL2_DUBSTDERR    0x20000000
+#define FL2_DEBUG_RE     0x40000000
+#define FL2_MX_GLIST     0x80000000
 
-#define FL3_FCGI_SI   0x00000001
-#define FL3_FCGI_PHP  0x00000002
+
+#define FL3_FCGI_SI      0x00000001
+#define FL3_FCGI_PHP     0x00000002
 #define FL3_FTP_ALWPASS  0x00000004
 
-#define FL3_VPN_TUN     0x00000008
-#define FL3_VPN_TAP     0x00000010
-#define FL3_VPN_CLIENT  0x00000020
-#define FL3_TAP_CLIENT  0x00000040
-#define FL3_VPN_PUBLIC  0x00000080
+#define FL3_VPN_TUN      0x00000008
+#define FL3_VPN_TAP      0x00000010
+#define FL3_VPN_CLIENT   0x00000020
+#define FL3_TAP_CLIENT   0x00000040
+#define FL3_VPN_PUBLIC   0x00000080
 #define FL3_VPN_CHKTLS      0x00000100
 #define FL3_VPN_TLSIGNTIME  0x00000200
 #define FL3_VPN_TLSSSIGN    0x00000400
@@ -576,6 +578,7 @@ int FndLimit(int lst,LimitBase **ip, LimitBase **net, sockaddr_in *sa );
 #define FL3_VPN_UPDMAC      0x00800000
 
 #define FL3_SHMLOG          0x01000000
+#define FL3_SMTP_USR_ICASE  0x02000000
 
 #define USE_TUN       (s_flgs[3] & FL3_VPN_TUN)
 #define USE_TAP       (s_flgs[3] & FL3_VPN_TAP)
@@ -950,17 +953,38 @@ extern char *phtml_ini;
 
 extern uchar icn[];
 #define MAX_ADAPT  5
+#ifdef TFTP
+#define MAX_SERV   11
+extern int tftp_port;
+extern int max_tftp_files;
+extern int opened_tftp_files;
+extern int tftp_timeout;
+extern char *TFTPdir;
+ulong WINAPI TFTPServer(void *);
+#else
 #define MAX_SERV   10
+#endif
 
 #define MAX_SOCK  (MAX_ADAPT*MAX_SERV+12)
 
 #define TOTAL_SERVICES 7
 extern int max_dsk_cach,first_pass_port,
- soc_port[TOTAL_SERVICES],soc_srv[MAX_SOCK],max_srv[TOTAL_SERVICES],runed[TOTAL_SERVICES],waited[MAX_SOCK],ipspeed[TOTAL_SERVICES],ipspdusr[TOTAL_SERVICES];
+ soc_port[TOTAL_SERVICES],
+ soc_srv[MAX_SOCK],
+ max_srv[TOTAL_SERVICES],
+ runed[TOTAL_SERVICES],
+ waited[MAX_SOCK],
+ ipspeed[TOTAL_SERVICES],
+ ipspdusr[TOTAL_SERVICES];
 extern Req **rreq;
 extern THREADHANDLE *hndls;
 extern char  *bind_a[MAX_SERV];
+
 #define SMTP_N 3
+#define SDNS_IND 7
+#define SDHCP_IND 9
+#define STFTP_IND 10
+
 #define max_cln    (max_srv[0])
 #define max_prx    (max_srv[1])
 #define max_ftp    (max_srv[2])
@@ -978,9 +1002,8 @@ extern char  *bind_a[MAX_SERV];
 #define sdnst      (soc_srv[8])
 #define dhcpd_s    (soc_srv[9])
 #define dhcpd_so   (soc_srv[9+MAX_SERV])
+#define tftp_s     (soc_srv[STFTP_IND])
 
-#define SDNS_IND 7
-#define SDHCP_IND 9
 
 #define http_port  (soc_port[0])
 #define proxy_port (soc_port[1])
@@ -1000,6 +1023,7 @@ extern char  *bind_a[MAX_SERV];
 #define  SRV_SDNS      7
 #define  SRV_SDNST     8
 #define  SRV_DHCPD     9
+#define  SRV_TFTP      10
 
 #define  F_SERV_HTTP      (SRV_HTTP  <<16)
 #define  F_SERV_PROXY     (SRV_PROXY <<16)
@@ -1011,6 +1035,7 @@ extern char  *bind_a[MAX_SERV];
 #define  F_SERV_SDNS      (SRV_SDNS  <<16)
 #define  F_SERV_SDNST     (SRV_SDNST <<16)
 #define  F_SERV_DHCPD     (SRV_DHCPD <<16)
+#define  F_SERV_TFTP      (SRV_TFTP  <<16)
 
 #define   SRV_HTTP_MSK      (1<<SRV_HTTP )
 #define   SRV_PROXY_MSK      (1<<SRV_PROXY)
@@ -1022,6 +1047,7 @@ extern char  *bind_a[MAX_SERV];
 #define   SRV_SDNS_MSK      (1<<SRV_SDNS )
 #define   SRV_SDNST_MSK      (1<<SRV_SDNST)
 #define   SRV_DHCPD_MSK      (1<<SRV_DHCPD)
+#define   SRV_TFTP_MSK      (1<<SRV_TFTP)
 
 #define  CONID_KEEPALIVE_MASK 0x100000
 #define  CONID_VPN_MASK 0x200000
@@ -1085,6 +1111,7 @@ int IPv6S(char *addr6,in6_addr &sin6_addr);
 #define dns_range   14
 #define adm_range   16
 #define tel_range   18
+#define tftp_range  20
 //extern const char AuthErr[sizeof(AUTH_ERR)];
 #define AuthErr AUTH_ERR
 
@@ -1128,7 +1155,8 @@ int BSend(int s,char *b,int l);
 void LoadDomainM();
 void CloseSocket(int);
 char* OutLL(long x0, long x1,char *t);
-
+extern time_t cur_time;
+extern int ChkThread;
 
 void AddToLogDNS(const char *t,int n,TSOCKADDR *sa,char *ad="");
 int FNCATRIBUTE LZZUnpk(uchar *t,uchar *s0);
