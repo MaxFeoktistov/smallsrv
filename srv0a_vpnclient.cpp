@@ -48,7 +48,7 @@ int WINAPI lopen (char *f,ulong t){ return (int)CreateFile(f,(0xB0000000ul<<t)&0
 int WINAPI lcreat(char *f){return (int) CreateFile(f,GENERIC_WRITE,0,&secat,CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL,0);}
 int WINAPI lcreat2(char *f){return (int) CreateFile(f,GENERIC_WRITE,FILE_SHARE_READ,&secat,CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL,0);}
 int WINAPI lread (int h,char *b,int n){return ReadFile((HANDLE)h,b,n,(ulong *)&n,0)*n;}
-int WINAPI lwrite(int h,char *b,int n){return WriteFile((HANDLE)h,b,n,(ulong *)&n,0)*n;}
+int WINAPI lwrite(int h, const char *b, int n){return WriteFile((HANDLE)h,b,n,(ulong *)&n,0)*n;}
 int WINAPI llseek(int h,int n,int t){return SetFilePointer((HANDLE)h,n,0,t);}
 
 #ifdef SERVICE

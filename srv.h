@@ -179,6 +179,13 @@ typedef union{
     TSOCKADDR sa_c46;
 } sockaddr46_t;
 
+typedef union{
+  u8  uc[16];
+  u16 us[8];
+  u32 ui[4];
+  u64 ull[2];
+} addr_v6_t;
+
 struct Req
 {int s;
  tfSnd Snd;
@@ -438,6 +445,7 @@ int IsIPv6(sockaddr_in *sa);
 uint IPv4addr(sockaddr_in *sa);
 int CmpIP(TSOCKADDR *a, TSOCKADDR *b);
 #else
+#define IsIPv6(a) 0
 #define IPv4addr(sa)  ((sa)->sin_addr. S_ADDR)
 int inline CmpIP(TSOCKADDR *a, TSOCKADDR *b){return a->sin_addr. S_ADDR == b->sin_addr. S_ADDR; }
 #endif
@@ -579,6 +587,8 @@ int FndLimit(int lst,LimitBase **ip, LimitBase **net, sockaddr_in *sa );
 
 #define FL3_SHMLOG          0x01000000
 #define FL3_SMTP_USR_ICASE  0x02000000
+#define FL3_SMTP_SPF_MUST   0x04000000
+#define FL3_SMTP_SPF_CHECK  0x08000000
 
 #define USE_TUN       (s_flgs[3] & FL3_VPN_TUN)
 #define USE_TAP       (s_flgs[3] & FL3_VPN_TAP)
@@ -1191,6 +1201,47 @@ struct MHinfo
 inline int CheckMHIP(uchar *beg,ulong ip) { return  ((MHinfo *)beg)->CheckIP(ip);}
 inline uchar * GetNextMH(uchar *beg) //,uchar *t1,char *t2)
 { return  ((MHinfo *)beg)->GetNextMH((char *)beg+512);}
+
+struct RR_info
+{
+  u16 type;
+  u16 cls;
+  u32 ttl;
+  u16 rdlength;
+  char rdata[0];
+} PACKED;
+
+struct DNS_RR_ParseHelper
+{
+  union {
+    char *beg;
+    d_msg  *dmm;
+  };
+  char *next_rr;
+  RR_info *next_info;
+  int saved_next;
+
+  DNS_RR_ParseHelper(){}
+  DNS_RR_ParseHelper(d_msg  *d, char *n):dmm(d), next_rr(n), next_info(0) {}
+  char* FindInfo(char *name);
+  int   Next();
+  void  NormalezeText();
+  void  RestoreText();
+  int   FindA(char *t, TSOCKADDR *sa_c);
+};
+
+int CheckSPF(char *host, TSOCKADDR *sa_c, d_msg *dmm, int type_be);
+int CheckSPF_TXT(char *host, TSOCKADDR *sa_c, d_msg *dmm);
+
+enum CheckSPF_ret {
+  SPF_NOT_FOUND = 0,
+  SPF_IP_EXCLUDED = -1,
+  SPF_SOFT = -2,
+  SPF_HARD = -3,
+  SPF_OK = 1,
+  SPF_DIDN_TRY_YET = -5,
+};
+
 
 #define LINESIZE 2048
 struct FileLine

@@ -332,7 +332,7 @@ int Req::RGetCMD(char *b)
 u32 BadMSGID[17],iBadMSGID;
 u32 SpamMSGID[17],iSpamMSGID;
 u32 POP3usr[17],iPOP3usr,POP3usrTime;
-char *MailVars[12]={"msg",0,"sender",0,"hello",0,"control",0,"checkhello",0,0};
+char *MailVars[14]={"msg",0,"sender",0,"hello",0,"control",0,"checkhello",0,"check_spf",0 ,0};
 
 LimitBase * AddToList(int i,sockaddr_in *sa,int c)
 {
@@ -389,7 +389,8 @@ int FileLine::ReadLine()
   return 2;
 }
 
-struct CheckUserList{
+struct CheckUserList
+{
   union{
     struct sockaddr_in *psa;
     struct sockaddr_in6 *psa6;
@@ -397,25 +398,70 @@ struct CheckUserList{
   Req  *th;
   RegVars rv;
   char *bb,*rr,*p,*t;
-  char *vars[12];
+  char *vars[14];
   char hello_msg[132];
   char sender[132];
   char checkhello[4];
+  char check_spf[4];
   User *puser_s;
   User *puser_r;
+  int  spf_status;
 
   int  Do(char *list,char *nm=0);
   int  Reg(char *x);
+  int  SPF_try();
 };
 
 int CheckUserList::Reg(char *x)
 {
   memcpy(vars,MailVars,sizeof(MailVars));
-  vars[1]=bb; vars[3]=sender; vars[5]=hello_msg;
-  vars[7]=rr; vars[9]=checkhello;
+  vars[1]=bb;
+  vars[3]=sender;
+  vars[5]=hello_msg;
+  vars[7]=rr;
+  vars[9]=checkhello;
+  vars[11]=check_spf;
   rv.Init(vars,0,0);
   return rv.LogAn(x);
 }
+
+
+int CheckUserList::SPF_try()
+{
+  if(spf_status != SPF_DIDN_TRY_YET)
+    return spf_status;
+
+  char *host = strchr(sender, '@');
+
+  check_spf[0]=0x30;
+
+  if(host)
+  {
+    char *e = strpbrk(host, "> \r\n");
+    char ee;
+    d_msg dmm;
+
+    if(e)
+    {
+      ee = *e;
+      *e = 0;
+    }
+    if((spf_status = CheckSPF_TXT(host, (TSOCKADDR *) psa, &dmm)))
+    {
+      if(spf_status > 0) check_spf[0]=0x31;
+      else {
+        check_spf[0]= '-';
+        check_spf[1]= 0x30 - spf_status;
+      }
+    }
+
+    if(e) *e = ee;
+  }
+
+  return spf_status;
+}
+
+
 
 int CheckUserList::Do(char *list,char *nm)
 {
@@ -447,7 +493,7 @@ int CheckUserList::Do(char *list,char *nm)
               char **pl;
               for(pl=hp->h_addr_list; pl && *pl ; pl++)
               {
-                if( DWORD_PTR(*pl[0]) == psa->sin_addr.s_addr  )
+                if( DWORD_PTR(*pl[0]) == psa->sin_addr.s_addr)
                 {
                   checkhello[0]=0x31;
                   break;
@@ -456,6 +502,11 @@ int CheckUserList::Do(char *list,char *nm)
             }
           }
         }
+        if(strstr(t, "$check_spf") && ! (check_spf[0]) )
+        {
+          SPF_try();
+        }
+
         if(
           ( (t[1]=='?')?
           th->CheckDNSBL( SkipSpace(t+2), psa) :
@@ -585,10 +636,12 @@ int Req::SMTPReq()
   #define  sender    ul.sender
 
   int  UserCaseFlag = (s_flgs[3] & FL3_SMTP_USR_ICASE) ? FindUserCaseIns : 0;
+  int  em2 = 0;
 
   bb=0;
   puser_s=0;
   puser_r=0;
+  ul.spf_status = SPF_DIDN_TRY_YET;
 
   timout=POPTimeout;
   LimitBase *lip,*lnet;
@@ -773,7 +826,7 @@ int Req::SMTPReq()
               )
             )
             {SendConstCMD("552 To many...");
-              cmd=0x74697571;
+              cmd=0x74697571 x4CHAR("quit");
               break;
             }
             if((!IsUser(bfr,sender)) ||
@@ -795,7 +848,7 @@ int Req::SMTPReq()
               {debug("Spamer detected.");
                 AddToList(1,&sa_c);
                 //      AddToList(1,sa_c.sin_addr. S_ADDR);
-                cmd=0x74697571;
+                cmd=0x74697571 x4CHAR("quit");
               }
               break;
             }
@@ -835,7 +888,7 @@ int Req::SMTPReq()
                 )
               {
                 AddToList(1,&sa_c);
-                cmd=0x74697571;
+                cmd=0x74697571 x4CHAR("quit");
                 break;
               }
 
@@ -893,6 +946,10 @@ int Req::SMTPReq()
                             (  ul.Do(0,blst) ||
                               ( (s_flgs[1]&FL1_CHKUSR)   &&  ul.Do("badlist") ) ||
                               (
+                                ((s_flgs[3]&FL3_SMTP_SPF_MUST ) && ul.SPF_try() <= 0) ||
+                                ((s_flgs[3]&FL3_SMTP_SPF_CHECK ) && ul.SPF_try() < 0)
+                              ) ||
+                              (
                                 (
                                   (pass_port=451) ,
                                   (
@@ -913,8 +970,10 @@ int Req::SMTPReq()
                               )
                             )
                           )
+
                         )
                         ||  ( (!p2) && (s_flgs[2]&FL2_CHKMX) && p && ! GetMailHost(p+1,(d_msg  *)(bb+l+20),1 ) )
+
                       )
                     )
                   )
@@ -947,7 +1006,7 @@ int Req::SMTPReq()
                   printSendCMD(bb+0x7000,
                                "%u %.128s\r\n"
                                ,pass_port,msg_spam);
-                  cmd=0x74697571;
+                  cmd=0x74697571  x4CHAR("quit");
                   break;
                 }
                 lbSn1:
@@ -985,17 +1044,23 @@ int Req::SMTPReq()
                   if(em && ! strcmp(bb,endmsg+em)  )t=bb;
                   em=0;
 
-                  if((t || l>0x4000) && spamfltr && !chkspm)
-                  {++chkspm;
-                    strncpy(bb+0x7000,spamfltr,0xFF0);
-                    if( ul.Reg(bb+0x7000) )
-                      AddToList(1,&sa_c);
+                  if(t || l>0x4000)
+                  {
+                    if(spamfltr && !chkspm)
+                    {++chkspm;
+                      strncpy(bb+0x7000,spamfltr,0xFF0);
+                      if( ul.Reg(bb+0x7000) )
+                        AddToList(1,&sa_c);
+                    }
+
                   }
 
                   if(t)l=t+2-bb;
                   else
-                  {if(Tin>max_msg_size && !(s_flg&FL_NOBRKSMTP) )
-                    {BadMSGID[iBadMSGID]=mID;
+                  {
+                    if(Tin>max_msg_size && !(s_flg&FL_NOBRKSMTP) )
+                    {
+                      BadMSGID[iBadMSGID]=mID;
                       iBadMSGID=(++iBadMSGID)&0xF;
                       lSizeToMutch:
                       if(l)_hwrite(h,bb,l);
@@ -1041,14 +1106,38 @@ int Req::SMTPReq()
                           }
                         }
                       }
-                      if( _hwrite(h,bb,l)<l )
+
+                      if(em2)
+                      {
+                        if(bb[0] != '\r' && bb[0] != '\n') _hwrite(h, endmsg + 3 - em2, em2);
+                      }
+
+                      em2 = 0;
+
+                      if((l>=2) && WORD_PTR(bb[l-2]) == 0x2E0A x4CHAR("\n.")  ) {
+                        em2 = 1;
+                        l--;
+                      } else if((l>=3) &&  DWORD_PTR(bb[l-3]) == 0x000D2E0A x4CHAR("\n.\r")  )
+                      {
+                        em2 = 2;
+                        l-=2;
+                      }
+                      else if(t && bb[0]=='.' && l<=3)
+                      {
+                        em2 = l;
+                        l=0;
+                      }
+
+                      if(l > 0 && _hwrite(h, bb, l) < l)
                       {
                         debug("Error. Write error. Check free disk space");
                         CloseHandle((FHANDLE)h);
-                        Send("451 Error\r\n",sizeof("451 Error\r\n")-1 );
+                        Send("451 Error\r\n", sizeof("451 Error\r\n")-1);
                         goto ex1;
-                      } ;
+                      };
+                      l += em2;
                       for(em=4;em>0;em--)if(em<l && strin((char *)endmsg,bb+l-em) )break;
+
                       l=0;
                     }
                   }

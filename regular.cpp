@@ -490,17 +490,19 @@ char * RegVars::FindRegular(char *s,char *p)
  return 0;
 }
 
-ulong isInt(char *a, char &i)
+int isInt(char *a, char &i)
 {
- ulong r;
-  r=strtoul(a,&a,0);
-  if(!a){i=0; return 0xFFFFffff;}
+  int r;
+
+  if(*a == '-') r =  - strtoul(a + 1, &a, 0);
+  else r = strtoul(a, &a, 0);
+  if(!a){i=0; return -1;}
   while(*a == ' ' )++a;
 //  return (*a)?0xFFFFffff:r;
   if(*a)
   {
     i=0;
-    return 0xFFFFffff;
+    return -1;
   }
   i=1;
   return r;
@@ -527,7 +529,7 @@ char* RegVars::FindEnd(char *&t)
 int RegVars::cmp(char *a,char *b)
 {
  int r;
- ulong la,lb;
+ int la, lb;
  char lai,lbi;
 //  while(*a ==' ' )++a;
 //  while(*b ==' ' )++b;

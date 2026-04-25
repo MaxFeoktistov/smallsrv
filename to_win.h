@@ -173,7 +173,7 @@ int MyCreateProcess(char *p,void *env,char *loc,STARTUPINFO *cb,PROCESS_INFORMAT
 int WINAPI lopen (char *f,ulong t);
 int WINAPI lcreat(char *f);
 int WINAPI lread (int h,char *b,int n);
-int WINAPI lwrite(int h,char *b,int n);
+int WINAPI lwrite(int h,const char *b,int n);
 int WINAPI llseek(int h,int n,int t);
 
 #define _lclose(h) CloseHandle((HANDLE)(h))

@@ -1,4 +1,4 @@
-smallsrv (3.06.40test8) unstable; urgency=low
+smallsrv (3.06.40test9) unstable; urgency=low
 
   * DNS server changes. Fixed a bug when loading a domain from a
     file for secondary mode.
@@ -9,8 +9,10 @@ smallsrv (3.06.40test8) unstable; urgency=low
   * On the SMTP server, the username in the email address can be
     optionally case-insensitive.
   * Added a TFTP server
+  * Options for checking domain SPF records have been added to the SMTP
+    server.
 
- -- Maksim Feoktistov <max@smallsrv.com>  Sun, 12 Apr 2026 12:08:21 +0400
+ -- Maksim Feoktistov <max@smallsrv.com>  Sat, 25 Apr 2026 17:58:43 +0400
 
 smallsrv (3.06.39) unstable; urgency=low
 

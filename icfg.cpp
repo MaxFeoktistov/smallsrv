@@ -498,6 +498,11 @@ RANGES(smtp, CXS(S1t2T_281408, "Us IP ranges (allowed list)"), CXS(S2sIP_RANGESD
 {"checkmx",2,FL2_CHKMX,(uint *)0, CXS(S1t2T_2264384, "Check mailhost of sender (DNS MX record) before receive mail" )},
 {"mxignbl",2,FL2_MX_GLIST,(uint *)0, CXS(S1t2T_2795522, "Ignore graylist if message incomme from source mailhost (DNS MX) " )},
 
+{"spf_check",3, FL3_SMTP_SPF_MUST ,(uint *)0, CXS(S1T_24612200, "Before receiving an external message, check the SPF record for the domain.")},
+{"spf_must" ,3, FL3_SMTP_SPF_CHECK,(uint *)0, CXS(S1T_18014013, "Do not accept messages from hosts without an SPF record.")},
+
+
+
 
 {"spam_time" ,0,0x7FFFFFFF,(uint *)(ltime+1), CXS(S1t2T_4238571, "How long spamers IPs will active in spamer's list (in seconds)" )},
 

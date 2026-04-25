@@ -240,6 +240,12 @@
 "<li>$hello -- self identification from remote server. " LF\
 "<li>$control -- full identification line in flowing format:" LF\
 " \"From sender (remote_hello [IP]) date and time For  receptors\\r\\n\"" LF\
+"<li>$check_spf -- Checks the SPF record for the domain. The value can be: <ul>" LF\
+"<li> <b>1</b> - the IP address is valid for the domain;" LF\
+"<li> <b>0</b> - no SPF record;" LF\
+"<li> <b>-1</b> An SPF record for the domain was found, but the sender's IP address was not found in the record;" LF\
+"<li> <b>-2</b> An SPF record for the domain was found, and a soft rejection is required for this IP;" LF\
+"<li> <b>-3</b> An SPF record for the domain was found, and a hard rejection is required for this IP. </ul>" LF\
 "</ul>" LF\
 "<li>?? List of DNSBL servers" LF
 
@@ -249,7 +255,8 @@
 "<input type=button value='Check for source address by patern' onClick=\"javascript:AddEm('sender','user@host.net');\" ><br>" LF\
 "<input type=button value='Check for hello by patern' onClick=\"javascript:AddEm('hello','host.net');\" ><br>" LF\
 "<input type=button value='True if hello does not contenen the point'  onClick=\"javascript:AddE('? ! $hello =~ /\\\\./');\"  ><br> " LF\
-"<input type=button value='Check for control line by patern' onClick=\"javascript:AddEm('control','host.net');\" ><br>" LF
+"<input type=button value='Check for control line by patern' onClick=\"javascript:AddEm('control','host.net');\" ><br>" LF\
+"<input type=button value='Check SPF record for domain' onClick=\"javascript:AddE('? $check_spf <= 0');\" ><br>" LF
 
 #define  sFORWARD  "You may put \"forward\" file, to redirect or percolate messages.<br>" LF\
 "Server parses each line of this file and understands next instruction:" LF\
