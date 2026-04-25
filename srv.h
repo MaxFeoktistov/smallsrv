@@ -775,6 +775,7 @@ int onCfgChangeFlag(CfgParam *th);
 int onCfgChangeNoFlag(CfgParam *th);
 int onCfgChangeExt(CfgParam *th);
 int onCfgToStrExt(CfgParam *th, char *bfr);
+int onCfgChangeDNS4Mail(CfgParam *th);
 
 int MyLockTimeout(shs_mutex_t &x, int dedlock);
 int MyLock(shs_mutex_t &x);
@@ -859,6 +860,7 @@ extern host_dir hsdr;
 extern char *smtp_name,*dns_server_for_mail,*out_path,*err_path
  ,*def_name,*error_file,*perl,*cgi_detect,*blacklist,*bad_hosts,*flog,*doc_dir,*phtml_dir,*nohosts,*fake,
   end,*last_cfg,*eenv,*dnsblname;
+extern uint dns_for_mail_ip;
 extern char *fcgi_detect;
 extern char *srv_str[];
 extern ulong max_msg_size,last_file,max_pfile,tmSpd;

@@ -449,7 +449,8 @@ SPD(4,pop)
 OIPV6(smtp,3)
 {"vhalias",0,FL_VHALIAS,(uint *)0, CXS(S2sUSE_ALL_V, "Use all virtual hosts as alias domain name.")},
 {"smtp_dns" ,16,0,(uint *)&dns_server_for_mail, CXS(S2sDNS_SERVE0, "DNS server to get mail routing info. (May"
-" be your default DNS server)")},
+" be your default DNS server)"), 0, 0, onCfgChangeDNS4Mail},
+
 {"smtp_nomx",1,FL1_MHST,(uint *)0, CXS(S1t2T_2692044, "If mailhost of receptor absent, try host" )},
 {"nosmtpproxy",1,0,(uint *)0, CXS(S1t2T_2158005, "It is normal SMTP relay. (Otherwise it is only SMTP proxy)" ), 0, 0, onCfgChangeDisable},
 {"smtpproxy" ,128,0,(uint *)&smtproxy , CXS(S1t2T_3232509, "Higher level SMTP. (SMTP proxy mode)" )},

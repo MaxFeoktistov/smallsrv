@@ -38,6 +38,7 @@ char *ftp_upload;
 ulong max_msg_size=0x100000;
 char *smtp_name="shttp.srv";
 char *dns_server_for_mail="127.0.0.1";
+uint dns_for_mail_ip;
 #ifdef TELNET
 char *tel_cmd="/bin/bash -i -s";
 #endif

@@ -200,7 +200,7 @@ int  MHinfo::CheckIP(ulong ip)
 char *askDNS(char *adr, d_msg  *dmm, int type_be)
 {
   int dns_s;
-  int addr_dns;
+  //int addr_dns;
   struct sockaddr_in sa;
   int i;
   int j=4;
@@ -216,11 +216,14 @@ char *askDNS(char *adr, d_msg  *dmm, int type_be)
   #ifdef SYSUNIX
   fcntl(dns_s, F_SETFD, fcntl(dns_s, F_GETFD) | FD_CLOEXEC);
   #endif
-  addr_dns=ConvertIP(t=dns_server_for_mail);
+  //addr_dns
+  if(!dns_for_mail_ip)
+    dns_for_mail_ip=ConvertIP(t=dns_server_for_mail);
 
+  DBGLA("%s %X", adr, type_be)
 
   memset((char *)&sa, 0, sizeof(sa));
-  sa.sin_addr.s_addr=addr_dns;
+  sa.sin_addr.s_addr = dns_for_mail_ip;
   sa.sin_family=AF_INET;
   sa.sin_port=0x3500;  //htons(53);
   ++msg_reqmx.id;
@@ -254,8 +257,10 @@ char *askDNS(char *adr, d_msg  *dmm, int type_be)
   }
   DWORD_PTR( ((char*)dmm)[i] ) = 0;
 
-  if((dmm->flags&0xF00) || !dmm->ancount)
+  if((dmm->flags&0xF00) || !dmm->ancount) {
+    DBGLA("Fail %s %X flags: %X ancount %d", adr, type_be, dmm->flags, dmm->ancount)
     return 0;
+  }
 
   return t;
 }

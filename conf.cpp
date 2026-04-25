@@ -757,6 +757,12 @@ int onCfgChangeNoFlag(CfgParam *th)
   return 0;
 }
 
+int onCfgChangeDNS4Mail(CfgParam *th)
+{
+  char *t;
+  dns_for_mail_ip = ConvertIP(t=dns_server_for_mail);
+  return 0;
+}
 
 #ifndef SYSUNIX
 
