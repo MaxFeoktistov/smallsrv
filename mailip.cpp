@@ -375,7 +375,8 @@ char* DNS_RR_ParseHelper::FindInfo(char *name)
     if (r)
     {
       next_info = rr;
-      if( (rr->rdata + rr->rdlength - beg) < 512)
+      next_l = htons(rr->rdlength);
+      if( (rr->rdata + next_l - beg) < 512)
         return rr->rdata;
     }
 
@@ -392,8 +393,13 @@ int DNS_RR_ParseHelper::Next()
      if(!FindInfo(bfr))
        return 0;
   }
-  next_rr = next_info->rdata + next_info->rdlength;
+  next_rr = next_info->rdata + next_l;
   next_info = 0;
+  if((next_rr - beg) >  512)
+  {
+    next_rr = 0;
+    return 0;
+  }
   return 1;
 }
 
@@ -402,22 +408,67 @@ void  DNS_RR_ParseHelper::NormalezeText()
   char *p;
 //   saved_next = WORD_PTR(* (p = (next_info->rdata + next_info->rdlength + 1)));
 //   WORD_PTR(*p) = ' ';
-  saved_next = * (p = (next_info->rdata + next_info->rdlength + 1));
+
+  saved_next = * (p = (next_info->rdata + next_l));
   *p = 0;
 }
 void  DNS_RR_ParseHelper::RestoreText()
 {
 //  WORD_PTR(next_info->rdata[next_info->rdlength + 1]) = saved_next;
-  next_info->rdata[next_info->rdlength + 1] = saved_next;
+  next_info->rdata[next_l] = saved_next;
+}
+
+int DNS_RR_ParseHelper::FindRR(int type_be, void *par, cmp_func_t cmp_func)
+{
+  char name[128];
+
+  while(FindInfo(name))
+  {
+    if(next_info->type == type_be)
+    {
+      int ret;
+
+      NormalezeText();
+      ret = cmp_func(par, next_info->rdata);
+      RestoreText();
+      if(! ret)
+        return SPF_OK;
+    }
+
+    if(!Next())
+      break;
+  }
+
+  return SPF_NOT_FOUND;
+}
+
+int cmpAAAA(void *a, void *b)
+{
+  return memcmp(a, b, 16);
+}
+
+int cmpA(u32 *a, u32 *b)
+{
+  return *a - *b;
 }
 
 int DNS_RR_ParseHelper::FindA(char *t, TSOCKADDR *sa_c)
 {
-  int typA_be = IsIPv6((sockaddr_in *) sa_c)? rtypeAAAA_BE : rtypeA_BE;
-  char name[128];
 
   next_rr = t;
 
+  if(!IsIPv6((sockaddr_in *) sa_c))
+  {
+    u32 ip4 = IPv4addr((sockaddr_in *) sa_c);
+
+    return  FindRR(rtypeA_BE, &ip4, (cmp_func_t) cmpA);
+  }
+
+  return FindRR(rtypeAAAA_BE, ((sockaddr_in6 *)sa_c)->sin6_addr.s6_addr32, cmpAAAA);
+
+#if 0
+  char name[128];
+  int typA_be = IsIPv6((sockaddr_in *) sa_c)? rtypeAAAA_BE : rtypeA_BE;
   while(FindInfo(name))
   {
     if(next_info->type == typA_be)
@@ -441,30 +492,32 @@ int DNS_RR_ParseHelper::FindA(char *t, TSOCKADDR *sa_c)
   }
 
   return SPF_NOT_FOUND;
+#endif
 }
 
-int IsIPforHost(char *host, TSOCKADDR *sa_c)
+//int IsIPforHost(char *host, TSOCKADDR *sa_c)
+int cmpMX(TSOCKADDR *sa_c, char *host)
 {
   d_msg dmm;
   int typA_be = IsIPv6((sockaddr_in *) sa_c)? rtypeAAAA_BE : rtypeA_BE;
-  char *t = askDNS(host, &dmm, typA_be);
+  char *t = askDNS(host + 2, &dmm, typA_be);
 
   if(t)
   {
     DNS_RR_ParseHelper parser(&dmm, t);
-    return parser.FindA(t, sa_c);
+    return ! parser.FindA(t, sa_c);
   }
-  return SPF_NOT_FOUND;
+  return -1;
 }
 
 int CheckSPF(char *host, TSOCKADDR *sa_c, d_msg *dmm, int type_be)
 {
   char *t = askDNS(host, dmm, type_be);
   int ret = SPF_NOT_FOUND;
-  int inc_limit = 5;
 
   if(t)
   {
+    int inc_limit = 5;
     DNS_RR_ParseHelper parser(dmm, t);
     char name[128];
     char ip[64];
@@ -478,6 +531,8 @@ int CheckSPF(char *host, TSOCKADDR *sa_c, d_msg *dmm, int type_be)
 
     while(parser.FindInfo(name))
     {
+      DBGLA("type: %X len: %X %d", parser.next_info->type, parser.next_info->rdlength, parser.next_l)
+
       if(parser.next_info->type == type_be)
       {
         parser.NormalezeText();
@@ -586,7 +641,10 @@ int CheckSPF(char *host, TSOCKADDR *sa_c, d_msg *dmm, int type_be)
               if(parser.FindA(t, sa_c)) return SPF_OK;
 
               parser.next_rr = t;
+              if(parser.FindRR(rtypeMX_BE, sa_c, (cmp_func_t)cmpMX))
+                return SPF_OK;
 
+#if 0
               while(parser.FindInfo(name))
               {
                 if(parser.next_info->type == rtypeMX_BE)
@@ -599,11 +657,32 @@ int CheckSPF(char *host, TSOCKADDR *sa_c, d_msg *dmm, int type_be)
                 if(!parser.Next())
                   break;
               }
+#endif
             }
             if(flags & 4) // PTR
             {
-              // TODO
-              return SPF_OK;
+              if(!is6)
+              {
+                union {
+                  u32 ip4;
+                  u8  ip4b[4];
+                };
+
+                ip4 = IPv4addr((sockaddr_in *) sa_c);
+
+                char *ptr = ((char *)dmm) + 256;
+                sprintf(ptr, "%u.%u.%u.%u.IN-ADDR.ARPA",
+                        ip4b[3], ip4b[2], ip4b[1], ip4b[0]);
+
+                t = askDNS(ptr, dmm, rtypePTR_BE);
+                if(t)
+                {
+                  parser.next_rr = t;
+                  if(parser.FindRR(rtypePTR_BE, host, (cmp_func_t) stricmp ))
+                    return SPF_OK;
+                }
+
+              }
             }
 
             return ret;
