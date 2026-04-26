@@ -366,12 +366,19 @@ char* DNS_RR_ParseHelper::FindInfo(char *name)
 {
   if(next_rr && *next_rr)
   {
-    char *r = DecodeName(name, (char *)next_rr, beg);
+    union {
+      char * r;
+      RR_info *rr;
+    };
+
+    r = DecodeName(name, (char *)next_rr, beg);
     if (r)
     {
-      next_info = (RR_info *) r;
+      next_info = rr;
+      if( (rr->rdata + rr->rdlength - beg) < 512)
+        return rr->rdata;
     }
-    return ((RR_info *)r)->rdata;
+
   }
   next_info = 0;
   return 0;
@@ -474,6 +481,9 @@ int CheckSPF(char *host, TSOCKADDR *sa_c, d_msg *dmm, int type_be)
       if(parser.next_info->type == type_be)
       {
         parser.NormalezeText();
+
+        DBGLA("%.64s ", parser.next_info->rdata)
+
         if(stristr(rd = (char *) parser.next_info->rdata, "v=spf1") )
         {
           u32  flags = 0;
@@ -483,8 +493,8 @@ int CheckSPF(char *host, TSOCKADDR *sa_c, d_msg *dmm, int type_be)
           if(stristr(rd, "~all")) ret = SPF_SOFT;
           if(stristr(rd, " a ")) flags |= 1;
           if(stristr(rd, " mx ")) flags |= 2;
-#ifdef SUPPORT_PTR_EXISTS_SPF
           if(stristr(rd, " ptr ")) flags |= 4;
+#ifdef SUPPORT_PTR_EXISTS_SPF
           if(stristr(rd, " exists ")) flags |= 8;
 #endif
 
@@ -589,6 +599,11 @@ int CheckSPF(char *host, TSOCKADDR *sa_c, d_msg *dmm, int type_be)
                 if(!parser.Next())
                   break;
               }
+            }
+            if(flags & 4) // PTR
+            {
+              // TODO
+              return SPF_OK;
             }
 
             return ret;
