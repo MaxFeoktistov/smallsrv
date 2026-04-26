@@ -437,7 +437,7 @@ int CheckUserList::SPF_try()
 
   if(host)
   {
-    char *e = strpbrk(host, "> \r\n");
+    char *e = strpbrk(++host, "> \r\n");
     char ee;
     d_msg dmm;
 
