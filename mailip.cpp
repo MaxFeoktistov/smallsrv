@@ -372,7 +372,7 @@ char* DNS_RR_ParseHelper::FindInfo(char *name)
     };
 
     r = DecodeName(name, (char *)next_rr, beg);
-    if (r)
+    if(r)
     {
       next_info = rr;
       next_l = htons(rr->rdlength);
@@ -447,9 +447,9 @@ int cmpAAAA(void *a, void *b)
   return memcmp(a, b, 16);
 }
 
-int cmpA(u32 *a, u32 *b)
+int cmpA(void *a, u32 *b)
 {
-  return *a - *b;
+  return  ((u32) (long) a) - *b;
 }
 
 int DNS_RR_ParseHelper::FindA(char *t, TSOCKADDR *sa_c)
@@ -459,9 +459,9 @@ int DNS_RR_ParseHelper::FindA(char *t, TSOCKADDR *sa_c)
 
   if(!IsIPv6((sockaddr_in *) sa_c))
   {
-    u32 ip4 = IPv4addr((sockaddr_in *) sa_c);
+    unsigned long ip4 = IPv4addr((sockaddr_in *) sa_c);
 
-    return  FindRR(rtypeA_BE, &ip4, (cmp_func_t) cmpA);
+    return FindRR(rtypeA_BE, (void *) ip4, (cmp_func_t) cmpA);
   }
 
   return FindRR(rtypeAAAA_BE, ((sockaddr_in6 *)sa_c)->sin6_addr.s6_addr32, cmpAAAA);
@@ -510,6 +510,22 @@ int cmpMX(TSOCKADDR *sa_c, char *host)
   return -1;
 }
 
+int find_spf_patern(char *s, char *pat, char* prefix)
+{
+  int l = strlen(pat);
+  char *r;
+
+  while( (r = stristr(s, pat)) )
+  {
+    if(r[l] < '0' && strchr(prefix, r[-1]))
+      return 1;
+
+    s = r + 1;
+  }
+
+  return 0;
+}
+
 int CheckSPF(char *host, TSOCKADDR *sa_c, d_msg *dmm, int type_be)
 {
   char *t = askDNS(host, dmm, type_be);
@@ -546,9 +562,16 @@ int CheckSPF(char *host, TSOCKADDR *sa_c, d_msg *dmm, int type_be)
           ret = SPF_IP_EXCLUDED;
           if(stristr(rd, "-all")) ret = SPF_HARD;
           if(stristr(rd, "~all")) ret = SPF_SOFT;
-          if(stristr(rd, " a ")) flags |= 1;
-          if(stristr(rd, " mx ")) flags |= 2;
+
+          if(find_spf_patern(rd, "a", "+ \t\r\n"))   flags |= 1;
+          if(find_spf_patern(rd, "mx", "+ \t\r\n"))  flags |= 2;
+          if(find_spf_patern(rd, "ptr", "+ \t\r\n")) flags |= 4;
+
+          /*
+          if(stristr(rd, " a "))   flags |= 1;
+          if(stristr(rd, " mx "))  flags |= 2;
           if(stristr(rd, " ptr ")) flags |= 4;
+          */
 #ifdef SUPPORT_PTR_EXISTS_SPF
           if(stristr(rd, " exists ")) flags |= 8;
 #endif
@@ -688,13 +711,16 @@ int CheckSPF(char *host, TSOCKADDR *sa_c, d_msg *dmm, int type_be)
             return ret;
           }
           if((found=stristr((char *) parser.next_info->rdata, "include:")))
+            found += sizeof("include:") - 1;
+          else if((found=stristr((char *) parser.next_info->rdata, "redirect:")))
+            found += sizeof("redirect:") - 1;
+          if(found)
           {
             if( --inc_limit < 0  )
             {
               debug("To match include of SPF\r\n");
               break;
             }
-            found += sizeof("include:") - 1;
             if((t=strpbrk(found, " \t") ))
               *t = 0;
 

@@ -4065,6 +4065,8 @@ void  NSRecordArray::Save(char *fname)
   char *m, *t, *t3;
   ulong x, y;
   ushort *pxar;
+  int add;
+
   //   if(! (f=fopen(fname,"w")) )return ;
   if( (h = _lcreat(fname, 0)) < 0 ) {
     debug("Can't create file %s %d %s\r\n", fname, errno, strerror(errno));
@@ -4091,6 +4093,7 @@ void  NSRecordArray::Save(char *fname)
         }
         else
           t += sprintf(t, "\n   %u IN ", d[i].ttl);
+        add = 0;
         switch(d[i].type)
         {
           case 1: //A
@@ -4109,14 +4112,14 @@ void  NSRecordArray::Save(char *fname)
           case 2: t3 = "NS";    if(0) { //NS
           case 5: t3 = "CNAME"; if(0) { //CNAME
           case 12: t3 = "PTR";   if(0) { //PTR
-          case 16: t3 = "TXT";   if(0) {
-          case 99: t3 = "SPF";
+          case 16: t3 = "TXT"; add = 1; if(0) {
+          case 99: t3 = "SPF"; add = 1;
                     }
                   }
                 }
               }
             }
-            t += sprintf(t, "%s %.255s", t3, d[i].dr);
+            t += sprintf(t, "%s %.255s", t3, d[i].dr + add);
             break;
           case 15:     //MX
             t += sprintf(t, "MX %u %.63s", htons(WORD_PTR(d[i].dr[0]  )), d[i].dr + 2);
