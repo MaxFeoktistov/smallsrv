@@ -1213,7 +1213,8 @@ struct RR_info
   char rdata[0];
 } PACKED;
 
-typedef int (* cmp_func_t)(void *, void *);
+struct DNS_RR_ParseHelper;
+typedef int (* dns_rr_cmp_func_t)(DNS_RR_ParseHelper *, void *);
 
 struct DNS_RR_ParseHelper
 {
@@ -1233,7 +1234,7 @@ struct DNS_RR_ParseHelper
   void  NormalezeText();
   void  RestoreText();
   int   FindA(char *t, TSOCKADDR *sa_c);
-  int   FindRR(int type_be, void *par, cmp_func_t cmp_func);
+  int   FindRR(int type_be, void *par, dns_rr_cmp_func_t cmp_func);
 };
 
 int CheckSPF(char *host, TSOCKADDR *sa_c, d_msg *dmm, int type_be);

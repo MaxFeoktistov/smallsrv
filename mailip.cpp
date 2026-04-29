@@ -418,7 +418,7 @@ void  DNS_RR_ParseHelper::RestoreText()
   next_info->rdata[next_l] = saved_next;
 }
 
-int DNS_RR_ParseHelper::FindRR(int type_be, void *par, cmp_func_t cmp_func)
+int DNS_RR_ParseHelper::FindRR(int type_be, void *par, dns_rr_cmp_func_t cmp_func)
 {
   char name[128];
 
@@ -428,9 +428,10 @@ int DNS_RR_ParseHelper::FindRR(int type_be, void *par, cmp_func_t cmp_func)
     {
       int ret;
 
-      NormalezeText();
-      ret = cmp_func(par, next_info->rdata);
-      RestoreText();
+      //NormalezeText();
+      //ret = cmp_func(this, par, next_info->rdata);
+      ret = cmp_func(this, par);
+      //RestoreText();
       if(! ret)
         return SPF_OK;
     }
@@ -442,14 +443,15 @@ int DNS_RR_ParseHelper::FindRR(int type_be, void *par, cmp_func_t cmp_func)
   return SPF_NOT_FOUND;
 }
 
-int cmpAAAA(void *a, void *b)
+int cmpAAAA(DNS_RR_ParseHelper *th, void *b)
 {
-  return memcmp(a, b, 16);
+  return memcmp(th->next_info->rdata, b, 16);
 }
 
-int cmpA(void *a, u32 *b)
+int cmpA(DNS_RR_ParseHelper *th, u32 *a)
 {
-  return  ((u32) (long) a) - *b;
+  DBGLA("A %X <> %X", DWORD_PTR(th->next_info->rdata[0]), (u32) (long) a)
+  return  DWORD_PTR(th->next_info->rdata[0]) - (u32) (long) a;
 }
 
 int DNS_RR_ParseHelper::FindA(char *t, TSOCKADDR *sa_c)
@@ -461,7 +463,7 @@ int DNS_RR_ParseHelper::FindA(char *t, TSOCKADDR *sa_c)
   {
     unsigned long ip4 = IPv4addr((sockaddr_in *) sa_c);
 
-    return FindRR(rtypeA_BE, (void *) ip4, (cmp_func_t) cmpA);
+    return FindRR(rtypeA_BE, (void *) ip4, (dns_rr_cmp_func_t) cmpA);
   }
 
   return FindRR(rtypeAAAA_BE, ((sockaddr_in6 *)sa_c)->sin6_addr.s6_addr32, cmpAAAA);
@@ -495,12 +497,13 @@ int DNS_RR_ParseHelper::FindA(char *t, TSOCKADDR *sa_c)
 #endif
 }
 
-//int IsIPforHost(char *host, TSOCKADDR *sa_c)
-int cmpMX(TSOCKADDR *sa_c, char *host)
+int CmpIPforHost(char *host, TSOCKADDR *sa_c)
 {
   d_msg dmm;
   int typA_be = IsIPv6((sockaddr_in *) sa_c)? rtypeAAAA_BE : rtypeA_BE;
   char *t = askDNS(host + 2, &dmm, typA_be);
+
+  DBGLA("MX %s %u", host, (int) !!t)
 
   if(t)
   {
@@ -510,6 +513,27 @@ int cmpMX(TSOCKADDR *sa_c, char *host)
   return -1;
 }
 
+int cmpMX(DNS_RR_ParseHelper *th, TSOCKADDR *sa_c)
+{
+  char host[128];
+  DecodeName(host, th->next_info->rdata + 2, th->beg);
+  return CmpIPforHost(host, sa_c);
+}
+
+
+
+int cmpPTR(DNS_RR_ParseHelper *th, char *hst)
+{
+  char host[128];
+
+  DecodeName(host, th->next_info->rdata + 2, th->beg);
+
+  DBGLA("PTR %.64s %.64s", hst, host)
+
+  return stricmp(host, hst);
+}
+
+
 int find_spf_patern(char *s, char *pat, char* prefix)
 {
   int l = strlen(pat);
@@ -517,7 +541,7 @@ int find_spf_patern(char *s, char *pat, char* prefix)
 
   while( (r = stristr(s, pat)) )
   {
-    if(r[l] < '0' && strchr(prefix, r[-1]))
+    if(r[l] < '0' && r[l] !=':' && strchr(prefix, r[-1]))
       return 1;
 
     s = r + 1;
@@ -526,14 +550,24 @@ int find_spf_patern(char *s, char *pat, char* prefix)
   return 0;
 }
 
+
+
 int CheckSPF(char *host, TSOCKADDR *sa_c, d_msg *dmm, int type_be)
 {
-  char *t = askDNS(host, dmm, type_be);
+  char *t;
   int ret = SPF_NOT_FOUND;
+  int inc_limit = 5;
+
+  if (type_be & 0xFFFF0000)
+  {
+    inc_limit = type_be >> 16;
+    type_be &= 0xFFFF;
+  }
+
+  t = askDNS(host, dmm, type_be);
 
   if(t)
   {
-    int inc_limit = 5;
     DNS_RR_ParseHelper parser(dmm, t);
     char name[128];
     char ip[64];
@@ -644,6 +678,16 @@ int CheckSPF(char *host, TSOCKADDR *sa_c, d_msg *dmm, int type_be)
             rd = found + 1;
           }while(1);
 
+
+          for(found = (char *) parser.next_info->rdata ; (found = stristr(found, " a:")) ; )
+          {
+            found+=3;
+            t = strpbrk(found, " \t\r\n");
+            if(t) *t = 0;
+            if(!CmpIPforHost(found, sa_c))
+              return SPF_OK;
+            if(t) *t = ' ';
+          }
           if(flags)
           {
             int typA_be = is6 ? rtypeAAAA_BE : rtypeA_BE;
@@ -664,7 +708,7 @@ int CheckSPF(char *host, TSOCKADDR *sa_c, d_msg *dmm, int type_be)
               if(parser.FindA(t, sa_c)) return SPF_OK;
 
               parser.next_rr = t;
-              if(parser.FindRR(rtypeMX_BE, sa_c, (cmp_func_t)cmpMX))
+              if(parser.FindRR(rtypeMX_BE, sa_c, (dns_rr_cmp_func_t)cmpMX))
                 return SPF_OK;
 
 #if 0
@@ -701,7 +745,7 @@ int CheckSPF(char *host, TSOCKADDR *sa_c, d_msg *dmm, int type_be)
                 if(t)
                 {
                   parser.next_rr = t;
-                  if(parser.FindRR(rtypePTR_BE, host, (cmp_func_t) stricmp ))
+                  if(parser.FindRR(rtypePTR_BE, host, (dns_rr_cmp_func_t) cmpPTR ))
                     return SPF_OK;
                 }
 
@@ -710,8 +754,41 @@ int CheckSPF(char *host, TSOCKADDR *sa_c, d_msg *dmm, int type_be)
 
             return ret;
           }
-          if((found=stristr((char *) parser.next_info->rdata, "include:")))
+
+
+          if((found = stristr((char *) parser.next_info->rdata, "include:"))) {
             found += sizeof("include:") - 1;
+            if(inc_limit > 1) {
+              char *p = stristr(found, "include:");
+
+              if(p)
+              {
+                d_msg *dmm2;
+
+                dmm2 = (d_msg *) malloc(sizeof(d_msg) + 4);
+                if(dmm2)
+                {
+                  do
+                  {
+                    p += sizeof("include:") - 1;
+                    t = strpbrk(p, " \t\r\n");
+                    if(t) *t = 0;
+                    if(CheckSPF(p, sa_c, dmm2, type_be | ((inc_limit - 1) << 16) ) == SPF_OK)
+                    {
+                      free(dmm2);
+                      return SPF_OK;
+                    }
+
+                    if(t) *t = ' ';
+
+                    p = stristr(p, "include:");
+                  } while(p);
+
+                  free(dmm2);
+                }
+              }
+            }
+          }
           else if((found=stristr((char *) parser.next_info->rdata, "redirect:")))
             found += sizeof("redirect:") - 1;
           if(found)

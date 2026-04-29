@@ -531,6 +531,22 @@ In any case, if user press "Reload" button files download again.</td><td><b>igno
 still upload files here. E.g. /pub/"</td><td><b>ftp_upload=<i>"/dir/"</i></b></td></tr>
 <tr><td><b>Enable virtual directories for FTP.</b></td><td><b>ftp_vdirs</b></td></tr>
 
+<tr align=center bgcolor=#c0fff8><td colspan=2><b>TFTP server setting</b></td></tr>
+
+<tr><td><b>Disable TFTP</b></td><td><b>notftp_max</b></td></tr>
+<tr><td><b>Public TFTP directory</b></td><td><b>tftp_dir=path</b></td></tr>
+<tr><td><b>TFTP port</b></td><td><b>tftp_port=value</b></td></tr>
+<tr><td><b>Bind to all addapters</b></td><td><b>notftp_bind</b></td></tr>
+<tr><td><b>IPs and IPv6 to bind, through coma.</b> (0.0.0.0 - bind to all IP; ::0 bind to all IPv6)</td><td><b>tftp_bind=value</b></td></tr>
+<tr><td><b>Also work through IPv6</b></td><td><b>tftpipv6</b></td></tr>
+<tr><td><b>Total number of files simultaneously open via TFTP.</b></td><td><b>tftp_max=value</b></td></tr>
+<tr><td><b>TFTP timeout (seconds)</b></td><td><b>tftp_timeout=value</b></td></tr>
+<tr><td><b>IPs that can access this server.</b> Separe single IP by comma and IP ranges with hyphens. E.g. 192.168.0.1-192.168.0.16,127.0.0.1</td><td><b>tftp_range=value</b></td></tr>
+<tr><td><b>Deny IPs that can't access this server.</b> Separe single IP by comma and IP ranges with hyphens.</td><td><b>tftp_deny=value</b></td></tr>
+<tr><td><b>IPv6 IPs that can access this server.</b> Separe single IP by comma and IP ranges with hyphens. E.g. ::1,FE80::-FEFF::</td><td><b>tftp6_range=value</b></td></tr>
+<tr><td><b>IPv6 Deny IPs that can't access this server.</b> Separe single IP by comma and IP ranges with hyphens.</td><td><b>tftp6_deny=value</b></td></tr>
+
+
 <tr align=center bgcolor=#c0fff8><td colspan=2><b>POP3 server setting</b></td></tr>
 
 
@@ -606,7 +622,9 @@ still upload files here. E.g. /pub/"</td><td><b>ftp_upload=<i>"/dir/"</i></b></t
 <tr><td><b>No limitation for alowed IPs</b></td><td><b>nolimitus</b></td></tr>
 <tr><td><b>Enable receive from foregein IP messages from us domain</b></td><td><b>uncheckip</b></td></tr>
 <tr><td><b>Minimal timeout betwen sending messages</b></td><td><b>time_btw=value</b></td></tr>
-
+<tr><td><b>Before receiving an external message, check the SPF record for the domain.</b></td><td><b>spf_check</b></td></tr>
+<tr><td><b>Do not accept messages from hosts without an SPF record.</b></td><td><b>spf_must</b></td></tr>
+<tr><td><b>Ignore username case in incoming messages</b></td><td><b>smtp_ign_case</b></td></tr>
 
 
 
@@ -687,6 +705,9 @@ For GnuTLS, see the string format <a href="https://gnutls.org/manual/html_node/P
 </td><td><b>tls_priority=value</b></td></tr>
 <tr><td><b>Remote administration through sequre HTTPS only</b></td><td><b>admtls</b></td></tr>
 <tr><td><b>Web mail through  sequre HTTPS  only</b></td><td><b>tls_wmail</b></td></tr>
+
+
+
 
 
 

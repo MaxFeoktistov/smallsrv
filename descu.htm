@@ -487,8 +487,24 @@ In any case, if user press "Reload" button files download again.</td><td><b>igno
 still upload files here. E.g. /pub/"</td><td><b>ftp_upload=<i>"/dir/"</i></b></td></tr>
 <tr><td><b>Enable virtual directories for FTP.</b></td><td><b>ftp_vdirs</b></td></tr>
 
-<tr align=center bgcolor=#c0fff8><td colspan=2><b>POP3 server setting</b></td></tr>
 
+<tr align=center bgcolor=#c0fff8><td colspan=2><b>TFTP server setting</b></td></tr>
+
+
+<tr><td><b>Disable TFTP</b></td><td><b>notftp_max</b></td></tr>
+<tr><td><b>Public TFTP directory</b></td><td><b>tftp_dir=path</b></td></tr>
+<tr><td><b>TFTP port</b></td><td><b>tftp_port=value</b></td></tr>
+<tr><td><b>Bind to all addapters</b></td><td><b>notftp_bind</b></td></tr>
+<tr><td><b>IPs and IPv6 to bind, through coma.</b> (0.0.0.0 - bind to all IP; ::0 bind to all IPv6)</td><td><b>tftp_bind=value</b></td></tr>
+<tr><td><b>Also work through IPv6</b></td><td><b>tftpipv6</b></td></tr>
+<tr><td><b>Total number of files simultaneously open via TFTP.</b></td><td><b>tftp_max=value</b></td></tr>
+<tr><td><b>TFTP timeout (seconds)</b></td><td><b>tftp_timeout=value</b></td></tr>
+<tr><td><b>IPs that can access this server.</b> Separe single IP by comma and IP ranges with hyphens. E.g. 192.168.0.1-192.168.0.16,127.0.0.1</td><td><b>tftp_range=value</b></td></tr>
+<tr><td><b>Deny IPs that can't access this server.</b> Separe single IP by comma and IP ranges with hyphens.</td><td><b>tftp_deny=value</b></td></tr>
+<tr><td><b>IPv6 IPs that can access this server.</b> Separe single IP by comma and IP ranges with hyphens. E.g. ::1,FE80::-FEFF::</td><td><b>tftp6_range=value</b></td></tr>
+<tr><td><b>IPv6 Deny IPs that can't access this server.</b> Separe single IP by comma and IP ranges with hyphens.</td><td><b>tftp6_deny=value</b></td></tr>
+
+<tr align=center bgcolor=#c0fff8><td colspan=2><b>POP3 server setting</b></td></tr>
 
 <tr><td><b>Disable POP3 server.</b></td><td><b>nopop3_max</b></td></tr>
 <tr><td><b>POP3/SMTP session timeout.</b> (in second). Connection will close, if user is idle for this time.</td><td><b>pop_timeout=value</b></td></tr>
@@ -562,6 +578,10 @@ still upload files here. E.g. /pub/"</td><td><b>ftp_upload=<i>"/dir/"</i></b></t
 <tr><td><b>No limitation for alowed IPs</b></td><td><b>nolimitus</b></td></tr>
 <tr><td><b>Enable receive from foregein IP messages from us domain</b></td><td><b>uncheckip</b></td></tr>
 <tr><td><b>Minimal timeout betwen sending messages</b></td><td><b>time_btw=value</b></td></tr>
+
+<tr><td><b>Before receiving an external message, check the SPF record for the domain.</b></td><td><b>spf_check</b></td></tr>
+<tr><td><b>Do not accept messages from hosts without an SPF record.</b></td><td><b>spf_must</b></td></tr>
+<tr><td><b>Ignore username case in incoming messages</b></td><td><b>smtp_ign_case</b></td></tr>
 
 
 
@@ -675,6 +695,16 @@ For GnuTLS, see the string format <a href="https://gnutls.org/manual/html_node/P
  <tr><td><b>First IP address to allocate for remote client that connected to Tap.</b> (Optional)</td><td><b>tap_remote_ip=value</b></td></tr>
  <tr><td><b>Total IP addresses to allocate for remote client that connected to Tap.</b> (Optional. Set to 0 to use external DHCP server, or another methods)</td><td><b>tap_remote_max=value</b></td></tr>
  <tr><td><b>DNS servers that will be offered to the TAP client.</b> (Optional) </td><td><b>tap_remote_dns=value</b></td></tr>
+ <tr><td><b>Fix destination MAC in packets for TAP</b></td><td><b>tap_fix_map</b></td></tr>
+ <tr><td><b>Set VPN traffic limit per user</b></td><td><b>vpn_user_limit</b></td></tr>
+ <tr><td><b>Set VPN traffic limit per IP</b></td><td><b>vpn_ip_limit</b></td></tr>
+ <tr><td><b>Limit of incoming VPN traffic per hour.</b> (Mb)</td><td><b>vpn_limit_in_h=value</b></td></tr>
+ <tr><td><b>Limit of outgoing VPN traffic per hour.</b> (Mb)</td><td><b>vpn_limit_out_h=value</b></td></tr>
+ <tr><td><b>Limit of incoming VPN traffic per day.</b> (Mb)</td><td><b>vpn_limit_in_d=value</b></td></tr>
+ <tr><td><b>Limit of outgoing VPN traffic per day.</b> (Mb)</td><td><b>vpn_limit_out_d=value</b></td></tr>
+ <tr><td><b>Limit of incoming VPN traffic per mounth.</b> (Mb)</td><td><b>vpn_limit_in_m=value</b></td></tr>
+ <tr><td><b>Limit of outgoing VPN traffic per  mounth.</b> (Mb)</td><td><b>vpn_limit_out_m=value</b></td></tr>
+ <tr><td><b>Save the state of limits in this file on exit</b></td><td><b>vpn_limit_fname=path</b></td></tr>
 
  <tr align=center bgcolor=#c0fff8><td colspan=2><b>HTTP TLS VPN client setting</b></td></tr>
 
