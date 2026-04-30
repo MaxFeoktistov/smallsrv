@@ -434,7 +434,9 @@ ulong WINAPI TFTPServer(void *)
         break;
       }
 
-      if(l > 2 && IsInIPRR(tftp_range, (sockaddr_in *) &sa_c))
+      if(l > 2 && IsInIPRR(tftp_range, (sockaddr_in *) &sa_c)
+         && IsInIPRR(ip_range, (sockaddr_in *) &sa_c)
+      )
       {
         if(!ChkThread)
           cur_time = time(0);

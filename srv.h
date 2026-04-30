@@ -1214,7 +1214,12 @@ struct RR_info
 } PACKED;
 
 struct DNS_RR_ParseHelper;
+
+#ifdef DONT_USE_CPP_METHOD_POINTER
 typedef int (* dns_rr_cmp_func_t)(DNS_RR_ParseHelper *, void *);
+#else
+typedef int (DNS_RR_ParseHelper::*dns_rr_cmp_func_t)(void *);
+#endif
 
 struct DNS_RR_ParseHelper
 {
@@ -1226,15 +1231,22 @@ struct DNS_RR_ParseHelper
   RR_info *next_info;
   int      next_l;
   int saved_next;
+  char host[128];
 
   DNS_RR_ParseHelper(){}
   DNS_RR_ParseHelper(d_msg  *d, char *n):dmm(d), next_rr(n), next_info(0) {}
-  char* FindInfo(char *name);
+  char* FindInfo();
   int   Next();
   void  NormalezeText();
   void  RestoreText();
   int   FindA(char *t, TSOCKADDR *sa_c);
   int   FindRR(int type_be, void *par, dns_rr_cmp_func_t cmp_func);
+
+  int cmpMX(TSOCKADDR *sa_c);
+  int cmpPTR(char *hst);
+  int cmpAAAA(void *b);
+  int cmpA(u32 *a);
+
 };
 
 int CheckSPF(char *host, TSOCKADDR *sa_c, d_msg *dmm, int type_be);
