@@ -418,7 +418,7 @@ int CmpIPforHost(char *host, TSOCKADDR *sa_c)
 {
   d_msg dmm;
   int typA_be = IsIPv6((sockaddr_in *) sa_c)? rtypeAAAA_BE : rtypeA_BE;
-  char *t = askDNS(host + 2, &dmm, typA_be);
+  char *t = askDNS(host, &dmm, typA_be);
 
   DBGLA("MX %s %u", host, (int) !!t)
 
@@ -764,8 +764,11 @@ int CheckSPF(char *host, TSOCKADDR *sa_c, d_msg *dmm, int type_be)
               }
             }
 
-            if(dmm2 == dmm) return ret;
-            free(dmm2);
+            if(dmm2 != dmm) {
+              free(dmm2);
+            }
+            else if(flags & (HAVE_MX | HAVE_PTR))
+              return ret;
           }
 
           if((found = stristr((char *) parser.next_info->rdata, "include:")))

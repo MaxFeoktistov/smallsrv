@@ -1145,7 +1145,18 @@ int Req::SMTPReq()
 
                 }while((x=Recv(bb+l,0x4004-l))>0);
 
-                if(l)_hwrite(h,bb,l);
+                if(l)
+                {
+                  if(l>=2)
+                  {
+                    if(WORD_PTR(bb[l-2]) == 0x2E0A x4CHAR("\n."))
+                      l--;
+                    if(WORD_PTR(bb[l-2]) == 0x0D2E x4CHAR(".\r"))
+                      l-=2;
+                  }
+                  if(l)
+                    _hwrite(h,bb,l);
+                }
                 CloseHandle((FHANDLE)h);
                 AddSendMessage(i);
                 msprintf(bb,"SMTP: %llu user>%s user<%s\r\n",Tin,puser_s?puser_s->name:"*",puser_r?puser_r->name:"*");
