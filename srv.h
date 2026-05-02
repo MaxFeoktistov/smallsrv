@@ -1217,8 +1217,10 @@ struct DNS_RR_ParseHelper;
 
 #ifdef DONT_USE_CPP_METHOD_POINTER
 typedef int (* dns_rr_cmp_func_t)(DNS_RR_ParseHelper *, void *);
+#define  CMP_FUNC(a, b)  (cmp_func)(a, par)
 #else
 typedef int (DNS_RR_ParseHelper::*dns_rr_cmp_func_t)(void *);
+#define  CMP_FUNC(a, b)  (a->*cmp_func)(par)
 #endif
 
 struct DNS_RR_ParseHelper
