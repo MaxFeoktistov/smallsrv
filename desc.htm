@@ -1264,7 +1264,14 @@ $hello, $control variables.
   <li>$hello --  self identification from remote server.
   <li>$control -- full identification line in flowing format:<br>
   <tt>"From sender (remote_hello [IP]) date and time For receptors\r\n"</tt>
-
+  <li>$check_spf -- Checks the SPF record for the domain. The value can be:
+    <ul>
+      <li> <b>1</b> - the IP address is valid for the domain;
+      <li> <b>0</b> - no SPF record;
+      <li> <b>-1</b> An SPF record for the domain was found, but the sender's IP address was not found in the record;
+      <li> <b>-2</b> An SPF record for the domain was found, and a soft rejection is required for this IP;
+      <li> <b>-3</b> An SPF record for the domain was found, and a hard rejection is required for this IP.
+    </ul>
  </ul>
  <li>?? List of DNSBL servers
 </ul>

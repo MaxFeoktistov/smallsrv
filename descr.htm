@@ -417,6 +417,23 @@ C:\HTTP\WWW т.е. http://127.0.0.1/test.htm==C:\HTTP\WWW\test.htm. А CGI в этом
 <tr><td><b>Разрешить виртуальные директории для FTP.</b></td><td><b>ftp_vdirs</b></td></tr>
 
 
+ <tr align=center bgcolor=#c0fff8><td colspan=2><b>Параметры TFTP сервера</b></td></tr>
+
+ <tr><td><b>Отключить TFTP</b></td><td><b>notftp_max</b></td></tr>
+ <tr><td><b>Общедоступный каталог TFTP</b></td><td><b>tftp_dir=path</b></td></tr>
+ <tr><td><b>TCP/IP порт для TFTP</b></td><td><b>tftp_port=value</b></td></tr>
+
+ <tr><td><b>Привязаться ко всем адаптерам</b></td><td><b>notftp_bind</b></td></tr>
+ <tr><td><b>Привязываться только к перечисленным IP и IPv6.</b> через запятую. (0.0.0.0 - все IP; ::0 все IPv6)</td><td><b>tftp_bind=value</b></td></tr>
+ <tr><td><b>Также работать через IPv6</b></td><td><b>tftpipv6</b></td></tr>
+ <tr><td><b>Total number of files simultaneously open via TFTP.</b></td><td><b>tftp_max=value</b></td></tr>
+ <tr><td><b>TFTP timeout (seconds)</b></td><td><b>tftp_timeout=value</b></td></tr>
+ <tr><td><b>IP с которых разрешен доступ к этому серверу.</b> Разделитель запятая, диапазоны IP записываются через дефис. E.g. 192.168.0.1-192.168.0.16,127.0.0.1</td><td><b>tftp_range=value</b></td></tr>
+ <tr><td><b>Запрещенные IPs с которых нельзя получить доступ к этому серверу.</b> Разделитель запятая, диапазоны IP записываются через дефис.</td><td><b>tftp_deny=value</b></td></tr>
+ <tr><td><b>IPv6 IP с которых разрешен доступ к этому серверу.</b> Разделитель запятая, диапазоны IP записываются через дефис. E.g. ::1,FE80::-FEFF::</td><td><b>tftp6_range=value</b></td></tr>
+ <tr><td><b>IPv6 Запрещенные IPs с которых нельзя получить доступ к этому серверу.</b> Разделитель запятая, диапазоны IP записываются через дефис.</td><td><b>tftp6_deny=value</b></td></tr>
+
+
 
 
 
@@ -494,7 +511,12 @@ C:\HTTP\WWW т.е. http://127.0.0.1/test.htm==C:\HTTP\WWW\test.htm. А CGI в этом
  <tr><td><b>Не ограничивать разрешенные IP</b></td><td><b>nolimitus</b></td></tr>
  <tr><td><b>Принимать сообщения от нашего домена, с чужих IP адресов</b></td><td><b>uncheckip</b></td></tr>
  <tr><td><b>Минимальное время между отправкой сообщений</b></td><td><b>time_btw=value</b></td></tr>
-<tr><td><b>Сколько запросов будут обрабатываться одновременно.</b></td><td><b>smtp_max=<i>max</i></b></td></tr>
+
+ <tr><td><b>Перед получением внешнего сообщения проверять запись SPF для домена.</b></td><td><b>spf_check</b></td></tr>
+ <tr><td><b>Не принимать сообщения от хостов без записи SPF.</b></td><td><b>spf_must</b></td></tr>
+ <tr><td><b>Игнорировать регистр имени пользователя во входящих сообщениях</b></td><td><b>smtp_ign_case</b></td></tr>
+
+ <tr><td><b>Сколько запросов будут обрабатываться одновременно.</b></td><td><b>smtp_max=<i>max</i></b></td></tr>
 <tr><td><b>Имя SMTP сервера.</b> (Имя домена)</td><td><b>smtp_name=<i>your.domain.name</i></b></td></tr>
 <tr><td><b>Использовать все виртуальные хосты как синонимы имени домена.</b></td><td><b>vhalias</b></td></tr>
 <tr><td><b>TCP/IP порт для SMTP сервера.</b> Обычно это 25</td><td><b>smtp_port=<i>port</i></b></td></tr>
@@ -516,6 +538,7 @@ C:\HTTP\WWW т.е. http://127.0.0.1/test.htm==C:\HTTP\WWW\test.htm. А CGI в этом
  <tr><td><b>Использовать TLS при отправке исходящего сообщения, если это возможно</b></td><td><b>smtptls</b></td></tr>
  <tr><td><b>Всегда использовать TLS при отправке исходящих сообщений; если это невозможно, не отправлять</b></td><td><b>smtponlytls</b></td></tr>
  <tr><td><b>Проверьте подпись удаленного сертификата.</b></td><td><b>smtpchktls</b></td></tr>
+ <tr><td><b>При использовании авторизации SMTP отправитель должен быть тем же, что и пользователь авторизации.</b></td><td><b>smtp_authsame</b></td></tr>
 
 
 <tr align=center bgcolor=#c0fff8><td colspan=2><b>Параметры DHCP сервера:</b></td></tr>
@@ -597,6 +620,16 @@ C:\HTTP\WWW т.е. http://127.0.0.1/test.htm==C:\HTTP\WWW\test.htm. А CGI в этом
  <tr><td><b>Первый IP адрес для выделения удаленному пользователю подключившемуся к Tap.</b> (Опционально)</td><td><b>tap_remote_ip=value</b></td></tr>
  <tr><td><b>Общее количество IP-адресов, выделенное для Tap подключений.</b></td><td><b>tap_remote_max=value</b></td></tr>
  <tr><td><b>DNS сервера, которые будут предлагаться TAP пользователю.</b> (Опционально)</td><td><b>tap_remote_dns=value</b></td></tr>
+ <tr><td><b>Исправлять неправельные MAC-адреса в пакетах для TAP</b></td><td><b>tap_fix_map</b></td></tr>
+ <tr><td><b>Установить лимит VPN-трафика на пользователя</b></td><td><b>vpn_user_limit</b></td></tr>
+ <tr><td><b>Установить лимит VPN-трафика для каждого IP</b></td><td><b>vpn_ip_limit</b></td></tr>
+ <tr><td><b>Лимит входящего VPN-трафика в час.</b> (Мб)</td><td><b>vpn_limit_in_h=value</b></td></tr>
+ <tr><td><b>Лимит исходящего VPN-трафика в час.</b> (Мб)</td><td><b>vpn_limit_out_h=value</b></td></tr>
+ <tr><td><b>Лимит входящего VPN-трафика в день.</b> (Мб)</td><td><b>vpn_limit_in_d=value</b></td></tr>
+ <tr><td><b>Лимит исходящего VPN-трафика в день.</b> (Мб)</td><td><b>vpn_limit_out_d=value</b></td></tr>
+ <tr><td><b>Лимит входящего VPN-трафика в месяц.</b> (Мб)</td><td><b>vpn_limit_in_m=value</b></td></tr>
+ <tr><td><b>Лимит исходящего VPN-трафика в месяц.</b> (Мб)</td><td><b>vpn_limit_out_m=value</b></td></tr>
+ <tr><td><b>Сохраните состояние лимитов в этом файле при выходе</b></td><td><b>vpn_limit_fname=path</b></td></tr>
  <tr><td><b>Включить подключение к удаленному хосту TLS VPN</b></td><td><b>vpnclient</b></td></tr>
  <tr><td><b>Имя хоста для подключения к удаленному TLS VPN-серверу</b></td><td><b>vpn_remote_host=value</b></td></tr>
  <tr><td><b>TLS VPN порт.</b> (Обычно 443)</td><td><b>vpn_client_port=value</b></td></tr>
@@ -1140,7 +1173,14 @@ $hello, $control.
   <li>$hello --  самоидентификация от сервера отправителя.
   <li>$control -- полная идентификационная строка в формате:<br>
   <tt>"From sender (remote_hello [IP]) date and time For receptors\r\n"</tt>
-
+  <li>$check_spf -- Проверяет запись SPF для домена. Значение может быть следующим:
+    <ul>
+      <li> <b>1</b> - IP-адрес действителен для домена;
+      <li> <b>0</b> - запись SPF отсутствует;
+      <li> <b>-1</b> Запись SPF для домена найдена, но IP-адрес отправителя в записи не найден;
+      <li> <b>-2</b> Запись SPF для домена найдена, и для этого IP-адреса требуется мягкое отклонение;
+      <li> <b>-3</b> Запись SPF для домена найдена, и для этого IP-адреса требуется жесткое отклонение.
+    </ul>
  </ul>
  <li>?? Список DNSBL серверов
 </ul>

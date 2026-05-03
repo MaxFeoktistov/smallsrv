@@ -1,4 +1,4 @@
-smallsrv (3.06.40test18) unstable; urgency=low
+smallsrv (3.06.40test19) unstable; urgency=low
 
   * DNS server changes. Fixed a bug when loading a domain from a
     file for secondary mode.
@@ -13,7 +13,7 @@ smallsrv (3.06.40test18) unstable; urgency=low
     server.
   * Fixed a bug in the TXT record in the DNS server in secondary server mode.
 
- -- Maksim Feoktistov <max@smallsrv.com>  Sat, 02 May 2026 21:53:41 +0400
+ -- Maksim Feoktistov <max@smallsrv.com>  Sun, 03 May 2026 09:58:55 +0400
 
 smallsrv (3.06.39) unstable; urgency=low
 

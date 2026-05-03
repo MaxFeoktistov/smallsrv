@@ -528,7 +528,7 @@ int CheckSPF(char *host, TSOCKADDR *sa_c, d_msg *dmm, int type_be)
       {
         parser.NormalezeText();
 
-        DBGLA("%.64s ", parser.next_info->rdata)
+        DBGLA("%.128s ", parser.next_info->rdata)
 
         if(stristr(rd = (char *) parser.next_info->rdata, "v=spf1") )
         {
@@ -551,7 +551,7 @@ int CheckSPF(char *host, TSOCKADDR *sa_c, d_msg *dmm, int type_be)
           if(find_spf_patern(rd, "mx", "+ \t\r\n"))  flags |= HAVE_MX;
           if(find_spf_patern(rd, "ptr", "+ \t\r\n")) flags |= HAVE_PTR;
           if(stristr(rd, "include:"))   flags |= HAVE_INCLUDE;
-          if(stristr(rd, " mx:"))   flags |= HAVE_MX2;
+          if(stristr(rd, "mx:"))   flags |= HAVE_MX2;
 
           /*
           if(stristr(rd, " a "))   flags |= 1;
@@ -562,7 +562,7 @@ int CheckSPF(char *host, TSOCKADDR *sa_c, d_msg *dmm, int type_be)
           if(stristr(rd, " exists ")) flags |= 0x20;
 #endif
 
-          DBGLA("Found %s (ret:%d flags:%X inc_left:%d)\r\n", rd, ret, flags, inc_limit)
+          debug("Found SPF: '%s' (ret:%d flags:%X deep:%d)\r\n", rd + 1, ret, flags, 5 - inc_limit);
 
           found = strstr(rd, ip);
           if(found)
@@ -693,7 +693,7 @@ int CheckSPF(char *host, TSOCKADDR *sa_c, d_msg *dmm, int type_be)
                 if(pparser->FindA(t, sa_c))
                 {
                   DBGLA("Found A in MX reply")
-                  ret_ok:
+                ret_ok:
                   if(dmm2 != dmm) free(dmm2);
                   return SPF_OK;
                 }
@@ -739,11 +739,16 @@ int CheckSPF(char *host, TSOCKADDR *sa_c, d_msg *dmm, int type_be)
               if(dmm2 == dmm)
                 alloc_dmm2();
 
-              for(found = (char *) parser.next_info->rdata ; (found = stristr(found, " mx:")) ; )
+              for(found = (char *) parser.next_info->rdata ; (found = stristr(found, "mx:")) ; )
               {
                 char *tt;
 
-                found += 4;
+                if(found[-1] >= '0')
+                {
+                  ++found;
+                  continue;
+                }
+                found += 3;
                 tt = strpbrk(found, " \t\r\n");
                 if(tt) *tt = 0;
 
@@ -865,8 +870,8 @@ int CheckSPF(char *host, TSOCKADDR *sa_c, d_msg *dmm, int type_be)
 
 int CheckSPF_TXT(char *host, TSOCKADDR *sa_c, d_msg *dmm)
 {
-  int r = CheckSPF(host, sa_c, dmm, rtypeSPF_BE);
-  if(!r) r = CheckSPF(host, sa_c, dmm, rtypeTXT_BE);
+  int r = CheckSPF(host, sa_c, dmm, rtypeTXT_BE);
+  if(!r) r = CheckSPF(host, sa_c, dmm, rtypeSPF_BE);
 
   return r;
 }
