@@ -1112,6 +1112,17 @@ char* IPv6Addr(ushort *t,char *s);
 int IP2S(char *addr6,sockaddr_in* xsa);
 int IPv6S(char *addr6,in6_addr &sin6_addr);
 
+int UDPSrvSock46(int port, char *adapter, int af_f = AF_INET);
+
+inline int SockAddrSize(TSOCKADDR *sa_c)
+{
+  return
+#ifdef USE_IPV6
+    sa_c->sin6_family == AF_INET6 ? sizeof(sockaddr_in6) :
+#endif
+    sizeof(sockaddr_in);
+}
+
 
 #define http_range  0
 #define proxy_range 2

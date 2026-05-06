@@ -104,15 +104,6 @@ static union {
 //int tftp_s;
 
 
-inline int SockAddrSize(TSOCKADDR *sa_c)
-{
-  return
-#ifdef USE_IPV6
-    sa_c->sin6_family == AF_INET6 ? sizeof(sockaddr_in6) :
-#endif
-    sizeof(sockaddr_in);
-}
-
 int TFTPSendErr(TSOCKADDR *to, int code, char *txt)
 {
   int l;
@@ -298,66 +289,6 @@ void TFTPReq::Done()
     if(opened_tftp_files)
       opened_tftp_files--;
   }
-}
-
-int UDPSrvSock46(int port, char *adapter, int af_f = AF_INET);
-int UDPSrvSock46(int port, char *adapter, int af_f)
-{
-  int s;
-
-#ifdef USE_IPV6
-  union {
-    struct sockaddr_in6 sa_server6;
-    struct sockaddr_in sa_server;
-    TSOCKADDR sa_server46;
-  };
-
-  memset((char *) &sa_server, 0, sizeof(sa_server6));
-#else
-  union {
-    struct sockaddr_in sa_server;
-    TSOCKADDR sa_server46;
-  };
-  memset((char *) &sa_server, 0, sizeof(sa_server));
-#endif
-
-  while(1)
-  {
-    sa_server.sin_family = af_f;
-
-    if( (s = socket(af_f, SOCK_DGRAM, IPPROTO_UDP)) != -1 )
-      break;
-
-    debug("could not get socket for port %d type %d", port, af_f);
-    if(af_f == AF_INET6)
-    {
-      af_f = AF_INET;
-      continue;
-    }
-    return 0;
-  }
-#ifdef SYSUNIX
-  fcntl(s, F_SETFD, fcntl(s, F_GETFD) | FD_CLOEXEC);
-#endif
-
-  setsockopt(s, SOL_SOCKET, SO_REUSEADDR, (char *)&one, sizeof(one));
-//  setsockopt(s,SOL_SOCKET,SO_BROADCAST,(char *)&one,sizeof(one));
-  if(adapter) sa_server.sin_addr.s_addr = ConvertIP(adapter); //htonl(INADDR_ANY);
-  sa_server.sin_port = htons(port);
-  while(1) {
-    if(!bind(s, (struct sockaddr *) &sa_server, SockAddrSize(&sa_server46) )) break;
-
-    debug("Error. Could not bind socket to port %u. (%d)" SER, port, WSAGetLastError() Xstrerror(errno));
-
-    if(ChkWaitBind()) continue;
-
-    shutdown( s, 2 );
-    closesocket( (int) s);
-    return 0;
-  }
-  setsockopt(s, SOL_SOCKET, SO_REUSEADDR, (char *)&one, sizeof(one));
-  //setsockopt(s,SOL_SOCKET,SO_BROADCAST,(char *)&one,sizeof(one));
-  return s;
 }
 
 TFTPReq *FindTFTP(TSOCKADDR *sa_c)

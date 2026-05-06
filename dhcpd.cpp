@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2023 Maksim Feoktistov.
+ * Copyright (C) 1999-2026 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov
@@ -59,11 +59,7 @@ char *dhcp_fname="dhcp";
 char *dhcp_bcast="255.255.255.255";
 #define DHCP_SAVE_INTERVAL (3600*12)
 
-static union
-{
- ulong next_dhcp_ip;
- uchar ndi[4];
-};
+static ulong next_dhcp_ip;
 
 int isIpFree(ulong i)
 {DHCPbase *d;
@@ -250,40 +246,63 @@ void LoadDHCP()
 }
 
 
-
-
-int UDPSrvSock(int port,char *adapter)
+int UDPSrvSock46(int port, char *adapter, int af_f)
 {
- int s;
- struct sockaddr_in sa_server;
- memset((char *) &sa_server,0,sizeof(sa_server));
- sa_server.sin_family=AF_INET;
+  int s;
 
- if( (s = socket(AF_INET,SOCK_DGRAM,IPPROTO_UDP)) == -1 )
- {   debug("could not get socket"); return 0;}
- #ifdef SYSUNIX
- fcntl(s, F_SETFD, fcntl(s, F_GETFD) | FD_CLOEXEC);
- #endif
+#ifdef USE_IPV6
+  union {
+    struct sockaddr_in6 sa_server6;
+    struct sockaddr_in sa_server;
+    TSOCKADDR sa_server46;
+  };
 
-  setsockopt(s,SOL_SOCKET,SO_REUSEADDR,(char *)&one,sizeof(one));
-  setsockopt(s,SOL_SOCKET,SO_BROADCAST,(char *)&one,sizeof(one));
-  sa_server.sin_addr.s_addr=ConvertIP(adapter);  //htonl(INADDR_ANY);
-  sa_server.sin_port=htons(port);
-try_bind_again:
- if(bind(s,(struct sockaddr *) &sa_server, sizeof(sa_server) )
-   )
-   {
-     debug("Error. Could not bind socket to port %u. (%d)" SER  ,port, WSAGetLastError() Xstrerror(errno));
+  memset((char *) &sa_server, 0, sizeof(sa_server6));
+#else
+  union {
+    struct sockaddr_in sa_server;
+    TSOCKADDR sa_server46;
+  };
+  memset((char *) &sa_server, 0, sizeof(sa_server));
+#endif
 
-     if(ChkWaitBind())goto try_bind_again;
+  while(1)
+  {
+    sa_server.sin_family = af_f;
 
-     shutdown( s, 2 );
-     closesocket( (int) s);
-     return 0;
-   }
-   setsockopt(s,SOL_SOCKET,SO_REUSEADDR,(char *)&one,sizeof(one));
-   setsockopt(s,SOL_SOCKET,SO_BROADCAST,(char *)&one,sizeof(one));
- return s;
+    if( (s = socket(af_f, SOCK_DGRAM, IPPROTO_UDP)) != -1 )
+      break;
+
+    debug("could not get socket for port %d type %d", port, af_f);
+    if(af_f == AF_INET6)
+    {
+      af_f = AF_INET;
+      continue;
+    }
+    return 0;
+  }
+#ifdef SYSUNIX
+  fcntl(s, F_SETFD, fcntl(s, F_GETFD) | FD_CLOEXEC);
+#endif
+
+  setsockopt(s, SOL_SOCKET, SO_REUSEADDR, (char *)&one, sizeof(one));
+  if(port == 67) setsockopt(s,SOL_SOCKET,SO_BROADCAST,(char *)&one,sizeof(one));
+  if(adapter) sa_server.sin_addr.s_addr = ConvertIP(adapter); //htonl(INADDR_ANY);
+  sa_server.sin_port = htons(port);
+  while(1) {
+    if(!bind(s, (struct sockaddr *) &sa_server, SockAddrSize(&sa_server46) )) break;
+
+    debug("Error. Could not bind socket to port %u. (%d)" SER, port, WSAGetLastError() Xstrerror(errno));
+
+    if(ChkWaitBind()) continue;
+
+    shutdown( s, 2 );
+    closesocket( (int) s);
+    return 0;
+  }
+  setsockopt(s, SOL_SOCKET, SO_REUSEADDR, (char *)&one, sizeof(one));
+  if(port == 67) setsockopt(s,SOL_SOCKET,SO_BROADCAST,(char *)&one,sizeof(one));
+  return s;
 }
 
 void OptDHCP()
@@ -308,12 +327,12 @@ void OptDHCP()
 
 int InitDHCP()
 {
-  if((dhcpd_so=UDPSrvSock(67,dhcp_addr))<0)
+  if((dhcpd_so=UDPSrvSock46(67,dhcp_addr))<0)
   {
    debug("Could not get secondary socket for DHCP");
 
   };
-  if((dhcpd_s=UDPSrvSock(67,"0.0.0.0")) < 0)dhcpd_s=dhcpd_so;
+  if((dhcpd_s=UDPSrvSock46(67,"0.0.0.0")) < 0)dhcpd_s=dhcpd_so;
   if(dhcpd_s>0)
   { LoadDHCP();
     OptDHCP();

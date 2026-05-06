@@ -22,7 +22,7 @@
 #
 #
 
-VERSION=3.06.40test20
+VERSION=3.06.40test21
 VERSIONT=3.06.40test
 VERSION_CODE=0x30640
 BUDIR=../site/30640/
@@ -1224,6 +1224,7 @@ ARMOBJ= arm/to_linux.o $(addprefix arm/,$(POBJS)) arm/telnet.o
 
 ARMOPT= -pipe -falign-loops=0 -falign-jumps=0 -falign-functions=0 -fno-enforce-eh-specs \
 -fno-verbose-asm -fno-implicit-templates  -DUSE_FUTEX -DUSE_POOL -DFREEVER -DWITHMD5 -DTELNET -DSHS_VERSION=$(VERSION) -DVERSION_CODE=$(VERSION_CODE) \
+ -DWITHTLS_1_3 -DTFTP \
  -fwritable-strings -DUSE_IPV6  -fno-exceptions -fno-nonansi-builtins  -fno-rtti  -fno-ms-extensions -fno-builtin  -fno-access-control  -Wno-deprecated
 
 ARMLOPT= -Xlinker -Map -Xlinker flxmap
@@ -1292,12 +1293,12 @@ ATINCLUDE3=/usr/src/musl-1.2.3/arch/arm
 ATINCLUDE4=/usr/src/musl-1.2.3/obj/include
 ATINCLUDE5=/usr/src/musl-1.2.3/arch/generic
 
-ATFLAGS= -mlittle-endian -marm  -mcpu=arm926ej-s -mthumb-interwork  -msoft-float -Uarm  -nostdinc -I$(ATINCLUDE) -I$(ATINCLUDE3) -I$(ATINCLUDE4) -I$(ATINCLUDE5) -I$(ATSYSINCLUDE)  -Wno-deprecated-declarations -Wno-conversion  -Wno-write-strings  -fno-access-control  -fno-nonansi-builtins -fno-elide-constructors -fno-enforce-eh-specs   -fno-rtti  -fno-weak -nostdinc++  -Wnoexcept   -fno-exceptions -Wno-format -fpermissive -DARM -DLINUX  -DSYSUNIX -DNOTINTEL -DAT_ARM -DFREEVER -DTELNET -DUSE_IPV6 -DV_FULL=1 -DUSE_FUTEX -DUSE_POOL -DWITHMD5 -DFIX_EXCEPT -DUSEVALIST -DVPN_LINUX -DTLSVPN -DSHS_VERSION=$(VERSION) -DVERSION_CODE=$(VERSION_CODE)
+ATFLAGS= -mlittle-endian -marm  -mcpu=arm926ej-s -mthumb-interwork  -msoft-float -Uarm  -nostdinc -I$(ATINCLUDE) -I$(ATINCLUDE3) -I$(ATINCLUDE4) -I$(ATINCLUDE5) -I$(ATSYSINCLUDE)  -Wno-deprecated-declarations -Wno-conversion  -Wno-write-strings  -fno-access-control  -fno-nonansi-builtins -fno-elide-constructors -fno-enforce-eh-specs   -fno-rtti  -fno-weak -nostdinc++  -Wnoexcept   -fno-exceptions -Wno-format -fpermissive -DARM -DLINUX  -DSYSUNIX -DNOTINTEL -DAT_ARM -DFREEVER -DTELNET -DUSE_IPV6 -DV_FULL=1 -DUSE_FUTEX -DUSE_POOL -DWITHMD5 -DFIX_EXCEPT -DUSEVALIST -DVPN_LINUX -DTLSVPN -DSHS_VERSION=$(VERSION) -DVERSION_CODE=$(VERSION_CODE) -DWITHTLS_1_3 -DTFTP
 
 #   -fno-implicit-templates -fno-implicit-inline-templates  -fno-for-scope-fnothrow-opt  -fno-pretty-templates
 
 
-ATOBJS0=to_linux.o srv0a.o srv_ssi.o srv_cgi.o req.o accept.o tools.o adminr.o restart.o proxy.o musers.o conf.o icfg.o stat.o icfgjs.o ftpd.o smptps.o smtpcl.o mailip.o dnsd.o tlsm.o gz.o dhcpd.o wmbx.o bvprintfv.o telnet.o md5.o msprintfchk.o fcgi.o vpn.o reqfunc.o srvmd5.o
+ATOBJS0=to_linux.o srv0a.o srv_ssi.o srv_cgi.o req.o accept.o tools.o adminr.o restart.o proxy.o musers.o conf.o icfg.o stat.o icfgjs.o ftpd.o smptps.o smtpcl.o mailip.o dnsd.o tlsm.o gz.o dhcpd.o wmbx.o bvprintfv.o telnet.o md5.o msprintfchk.o fcgi.o vpn.o reqfunc.o srvmd5.o tftp.o
 
 ATOBJS=$(addprefix at/,$(ATOBJS0))
 ATOBJS_TLS=$(addprefix at/tls_,$(ATOBJS0))
@@ -1338,7 +1339,7 @@ at/httpd.exgnutls: $(ATOBJS_TLS) at/rungnutls.o
 at/shs_vpnclient: $(ATVPNCL)
 	$(ATGPP)  $(S) -o $@ $^  -mlittle-endian  -msoft-float -march=armv5te -mtune=arm9tdmi -L$(ATLIB)/  -L$(ATSYSLIB)  -nostartfiles  $(ATLIB)/crt1.o $(ATLIB)/crti.o $(ATLIB)/crtn.o -static -lc -lutil -lpthread
 
-N_OBJS0=to_linux.o srv0a.o srv_ssi.o srv_cgi.o req.o accept.o tools.o adminr.o restart.o proxy.o musers.o conf.o icfg.o stat.o icfgjs.o ftpd.o smptps.o smtpcl.o mailip.o dnsd.o tlsm.o gz.o dhcpd.o wmbx.o bvprintfv.o telnet.o md5.o msprintfchk.o fcgi.o vpn.o reqfunc.o srvmd5.o
+N_OBJS0=to_linux.o srv0a.o srv_ssi.o srv_cgi.o req.o accept.o tools.o adminr.o restart.o proxy.o musers.o conf.o icfg.o stat.o icfgjs.o ftpd.o smptps.o smtpcl.o mailip.o dnsd.o tlsm.o gz.o dhcpd.o wmbx.o bvprintfv.o telnet.o md5.o msprintfchk.o fcgi.o vpn.o reqfunc.o srvmd5.o tftp.o
 N_OBJS=$(addprefix oo/,$(N_OBJS0))
 N_OBJS_TLS=$(addprefix oo/tls_,$(N_OBJS0))
 N_VPNCL=$(addprefix oo/,$(VPNCLOBJ))
@@ -1347,7 +1348,7 @@ N_VPNCL_TLS=$(addprefix oo/,$(CCOBJS)) $(addprefix oo/tls_,$(CVPNCLOBJ)) $(addpr
 $(N_OBJS): $(GENERATED)
 
 n_all: A_GCC=$(CROSS_COMPILE)gcc
-n_all: N_FLAGS = -mlittle-endian -Wno-deprecated-declarations -Wno-conversion  -Wno-write-strings  -fno-access-control  -fno-nonansi-builtins -fno-elide-constructors -fno-enforce-eh-specs   -fno-rtti  -fno-weak -nostdinc++  -Wnoexcept -fno-exceptions -Wno-format -fpermissive -DLINUX -DSYSUNIX -DNOTINTEL -DFREEVER -DTELNET -DUSE_IPV6 -DV_FULL=1 -DUSE_FUTEX -DUSE_POOL -DWITHMD5 -DFIX_EXCEPT -DUSEVALIST -DVPN_LINUX -DTLSVPN -DUSE_SYSPASS -DSHS_VERSION=$(VERSION) -DVERSION_CODE=$(VERSION_CODE) $(A_OPT) $(ADVOPT) -DSEPLOG
+n_all: N_FLAGS = -mlittle-endian -Wno-deprecated-declarations -Wno-conversion  -Wno-write-strings  -fno-access-control  -fno-nonansi-builtins -fno-elide-constructors -fno-enforce-eh-specs   -fno-rtti  -fno-weak -nostdinc++  -Wnoexcept -fno-exceptions -Wno-format -fpermissive -DLINUX -DSYSUNIX -DNOTINTEL -DFREEVER -DTELNET -DUSE_IPV6 -DV_FULL=1 -DUSE_FUTEX -DUSE_POOL -DWITHMD5 -DFIX_EXCEPT -DUSEVALIST -DVPN_LINUX -DTLSVPN -DUSE_SYSPASS -DSHS_VERSION=$(VERSION) -DVERSION_CODE=$(VERSION_CODE) $(A_OPT) $(ADVOPT) -DSEPLOG -DWITHTLS_1_3 -DTFTP
 n_all: $(TMPRAM)oo o oo oo/vpnclient $(N_DEP) oo/httpd.exe oo/sndmsg oo/libsec111.so oo/libsecgnutls.so oo/httpd.exopenssl oo/httpd.exgnutls oo/shs_vpnclient oo/shs_vpnclient.openssl oo/shs_vpnclient.gnutls oo/shs_ctl
 
 oo/%.o : %.cpp
