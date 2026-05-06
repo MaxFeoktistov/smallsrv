@@ -420,7 +420,7 @@ int CmpIPforHost(char *host, TSOCKADDR *sa_c)
   int typA_be = IsIPv6((sockaddr_in *) sa_c)? rtypeAAAA_BE : rtypeA_BE;
   char *t = askDNS(host, &dmm, typA_be);
 
-  DBGLA("MX %s %u", host, (int) !!t)
+  DBGLA("Found A for %s %u", host, (int) !!t)
 
   if(t)
   {
@@ -477,7 +477,7 @@ int DNS_RR_ParseHelper::cmpPTR(char *hst)
 
 #endif // DONT_USE_CPP_METHOD_POINTER
 
-
+/*
 int find_spf_patern(char *s, char *pat, char* prefix)
 {
   int l = strlen(pat);
@@ -493,6 +493,7 @@ int find_spf_patern(char *s, char *pat, char* prefix)
 
   return 0;
 }
+*/
 
 int CheckSPF(char *host, TSOCKADDR *sa_c, d_msg *dmm, int type_be)
 {
@@ -530,7 +531,7 @@ int CheckSPF(char *host, TSOCKADDR *sa_c, d_msg *dmm, int type_be)
 
         DBGLA("%.128s ", parser.next_info->rdata)
 
-        if(stristr(rd = (char *) parser.next_info->rdata, "v=spf1") )
+        if(stristr(rd = (char *) parser.next_info->rdata + 1, "v=spf1") )
         {
           u32  flags = 0;
           enum PresentFlags {
@@ -544,25 +545,30 @@ int CheckSPF(char *host, TSOCKADDR *sa_c, d_msg *dmm, int type_be)
           };
 
           ret = SPF_IP_EXCLUDED;
+
+          for(t = rd; *t; t++)
+            if(*t == '+' || *t == '\t')
+              *t = ' ';
+
           if(stristr(rd, "-all")) ret = SPF_HARD;
           if(stristr(rd, "~all")) ret = SPF_SOFT;
-
+          /*
           if(find_spf_patern(rd, "a", "+ \t\r\n"))   flags |= HAVE_A;
           if(find_spf_patern(rd, "mx", "+ \t\r\n"))  flags |= HAVE_MX;
           if(find_spf_patern(rd, "ptr", "+ \t\r\n")) flags |= HAVE_PTR;
-          if(stristr(rd, "include:"))   flags |= HAVE_INCLUDE;
-          if(stristr(rd, "mx:"))   flags |= HAVE_MX2;
-
-          /*
-          if(stristr(rd, " a "))   flags |= 1;
-          if(stristr(rd, " mx "))  flags |= 2;
-          if(stristr(rd, " ptr ")) flags |= 4;
           */
+          if(stristr(rd, " a "))   flags |= HAVE_A;
+          if(stristr(rd, " mx "))  flags |= HAVE_MX;
+          if(stristr(rd, " ptr ")) flags |= HAVE_PTR;
+
+          if(stristr(rd, "include:"))   flags |= HAVE_INCLUDE;
+          if(stristr(rd, " mx:"))   flags |= HAVE_MX2;
+
 #ifdef SUPPORT_EXISTS_SPF
           if(stristr(rd, " exists ")) flags |= 0x20;
 #endif
 
-          debug("Found SPF: '%s' (ret:%d flags:%X deep:%d)\r\n", rd + 1, ret, flags, 5 - inc_limit);
+          debug("Found SPF: '%s' (ret:%d flags:%X deep:%d)\r\n", rd, ret, flags, 5 - inc_limit);
 
           found = strstr(rd, ip);
           if(found)
@@ -581,6 +587,8 @@ int CheckSPF(char *host, TSOCKADDR *sa_c, d_msg *dmm, int type_be)
               int nmsk = atoui(t+1);
 
               DBGLA("net %d (%.16s)", nmsk, found)
+
+              if(nmsk < 8) continue;
 #ifdef USE_IPV6
               if(is6)
               {
@@ -617,7 +625,8 @@ int CheckSPF(char *host, TSOCKADDR *sa_c, d_msg *dmm, int type_be)
 
                 DBGLA("net %X %X", net, msk)
 
-                if(! ((IPv4addr((sockaddr_in *) sa_c) ^ net) & msk)) {
+                if(! ((IPv4addr((sockaddr_in *) sa_c) ^ net) & msk))
+                {
 
                   DBGLA("into net %X", net)
                   return SPF_OK;
@@ -739,16 +748,11 @@ int CheckSPF(char *host, TSOCKADDR *sa_c, d_msg *dmm, int type_be)
               if(dmm2 == dmm)
                 alloc_dmm2();
 
-              for(found = (char *) parser.next_info->rdata ; (found = stristr(found, "mx:")) ; )
+              for(found = (char *) parser.next_info->rdata ; (found = stristr(found, " mx:")) ; )
               {
                 char *tt;
 
-                if(found[-1] >= '0')
-                {
-                  ++found;
-                  continue;
-                }
-                found += 3;
+                found += 4;
                 tt = strpbrk(found, " \t\r\n");
                 if(tt) *tt = 0;
 
