@@ -1177,6 +1177,13 @@ extern char *lim_str[10],*l_str[10],*glst,*blst,*graylst,*dhcp_bcast,*dhcp_addr;
 int BSend(int s,char *b,int l);
 void LoadDomainM();
 void CloseSocket(int);
+
+#ifdef SYSUNIX
+void SetCloseExec(int s);
+#else
+#define SetCloseExec(a)
+#endif
+
 char* OutLL(long x0, long x1,char *t);
 extern time_t cur_time;
 extern int ChkThread;

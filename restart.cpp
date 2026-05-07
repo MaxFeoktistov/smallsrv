@@ -466,10 +466,7 @@ lip4:
         die( sCOULD_NOT );
       sa_server.sin_family = AF_INET;
     }
-#ifdef SYSUNIX
-    fcntl(s, F_SETFD, fcntl(s, F_GETFD) | FD_CLOEXEC);
-#endif
-
+    SetCloseExec(s);
 
     setsockopt(s, SOL_SOCKET, SO_REUSEADDR, (char *)&one, sizeof(one));
 //  debug("Sock %d %d",s,k);

@@ -848,9 +848,7 @@ int Req::FTPReq()
             listen(s3,1);
             //  ioctlsocket(s3,FIONBIO, (ulong *) &one);
           }
-          #ifdef SYSUNIX
-          fcntl(s3, F_SETFD, fcntl(s3, F_GETFD) | FD_CLOEXEC);
-          #endif
+          SetCloseExec(s3);
           getsockname(s,(sockaddr *)&prti, &(i=sizeof(sa)) );
           getsockname(s3,(sockaddr *)&sa, &(i=(sa.sin_family==AF_INET6)? sizeof(sa6) : sizeof(sa)) );
 
@@ -1164,9 +1162,7 @@ int Req::FTPReq()
                       CloseSocket(s2);
                       goto er421;
                     }
-                    #ifdef SYSUNIX
-                    fcntl(s2, F_SETFD, fcntl(s2, F_GETFD) | FD_CLOEXEC);
-                    #endif
+                    SetCloseExec(s2);
                   }else
                   {
                     er421:

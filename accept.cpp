@@ -305,8 +305,8 @@ int WINAPI SetServ(uint fnc)
   SrvErr[serv]=0;
 #ifdef SYSUNIX
   if(!req.s)req.s=dup(req.s);
-  fcntl(req.s, F_SETFD, fcntl(req.s, F_GETFD) | FD_CLOEXEC);
 #endif
+  SetCloseExec(req.s);
   req.tmout=GetTickCount();
   req.bSpd=0;
   req.Tout=0;

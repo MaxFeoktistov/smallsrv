@@ -213,9 +213,7 @@ char *askDNS(char *adr, d_msg  *dmm, int type_be)
   {
     return 0;
   }
-  #ifdef SYSUNIX
-  fcntl(dns_s, F_SETFD, fcntl(dns_s, F_GETFD) | FD_CLOEXEC);
-  #endif
+  SetCloseExec(dns_s);
   //addr_dns
   if(!dns_for_mail_ip)
     dns_for_mail_ip=ConvertIP(t=dns_server_for_mail);

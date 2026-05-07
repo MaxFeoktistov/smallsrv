@@ -437,6 +437,7 @@ int tun_alloc(int index)
     }
 
     if(rt_fd<=0) rt_fd = socket( PF_INET, SOCK_DGRAM,  IPPROTO_IP);
+    SetCloseExec(rt_fd);
     if( tuntap_flags[index] & IFF_TAP )
     {
       if( (r=ioctl(rt_fd,  SIOCGIFHWADDR, &ifr) ) )
@@ -1384,7 +1385,7 @@ int send_echo_request(u32 ip, int len)
   struct sockaddr_in addr;
 
   int s = socket(AF_INET,SOCK_RAW,IPPROTO_ICMP);
-
+  SetCloseExec(s);
   if (s == -1)
   {
     debug("Error get socket for welcom PING: %d %s\n",errno,strerror(errno));
@@ -1425,6 +1426,8 @@ int send_echo_request(u32 ip, int len)
 	  }
 	  break;
   }
+  Sleep(10);
+  closesocket(s);
   return r;
 }
 

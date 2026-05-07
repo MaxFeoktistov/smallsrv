@@ -1,4 +1,4 @@
-smallsrv (3.06.40test19) unstable; urgency=low
+smallsrv (3.06.40test22) unstable; urgency=low
 
   * DNS server changes. Fixed a bug when loading a domain from a
     file for secondary mode.
@@ -12,8 +12,9 @@ smallsrv (3.06.40test19) unstable; urgency=low
   * Options for checking domain SPF records have been added to the SMTP
     server.
   * Fixed a bug in the TXT record in the DNS server in secondary server mode.
+  * Updated VPN server.
 
- -- Maksim Feoktistov <max@smallsrv.com>  Sun, 03 May 2026 09:58:55 +0400
+ -- Maksim Feoktistov <max@smallsrv.com>  Thu, 07 May 2026 09:01:48 +0400
 
 smallsrv (3.06.39) unstable; urgency=low
 

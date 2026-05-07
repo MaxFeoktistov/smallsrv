@@ -279,6 +279,13 @@ int anychars(char *name)
  return 0;
 }
 
+#ifdef SYSUNIX
+void SetCloseExec(int s)
+{
+  fcntl(s, F_SETFD, fcntl(s, F_GETFD) | FD_CLOEXEC);
+}
+#endif
+
 int call_socket(char *lhstname, int portnum)
 {
 #ifdef  USE_IPV6
@@ -344,9 +351,7 @@ int call_socket(char *lhstname, int portnum)
     sa.sin_family=AF_INET;
     if((s=socket(AF_INET,SOCK_STREAM,IPPROTO_TCP)) <= 0)return -1;
   }
-  #ifdef SYSUNIX
-  fcntl(s, F_SETFD, fcntl(s, F_GETFD) | FD_CLOEXEC);
-  #endif
+  SetCloseExec(s);
   sa.sin_port=htons((ushort)portnum);
   /*
    * DBGLA("s=%d %X %X %X [%X:%X:%X:%X:%X:%X:%X:%X]",s,sa.sin_port,sa6.sin6_port,sa.sin_family,

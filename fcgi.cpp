@@ -213,10 +213,7 @@ int FCGI_task::Connect(FCGI_req *f_req)
     f_req->s = socket(AF_INET, SOCK_STREAM, 0);
     setsockopt(f_req->s, SOL_SOCKET, SO_REUSEADDR, (char *) &one, sizeof(int));
   }
-  #ifdef SYSUNIX
-  fcntl(f_req->s, F_SETFD, fcntl(f_req->s, F_GETFD) | FD_CLOEXEC);
-  #endif
-
+  SetCloseExec(f_req->s);
   if( connect(f_req->s, (sockaddr *)&sa, sockaddr_len) < 0 )
   {
     closesocket(f_req->s);

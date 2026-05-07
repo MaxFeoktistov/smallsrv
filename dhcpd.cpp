@@ -281,10 +281,7 @@ int UDPSrvSock46(int port, char *adapter, int af_f)
     }
     return 0;
   }
-#ifdef SYSUNIX
-  fcntl(s, F_SETFD, fcntl(s, F_GETFD) | FD_CLOEXEC);
-#endif
-
+  SetCloseExec(s);
   setsockopt(s, SOL_SOCKET, SO_REUSEADDR, (char *)&one, sizeof(one));
   if(port == 67) setsockopt(s,SOL_SOCKET,SO_BROADCAST,(char *)&one,sizeof(one));
   if(adapter) sa_server.sin_addr.s_addr = ConvertIP(adapter); //htonl(INADDR_ANY);

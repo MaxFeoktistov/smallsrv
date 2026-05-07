@@ -22,7 +22,7 @@
 #
 #
 
-VERSION=3.06.40test21
+VERSION=3.06.40test22
 VERSIONT=3.06.40test
 VERSION_CODE=0x30640
 BUDIR=../site/30640/
@@ -192,7 +192,8 @@ WIN64ELFLG=  -mwindows $(WIN64LIB) -luser32 -lkernel32 -lws2_32 -lgdi32 -lshell3
 LOPT=   -dynamic-linker   -Xlinker -Map -Xlinker o/flxmap  -nodefaultlibs
 LOPT64=   -dynamic-linker   -Xlinker -Map -Xlinker o64/flxmap  -nodefaultlibs
 
-LIB= $(LIBDIR32) -lpthread  $(LIBDIR32) -ldl $(LIBDIR32) -lc $(LIBDIR32) -lgcc -lc_nonshared  $(LIBDIR32) -lcrypt
+LIBRT=  $(LIBDIR32) -lrt
+LIB= $(LIBDIR32) -lpthread  $(LIBDIR32) -ldl $(LIBDIR32) -lc $(LIBDIR32) -lgcc -lc_nonshared  $(LIBDIR32) -lcrypt $(LIBRT)
 LIB64= $(LIBDIR64) -lpthread  $(LIBDIR64) -ldl $(LIBDIR64) -lc  $(LIBDIR32) -lgcc -lc_nonshared $(LIBDIR32) -lcrypt
 LIB64u=  -ldl -lpthread  -lc -lgcc -lc_nonshared -lcrypt
 
