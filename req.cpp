@@ -244,6 +244,7 @@ int Req::HttpReq()
   char *xin_buf, *in_buf;
   char *p, *t, *tp, *tp1, *tpp, *templ, *pwd;
   int l, i, h, ii, xgz, ll, ncntn, proxy_flg;
+  int end_move_flag;
   ulong ttm = 0, tick;
   int head;
 #ifndef SYSUNIX
@@ -437,7 +438,7 @@ vhstfound: dir = a->d;
     if(dir[dirlen - 1] == FSLUSH )dir[--dirlen] = 0;
     flsrv[0] = xgz;
 
-    if( DWORD_PTR(in_buf[0]) == 0x54534F50 x4CHAR("POST") )fl |= 1;
+    if( DWORD_PTR(in_buf[0]) == 0x54534F50 x4CHAR("POST") )fl |= F_POST;
 
     if( DWORD_PTR(in_buf[h + 3]) == 0x2F2F3A70 x4CHAR("p://") )
     { if( (t = strchr(in_buf + h + 8, '/'))) h = t - in_buf; else in_buf[(h += 6) + 1] = ' '; }
@@ -463,13 +464,20 @@ bdreq:
       goto ex2;
     }
 
-    if((req = strpbrk(in_buf, "? \r")) && *req == '?')
+    end_move_flag = 0;
+    if((req = strpbrk(in_buf, "? \r\n")) && *req == '?')
     {
       *req++ = 0;
       if(req[-2] == '/')
       {
         ll = strlen(def_name) + 8;
-        if((ll + l) < 8190)
+        if((in_buf - ll) > xin_buf)
+        {
+          memcpy(in_buf - ll, in_buf, req - in_buf);
+          in_buf -= ll;
+          end_move_flag = 1;
+        }
+        else if((ll + l) < 8190)
         {
           memcpy_back(in_buf + l + ll, in_buf + l, in_buf + l - req + 1 );
 
@@ -477,7 +485,9 @@ bdreq:
           if(pst >= req)pst += ll;
           req += ll;
           l += ll;
+          end_move_flag = 1;
         }
+        else end_move_flag = 2;
       }
 
     }
@@ -615,10 +625,16 @@ bdreq:
     if(! (p = CheckBadName(in_buf))) goto bdreq;
     if(p[-1] == FSLUSH)
     {
-      if(fl & F_POST ) //POST
+      if((fl & F_POST) && ! end_move_flag)
       {
         ll = strlen(def_name) + 8;
-        if((ll + l) < 8190)
+
+        if((in_buf - ll) > xin_buf)
+        {
+          memcpy(in_buf - ll, in_buf, p - in_buf);
+          loc = in_buf -= ll;
+        }
+        else if((ll + l) < 8190)
         {
           memcpy_back(in_buf + l + ll, in_buf + l, in_buf + l - p + 1 );
           if(pst >= p)pst += ll;
