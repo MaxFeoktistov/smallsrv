@@ -91,7 +91,7 @@ char *FwdVars[12] =
 {"size_kb", 0, "errorlevel", 0, "text", 0, "msgfile", 0, "body", 0, 0, 0};
 int MLChk::RunForward(char *mbx)
 {
-  int h, s, x, r; //i,
+  int h, s, x, r;
   r = 0;
   rez = 0;
   char *vars[12];
@@ -371,9 +371,8 @@ ulong WINAPI SMTPcl(void *)
 {
   char pth[512], *bb;
   MLChk chk;
-  // ulong last;
   WIN32_FIND_DATA fnds;
-  HANDLE hdl = INVALID_HANDLE_VALUE; //, hdlf;
+  HANDLE hdl = INVALID_HANDLE_VALUE; 
 #ifndef SYSUNIX
   HANDLE hdlf;
 #endif
@@ -526,7 +525,7 @@ lb_reload2:
             { //Local
               *t4 = 0;
               puser = FindUser(t2, (s_flgs[3] & FL3_SMTP_USR_ICASE) ?
-                                      (UserPOP3 | FindUserCaseIns) : UserPOP3, 0, 0);
+                               (UserPOP3 | FindUserCaseIns) : UserPOP3, 0, 0);
               *t4 = '@';
               if(!puser)
               {
@@ -896,17 +895,15 @@ void CheckFileTime::CheckDir(char *bfr, char *pdir, long d)
 }
 void CheckFileTime::CheckProxy()
 {
-  //WIN32_FIND_DATA fnds;
 #ifndef SYSUNIX
   HANDLE  hdl;
   SYSTEMTIME  stime;
 #endif
 
   FILETIME FTime;
-  long d; //, dd;
+  long d; 
   char bfr[512];
   char pdir[12];
-  // ToDel dlst;
   int i = 0;
   if(dir && time)
   {

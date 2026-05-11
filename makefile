@@ -22,7 +22,7 @@
 #
 #
 
-VERSION=3.06.40test23
+VERSION=3.06.40
 VERSIONT=3.06.40test
 VERSION_CODE=0x30640
 BUDIR=../site/30640/
@@ -727,10 +727,10 @@ fixicfghtm: icfghtm.cpp
 
 #t2icfghtm.cpp o/strhtm.hh g4strhtm.hh: icfghtm.cpp
 
-t2icfghtm.cpp: icfghtm.cpp
-	rm -f o/strhtm.hh
-	./getstr -f o/strhtm.hh -y -n t2 icfghtm.cpp
-	./def4str.pl S5 <o/strhtm.hh >g4strhtm.hh
+# t2icfghtm.cpp: icfghtm.cpp
+# 	rm -f o/strhtm.hh
+# 	./getstr -f o/strhtm.hh -y -n t2 icfghtm.cpp
+# 	./def4str.pl S5 <o/strhtm.hh >g4strhtm.hh
 
 
 #GENERATED_HEADERS= g4s1.hh g4strc.h g4strcwm.h
@@ -1504,5 +1504,5 @@ vpncdeb: vpncsources
 	cd o/$(vpncsrc_dir) ; DEBEMAIL="max@smallsrv.com" ; DEBFULLNAME="Maksim Feoktistov" ; debmake -b "binarypackage:bin" ; debuild -i -us -uc -b
 
 fix_style: $(wildcard *.cpp)
-	for i in $^ ; do if [[ $$i -nt .git/index ]] ; then astyle --indent=spaces=2 --keep-one-line-blocks --keep-one-line-statements --pad-oper --indent-switches --pad-comma $$i ; fi ; done
+	for i in $^ ; do if [ $$i -nt .git/COMMIT_EDITMSG ] ; then echo astyle --indent=spaces=2 --keep-one-line-blocks --keep-one-line-statements --pad-oper --indent-switches --pad-comma $$i ; fi ; done
 

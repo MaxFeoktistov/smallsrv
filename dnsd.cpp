@@ -522,7 +522,7 @@ NSRecord  * FindRec(NSRecordArray  * thi, NSRecord  *first, ulong hash, char *nm
         }
         first++;
       }
-      DBGLA("not found %u %s %X %X",thi->cnt,nm,first,last);
+      DBGLA("not found %u %s %X %X", thi->cnt, nm, first, last);
       thi = thi->next;
       if(!thi)return 0;
       first = thi->d;
@@ -594,7 +594,6 @@ void NSRecordArray::DelHash(int k)
 NSRecord  * FastFindRec(NSRecordArray  * thi, NSRecord  *first, ulong hash, char *nm)
 {
   NSRecord  *last;
-  //char *t;
   int i, j;
 
   if(thi->need_rehash > 128)thi->Rehash();
@@ -638,7 +637,7 @@ NSRecord  * FastFindRec(NSRecordArray  * thi, NSRecord  *first, ulong hash, char
         }
         first++;
       }
-      DBGLA("not found %u %s %X %X",thi->cnt,nm,first,last);
+      DBGLA("not found %u %s %X %X", thi->cnt, nm, first, last);
       if(!thi->next)return 0;
       thi = thi->next;
       first = thi->d;
@@ -826,7 +825,6 @@ const char *FmtShortDNS2[] = { "<%s\r\n", ">%s\r\n"};
 
 #define pprot  lpprot
 #define f_prot lf_prot
-//#define pcnt   lpcnt
 #define b_prot lb_prot
 
 void TLog::LAddToLogDNS(const char *t, int n, TSOCKADDR  *sa, char *ad)
@@ -2103,7 +2101,7 @@ int  WinFixSelect::Select(timeval *tv)
   return 0;
 }
 
-inline void WinFixSelect::ChangeSocket(int n){ WSAEventSelect(soc_srv[SRV_SDNS + n * MAX_SERV], waitHandles[n + 1], FD_READ); }
+inline void WinFixSelect::ChangeSocket(int n) { WSAEventSelect(soc_srv[SRV_SDNS + n * MAX_SERV], waitHandles[n + 1], FD_READ); }
 
 int  WinFixSelect::IsSet(uint n, int s)
 {
@@ -2163,12 +2161,11 @@ ulong WINAPI SetDNSServ(void * fwrk)
   sockaddr_in *psa_client;
 
   ulong stt;
-  // ulong cap, cns, l1, l2, xhst, ttl, cname_hsh, errcounter = 0;
   ulong l1, xhst, ttl;
   //char *ptmp = 0, *t, *t1, *arpa, *et, *p, *lst, *ptyp, *pcn, *pns;
   char *ptmp = 0, *t, *t1, *arpa, *et;
 
-  NSRecord *hst; //, *hst1;
+  NSRecord *hst; 
   FndRec   fnd;
   d_msg  *pdm;
   DNSReq *pdreq, *pdreq2;
@@ -3400,11 +3397,9 @@ int LoadDomain(char *file)
   register char *t;
   int s, i, k, j;
   char *hostfile;
-  //CheckPoint *cp;
 
   NSRecordArray  *arr, *trr;
 
-  //FILETIME tft;
 
   if(file)
   {
@@ -3464,7 +3459,7 @@ er1:
     i = 0;
     for(sec = seconds ; sec ; sec = sec->next)
     {
-      DBGLA("DNS:%u) Secondary %s\r\n",++i,sec->host);
+      DBGLA("DNS:%u) Secondary %s\r\n", ++i, sec->host);
       sec->LoadFile();
     }
 
@@ -3645,8 +3640,6 @@ int InitDnsSrv()
   {
 #ifdef SYSUNIX
     pipe(doh_pipe);
-#else
-    //CreatePipe((HANDLE *)&doh_r, (HANDLE *)&doh_w, &secat, 0x100 * sizeof(void *));
 #endif
   }
 
@@ -4095,11 +4088,11 @@ void  NSRecordArray::Save(char *fname)
           case 3:                    //MD
           case 8:                    //MG
           case 9: t3 = "";      if(0) { //MR
-          case 2: t3 = "NS";    if(0) { //NS
-          case 5: t3 = "CNAME"; if(0) { //CNAME
-          case 12: t3 = "PTR";   if(0) { //PTR
-          case 16: t3 = "TXT"; add = 1; if(0) {
-          case 99: t3 = "SPF"; add = 1;
+            case 2: t3 = "NS";    if(0) { //NS
+              case 5: t3 = "CNAME"; if(0) { //CNAME
+                case 12: t3 = "PTR";   if(0) { //PTR
+                  case 16: t3 = "TXT"; add = 1; if(0) {
+                    case 99: t3 = "SPF"; add = 1;
                     }
                   }
                 }
@@ -4167,7 +4160,7 @@ void Secondary::LoadFile()
 
   if(fname)
   {
-    DBGLA("DNS: Try to load %s\r\n",fname);
+    DBGLA("DNS: Try to load %s\r\n", fname);
     if( (s = _lopen(fname, 0) ) < 0 )
     {
 er1:
@@ -4222,6 +4215,5 @@ er1:
 
 #undef pprot
 #undef f_prot
-//#undef pcnt
 #undef b_prot
 

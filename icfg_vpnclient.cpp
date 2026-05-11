@@ -56,7 +56,7 @@
 // #endif
 
 #ifdef CD_VER
-char *phtml_ini="";
+char *phtml_ini = "";
 #endif
 //static char *tmp_var;
 
@@ -93,84 +93,84 @@ char *phtml_ini="";
 { #a "_limit" ,0x400,0x40000000,(uint *) (limit+c), CXS(S1t2T_3979193, "Total limit for server (Kb)" )}
 
 
-CfgParam ConfigParams[]={
+CfgParam ConfigParams[] = {
 
-{0,0,0,0, CXS(S2sGENERAL_S, "General setting")},
+  {0, 0, 0, 0, CXS(S2sGENERAL_S, "General setting")},
 #ifdef SYSUNIX
-{"noicon",0,FL_NOICON,(uint *)0,CXS(S2sDON_T_OUT, "Don't out log to terminal.")},
-{"hide"  ,0,FL_HIDE,(uint *)0, CXS(S2sSTART_AS_0, "Start as daimon.")},
+  {"noicon", 0, FL_NOICON, (uint *)0, CXS(S2sDON_T_OUT, "Don't out log to terminal.")},
+  {"hide", 0, FL_HIDE, (uint *)0, CXS(S2sSTART_AS_0, "Start as daimon.")},
 #else
-{"noicon",0,FL_NOICON,(uint *)0, CXS(S2sDISABLE_I, "Disable icon in notification area.")},
-{"hide"  ,0,FL_HIDE,(uint *)0, CXS(S2sMINIMIZE_, "Minimize on startup.")},
+  {"noicon", 0, FL_NOICON, (uint *)0, CXS(S2sDISABLE_I, "Disable icon in notification area.")},
+  {"hide", 0, FL_HIDE, (uint *)0, CXS(S2sMINIMIZE_, "Minimize on startup.")},
 #endif
 
-{0,0,0,0, "TLS/SSL"},
+  {0, 0, 0, 0, "TLS/SSL"},
 
 #ifndef  TLSWODLL
-{"tls_lib"  ,256,0,(uint *)&TLSLibrary, CXS(S2sTLS__LIB, "DLL library with TLS/SSL. E.g. libsec111.dll") },
+  {"tls_lib", 256, 0, (uint *)&TLSLibrary, CXS(S2sTLS__LIB, "DLL library with TLS/SSL. E.g. libsec111.dll") },
 #endif
-{"tls_cert_file" ,256,0,(uint *)&s_cert_file, CXS(S2sTLS__SERT, "Certificate file")},
-{"tls_key_file" ,256,0,(uint *)&s_key_file, CXS(S2sTLS__KEYF, "Key file")},
-{"tls_capath" ,255,0,(uint *)&CApath, CXS(S2sTLS__CAPATH, "CA-Path")},
-{"tls_cafile" ,256,0,(uint *)&CAfile, CXS(S2sTLS__CAFILE, "CA-file")},
-{"tls_priority" ,2047,0,(uint *)&tls_priority, CXS(S1t2T_4948901, "Sets priorities for the ciphers, key exchange methods, and macs")},
+  {"tls_cert_file", 256, 0, (uint *)&s_cert_file, CXS(S2sTLS__SERT, "Certificate file")},
+  {"tls_key_file", 256, 0, (uint *)&s_key_file, CXS(S2sTLS__KEYF, "Key file")},
+  {"tls_capath", 255, 0, (uint *)&CApath, CXS(S2sTLS__CAPATH, "CA-Path")},
+  {"tls_cafile", 256, 0, (uint *)&CAfile, CXS(S2sTLS__CAFILE, "CA-file")},
+  {"tls_priority", 2047, 0, (uint *)&tls_priority, CXS(S1t2T_4948901, "Sets priorities for the ciphers, key exchange methods, and macs")},
 
 #ifdef TLSVPN
 
-{0,0,0,0, CXS(S1t2T_1039342, "HTTP TLS VPN Client")},
+  {0, 0, 0, 0, CXS(S1t2T_1039342, "HTTP TLS VPN Client")},
 
-{"vpnclient",3,FL3_VPN_CLIENT,(uint *)0, CXS(S1t2T_3647717, "Enable to connect to TLS VPN remote host" )},
-{"vpn_remote_host",512, 0,(uint *)&vpn_remote_host, CXS(S1t2T_6407430, "Host to connect to remote TLS VPN server")},
-{"vpn_client_port",1,0xFFFE,(uint *)&vpn_client_port, CXS(S1t2T_7244850, "TLS VPN remote port. (Usually 443)")},
-{"vpn_client_url" ,128,0,(uint *)&vpncln_name, CXS(S1t2T_5037784, "TLS VPN URL name (direct only local part of URL e.g. \"/$_vpn_$\"). Must be the same as directed on the remote server")},
+  {"vpnclient", 3, FL3_VPN_CLIENT, (uint *)0, CXS(S1t2T_3647717, "Enable to connect to TLS VPN remote host" )},
+  {"vpn_remote_host", 512, 0, (uint *)&vpn_remote_host, CXS(S1t2T_6407430, "Host to connect to remote TLS VPN server")},
+  {"vpn_client_port", 1, 0xFFFE, (uint *)&vpn_client_port, CXS(S1t2T_7244850, "TLS VPN remote port. (Usually 443)")},
+  {"vpn_client_url", 128, 0, (uint *)&vpncln_name, CXS(S1t2T_5037784, "TLS VPN URL name (direct only local part of URL e.g. \"/$_vpn_$\"). Must be the same as directed on the remote server")},
 
-{"vpn_remote_user",32, 0,(uint *)&vpn_user, CXS(S1t2T_4550693, "TLS VPN User name")},
-{"vpn_remote_passw",32, 0,(uint *)&vpn_passw, CXS(S1t2T_5067174, "TLS VPN Password")},
+  {"vpn_remote_user", 32, 0, (uint *)&vpn_user, CXS(S1t2T_4550693, "TLS VPN User name")},
+  {"vpn_remote_passw", 32, 0, (uint *)&vpn_passw, CXS(S1t2T_5067174, "TLS VPN Password")},
 
-{"vpncln_tap",3, FL3_TAP_CLIENT, (uint *)0, CXS(S1t2T_3867597, "VPN client to Tap. (Otherwise Tun)" )},
+  {"vpncln_tap", 3, FL3_TAP_CLIENT, (uint *)0, CXS(S1t2T_3867597, "VPN client to Tap. (Otherwise Tun)" )},
 
-{"vpn_tuntap_number",0,1024,(uint *)&tuntap_number[2], CXS(S1t2T_7581972, "TLS VPN client Tun/Tap device number")},
+  {"vpn_tuntap_number", 0, 1024, (uint *)&tuntap_number[2], CXS(S1t2T_7581972, "TLS VPN client Tun/Tap device number")},
 #ifndef VPN_WIN
-{"vpn_client_mtu", MIN_MTU, MAX_MTU,(uint *)&vpn_mtu[2], CXS(S1t2T_7490219, "TLS VPN MTU for client.")},
+  {"vpn_client_mtu", MIN_MTU, MAX_MTU, (uint *)&vpn_mtu[2], CXS(S1t2T_7490219, "TLS VPN MTU for client.")},
 #else
-{"vpn_tapif" ,128,0,(uint *)&vpnIfNames[2], CXS(S1t2T_3952141, "Tap interface name")},
+  {"vpn_tapif", 128, 0, (uint *)&vpnIfNames[2], CXS(S1t2T_3952141, "Tap interface name")},
 #endif
 
 
 #ifdef  VPN_UPDATE_NET
 
-{"vpncln_setip", 3, FL3_VPNCL_FIXIP   , (uint *)0, CXS(S1T_15218830, "Set interface IP (must run from Administrator)" )},
-{"vpncln_upd_route", 3, FL3_VPNCL_UPDRT , (uint *)0, CXS(S1T_28625631, "Update route table to redirect all IP4 trafic to VPN (must run from Administrator)" )},
+  {"vpncln_setip", 3, FL3_VPNCL_FIXIP, (uint *)0, CXS(S1T_15218830, "Set interface IP (must run from Administrator)" )},
+  {"vpncln_upd_route", 3, FL3_VPNCL_UPDRT, (uint *)0, CXS(S1T_28625631, "Update route table to redirect all IP4 trafic to VPN (must run from Administrator)" )},
 
 #endif // VPN_UPDATE_NET
 
 
-{"tuntap_ip" ,32,0,(uint *)&tuntap_ipv4[2], CXS(S1t2T_4130456, "Set client VPN interface IP address")},
-{"tuntap_nmask" ,32,0,(uint *)&tuntap_ipv4nmask[2], CXS(S1t2T_6268646, "Set  client VPN interface netmask")},
-{"vpncln_script_up" ,256,0,(uint *)&vpn_scripts_up[2], CXS(S1t2T_7330605, "Run init script when VPN connection estabilished")},
-{"vpncln_script_down" ,256,0,(uint *)&vpn_scripts_down[2], CXS(S1t2T_8671725, "Run deinit script when VPN connection closed")},
+  {"tuntap_ip", 32, 0, (uint *)&tuntap_ipv4[2], CXS(S1t2T_4130456, "Set client VPN interface IP address")},
+  {"tuntap_nmask", 32, 0, (uint *)&tuntap_ipv4nmask[2], CXS(S1t2T_6268646, "Set  client VPN interface netmask")},
+  {"vpncln_script_up", 256, 0, (uint *)&vpn_scripts_up[2], CXS(S1t2T_7330605, "Run init script when VPN connection estabilished")},
+  {"vpncln_script_down", 256, 0, (uint *)&vpn_scripts_down[2], CXS(S1t2T_8671725, "Run deinit script when VPN connection closed")},
 #ifdef VPN_WIN
-{"vpn_script_keep",3, FL3_VPN_SCRKEEP, (uint *)0, CXS(S1t2T_5577742, "Keep open console window after run script for debug" )},
+  {"vpn_script_keep", 3, FL3_VPN_SCRKEEP, (uint *)0, CXS(S1t2T_5577742, "Keep open console window after run script for debug" )},
 #endif
 
-{"vpncln_chktls",3, FL3_VPN_CHKTLS    , (uint *)0, CXS(S1t2T_4758472, "Validate remote TLS certificate, check host name" )},
-{"vpncln_tlsigntime",3, FL3_VPN_TLSIGNTIME, (uint *)0, CXS(S1t2T_7019198, "Don't check remote certificate time. Ignore expired. (GNUTLS only)" )},
-{"vpncln_tlsssign",3, FL3_VPN_TLSSSIGN  , (uint *)0, CXS(S1t2T_5926682, "Accept self signed certificate. (GNUTLS only)" )},
-{"vpncln_tlssshstyle",3, FL3_VPN_TLSSHSTYLE  , (uint *)0, CXS(S1t2T_7549822, "SSH style of certificate validate. (GNUTLS only. Public keys of new untracted remote will be stored in ~/.gnutls/known_hosts)" )},
+  {"vpncln_chktls", 3, FL3_VPN_CHKTLS, (uint *)0, CXS(S1t2T_4758472, "Validate remote TLS certificate, check host name" )},
+  {"vpncln_tlsigntime", 3, FL3_VPN_TLSIGNTIME, (uint *)0, CXS(S1t2T_7019198, "Don't check remote certificate time. Ignore expired. (GNUTLS only)" )},
+  {"vpncln_tlsssign", 3, FL3_VPN_TLSSSIGN, (uint *)0, CXS(S1t2T_5926682, "Accept self signed certificate. (GNUTLS only)" )},
+  {"vpncln_tlssshstyle", 3, FL3_VPN_TLSSHSTYLE, (uint *)0, CXS(S1t2T_7549822, "SSH style of certificate validate. (GNUTLS only. Public keys of new untracted remote will be stored in ~/.gnutls/known_hosts)" )},
 
 #endif // TLSVPN
 
 #ifdef  TLSWODLL
-/* Load/save TLSLibrary for compatible with common version, but not show it in web configuration */
-{"tls_lib"  ,256,0,(uint *)&TLSLibrary, 0 },
+  /* Load/save TLSLibrary for compatible with common version, but not show it in web configuration */
+  {"tls_lib", 256, 0, (uint *)&TLSLibrary, 0 },
 #endif
 
 
-{0,0,0,(uint *)0,0}
+  {0, 0, 0, (uint *)0, 0}
 };
 
 
-CfgParam ConfigParams2[]={
-{0,0,0,(uint *)0,0}
+CfgParam ConfigParams2[] = {
+  {0, 0, 0, (uint *)0, 0}
 
 };

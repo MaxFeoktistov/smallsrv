@@ -202,7 +202,7 @@ lPgDn:
 #endif
         ;
         if(0) {
-    case WM_CLOSE: if( (s_aflg & AFL_EX2) || !(s_flg & FL_NOICON) ) break;
+        case WM_CLOSE: if( (s_aflg & AFL_EX2) || !(s_flg & FL_NOICON) ) break;
         }
         if(wstate)
         { ShowWindow(hwnd, SW_RESTORE);
@@ -214,7 +214,7 @@ lPgDn:
       }
       else if(lparam == WM_RBUTTONUP)
       { SetForegroundWindow(hwnd);
-    case WM_LBUTTONDBLCLK:
+      case WM_LBUTTONDBLCLK:
         GetCursorPos(&ap);
         TrackPopupMenuEx(hmnu, TPM_RIGHTALIGN | TPM_LEFTBUTTON | TPM_RIGHTBUTTON | TPM_VERTICAL
                          , ap.x, ap.y, hwnd, 0);
@@ -230,7 +230,7 @@ lPgDn:
         case 98: // VPN Connect/Disconnect
           if(is_no_exit & 1)
           { // Disconnect
-        case 99:
+          case 99:
             is_no_exit = 2;
             SetDlgItemText(mwnd, 98, "VPN Connect");
           }
@@ -319,7 +319,7 @@ lPgDn:
           for(pe = ext; *pe; pe += 2)if(++i > 10)return 0;
           *pe = NullString; pe[1] = NullString; pe[2] = 0;
           if(0) {
-        case 722://Change CGI
+          case 722://Change CGI
             if(!(pp = CurInList(720, fnamebuf)) )return 0;
           };
           i = GetDlgItemTextLen(hwnd, 724);
@@ -330,7 +330,7 @@ lPgDn:
           if(**pe != '.') {**pe = '.'; GetDlgItemText(hwnd, 724, (*pe) + 1, 256);};
           GetDlgItemText(hwnd, 728, pe[1], 256);
           if(0) {
-        case 723: //del CGI
+          case 723: //del CGI
             for(pp = CurInList(720, fnamebuf); pe; pe += 2 ) {if(!(*pe = pe[2]))break; pe[1] = pe[3];};
           }
           ReinitListBox(720, (ListNext)CGIListNext, ext);
@@ -347,7 +347,7 @@ lPgDn:
           }
           else
           { strcpy(pm, pm + l);
-        case 741: //Add
+          case 741: //Add
             i = GetDlgItemTextLen(hwnd, 744);
             j = GetDlgItemTextLen(hwnd, 745);
             p = new char [(l = (mime) ? strlen(mime) : 0) + i + j + 5];
@@ -359,7 +359,7 @@ lPgDn:
             GetDlgItemText(hwnd, 745, mime + l + i + 2, 256);
             mime[l + i + 1] = ';';
             if(0) {
-        case 743: //del
+            case 743: //del
               if(!(pp = CurInList(740, fnamebuf)))return 0;
               l = strlen(fnamebuf);
               strcpy(pm, pm + l + (pm[l] == ';'));
@@ -381,7 +381,7 @@ lPgDn:
 #endif  // NEWSTRUCT
           { pu->state = 0;
 
-        case 761: //Add u
+          case 761: //Add u
             i = GetDlgItemTextLen(hwnd, 764);
             j = GetDlgItemTextLen(hwnd, 765);
             k = GetDlgItemTextLen(hwnd, 768);
@@ -418,7 +418,7 @@ lPgDn:
           }
           pu->state = i;
           if(0) {
-        case 763: //del
+          case 763: //del
             if(!(pp = CurInList(760, fnamebuf)) )return 0;
             pu->state = 0;
           }
@@ -462,7 +462,7 @@ lPgDn:
             };
           }
           if(0) {
-        case 783: //del
+          case 783: //del
             if(!(pp = CurInList(780, fnamebuf)) )return 0;
             pth = DelVHost(ph);
           }
@@ -654,16 +654,16 @@ int FileSizeByName(char *pth)
   return st.nFileSizeLow;
 }
 
-ushort wb_prot[LOG_SIZE+0x1080];
+ushort wb_prot[LOG_SIZE + 0x1080];
 uint last_showlog_tick;
 volatile uint need_showlog_flg;
 #define SHOW_TIMEOUT  (1024*3)
 #ifdef SEPLOG
-TLog  *shown_log=&gLog;
+TLog  *shown_log = &gLog;
 int oldchecked;
 void TLog::ShowProt()
 {
-  if(shown_log!=this)return ;
+  if(shown_log != this)return ;
 #define b_prot lb_prot
 #else
 void ShowProt()
@@ -671,18 +671,18 @@ void ShowProt()
 #endif
   uint t = GetTickCount();
 
- if( (t - last_showlog_tick) < SHOW_TIMEOUT) {
-   need_showlog_flg = 1;
-   return ;
- }
- last_showlog_tick = t;
- need_showlog_flg = 0;
- if( (s_flgs[2]&FL2_UTF)  && utf2unicode((uchar *)b_prot,wb_prot)>0)
- {
-    SetWindowTextW(ewnd,(LPCWSTR)wb_prot);
- }
- else SetWindowText(ewnd,b_prot);
- SendMessage(ewnd,EM_LINESCROLL,0,SendMessage(ewnd,EM_GETLINECOUNT,0,0)-4);
+  if( (t - last_showlog_tick) < SHOW_TIMEOUT) {
+    need_showlog_flg = 1;
+    return ;
+  }
+  last_showlog_tick = t;
+  need_showlog_flg = 0;
+  if( (s_flgs[2]&FL2_UTF)  && utf2unicode((uchar *)b_prot, wb_prot) > 0)
+  {
+    SetWindowTextW(ewnd, (LPCWSTR)wb_prot);
+  }
+  else SetWindowText(ewnd, b_prot);
+  SendMessage(ewnd, EM_LINESCROLL, 0, SendMessage(ewnd, EM_GETLINECOUNT, 0, 0) - 4);
 };
 
 #undef b_prot

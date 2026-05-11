@@ -267,7 +267,8 @@ void Restart()
 }
 #endif
 
-shs_mutex_t hLock, hcLock;
+shs_mutex_t hLock = SHS_MUTEX_INITIALIZER;
+shs_mutex_t hcLock = SHS_MUTEX_INITIALIZER;
 int FreeThreads()
 {
   int i, j = -1;
@@ -411,7 +412,6 @@ int ChkWaitBind()
 #ifndef VPNCLIENT_ONLY
 int CreateSrv(int j)
 {
-  //todel int i, s, k = 0, jj = j % MAX_SERV;
   int s, k = 0, jj = j % MAX_SERV;
   char  *pbnd = bind_a[jj];
 #ifdef USE_IPV6
@@ -546,13 +546,10 @@ int InitApplication()
   WSADATA tmp;
   RECT rc;
 #endif
-//  SYSTEMTIME  tm;
   int i;
-//  char *t, *p;
 #ifndef VPNCLIENT_ONLY
   int j;
 #endif
-//  int l;
 #ifndef SYSUNIX
 
   if( WSAStartup(0x202, &tmp) )

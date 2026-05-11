@@ -251,16 +251,16 @@ void Req::OutBaner(char *b)
 #ifndef CD_VER
 #ifndef FREEVER
 
- if( user_name!=(about+sizeof(ABOUT_STR)+14) )
- {
+  if( user_name != (about + sizeof(ABOUT_STR) + 14) )
+  {
     //send(s,BanerHTML,sizeof(BanerHTML)-1,0);
-   BFILE bfl;
-   bfl.Init(this,(PrintFlush)(Snd),b);
-   bfl.bprintf((char *)BanerHTML,banner[cur_banner],banner[cur_banner+1]);
-   bfl.fflush();
-    cur_banner+=2;
-    if(!(banner[cur_banner]))cur_banner=0;
- }
+    BFILE bfl;
+    bfl.Init(this, (PrintFlush)(Snd), b);
+    bfl.bprintf((char *)BanerHTML, banner[cur_banner], banner[cur_banner + 1]);
+    bfl.fflush();
+    cur_banner += 2;
+    if(!(banner[cur_banner]))cur_banner = 0;
+  }
 #endif
 #endif
 }
@@ -295,19 +295,19 @@ int IP2Scntr(char *nm, sockaddr46_t *p)
   sz = IP2S(nm, &(p->sa_c));
   if(cntr_dat)
   {
-    #ifdef USE_IPV6
+#ifdef USE_IPV6
     if(p->sa_c.sin_family == AF_INET6)
     {
       if(
-        p->sa_c6.sin6_addr.s6_addr32[0]!=0 ||
-        p->sa_c6.sin6_addr.s6_addr32[1]!=0 ||
-        p->sa_c6.sin6_addr.s6_addr32[2]!=0xFFFF0000
+        p->sa_c6.sin6_addr.s6_addr32[0] != 0 ||
+        p->sa_c6.sin6_addr.s6_addr32[1] != 0 ||
+        p->sa_c6.sin6_addr.s6_addr32[2] != 0xFFFF0000
       ) return sz;
       ipv4 = p->sa_c6.sin6_addr.s6_addr32[3];
     }
-    #endif
-    if( (cc=FindCntr(htonl(ipv4) ) ) )
-      sz += sprintf(nm + sz, " (%2.2s)",cc->nm);
+#endif
+    if( (cc = FindCntr(htonl(ipv4) ) ) )
+      sz += sprintf(nm + sz, " (%2.2s)", cc->nm);
   }
   return sz;
 }
@@ -316,33 +316,30 @@ struct sOutLine
 {
   Req *th;
   char *bfr;
-  int i,j,k;
+  int i, j, k;
   int OutConnLine(Req *r, char *alt_text);
 };
 
 int sOutLine::OutConnLine(Req *r, char *alt_text)
 {
-  #ifdef USE_IPV6
-  union{ struct sockaddr_in  san;  struct sockaddr_in6 san6;};
-  #else
+#ifdef USE_IPV6
+  union { struct sockaddr_in  san;  struct sockaddr_in6 san6;};
+#else
   struct sockaddr_in  san;
-  #endif
+#endif
   int l; //=sizeof(sockaddr_in);
-  //char *t1;
   char   xs[72];
-  //CntrCode  *cc;
-  //char contry[8];
 
 
-  #ifdef USE_IPV6
-    l=sizeof(sockaddr_in6);
-    //IP2S(xs, &(r->sa_c));
-  #else
-    l=sizeof(sockaddr);
-  #endif
-  IP2Scntr(xs,(sockaddr46_t *) &(r->sa_c));
-  if(getsockname(r->s,(sockaddr *)&san,&l)) return j;
-  san.sin_port=htons((ushort)san.sin_port);
+#ifdef USE_IPV6
+  l = sizeof(sockaddr_in6);
+  //IP2S(xs, &(r->sa_c));
+#else
+  l = sizeof(sockaddr);
+#endif
+  IP2Scntr(xs, (sockaddr46_t *) & (r->sa_c));
+  if(getsockname(r->s, (sockaddr *)&san, &l)) return j;
+  san.sin_port = htons((ushort)san.sin_port);
   /*
    * if( (soc_port[0]==san.sin_port || soc_port[1]==san.sin_port) &&
    *   DWORD_PTR(r->inf[0])!=0x544345 x4CHAR("ECT") &&
@@ -350,27 +347,27 @@ int sOutLine::OutConnLine(Req *r, char *alt_text)
    * )*t1=0; */
 #if 1
   // Dont_fix_var
-  j+=msprintf(bfr+j,"<tr valign=center><td><font size=2 class=f2>%u) <b>"
+  j += msprintf(bfr + j, "<tr valign=center><td><font size=2 class=f2>%u) <b>"
 //  #ifdef USE_IPV6
-  "%s"
+                "%s"
 //  #else
 //  "%u.%u.%u.%u"
 //  #endif
 // "%s"
-  "</td><td align=center><font size=2 class=f2><b>%u</b></font>"
-  "</td><td align=left><font size=2 class=f2>%d</font>"
-  "</td><td align=left><font size=2 class=f2>%llu / %llu</font>"
-  "</td><td align=left><font size=2 class=f2>%s..</font>"
-  "</td><td align=left bgcolor=#ff8040><font size=2 class=f2>"
-  "<form method=GET action=/$_admin_$break>"
-  "<input type=hidden name=n value=%u>"
-  "<input type=hidden name=t value=%u>"
-  "<input type=%s value=Break>"
-  "</form></font>"
-  "</td></tr>" HTML_LN
-  , k++,
+                "</td><td align=center><font size=2 class=f2><b>%u</b></font>"
+                "</td><td align=left><font size=2 class=f2>%d</font>"
+                "</td><td align=left><font size=2 class=f2>%llu / %llu</font>"
+                "</td><td align=left><font size=2 class=f2>%s..</font>"
+                "</td><td align=left bgcolor=#ff8040><font size=2 class=f2>"
+                "<form method=GET action=/$_admin_$break>"
+                "<input type=hidden name=n value=%u>"
+                "<input type=hidden name=t value=%u>"
+                "<input type=%s value=Break>"
+                "</form></font>"
+                "</td></tr>" HTML_LN
+                , k++,
 //#ifdef USE_IPV6
-  xs,
+                xs,
 //#else
 // #ifndef SYSUNIX
 //   r->sa_c.sin_addr.S_un.S_un_b.s_b1,  r->sa_c.sin_addr.S_un.S_un_b.s_b2,
@@ -381,102 +378,102 @@ int sOutLine::OutConnLine(Req *r, char *alt_text)
 // #endif
 // #endif
 //              contry,
-             (ushort)san.sin_port,
-             DTick(GetTickCount(),r->tmout), //[i],
-             //(uint)r->Tin, (uint) r->Tout,
-             r->Tin,r->Tout,
-              (alt_text)? alt_text : r->inf,i,r->tmout //[i]
-             ,(s_flg&FL_RADMIN)?"submit":"hidden"
-  );
+                (ushort)san.sin_port,
+                DTick(GetTickCount(), r->tmout), //[i],
+                //(uint)r->Tin, (uint) r->Tout,
+                r->Tin, r->Tout,
+                (alt_text) ? alt_text : r->inf, i, r->tmout //[i]
+                , (s_flg & FL_RADMIN) ? "submit" : "hidden"
+               );
 #endif
 
-  if(j>0x4000)
-  {if(th->Send(bfr,j)<=0)
-    {no_close_req=0;
+  if(j > 0x4000)
+  { if(th->Send(bfr, j) <= 0)
+    { no_close_req = 0;
       return -1;
     }
-    j=0;
+    j = 0;
   }
 
- return j;
+  return j;
 
 }
 
 int Req::OutActualConn(char *bfr)
 {
 #ifndef CD_VER
- //int i,oline.j,sx,k;
+//int i,oline.j,sx,k;
 // struct sockaddr_in sa;
- sOutLine oline;
- oline.th = this;
- oline.bfr = bfr;
+  sOutLine oline;
+  oline.th = this;
+  oline.bfr = bfr;
 
- oline.j=sprintf(bfr,
-  CXS(S5t2T_0, "<h2>Now connected:</h2>"
-   "<table bgcolor=#cffce0 border=1>"
-   "<tr bgcolor=#a0eef8><td align=center><font size=3 class=f3><b>"
-     "Remote IP</b></font>"
-   "</td><td align=center><font size=3 class=f3><b>Port</b></font>"
-   "</td><td align=left><font size=2 class=f2>Time (ms)</font>"
-   "</td><td align=left><font size=2 class=f2>in/out (bytes)</font>"
-   "</td><td align=left><font size=2 class=f2>info</font>"
-   "</td><td align=left><font size=2 class=f2> &nbsp;</font>"
-   "</td></tr>" )  );
- Req *r;
- ++no_close_req;
- oline.k=0;
- for(oline.i=0; oline.i<max_tsk; ++oline.i)
-   if( ((u_long)(r=rreq[oline.i]))>1 )
-     if(oline.OutConnLine(r, 0)<0) return -1;
+  oline.j = sprintf(bfr,
+                    CXS(S5t2T_0, "<h2>Now connected:</h2>"
+                        "<table bgcolor=#cffce0 border=1>"
+                        "<tr bgcolor=#a0eef8><td align=center><font size=3 class=f3><b>"
+                        "Remote IP</b></font>"
+                        "</td><td align=center><font size=3 class=f3><b>Port</b></font>"
+                        "</td><td align=left><font size=2 class=f2>Time (ms)</font>"
+                        "</td><td align=left><font size=2 class=f2>in/out (bytes)</font>"
+                        "</td><td align=left><font size=2 class=f2>info</font>"
+                        "</td><td align=left><font size=2 class=f2> &nbsp;</font>"
+                        "</td></tr>" )  );
+  Req *r;
+  ++no_close_req;
+  oline.k = 0;
+  for(oline.i = 0; oline.i < max_tsk; ++oline.i)
+    if( ((u_long)(r = rreq[oline.i])) > 1 )
+      if(oline.OutConnLine(r, 0) < 0) return -1;
 
- if(KeepAliveList)
- {
-   MyLock(KeepAliveMutex);
-   for(int i=0; i<KeepAliveCount; i++)
-   {
-     oline.i = i | CONID_KEEPALIVE_MASK;
-     if(oline.OutConnLine( KeepAliveList[i],  "Keep-Alive Sleep" )<0)
-     {
-       MyUnlock(KeepAliveMutex);
-       return -1;
-     }
-   }
-   MyUnlock(KeepAliveMutex);
- }
+  if(KeepAliveList)
+  {
+    MyLock(KeepAliveMutex);
+    for(int i = 0; i < KeepAliveCount; i++)
+    {
+      oline.i = i | CONID_KEEPALIVE_MASK;
+      if(oline.OutConnLine( KeepAliveList[i],  "Keep-Alive Sleep" ) < 0)
+      {
+        MyUnlock(KeepAliveMutex);
+        return -1;
+      }
+    }
+    MyUnlock(KeepAliveMutex);
+  }
 #ifdef TLSVPN
- char txt[64];
- uint ip;
- if(vpn_count)
- {
-   VPNclient *v;
-   for(int i=0; i<vpn_count; i++)
-   {
-     oline.i = i | CONID_VPN_MASK;
-     v = vpn_list[i];
-     ip = v->ipv4;
-     sprintf(txt,"TLS VPN:%s: %u.%u.%u.%u", TUNTAPNames[v->tun_index], ip&0xFF,(ip>>8)&0xFF ,(ip>>16)&0xFF, ip>>24); // TODO: Big endian fix
+  char txt[64];
+  uint ip;
+  if(vpn_count)
+  {
+    VPNclient *v;
+    for(int i = 0; i < vpn_count; i++)
+    {
+      oline.i = i | CONID_VPN_MASK;
+      v = vpn_list[i];
+      ip = v->ipv4;
+      sprintf(txt, "TLS VPN:%s: %u.%u.%u.%u", TUNTAPNames[v->tun_index], ip & 0xFF, (ip >> 8) & 0xFF, (ip >> 16) & 0xFF, ip >> 24); // TODO: Big endian fix
 
-     if(oline.OutConnLine(v,  txt )<0)
-     {
-       return -1;
-     }
-   }
- }
- if(vpn_cln_connected)
- {
-   oline.i = CONID_VPNCL_VALUE;
-   ip = vpn_cln_connected->ipv4;
-   sprintf(txt,"VPN Client: %u.%u.%u.%u",  ip&0xFF,(ip>>8)&0xFF ,(ip>>16)&0xFF, ip>>24);  // TODO: Big endian fix
+      if(oline.OutConnLine(v,  txt ) < 0)
+      {
+        return -1;
+      }
+    }
+  }
+  if(vpn_cln_connected)
+  {
+    oline.i = CONID_VPNCL_VALUE;
+    ip = vpn_cln_connected->ipv4;
+    sprintf(txt, "VPN Client: %u.%u.%u.%u",  ip & 0xFF, (ip >> 8) & 0xFF, (ip >> 16) & 0xFF, ip >> 24); // TODO: Big endian fix
 
-   if(oline.OutConnLine(vpn_cln_connected,  txt )<0)
-     return -1;
- }
+    if(oline.OutConnLine(vpn_cln_connected,  txt ) < 0)
+      return -1;
+  }
 #endif
- dec_no_close_req();
- oline.j+=sprintf(bfr+oline.j, "</table><hr>");
- if(send(s,bfr,oline.j,0)<=0)return -1;
+  dec_no_close_req();
+  oline.j += sprintf(bfr + oline.j, "</table><hr>");
+  if(send(s, bfr, oline.j, 0) <= 0)return -1;
 #endif
- return 0;
+  return 0;
 #undef san
 }
 
@@ -485,33 +482,33 @@ int Req::OutActualConn(char *bfr)
 void OutLimitLine(BFILE *bfl, char *nm, VPNUserLimit* p)
 {
   int i;
-  uint in = (p->in + 0x7ffffll)>>20;
-  uint out = (p->out + 0x7ffffll)>>20;
+  uint in = (p->in + 0x7ffffll) >> 20;
+  uint out = (p->out + 0x7ffffll) >> 20;
 
   bfl->bprintf("<tr><td><b> %s </b></td>"
                "<td><b> %u/%u </b></td>"
-               ,nm, in, out);
+               , nm, in, out);
 
-  for(i=0; i<3; i++)
+  for(i = 0; i < 3; i++)
   {
 #ifdef SYSUNIX
     struct tm *ttm;
 
     //debug("p->lim[i].end%u %X\r\n",i, p->lim[i].end);
-    ttm=localtime(&p->lim[i].end);
+    ttm = localtime(&p->lim[i].end);
 #else
     SYSTEMTIME sTim2;
     SYSTEMTIME * const ttm = &sTim2;
     FILETIME ft;
-    time2FileTime(p->lim[i].end,ft);
+    time2FileTime(p->lim[i].end, ft);
     FileTimeToSystemTime(&ft, &sTim2);
 #endif
     bfl->bprintf(
       "<td>in:<b>%u</b> out:<b>%u</b> up to: %02u/%02u %02u:%02u</td>",
-        (uint)((p->lim[i].in_bytes + 0x7ffffll)>>20) - in,
-        (uint)((p->lim[i].out_bytes + 0x7ffffll)>>20) - out,
-                ttm->tm_mday, ttm->tm_mon + 1, ttm->tm_hour,ttm->tm_min
-             );
+      (uint)((p->lim[i].in_bytes + 0x7ffffll) >> 20) - in,
+      (uint)((p->lim[i].out_bytes + 0x7ffffll) >> 20) - out,
+      ttm->tm_mday, ttm->tm_mon + 1, ttm->tm_hour, ttm->tm_min
+    );
   }
 
   bfl->bprintf( "<td align=left bgcolor=#ff8040><font size=2 class=f2>"
@@ -520,40 +517,38 @@ void OutLimitLine(BFILE *bfl, char *nm, VPNUserLimit* p)
                 "<input type=hidden name=t value=%u>"
                 "<input type=%s value=Clear>"
                 "</form></font>"
-                "</td></tr>" HTML_LN ,p->lim[2].end, (int) (long) p,
-                            (s_flg&FL_RADMIN)?"submit":"hidden"  );
+                "</td></tr>" HTML_LN, p->lim[2].end, (int) (long) p,
+                (s_flg & FL_RADMIN) ? "submit" : "hidden"  );
 }
 
 int Req::OutVPNLimit(char *bfr)
 {
-  //int j;
-
   if(vpn_limits) //  s_flgs[3] & (FL3_VPN_ULIMIT|FL3_VPN_IPLIMIT ) )
   {
     VPNUserLimit* p;
     BFILE bfl;
     char nm[96];
-    bfl.Init(this,(PrintFlush) Snd, bfr);
+    bfl.Init(this, (PrintFlush) Snd, bfr);
 
     bfl.bprintf(
-              CXS(S5T_158416789, "<h2>VPN Limit status:</h2>\n"
-   "<table bgcolor=#cffce0 border=1>"
-   "<tr bgcolor=#a0eef8><td align=center><font size=3 class=f3><b>"
-     "IP/user</b></font>"
-   "</td><td align=center><font size=3 class=f3><b>Total in/out (Mb)</b></font>"
-   "</td><td align=center><font size=3 class=f3><b>left per hour (Mb)</b></font>"
-   "</td><td align=center><font size=3 class=f3><b>left per day (Mb)</b></font>"
-   "</td><td align=center><font size=3 class=f3><b>left per month (Mb)</b></font>"
-   "</td><td align=left><font size=2 class=f2> &nbsp;</font>"
-   "</td></tr>")
+      CXS(S5T_158416789, "<h2>VPN Limit status:</h2>\n"
+          "<table bgcolor=#cffce0 border=1>"
+          "<tr bgcolor=#a0eef8><td align=center><font size=3 class=f3><b>"
+          "IP/user</b></font>"
+          "</td><td align=center><font size=3 class=f3><b>Total in/out (Mb)</b></font>"
+          "</td><td align=center><font size=3 class=f3><b>left per hour (Mb)</b></font>"
+          "</td><td align=center><font size=3 class=f3><b>left per day (Mb)</b></font>"
+          "</td><td align=center><font size=3 class=f3><b>left per month (Mb)</b></font>"
+          "</td><td align=left><font size=2 class=f2> &nbsp;</font>"
+          "</td></tr>")
     );
 
     //MyLock(vpn_limit_mutex);
-    for(p=vpn_limits; p; p=p->next)
+    for(p = vpn_limits; p; p = p->next)
     {
       if( (s_flgs[3] & FL3_VPN_IPLIMIT) )
       {
-        IP2Scntr(nm,(sockaddr46_t *) &(p->sa_c));
+        IP2Scntr(nm, (sockaddr46_t *) & (p->sa_c));
         OutLimitLine(&bfl, nm, p);
       }
       if((s_flgs[3] & FL3_VPN_ULIMIT) && p->usr)
@@ -575,20 +570,20 @@ int Req::OutVPNLimit(char *bfr)
 
 #ifndef CD_VER
 
-const char CBPre[]="</center><pre>\r\n";
-const char CEPre[]="\r\n</pre><center>";
+const char CBPre[] = "</center><pre>\r\n";
+const char CEPre[] = "\r\n</pre><center>";
 void Req::HTTPOutCurentLog(char *b)
-{char *p,*t,c;
- int i;
-  p=b+sprintf(b,CBPre);
-  for(t=b_prot;t<pprot;++t)
+{ char *p, *t, c;
+  int i;
+  p = b + sprintf(b, CBPre);
+  for(t = b_prot; t < pprot; ++t)
   {
-   if( (i=((c=*t)=='<')) || c=='>' ){DWORD_PTR(*p)=0x3B746726 x4CHAR("&gt;") + 0x500*i; p+=4; }
-   else *p++=c;
-   if((i=p-b)>0x2000)Send(p=b,i);
+    if( (i = ((c = *t) == '<')) || c == '>' ) {DWORD_PTR(*p) = 0x3B746726 x4CHAR("&gt;") + 0x500 * i; p += 4; }
+    else *p++ = c;
+    if((i = p - b) > 0x2000)Send(p = b, i);
   }
-  p+=sprintf(p,CEPre);
-  Send(b,p-b);
+  p += sprintf(p, CEPre);
+  Send(b, p - b);
 }
 
 
@@ -603,164 +598,165 @@ void Req::HTTPOutCurentLog(char *b)
 
 
 
-char HTMLDirHead[]= XHTMLDirHead
+char HTMLDirHead[] = XHTMLDirHead
 #ifndef CD_VER
- #ifndef SYSUNIX
- "9"
- #else
- "10"
- #endif
+#ifndef SYSUNIX
+                     "9"
 #else
- "6"
+                     "10"
+#endif
+#else
+                     "6"
 #endif
 // Dont_fix_var
- " ;" LF
-"var h=document.links;" LF
-"function L(x)" LF
-"{" LF
- "if(h[x].text)return h[x].text;" LF
- "var z,s=h[x].hash;"
- "if(s && s!=\"#\")" LF
- "{if(s.substring(0,1)==\"#\")return s.substring(1,200);" LF
-  "return s;" LF
- "}" LF
- "s=h[x].href;" LF
- "if(s)" LF
- "{" LF
-  "if(location.href.indexOf(s)==0)return \"../\";" LF
-  "if(!x)return \"../\";" LF
-  "z=s.lastIndexOf(\"#\");" LF
-  "if(z>=0)return s.substring(z+1,200);" LF
-  "z=s.lastIndexOf(\"/\");" LF
-  "if(z>=0)" LF
-  "{if(z>=(s.length-1))z=s.lastIndexOf(\"/\",z-1);" LF
-   "if(z>=0)return s.substring(z+1,200);" LF
-  "}" LF
-  "return s;" LF
- "}" LF
- "return h[x].pathname;" LF
-"}" LF
-"function M(a,b)" LF
-"{var x,y;" LF
- "x=L(a*3+k+6);" LF
- "y=L(b*3+k+6);" LF
- "if(k==1 || k==4){x*=2;y*=2;}" LF
- "if(x>y)" LF
- "return r;" LF
- "if(x<y)return -r;" LF
- "return 0;" LF
-"};" LF
-"function A(x,y)" LF
-"{var z=x+3;" LF
- "return \"<b><a href='javascript:O(\"+x+\");'>\"+y+\" /&#92; </a> - <a href='javascript:O(\"+z+\");'>&#92;/</a></b></td>\";" LF
-"};" LF
-"function S()" LF
-"{return \"cript>\";}" LF
-"function F(x,y)" LF
-"{return \"<td><a href='\" + L(y) + ((y==x)?\"\":\"#\" + L(x)) + \"'>\" + L(x) + \"</a></td>\";};" LF
-"function O(z)" LF
-"{var i,j,w,o;" LF
- "r=1;" LF
- "k=z;" LF
- "if(k>=3){r=-1;k-=3;}" LF
- "c=(document.links.length-u)/3; u=6;" LF
- "n=new Array(c);" LF
- "for(i=0;i<c;++i)n[i]=i;" LF
- "n.sort(M);" LF
- "o=\"<scr\"+\"ipt language=javascript>var k,r,c,n,u=6; var h=document.links;\"" LF
- "+L.toString()" LF
- "+M.toString()" LF
- "+A.toString()" LF
- "+F.toString()" LF
- "+O.toString()" LF
- "+S.toString()" LF
- "+\"\\n</s\";" LF
- "o+=S() + " LF
- "\"<table border=0 width=100% bgcolor=#f0f0ff><tr bgcolor=#aaaaff><td width=50%>\"+A(0,\"Name\")+\"<td width=15%>\"+A(1,\"Size\")+\"<td>\"+A(2,\"Date\")+\"</tr>\";" LF
- "for(i=0;i<c;++i)" LF
- "{j=n[i]*3+6;" LF
-  "o+=\"<tr>\" + F(j,j) + F(j+1,j) + F(j+2,j) + \"</tr>\";" LF
- "};" LF
- "w=document;" LF
- "o+=\"</table><hr>\";" LF
- "w.open();" LF
- "w.write(o);" LF
- "w.close();" LF
- "o=\"\";" LF
- "delete n;" LF
-"}" LF
-"\n</script>" LF
-"</head>"
-"<body>"
-"<table border=0 width=100% bgcolor=#f0f0ff><tr bgcolor=#aaaaff>"
-"<td width=50%><b><a href=\"javascript:O(0);\">Name /\\</a> - <a href=\"javascript:O(3);\">\\/</a></b></td>" LF
-"<td><b><a href=\"javascript:O(1);\">Size /\\</a> - <a href=\"javascript:O(4);\">\\/</a></b></td>" LF
-"<td><b><a href=\"javascript:O(2);\">Date /\\</a> - <a href=\"javascript:O(5);\">\\/</a></b></td>" LF
-"</tr>";
+                     " ;" LF
+                     "var h=document.links;" LF
+                     "function L(x)" LF
+                     "{" LF
+                     "if(h[x].text)return h[x].text;" LF
+                     "var z,s=h[x].hash;"
+                     "if(s && s!=\"#\")" LF
+                     "{if(s.substring(0,1)==\"#\")return s.substring(1,200);" LF
+                     "return s;" LF
+                     "}" LF
+                     "s=h[x].href;" LF
+                     "if(s)" LF
+                     "{" LF
+                     "if(location.href.indexOf(s)==0)return \"../\";" LF
+                     "if(!x)return \"../\";" LF
+                     "z=s.lastIndexOf(\"#\");" LF
+                     "if(z>=0)return s.substring(z+1,200);" LF
+                     "z=s.lastIndexOf(\"/\");" LF
+                     "if(z>=0)" LF
+                     "{if(z>=(s.length-1))z=s.lastIndexOf(\"/\",z-1);" LF
+                     "if(z>=0)return s.substring(z+1,200);" LF
+                     "}" LF
+                     "return s;" LF
+                     "}" LF
+                     "return h[x].pathname;" LF
+                     "}" LF
+                     "function M(a,b)" LF
+                     "{var x,y;" LF
+                     "x=L(a*3+k+6);" LF
+                     "y=L(b*3+k+6);" LF
+                     "if(k==1 || k==4){x*=2;y*=2;}" LF
+                     "if(x>y)" LF
+                     "return r;" LF
+                     "if(x<y)return -r;" LF
+                     "return 0;" LF
+                     "};" LF
+                     "function A(x,y)" LF
+                     "{var z=x+3;" LF
+                     "return \"<b><a href='javascript:O(\"+x+\");'>\"+y+\" /&#92; </a> - <a href='javascript:O(\"+z+\");'>&#92;/</a></b></td>\";" LF
+                     "};" LF
+                     "function S()" LF
+                     "{return \"cript>\";}" LF
+                     "function F(x,y)" LF
+                     "{return \"<td><a href='\" + L(y) + ((y==x)?\"\":\"#\" + L(x)) + \"'>\" + L(x) + \"</a></td>\";};" LF
+                     "function O(z)" LF
+                     "{var i,j,w,o;" LF
+                     "r=1;" LF
+                     "k=z;" LF
+                     "if(k>=3){r=-1;k-=3;}" LF
+                     "c=(document.links.length-u)/3; u=6;" LF
+                     "n=new Array(c);" LF
+                     "for(i=0;i<c;++i)n[i]=i;" LF
+                     "n.sort(M);" LF
+                     "o=\"<scr\"+\"ipt language=javascript>var k,r,c,n,u=6; var h=document.links;\"" LF
+                     "+L.toString()" LF
+                     "+M.toString()" LF
+                     "+A.toString()" LF
+                     "+F.toString()" LF
+                     "+O.toString()" LF
+                     "+S.toString()" LF
+                     "+\"\\n</s\";" LF
+                     "o+=S() + " LF
+                     "\"<table border=0 width=100% bgcolor=#f0f0ff><tr bgcolor=#aaaaff><td width=50%>\"+A(0,\"Name\")+\"<td width=15%>\"+A(1,\"Size\")+\"<td>\"+A(2,\"Date\")+\"</tr>\";" LF
+                     "for(i=0;i<c;++i)" LF
+                     "{j=n[i]*3+6;" LF
+                     "o+=\"<tr>\" + F(j,j) + F(j+1,j) + F(j+2,j) + \"</tr>\";" LF
+                     "};" LF
+                     "w=document;" LF
+                     "o+=\"</table><hr>\";" LF
+                     "w.open();" LF
+                     "w.write(o);" LF
+                     "w.close();" LF
+                     "o=\"\";" LF
+                     "delete n;" LF
+                     "}" LF
+                     "\n</script>" LF
+                     "</head>"
+                     "<body>"
+                     "<table border=0 width=100% bgcolor=#f0f0ff><tr bgcolor=#aaaaff>"
+                     "<td width=50%><b><a href=\"javascript:O(0);\">Name /\\</a> - <a href=\"javascript:O(3);\">\\/</a></b></td>" LF
+                     "<td><b><a href=\"javascript:O(1);\">Size /\\</a> - <a href=\"javascript:O(4);\">\\/</a></b></td>" LF
+                     "<td><b><a href=\"javascript:O(2);\">Date /\\</a> - <a href=\"javascript:O(5);\">\\/</a></b></td>" LF
+                     "</tr>";
 
 
-const char HTMLDirBody[]=
+const char HTMLDirBody[] =
 // Dont_fix_var
-"<tr><td><a href=\"%s%s\">%.64s%s</a></td><td><a href=\"%s%s#%s\">%s</a></td><td><a href=\"%s%s#%s %s %s\">%s %s %s</a></td></tr>";
-const char HTMLDirBody2[]=
+  "<tr><td><a href=\"%s%s\">%.64s%s</a></td><td><a href=\"%s%s#%s\">%s</a></td><td><a href=\"%s%s#%s %s %s\">%s %s %s</a></td></tr>";
+const char HTMLDirBody2[] =
 //"<tr><td><a href=\"%s%c\">%.64s%c</a></td><td>%u</td><td>%3.3s, %u %3.3s %4.4u %2.2u:%2.2u:%2.2u</td></tr>";
 // Dont_fix_var
-"<tr><td><a href=\"%s%s\">%.64s%s</a></td><td><a href=\"%s%s#%u\">%u</a></td><td><a href=\"%s%s#%4.4u-%2.2u-%2.2u %2.2u:%2.2u:%2.2u\">%4.4u-%2.2u-%2.2u %2.2u:%2.2u:%2.2u</a></td></tr>";
+  "<tr><td><a href=\"%s%s\">%.64s%s</a></td><td><a href=\"%s%s#%u\">%u</a></td><td><a href=\"%s%s#%4.4u-%2.2u-%2.2u %2.2u:%2.2u:%2.2u\">%4.4u-%2.2u-%2.2u %2.2u:%2.2u:%2.2u</a></td></tr>";
 
 #ifndef CD_VER
 void SRegHTM()
-{ WORD_PTR(HTMLDirHead[sizeof(XHTMLDirHead)-1])=0x2036 //'6'
-;}
+{ WORD_PTR(HTMLDirHead[sizeof(XHTMLDirHead) - 1]) = 0x2036 //'6'
+      ;
+}
 #undef XHTMLDirHead
 
-inline void Req::PutFTPLine(char *ln,char *bfr)
+inline void Req::PutFTPLine(char *ln, char *bfr)
 {
- int i;
- char *t,*ar[10],*p;
- t=ln;
- i=0;
- p="";
- while(*++t)
- {if(*t==' ' || *t=='\t' )*t=0;
-  else if(!t[-1])
-  {ar[i++]=t;
-   if(i>=8)
-   {if(*ln=='d')p="/";
-   lbo:
-    if(WORD_PTR(*ar[7])!='.')
-      send(s,bfr,sprintf(bfr,HTMLDirBody,ar[7],p,ar[7],p,ar[7],p,ar[3],ar[3],ar[7],p,ar[4],ar[5],ar[6],ar[4],ar[5],ar[6]),0);
-    return ;
-   }
+  int i;
+  char *t, *ar[10], *p;
+  t = ln;
+  i = 0;
+  p = "";
+  while(*++t)
+  { if(*t == ' ' || *t == '\t' )*t = 0;
+    else if(!t[-1])
+    { ar[i++] = t;
+      if(i >= 8)
+      { if(*ln == 'd')p = "/";
+lbo:
+        if(WORD_PTR(*ar[7]) != '.')
+          send(s, bfr, sprintf(bfr, HTMLDirBody, ar[7], p, ar[7], p, ar[7], p, ar[3], ar[3], ar[7], p, ar[4], ar[5], ar[6], ar[4], ar[5], ar[6]), 0);
+        return ;
+      }
+    }
   }
- }
- if(i>=3)
- {ar[7]=ar[2]; ar[6]="";
-  ar[5]=ln; ar[4]=ar[0]; ar[3]=ar[1];
-  if( DWORD_PTR(*ar[3])==0x5249443C x4CHAR("<DIR") ) p="/";
-  goto lbo;
- }
+  if(i >= 3)
+  { ar[7] = ar[2]; ar[6] = "";
+    ar[5] = ln; ar[4] = ar[0]; ar[3] = ar[1];
+    if( DWORD_PTR(*ar[3]) == 0x5249443C x4CHAR("<DIR") ) p = "/";
+    goto lbo;
+  }
 };
 
-char * Req::PutFTPDir(char *ln,char *bfr)
-{char *t;
- int  tt,n;
- while( (t=strchr(ln,'\n')) )
- {tt='\n'; n=1;
-  if(t[-1]=='\r'){--t; tt='\r'; n=2;}
-  *t=0;
-  if( (t-ln) >= 32 )PutFTPLine(ln,bfr);
-  *t=tt;
-  ln=t+n;
- }
- return ln;
+char * Req::PutFTPDir(char *ln, char *bfr)
+{ char *t;
+  int  tt, n;
+  while( (t = strchr(ln, '\n')) )
+  { tt = '\n'; n = 1;
+    if(t[-1] == '\r') {--t; tt = '\r'; n = 2;}
+    *t = 0;
+    if( (t - ln) >= 32 )PutFTPLine(ln, bfr);
+    *t = tt;
+    ln = t + n;
+  }
+  return ln;
 }
 
 #endif
 
- void Req::OutDirTop(){ Send(HTMLDirHead,sizeof(HTMLDirHead)-1);}
- void Req::OutDirBottom(char *b)
- { Send("</table><hr>",sizeof("</table><hr>")-1); OutBaner(b);
-   Send("</body></html>\n",sizeof("</body></html>"));
- };
+void Req::OutDirTop() { Send(HTMLDirHead, sizeof(HTMLDirHead) - 1);}
+void Req::OutDirBottom(char *b)
+{ Send("</table><hr>", sizeof("</table><hr>") - 1); OutBaner(b);
+  Send("</body></html>\n", sizeof("</body></html>"));
+};
 
 #undef send

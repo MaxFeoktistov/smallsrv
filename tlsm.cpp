@@ -48,23 +48,23 @@
 
 char *CApath,
      *CAfile,
-     *s_cert_file="temp_sert.pem",
-     *s_key_file //="s1024key.pem"
-;
-char *TLSLibrary=
+     *s_cert_file = "temp_sert.pem",
+      *s_key_file //="s1024key.pem"
+      ;
+char *TLSLibrary =
 #ifdef SYSUNIX
-          "./libsec111.so";
+  "./libsec111.so";
 #else
-          "libsec111.dll";
+  "libsec111.dll";
 #endif
 
 #ifndef  TLSWODLL
 
-int (*PInitLib)( TFprintf prnt,TFtransfer fsend,TFtransfer frecv,
-  char *CApath,char *CAfile, char * s_cert_file,char * s_key_file);
+int (*PInitLib)( TFprintf prnt, TFtransfer fsend, TFtransfer frecv,
+                 char *CApath, char *CAfile, char * s_cert_file, char * s_key_file);
 int (*PSecAccept)(OpenSSLConnection *s);
-int (*PSecRecv  )(OpenSSLConnection *s,char *b,int l);
-int (*PSecSend  )(OpenSSLConnection *s,char *b,int l);
+int (*PSecRecv  )(OpenSSLConnection *s, char *b, int l);
+int (*PSecSend  )(OpenSSLConnection *s, char *b, int l);
 int (*PSecClose )(OpenSSLConnection *s);
 int (*PSecConnect)(OpenSSLConnection *s, int anon, char *verfyhost);
 int (*PSecUpdateCB )(OpenSSLConnection *s);
@@ -111,66 +111,66 @@ int InitSecDLL()
 {
 
 #ifdef x86_64
-   dlerror();
-   hSecDLL=dlopen(TLSLibrary
-       , //RTLD_LAZY|RTLD_GLOBAL
-         RTLD_NOW|RTLD_LOCAL
-   );
-   if(!hSecDLL)
-   {
+  dlerror();
+  hSecDLL = dlopen(TLSLibrary
+                   , //RTLD_LAZY|RTLD_GLOBAL
+                   RTLD_NOW | RTLD_LOCAL
+                  );
+  if(!hSecDLL)
+  {
     void *main_h;
     Lmid_t  lmid;
 
 
-     printf("Error loading TLS/SSL library: %s %s %u %d\n",dlerror(),TLSLibrary, RTLD_NOW|RTLD_LOCAL, errno);
+    printf("Error loading TLS/SSL library: %s %s %u %d\n", dlerror(), TLSLibrary, RTLD_NOW | RTLD_LOCAL, errno);
 
 
-     main_h=dlopen(0,//RTLD_NOLOAD|
-                     RTLD_LOCAL|RTLD_LAZY);
+    main_h = dlopen(0, //RTLD_NOLOAD|
+                    RTLD_LOCAL | RTLD_LAZY);
 
-     if(!main_h)
-     {
-       printf("Error get handle for main: %s %s %u %d\n",dlerror(),TLSLibrary, RTLD_NOW|RTLD_LOCAL, errno);
-       lmid=LM_ID_BASE; //LM_ID_NEWLM;
-     }
-     else if(dlinfo(main_h,RTLD_DI_LMID,&lmid)<0)
-     {
+    if(!main_h)
+    {
+      printf("Error get handle for main: %s %s %u %d\n", dlerror(), TLSLibrary, RTLD_NOW | RTLD_LOCAL, errno);
+      lmid = LM_ID_BASE; //LM_ID_NEWLM;
+    }
+    else if(dlinfo(main_h, RTLD_DI_LMID, &lmid) < 0)
+    {
 
-       printf("Error get dlinfo for main: %s %s %d\n",dlerror(),TLSLibrary, errno);
-       //return 0;
-       lmid=LM_ID_NEWLM;
+      printf("Error get dlinfo for main: %s %s %d\n", dlerror(), TLSLibrary, errno);
+      //return 0;
+      lmid = LM_ID_NEWLM;
 
-     };
+    };
 
-     hSecDLL=dlmopen(//LM_ID_BASE
-       // LM_ID_NEWLM
-        lmid
-        ,TLSLibrary
-             , //RTLD_LAZY|RTLD_GLOBAL
-              RTLD_NOW|RTLD_LOCAL
-           );
-     if(!hSecDLL)
-     {
-         printf("Error loading TLS/SSL library: %s |%s| %d %s\n",dlerror(),TLSLibrary,  errno,strerror(errno));
+    hSecDLL = dlmopen( //LM_ID_BASE
+                // LM_ID_NEWLM
+                lmid
+                , TLSLibrary
+                , //RTLD_LAZY|RTLD_GLOBAL
+                RTLD_NOW | RTLD_LOCAL
+              );
+    if(!hSecDLL)
+    {
+      printf("Error loading TLS/SSL library: %s |%s| %d %s\n", dlerror(), TLSLibrary,  errno, strerror(errno));
 
-        return 0;
-     }
+      return 0;
+    }
 
-   }
-   dlerror();
-   if(
-     (!(PSecAccept=(TSecAccept) GetProcAddress(hSecDLL,"SecAccept"))) ||
-     (!(PSecRecv  =(TSecRecv )  GetProcAddress(hSecDLL,"SecRecv"))) ||
-     (!(PSecSend  =(TSecSend )  GetProcAddress(hSecDLL,"SecSend"))) ||
-     (!(PSecClose =(TSecClose)  GetProcAddress(hSecDLL,"SecClose"))) ||
-     (!(PInitLib=(TInitLib) GetProcAddress(hSecDLL,"InitLib")))
+  }
+  dlerror();
+  if(
+    (!(PSecAccept = (TSecAccept) GetProcAddress(hSecDLL, "SecAccept"))) ||
+    (!(PSecRecv  = (TSecRecv )  GetProcAddress(hSecDLL, "SecRecv"))) ||
+    (!(PSecSend  = (TSecSend )  GetProcAddress(hSecDLL, "SecSend"))) ||
+    (!(PSecClose = (TSecClose)  GetProcAddress(hSecDLL, "SecClose"))) ||
+    (!(PInitLib = (TInitLib) GetProcAddress(hSecDLL, "InitLib")))
   )
   {
-   printf("Error getfunction TLS/SSL library: %s %s\n",dlerror(),TLSLibrary);
-   return 0;
+    printf("Error getfunction TLS/SSL library: %s %s\n", dlerror(), TLSLibrary);
+    return 0;
   }
-  PSecConnect = (TSecConnect) GetProcAddress(hSecDLL,"SecConnect");
-  PSecUpdateCB = (TSecUpdateCB) GetProcAddress(hSecDLL,"SecUpdateCB");
+  PSecConnect = (TSecConnect) GetProcAddress(hSecDLL, "SecConnect");
+  PSecUpdateCB = (TSecUpdateCB) GetProcAddress(hSecDLL, "SecUpdateCB");
 
 #else // not  x86_64
 
@@ -178,54 +178,54 @@ int InitSecDLL()
   dlerror();
 #endif
 
-  hSecDLL=LoadLibrary(TLSLibrary);
+  hSecDLL = LoadLibrary(TLSLibrary);
 
   if(!hSecDLL)
   {
 #ifdef SYSUNIX
-   printf("Error loading TLS/SSL library: %s %s\n",dlerror(),TLSLibrary);
+    printf("Error loading TLS/SSL library: %s %s\n", dlerror(), TLSLibrary);
 #endif
-   return 0;
+    return 0;
 
   }
   else if(
-     (!(PSecAccept=(TSecAccept) GetProcAddress(hSecDLL,"SecAccept"))) ||
-     (!(PSecRecv  =(TSecRecv )  GetProcAddress(hSecDLL,"SecRecv"))) ||
-     (!(PSecSend  =(TSecSend )  GetProcAddress(hSecDLL,"SecSend"))) ||
-     (!(PSecClose =(TSecClose)  GetProcAddress(hSecDLL,"SecClose"))) ||
-     (!(PInitLib=(TInitLib) GetProcAddress(hSecDLL,"InitLib")))
+    (!(PSecAccept = (TSecAccept) GetProcAddress(hSecDLL, "SecAccept"))) ||
+    (!(PSecRecv  = (TSecRecv )  GetProcAddress(hSecDLL, "SecRecv"))) ||
+    (!(PSecSend  = (TSecSend )  GetProcAddress(hSecDLL, "SecSend"))) ||
+    (!(PSecClose = (TSecClose)  GetProcAddress(hSecDLL, "SecClose"))) ||
+    (!(PInitLib = (TInitLib) GetProcAddress(hSecDLL, "InitLib")))
   )
   {
 #ifdef SYSUNIX
-   printf("Error in TLS/SSL library interface: %s %s\n",dlerror(),TLSLibrary);
-   dlclose(hSecDLL);
+    printf("Error in TLS/SSL library interface: %s %s\n", dlerror(), TLSLibrary);
+    dlclose(hSecDLL);
 #endif
-   return 0;
+    return 0;
   }
-  PSecConnect = (TSecConnect) GetProcAddress(hSecDLL,"SecConnect");
-  PSecUpdateCB = (TSecUpdateCB) GetProcAddress(hSecDLL,"SecUpdateCB");
+  PSecConnect = (TSecConnect) GetProcAddress(hSecDLL, "SecConnect");
+  PSecUpdateCB = (TSecUpdateCB) GetProcAddress(hSecDLL, "SecUpdateCB");
 
 
 #endif
 
- if(!PSecConnect) PSecConnect = SecConnectAbcent;
- if(!PSecUpdateCB) PSecUpdateCB = SecUpdateCBAbcent;
+  if(!PSecConnect) PSecConnect = SecConnectAbcent;
+  if(!PSecUpdateCB) PSecUpdateCB = SecUpdateCBAbcent;
 
 
- if(tls_priority && tls_priority[0])
- {
-  TSetPriority SetPriority;
-
-  if( (SetPriority=(TSetPriority) GetProcAddress(hSecDLL,"SetPriority") ) )
+  if(tls_priority && tls_priority[0])
   {
-    SetPriority(tls_priority);
+    TSetPriority SetPriority;
+
+    if( (SetPriority = (TSetPriority) GetProcAddress(hSecDLL, "SetPriority") ) )
+    {
+      SetPriority(tls_priority);
+    }
+    else
+    {
+      debug("SetPriority is abcent in the library\n");
+    }
   }
-  else
-  {
-    debug("SetPriority is abcent in the library\n");
-  }
- }
- return 1;
+  return 1;
 }
 
 #endif
@@ -234,72 +234,72 @@ char *chunke_bfr;
 shs_mutex_t chunke_mutex = SHS_MUTEX_INITIALIZER;
 #define MAX_FRAG_SIZE 0x10000
 
-int TLSSend(Req *th, const void *b,int l)
+int TLSSend(Req *th, const void *b, int l)
 {
- int r;
- int lock=0;
- DBG_CODE(int ll=l) ///!!! debug
- DBG_WRITE((char *)b,l,2);
+  int r;
+  int lock = 0;
+  DBG_CODE(int ll = l) ///!!! debug
+  DBG_WRITE((char *)b, l, 2);
 
- if( (th->fl & F_CHUNKED) && l>0)
- {
-   int l2;
-   while( l > MAX_FRAG_SIZE)
-   {
-     if((r=TLSSend(th,b,MAX_FRAG_SIZE)) <= 0) return r;
-     l -= MAX_FRAG_SIZE;
-     DWORD_PTR(b) += MAX_FRAG_SIZE;
-   }
-   lock = MyLock(chunke_mutex);
-   if(!chunke_bfr) chunke_bfr = (char *) malloc(MAX_FRAG_SIZE+32);
-   l2 = sprintf(chunke_bfr, "%X\r\n", l);
-   memcpy(chunke_bfr+l2, b, l);
-   b = chunke_bfr;
-   l+=l2;
-   WORD_PTR(chunke_bfr[l])=0xA0D;
-   l+=2;
-   //if( (r=SecSend((OpenSSLConnection *)(th->Adv),chu,) ))<=0 ) return r;
- }
- while(l>0)
- { r= SecSend((OpenSSLConnection *)(th->Adv),(char *)b,l);
-   if(r<=0)break;
-   l-=r;
-   DWORD_PTR(b)+=r;
- }
- if(lock) MyUnlock(chunke_mutex);
- DBG_PRINT("TLS send s=%d r=%d l=%d",th->s,r,ll);
+  if( (th->fl & F_CHUNKED) && l > 0)
+  {
+    int l2;
+    while( l > MAX_FRAG_SIZE)
+    {
+      if((r = TLSSend(th, b, MAX_FRAG_SIZE)) <= 0) return r;
+      l -= MAX_FRAG_SIZE;
+      DWORD_PTR(b) += MAX_FRAG_SIZE;
+    }
+    lock = MyLock(chunke_mutex);
+    if(!chunke_bfr) chunke_bfr = (char *) malloc(MAX_FRAG_SIZE + 32);
+    l2 = sprintf(chunke_bfr, "%X\r\n", l);
+    memcpy(chunke_bfr + l2, b, l);
+    b = chunke_bfr;
+    l += l2;
+    WORD_PTR(chunke_bfr[l]) = 0xA0D;
+    l += 2;
+    //if( (r=SecSend((OpenSSLConnection *)(th->Adv),chu,) ))<=0 ) return r;
+  }
+  while(l > 0)
+  { r = SecSend((OpenSSLConnection *)(th->Adv), (char *)b, l);
+    if(r <= 0)break;
+    l -= r;
+    DWORD_PTR(b) += r;
+  }
+  if(lock) MyUnlock(chunke_mutex);
+  DBG_PRINT("TLS send s=%d r=%d l=%d", th->s, r, ll);
 
- return r;
+  return r;
 };
 
-int TLSRecv(Req *th,void *b,int l)
+int TLSRecv(Req *th, void *b, int l)
 {
- int r;
- r=SecRecv((OpenSSLConnection *) (th->Adv),(char *)b,l);
- DBG_PRINT("TLS recv r=%d l=%d", r, l);
- DBG_WRITE((char *)b,r,3);
- return r;
+  int r;
+  r = SecRecv((OpenSSLConnection *) (th->Adv), (char *)b, l);
+  DBG_PRINT("TLS recv r=%d l=%d", r, l);
+  DBG_WRITE((char *)b, r, 3);
+  return r;
 };
 
 shs_mutex_t TLSmutex = SHS_MUTEX_INITIALIZER;
 int Req::TLSBegin(OpenSSLConnection *x, int type, char *verfyhost)
 {
-  Snd=(tfSnd) &TLSSend;
-  Rcv=(tfRcv) &TLSRecv;
-  Adv=x;
-  x->CallbackParam=this;
+  Snd = (tfSnd) &TLSSend;
+  Rcv = (tfRcv) &TLSRecv;
+  Adv = x;
+  x->CallbackParam = this;
   x->state = 0;
-  if(timout< 30) timout = 30;
+  if(timout < 30) timout = 30;
   DBG_PRINT("TLS request");
   MyLock(TLSmutex);
-  if( (type & tbtAccept) ? SecAccept(x) : SecConnect(x,type,verfyhost) )
+  if( (type & tbtAccept) ? SecAccept(x) : SecConnect(x, type, verfyhost) )
   {
-      MyUnlock(TLSmutex);
-      return 1;
+    MyUnlock(TLSmutex);
+    return 1;
   }
   MyUnlock(TLSmutex);
-  Snd=(tfSnd) &JustSnd;
-  Rcv=(tfRcv) &JustRcv;
+  Snd = (tfSnd) &JustSnd;
+  Rcv = (tfRcv) &JustRcv;
   return 0;
 }
 
@@ -309,41 +309,41 @@ int Req::TLSReq()
 {
   OpenSSLConnection x;
 #if 0
-  Snd=(tfSnd) &TLSSend;
-  Rcv=(tfRcv) &TLSRecv;
-  Adv=&x;
-  x.CallbackParam=this;
+  Snd = (tfSnd) &TLSSend;
+  Rcv = (tfRcv) &TLSRecv;
+  Adv = &x;
+  x.CallbackParam = this;
   DBG_PRINT("TLS request");
   if(SecAccept(&x))
 #else
-    if(TLSBegin(&x))
+  if(TLSBegin(&x))
 #endif
-    {
-      DBG_PRINT("TLS accept Ok");
+  {
+    DBG_PRINT("TLS accept Ok");
 
-      HttpReq();
+    HttpReq();
 
-      //   SecRecv(&x,(char *)b,10);
-      if(! (fl & F_KEEP_ALIVE) ) {
-        /*
-        SecClose(&x);
-        Snd=(tfSnd) &JustSnd;
-        Rcv=(tfRcv) &JustRcv;
-        */
-        Close();
-      }
-      else if( ! (fl & F_VPNANY) )
+    //   SecRecv(&x,(char *)b,10);
+    if(! (fl & F_KEEP_ALIVE) ) {
+      /*
+      SecClose(&x);
+      Snd=(tfSnd) &JustSnd;
+      Rcv=(tfRcv) &JustRcv;
+      */
+      Close();
+    }
+    else if( ! (fl & F_VPNANY) )
       //if( (fl & F_KEEP_ALIVE) && ! (fl & F_VPNANY) )
-      {
-        TryToAddKeepAlive(this);
-      }
-    }
-    else
     {
-      AddToLog("TLS error\r\n",s,&sa_c46);
+      TryToAddKeepAlive(this);
     }
-    DBG_PRINT("TLS end");
-    return 1;
+  }
+  else
+  {
+    AddToLog("TLS error\r\n", s, &sa_c46);
+  }
+  DBG_PRINT("TLS end");
+  return 1;
 };
 
 #endif // VPNCLIENT_ONLY

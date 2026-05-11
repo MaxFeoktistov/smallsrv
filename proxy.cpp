@@ -492,7 +492,6 @@ int CheckInVirusURL(ulong xu, char *url)
 {
   if(virus_list)
   {
-    // char *p;
     virus_url *v;
 
 
@@ -579,7 +578,7 @@ int ProxyAntivirus(char *fname,char *url)
 int Req::ProxyReq()
 {
   char *p, *in_buf, *ibf, *t, *t2, *t3, *t4, *t6, *u,
-       *nocashe, *auth, *ModifiedSince, *fname; //*pp,
+       *nocashe, *auth, *ModifiedSince, *fname; 
   int l, h, i, rcode, pr, j;
   ulong xu;
   union {sockaddr prt; sockaddr_in prti;};

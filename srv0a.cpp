@@ -23,9 +23,9 @@
  */
 
 
- #ifndef STRING_CONST_H
- #include "g4strc.h"
- #endif
+#ifndef STRING_CONST_H
+#include "g4strc.h"
+#endif
 
 #ifdef ARM
 #include <stdarg.h>
@@ -40,34 +40,34 @@
 
 #ifndef SYSUNIX
 
-int WINAPI lopen (char *f,ulong t){ return (int)CreateFile(f,(0xB0000000ul<<t)&0xC0000000,FILE_SHARE_READ,&secat,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,0);}
-int WINAPI lcreat(char *f){return (int) CreateFile(f,GENERIC_WRITE,0,&secat,CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL,0);}
-int WINAPI lcreat2(char *f){return (int) CreateFile(f,GENERIC_WRITE,FILE_SHARE_READ,&secat,CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL,0);}
-int WINAPI lread (int h,char *b,int n){return ReadFile((HANDLE)h,b,n,(ulong *)&n,0)*n;}
-int WINAPI lwrite(int h,const char *b,int n){return WriteFile((HANDLE)h,b,n,(ulong *)&n,0)*n;}
-int WINAPI llseek(int h,int n,int t){return SetFilePointer((HANDLE)h,n,0,t);}
+int WINAPI lopen (char *f, ulong t) { return (int)CreateFile(f, (0xB0000000ul << t) & 0xC0000000, FILE_SHARE_READ, &secat, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);}
+int WINAPI lcreat(char *f) {return (int) CreateFile(f, GENERIC_WRITE, 0, &secat, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);}
+int WINAPI lcreat2(char *f) {return (int) CreateFile(f, GENERIC_WRITE, FILE_SHARE_READ, &secat, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);}
+int WINAPI lread (int h, char *b, int n) {return ReadFile((HANDLE)h, b, n, (ulong *)&n, 0) * n;}
+int WINAPI lwrite(int h, const char *b, int n) {return WriteFile((HANDLE)h, b, n, (ulong *)&n, 0) * n;}
+int WINAPI llseek(int h, int n, int t) {return SetFilePointer((HANDLE)h, n, 0, t);}
 
 #ifdef SERVICE
 #include <winsvc.h>
 
 SERVICE_STATUS_HANDLE sesh;
-SERVICE_STATUS ServiceStatus=
-{SERVICE_WIN32_OWN_PROCESS|SERVICE_INTERACTIVE_PROCESS,
-SERVICE_RUNNING,
-SERVICE_ACCEPT_STOP|SERVICE_ACCEPT_SHUTDOWN|SERVICE_ACCEPT_PAUSE_CONTINUE,
-0,0,0,0
+SERVICE_STATUS ServiceStatus =
+{ SERVICE_WIN32_OWN_PROCESS | SERVICE_INTERACTIVE_PROCESS,
+  SERVICE_RUNNING,
+  SERVICE_ACCEPT_STOP | SERVICE_ACCEPT_SHUTDOWN | SERVICE_ACCEPT_PAUSE_CONTINUE,
+  0, 0, 0, 0
 };
 void WINAPI NThandler(DWORD fdwControl)
-{if(fdwControl==SERVICE_CONTROL_STOP || fdwControl==SERVICE_CONTROL_SHUTDOWN)
- {ServiceStatus.dwCurrentState=SERVICE_STOP_PENDING;
-  s_aflg|=AFL_EX2;
-  PostMessage(mwnd,WM_CLOSE,0,0);
- }
- else if(fdwControl==SERVICE_CONTROL_PAUSE || fdwControl==SERVICE_CONTROL_CONTINUE)
- {if(fdwControl==SERVICE_CONTROL_PAUSE)ServiceStatus.dwCurrentState=SERVICE_PAUSED;
-  PostMessage(mwnd,WM_USER,WM_LBUTTONUP,WM_LBUTTONUP);
- }
- SetServiceStatus(sesh,&ServiceStatus);
+{ if(fdwControl == SERVICE_CONTROL_STOP || fdwControl == SERVICE_CONTROL_SHUTDOWN)
+  { ServiceStatus.dwCurrentState = SERVICE_STOP_PENDING;
+    s_aflg |= AFL_EX2;
+    PostMessage(mwnd, WM_CLOSE, 0, 0);
+  }
+  else if(fdwControl == SERVICE_CONTROL_PAUSE || fdwControl == SERVICE_CONTROL_CONTINUE)
+  { if(fdwControl == SERVICE_CONTROL_PAUSE)ServiceStatus.dwCurrentState = SERVICE_PAUSED;
+    PostMessage(mwnd, WM_USER, WM_LBUTTONUP, WM_LBUTTONUP);
+  }
+  SetServiceStatus(sesh, &ServiceStatus);
 };
 #endif
 #endif
@@ -76,146 +76,145 @@ void WINAPI NThandler(DWORD fdwControl)
 char err_msg[260];
 char* strerror(int ErrorCode)
 {
- FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS|FORMAT_MESSAGE_MAX_WIDTH_MASK, 0, ErrorCode, 0,(LPSTR)err_msg, 256, 0);
- return err_msg;
+  FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS | FORMAT_MESSAGE_MAX_WIDTH_MASK, 0, ErrorCode, 0, (LPSTR)err_msg, 256, 0);
+  return err_msg;
 }
 #else
-int ppid,puid,lastday;
+int ppid, puid, lastday;
 #endif
 
 void xdie(char *er)
-{char buf1[200];
- sprintf(buf1,"%s\r\n %X",er,WSAGetLastError());
- MessageBox(0,buf1,"Error",MB_OK);
- return;
+{ char buf1[200];
+  sprintf(buf1, "%s\r\n %X", er, WSAGetLastError());
+  MessageBox(0, buf1, "Error", MB_OK);
+  return;
 }
 
 #ifdef SEPLOG
 void Req::OutErr(char *er)
-{char buf1[200];
- uint k=flsrv[1] & MAX_SERV_MASK;
- if(k>=N_LOG)k=0;
- sprintf(buf1,"Error: %.160s\r\n",er);
- sepLog[k]->LAddToLog(buf1,s,&sa_c46);
+{ char buf1[200];
+  uint k = flsrv[1] & MAX_SERV_MASK;
+  if(k >= N_LOG)k = 0;
+  sprintf(buf1, "Error: %.160s\r\n", er);
+  sepLog[k]->LAddToLog(buf1, s, &sa_c46);
 }
 
-void dbgf(char *er,int s)
-{char buf1[200];
- TLog *t=GetLogS(s);
- sprintf(buf1,"Error: %s\r\n",er);
- t->LAddToLog(buf1,s,0);
+void dbgf(char *er, int s)
+{ char buf1[200];
+  TLog *t = GetLogS(s);
+  sprintf(buf1, "Error: %s\r\n", er);
+  t->LAddToLog(buf1, s, 0);
 }
 
 #else
-void dbgf(char *er,int s)
-{char buf1[200];
- sprintf(buf1,"Error: %s\r\n",er);
- AddToLog(buf1,s,0);
+void dbgf(char *er, int s)
+{ char buf1[200];
+  sprintf(buf1, "Error: %s\r\n", er);
+  AddToLog(buf1, s, 0);
 }
 #endif
-const char FmtBasicC[]=">Keep-Alive\r\n%.4000s";
-const char FmtBasic[] =">\r\n%.4000s";
-const char FmtShort []=">>%.256s\r\n";
-const char FmtShortErr []=">>%.256s\r\n";
-const char FmtShortR[]="}>%.256s\r\n";
-const char FmtShrt [] ="<<%.256s\r\n";
-const char FmtShrtR[] ="<<%.256s\r\n";
+const char FmtBasicC[] = ">Keep-Alive\r\n%.4000s";
+const char FmtBasic[] = ">\r\n%.4000s";
+const char FmtShort [] = ">>%.256s\r\n";
+const char FmtShortErr [] = ">>%.256s\r\n";
+const char FmtShortR[] = "}>%.256s\r\n";
+const char FmtShrt [] = "<<%.256s\r\n";
+const char FmtShrtR[] = "<<%.256s\r\n";
 
 
-char *DLST[]={"\nAuthorization:","\nProxy-Authorization:",">PASS ","/$_admin_$user?n=","AUTH PLAIN ",0};
+char *DLST[] = {"\nAuthorization:", "\nProxy-Authorization:", ">PASS ", "/$_admin_$user?n=", "AUTH PLAIN ", 0};
 
-char *oldprot=b_prot;
+char *oldprot = b_prot;
 
 #ifdef USE_IPV6
-int IPv6S(char *addr6,in6_addr &sin6_addr)
+int IPv6S(char *addr6, in6_addr &sin6_addr)
 {
   if(
-     sin6_addr.s6_addr32[0]==0 &&
-     sin6_addr.s6_addr32[1]==0 &&
-     (
-       sin6_addr.s6_addr32[2]==0xFFFF0000
-       //|| ((sockaddr_in6 *)xsa)->sin6_addr.s6_addr16[2]==0
-     )
+    sin6_addr.s6_addr32[0] == 0 &&
+    sin6_addr.s6_addr32[1] == 0 &&
+    (
+      sin6_addr.s6_addr32[2] == 0xFFFF0000
+      //|| ((sockaddr_in6 *)xsa)->sin6_addr.s6_addr16[2]==0
+    )
   )
-  return sprintf(addr6,"%u.%u.%u.%u",
-    sin6_addr.s6_addr[12],
-    sin6_addr.s6_addr[13],
-    sin6_addr.s6_addr[14],
-    sin6_addr.s6_addr[15]);
- // else
- // {
+    return sprintf(addr6, "%u.%u.%u.%u",
+                   sin6_addr.s6_addr[12],
+                   sin6_addr.s6_addr[13],
+                   sin6_addr.s6_addr[14],
+                   sin6_addr.s6_addr[15]);
+// else
+// {
 #define XAR  sin6_addr.s6_addr16
-  return sprintf(addr6,"%X:%X:%X:%X:%X:%X:%X:%X",
-    htons(XAR[0]),htons(XAR[1]),htons(XAR[2]),htons(XAR[3]),htons(XAR[4]),
-    htons(XAR[5]),htons(XAR[6]),htons(XAR[7]));
+  return sprintf(addr6, "%X:%X:%X:%X:%X:%X:%X:%X",
+                 htons(XAR[0]), htons(XAR[1]), htons(XAR[2]), htons(XAR[3]), htons(XAR[4]),
+                 htons(XAR[5]), htons(XAR[6]), htons(XAR[7]));
 #undef XAR
 //  }
 
 }
-int IP2S(char *addr6,sockaddr_in* xsa)
+int IP2S(char *addr6, sockaddr_in* xsa)
 {
 #define XAR  (((sockaddr_in6 *)xsa)->sin6_addr.s6_addr16)
- if(((sockaddr_in6 *)xsa)->sin6_family==AF_INET6)
- {
-    return IPv6S(addr6,((sockaddr_in6 *)xsa)->sin6_addr);
- /*
-  if(
-     ((sockaddr_in6 *)xsa)->sin6_addr.s6_addr32[0]==0 &&
-     ((sockaddr_in6 *)xsa)->sin6_addr.s6_addr32[1]==0 &&
-     (
-      ((sockaddr_in6 *)xsa)->sin6_addr.s6_addr32[2]==0xFFFF0000
-       //|| ((sockaddr_in6 *)xsa)->sin6_addr.s6_addr16[2]==0
-     )
-  )
-   sprintf(addr6,"%u.%u.%u.%u",
-    ((sockaddr_in6 *)xsa)->sin6_addr.s6_addr[12],
-    ((sockaddr_in6 *)xsa)->sin6_addr.s6_addr[13],
-    ((sockaddr_in6 *)xsa)->sin6_addr.s6_addr[14],
-    ((sockaddr_in6 *)xsa)->sin6_addr.s6_addr[15]);
-  else
+  if(((sockaddr_in6 *)xsa)->sin6_family == AF_INET6)
   {
-   sprintf(addr6,"%X:%X:%X:%X:%X:%X:%X:%X-",
-    htons(XAR[0]),htons(XAR[1]),htons(XAR[2]),htons(XAR[3]),htons(XAR[4]),
-    htons(XAR[5]),htons(XAR[6]),htons(XAR[7]));
+    return IPv6S(addr6, ((sockaddr_in6 *)xsa)->sin6_addr);
+    /*
+     if(
+        ((sockaddr_in6 *)xsa)->sin6_addr.s6_addr32[0]==0 &&
+        ((sockaddr_in6 *)xsa)->sin6_addr.s6_addr32[1]==0 &&
+        (
+         ((sockaddr_in6 *)xsa)->sin6_addr.s6_addr32[2]==0xFFFF0000
+          //|| ((sockaddr_in6 *)xsa)->sin6_addr.s6_addr16[2]==0
+        )
+     )
+      sprintf(addr6,"%u.%u.%u.%u",
+       ((sockaddr_in6 *)xsa)->sin6_addr.s6_addr[12],
+       ((sockaddr_in6 *)xsa)->sin6_addr.s6_addr[13],
+       ((sockaddr_in6 *)xsa)->sin6_addr.s6_addr[14],
+       ((sockaddr_in6 *)xsa)->sin6_addr.s6_addr[15]);
+     else
+     {
+      sprintf(addr6,"%X:%X:%X:%X:%X:%X:%X:%X-",
+       htons(XAR[0]),htons(XAR[1]),htons(XAR[2]),htons(XAR[3]),htons(XAR[4]),
+       htons(XAR[5]),htons(XAR[6]),htons(XAR[7]));
+     }
+    */
   }
-*/
- }
 
- return sprintf(addr6,"%u.%u.%u.%u",
+  return sprintf(addr6, "%u.%u.%u.%u",
 #ifndef SYSUNIX
-   xsa->sin_addr.S_un.S_un_b.s_b1, xsa->sin_addr.S_un.S_un_b.s_b2,
-   xsa->sin_addr.S_un.S_un_b.s_b3, xsa->sin_addr.S_un.S_un_b.s_b4
+                 xsa->sin_addr.S_un.S_un_b.s_b1, xsa->sin_addr.S_un.S_un_b.s_b2,
+                 xsa->sin_addr.S_un.S_un_b.s_b3, xsa->sin_addr.S_un.S_un_b.s_b4
 #else
-   xsa->sin_addr.s_addr&0xFF ,  BYTE_PTR(xsa->sin_addr.s_addr,1),
-   BYTE_PTR(xsa->sin_addr.s_addr,2),BYTE_PTR(xsa->sin_addr.s_addr,3)
+                 xsa->sin_addr.s_addr & 0xFF,  BYTE_PTR(xsa->sin_addr.s_addr, 1),
+                 BYTE_PTR(xsa->sin_addr.s_addr, 2), BYTE_PTR(xsa->sin_addr.s_addr, 3)
 #endif
-   );
+                );
 }
 #endif
 
 char *TrimLogLines(char *s)
 {
- int i=0,mtrim_log_lines;
- char *t=s;
+  int i = 0, mtrim_log_lines;
+  char *t = s;
 
- if(trim_log_lines<32)trim_log_lines=32;
- mtrim_log_lines=trim_log_lines+3;
- while(*s)
- {
-   if(*s=='\r' || *s=='\n')
-   {
-     i=0;
-   }
-   if(i<mtrim_log_lines)
-     *t++=*s;
-   else
-       if(i==trim_log_lines) WORD_PTR(t[i-2])=0x2e2e;
+  if(trim_log_lines < 32)trim_log_lines = 32;
+  mtrim_log_lines = trim_log_lines + 3;
+  while(*s)
+  {
+    if(*s == '\r' || *s == '\n')
+    {
+      i = 0;
+    }
+    if(i < mtrim_log_lines)
+      *t++ = *s;
+    else if(i == trim_log_lines) WORD_PTR(t[i - 2]) = 0x2e2e;
 
-   i++;
-   s++;
- }
- *t=0;
- return t;
+    i++;
+    s++;
+  }
+  *t = 0;
+  return t;
 }
 
 
@@ -227,10 +226,10 @@ char *TrimLogLines(char *s)
 
 #ifdef SERVICE
 void CloseService()
-{if(sesh && ServiceStatus.dwCurrentState!=SERVICE_STOPPED)
- {ServiceStatus.dwCurrentState=SERVICE_STOPPED;
-  SetServiceStatus(sesh,&ServiceStatus);
- }
+{ if(sesh && ServiceStatus.dwCurrentState != SERVICE_STOPPED)
+  { ServiceStatus.dwCurrentState = SERVICE_STOPPED;
+    SetServiceStatus(sesh, &ServiceStatus);
+  }
 };
 #else
 #define CloseService()
@@ -245,73 +244,73 @@ void CloseSocket(int s){shutdown(s,2); closesocket(s);}
 */
 
 void StopSocket()
-{int i;
- for(i=0;i<
- /*
-#if defined(USE_IPV6) && ! defined(SYSUNIX)
-    16
-#else
-    8
-#endif
-  */
-   MAX_SOCK  ; i++) if(soc_srv[i]>0){CloseSocket(soc_srv[i]); soc_srv[i]=0; }
+{ int i;
+  for(i = 0; i <
+      /*
+      #if defined(USE_IPV6) && ! defined(SYSUNIX)
+         16
+      #else
+         8
+      #endif
+       */
+      MAX_SOCK  ; i++) if(soc_srv[i] > 0) {CloseSocket(soc_srv[i]); soc_srv[i] = 0; }
 
 
 }
 void CloseServer()
-{int i;
+{ int i;
 #ifdef SYSUNIX
- if(s_aflg&AFL_EXIT){Sleep(3000); }
- s_aflg|=AFL_EXIT;
+  if(s_aflg & AFL_EXIT) {Sleep(3000); }
+  s_aflg |= AFL_EXIT;
 #else
-  if(! (s_flg&FL_NOICON) )Shell_NotifyIcon(NIM_DELETE,&nid);
+  if(! (s_flg & FL_NOICON) )Shell_NotifyIcon(NIM_DELETE, &nid);
 #endif
- is_no_exit=0;
- unsave_limit=1;
- //RelProt();
- DoneSepLog();
- DestroyWindow(mwnd);
- DestroyIcon(
+  is_no_exit = 0;
+  unsave_limit = 1;
+//RelProt();
+  DoneSepLog();
+  DestroyWindow(mwnd);
+  DestroyIcon(
 #ifndef DJGPP
-     (HICON__ *)
+    (HICON__ *)
 #endif
-     hicon);
+    hicon);
 #if V_FULL
-/*
- if( //dns_incache &&  dcache
-    dnscachefile && pns_hash &&(i=_lcreat(dnscachefile,0))>0)
- {//_hwrite(i,(char *)&dns_filehead,sizeof(dns_filehead));
-  //_hwrite(i,(char *)dip   ,dns_incache *4);
-  //_hwrite(i,(char *)dcache,dns_incache *4);
-  //_hwrite(i,(char *)dtime ,dns_incache);
-  pns_hash->sign=0x1290475;
-  _hwrite(i,(char *)pns_hash ,sizeof(NS_hash)+dns_cach_size);
-  _lclose(i);
- }
- */
+  /*
+   if( //dns_incache &&  dcache
+      dnscachefile && pns_hash &&(i=_lcreat(dnscachefile,0))>0)
+   {//_hwrite(i,(char *)&dns_filehead,sizeof(dns_filehead));
+    //_hwrite(i,(char *)dip   ,dns_incache *4);
+    //_hwrite(i,(char *)dcache,dns_incache *4);
+    //_hwrite(i,(char *)dtime ,dns_incache);
+    pns_hash->sign=0x1290475;
+    _hwrite(i,(char *)pns_hash ,sizeof(NS_hash)+dns_cach_size);
+    _lclose(i);
+   }
+   */
 // SaveDNS();
 #endif
- CloseFCGI_tasks();
- if(KeepAliveList)
- {
-   MyLock(KeepAliveMutex);
-   for(i=0; i<KeepAliveCount; i++ )
-   {
-     DeleteKeepAlive(KeepAliveList[i]);
-   }
-   KeepAliveCount=0;
-   MyUnlock(KeepAliveMutex);
- }
+  CloseFCGI_tasks();
+  if(KeepAliveList)
+  {
+    MyLock(KeepAliveMutex);
+    for(i = 0; i < KeepAliveCount; i++ )
+    {
+      DeleteKeepAlive(KeepAliveList[i]);
+    }
+    KeepAliveCount = 0;
+    MyUnlock(KeepAliveMutex);
+  }
 
- CloseService();
- StopSocket();
+  CloseService();
+  StopSocket();
 
- Sleep(500);
- WSACleanup();
+  Sleep(500);
+  WSACleanup();
 #if V_FULL
- if(total_dhcp_ip)SaveDHCP();
+  if(total_dhcp_ip)SaveDHCP();
 #endif
- ExitProcess(0);
+  ExitProcess(0);
 }
 
 
@@ -409,76 +408,76 @@ void CloseServer()
 void PrintHelp()
 {
 #ifndef SYSUNIX
- int h=(int)GetStdHandle((ulong)STD_OUTPUT_HANDLE);
+  int h = (int)GetStdHandle((ulong)STD_OUTPUT_HANDLE);
 
 #define printf(a...)  _hwrite(h,b_prot,wsprintf(b_prot,a))
 
 #endif
- char toalign[96];
+  char toalign[96];
 
-     printf("%s\nUsage: %s [--v][--c config_file|@config_file][--h|?] [{Param}]\n"
-     "Options:\n\n"
-     " --v                print version and exit\n"
-     " --c config_file    use directed config file instead default\n"
-     " @config_file       use directed config file after default\n"
-     " --h, --?           print this help and exit\n"
-     "\n'Param' the same as the params in config file:\n\n"
+  printf("%s\nUsage: %s [--v][--c config_file|@config_file][--h|?] [{Param}]\n"
+         "Options:\n\n"
+         " --v                print version and exit\n"
+         " --c config_file    use directed config file instead default\n"
+         " @config_file       use directed config file after default\n"
+         " --h, --?           print this help and exit\n"
+         "\n'Param' the same as the params in config file:\n\n"
 
 
-     ,sSMALL_HTT,
-      cmdline
-    //        argv[0]
-           );
-      for(CfgParam *cp=ConfigParams;cp->desc /*&& cp->name*/;++cp)
-       if(!cp->name)
-       {
-           printf("%s:\n",cp->desc);
-       }
-       else
-       {
-            if( (cp->min==255 || cp->min==256) && cp->v )
-            {
-               // printf(" %s=path - %s\n",cp->name,cp->desc);
-                sprintf(toalign,"%s=path", cp->name);
-                printf(" %-27s %s\n", toalign, cp->desc);
+         , sSMALL_HTT,
+         cmdline
+         //        argv[0]
+        );
+  for(CfgParam *cp = ConfigParams; cp->desc /*&& cp->name*/; ++cp)
+    if(!cp->name)
+    {
+      printf("%s:\n", cp->desc);
+    }
+    else
+    {
+      if( (cp->min == 255 || cp->min == 256) && cp->v )
+      {
+        // printf(" %s=path - %s\n",cp->name,cp->desc);
+        sprintf(toalign, "%s=path", cp->name);
+        printf(" %-27s %s\n", toalign, cp->desc);
 
-            }
-            else     if(cp->v )
-            {
-               if(cp->adv)
-               {
-                 //  printf(" %s=value - ",cp->name);
+      }
+      else     if(cp->v )
+      {
+        if(cp->adv)
+        {
+          //  printf(" %s=value - ",cp->name);
 
-                   sprintf(toalign,"%s=value", cp->name);
-                   printf(" %-27s ", toalign);
+          sprintf(toalign, "%s=value", cp->name);
+          printf(" %-27s ", toalign);
 
-                   printf(cp->desc,cp->adv);
-                   printf("\n");
-               }
-               else
-               {
-                   //printf(" %s=value - %s\n",cp->name,cp->desc);
+          printf(cp->desc, cp->adv);
+          printf("\n");
+        }
+        else
+        {
+          //printf(" %s=value - %s\n",cp->name,cp->desc);
 
-                   sprintf(toalign,"%s=value", cp->name);
-                   printf(" %-27s %s\n", toalign, cp->desc);
+          sprintf(toalign, "%s=value", cp->name);
+          printf(" %-27s %s\n", toalign, cp->desc);
 
-               }
-            }
-            else
-            {
-              if(cp->adv)
-              {
-                printf(" %-27s ",cp->name);
-                printf(cp->desc,cp->adv);
-                printf("\n");
-              }
-              else
-              {
-               printf(" %-27s %s\n",cp->name,cp->desc);
+        }
+      }
+      else
+      {
+        if(cp->adv)
+        {
+          printf(" %-27s ", cp->name);
+          printf(cp->desc, cp->adv);
+          printf("\n");
+        }
+        else
+        {
+          printf(" %-27s %s\n", cp->name, cp->desc);
 //               printf(" %s - %s\n",cp->name,cp->desc);
-              }
-            }
-       }
+        }
+      }
+    }
 #ifndef SYSUNIX
 #undef printf
 #endif
@@ -492,15 +491,15 @@ void PrintHelp()
 extern "C" int RMain(void *);
 
 void WINAPI ServiceStart (DWORD argc, LPTSTR *argv)
-{if(!cmdline)cmdline=argc?argv[0]:(char *)"http.exe";
- CreateThread(&secat,0x5000,(TskSrv)RMain,0,0,&trd_id);
- if((sesh=RegisterServiceCtrlHandler("shttps",NThandler)))
- {SetServiceStatus(sesh, &ServiceStatus);
+{ if(!cmdline)cmdline = argc ? argv[0] : (char *)"http.exe";
+  CreateThread(&secat, 0x5000, (TskSrv)RMain, 0, 0, &trd_id);
+  if((sesh = RegisterServiceCtrlHandler("shttps", NThandler)))
+  { SetServiceStatus(sesh, &ServiceStatus);
 
-  debug( sSTART_AS_ );
- }
+    debug( sSTART_AS_ );
+  }
 };
-SERVICE_TABLE_ENTRY  DispatchTable[]={{"shttps", ServiceStart},{0,0} };
+SERVICE_TABLE_ENTRY  DispatchTable[] = {{"shttps", ServiceStart}, {0, 0} };
 #endif
 
 #ifdef MINGW
@@ -509,35 +508,35 @@ extern "C"  int WINAPI WinMain1( HINSTANCE hinst, HANDLE prev_inst, LPSTR cmline
 int PASCAL WinMain( HINSTANCE hinst, HANDLE prev_inst, LPSTR cmline, int cmdshow )
 #endif
 {
-  hinstance=hinst;
-  cmdline=cmline;
+  hinstance = hinst;
+  cmdline = cmline;
 
 #ifdef SEPLOG
- gLog.Init(0); //"");
- //PreInitSepLog(&gLog);
- sepLog[0] = &gLog;
+  gLog.Init(0); //"");
+//PreInitSepLog(&gLog);
+  sepLog[0] = &gLog;
 #endif
 
 #ifdef SERVICE
- if( (! (s_aflg=(GetVersion() & 0x80000000)) ) )
-   //NTSERVISE)
- {
-   char uname[260];
-   DWORD_PTR(uname[0])=255;
-   GetUserName(uname + 4, (ulong *) uname);
-   if((!(uname[0]))
-     || stristr(uname + 4,"SYSTEM")
-     || (cmline && stristr(cmline," service"))
-   )
-   {
-     NTSERVISE=1;
-     if(StartServiceCtrlDispatcher(DispatchTable))return 0;
-     debug( sRUN_AS_AP );
-   }
- }
- hstdout=(int)GetStdHandle((ulong)STD_OUTPUT_HANDLE);
- DBGLINE
- return RMain(0);
+  if( (! (s_aflg = (GetVersion() & 0x80000000)) ) )
+    //NTSERVISE)
+  {
+    char uname[260];
+    DWORD_PTR(uname[0]) = 255;
+    GetUserName(uname + 4, (ulong *) uname);
+    if((!(uname[0]))
+        || stristr(uname + 4, "SYSTEM")
+        || (cmline && stristr(cmline, " service"))
+      )
+    {
+      NTSERVISE = 1;
+      if(StartServiceCtrlDispatcher(DispatchTable))return 0;
+      debug( sRUN_AS_AP );
+    }
+  }
+  hstdout = (int)GetStdHandle((ulong)STD_OUTPUT_HANDLE);
+  DBGLINE
+  return RMain(0);
 }
 
 //int WINAPI RMain(void *)
@@ -545,136 +544,138 @@ int PASCAL WinMain( HINSTANCE hinst, HANDLE prev_inst, LPSTR cmline, int cmdshow
 extern "C" int RMain(void *)
 {
 #endif
- MSG msg;
- char *t,*p,*pp;
+  MSG msg;
+  char *t, *p, *pp;
 // union{
- int ll;
+  int ll;
 // ulong ull;
 // };
 #ifdef SEPLOG
- gLog.Init(0); //"");
- //PreInitSepLog(&gLog);
- sepLog[0] = &gLog;
+  gLog.Init(0); //"");
+//PreInitSepLog(&gLog);
+  sepLog[0] = &gLog;
 #endif
- if(strstr(cmdline," --v") )
- {
-   _hwrite((int)GetStdHandle((ulong)STD_OUTPUT_HANDLE),sSMALL_HTT "\n",sizeof(sSMALL_HTT)+1);
-   return 0;
- }
- if( ( (t=strstr(cmdline," --h") ) || (t=strstr(cmdline," --?") ) ) && ! (t[4])  )
- {
-     *t=0;
-     PrintHelp();
-     return 0;
- }
- if( (t=strstr(cmdline," --c ") ) )
- {
-   t=SkipSpace(t+5);
-   ll=' ';
-   if(*t=='\"')
-   {
-     t++;
-     ll='\"';
-   }
-   if((p=strchr(t,ll)))*p=0;
-   PrepCfg(t);
-   if(t[1]==':' || t[2]==':' && (pp=strrchr(t,'\\')) )
-   {
-    *pp=0;
-    SetCurrentDirectory(t);
-    *pp='\\';
-//    LoadLangCfg("shs_lang.cfg" );
-   }
-   if(p)*p=ll;
-#if defined(CONFIG_CONFIG) && ! defined(CONFIG_CURRENT_DIR)
-   if( LoadLangCfg(CONFIG_CONFIG "shs_lang.cfg" ) < 0 )
-#endif
-   LoadLangCfg("shs_lang.cfg" );
- }
- else if( (p=stristr(t=cmdline,".exe") ) )
- {
-  char *tt;
-  if(*t=='\"') ++t;
-  ll = p - t + 1;
-  if(*t == '"') {
-    t++;
-    ll--;
+  if(strstr(cmdline, " --v") )
+  {
+    _hwrite((int)GetStdHandle((ulong)STD_OUTPUT_HANDLE), sSMALL_HTT "\n", sizeof(sSMALL_HTT) + 1);
+    return 0;
   }
-  tt= (char *) malloc(ll + 8);
-  if(!tt) return 1;
-  memcpy(tt, t, ll);
-  DWORD_PTR(tt[ll])=0x676663 x4CHAR("cfg");
-
-  PrepCfg(tt);
+  if( ( (t = strstr(cmdline, " --h") ) || (t = strstr(cmdline, " --?") ) ) && ! (t[4])  )
+  {
+    *t = 0;
+    PrintHelp();
+    return 0;
+  }
+  if( (t = strstr(cmdline, " --c ") ) )
+  {
+    t = SkipSpace(t + 5);
+    ll = ' ';
+    if(*t == '\"')
+    {
+      t++;
+      ll = '\"';
+    }
+    if((p = strchr(t, ll))) * p = 0;
+    PrepCfg(t);
+    if(t[1] == ':' || t[2] == ':' && (pp = strrchr(t, '\\')) )
+    {
+      *pp = 0;
+      SetCurrentDirectory(t);
+      *pp = '\\';
+//    LoadLangCfg("shs_lang.cfg" );
+    }
+    if(p)*p = ll;
 #if defined(CONFIG_CONFIG) && ! defined(CONFIG_CURRENT_DIR)
-  if( LoadLangCfg(CONFIG_CONFIG "shs_lang.cfg" ) < 0 )
+    if( LoadLangCfg(CONFIG_CONFIG "shs_lang.cfg" ) < 0 )
 #endif
-  LoadLangCfg("shs_lang.cfg" );
-  //DWORD_PTR(p[1])=ll;
- }
- InitParam(cmdline);
+      LoadLangCfg("shs_lang.cfg" );
+  }
+  else if( (p = stristr(t = cmdline, ".exe") ) )
+  {
+    char *tt;
+    if(*t == '\"') ++t;
+    ll = p - t + 1;
+    if(*t == '"') {
+      t++;
+      ll--;
+    }
+    tt = (char *) malloc(ll + 8);
+    if(!tt) return 1;
+    memcpy(tt, t, ll);
+    DWORD_PTR(tt[ll]) = 0x676663 x4CHAR("cfg");
+
+    PrepCfg(tt);
+#if defined(CONFIG_CONFIG) && ! defined(CONFIG_CURRENT_DIR)
+    if( LoadLangCfg(CONFIG_CONFIG "shs_lang.cfg" ) < 0 )
+#endif
+      LoadLangCfg("shs_lang.cfg" );
+    //DWORD_PTR(p[1])=ll;
+  }
+  InitParam(cmdline);
 #if (! defined(CD_VER) ) && (! defined(FREEVER) )
- CheckCode((uchar *)user_name,chk_code3a,0);
+  CheckCode((uchar *)user_name, chk_code3a, 0);
 #endif
- if(InitApplication()<=0)return 0;
+  if(InitApplication() <= 0)return 0;
 #if  (! defined(FREEVER) )
- if(CheckDate(cmdline)){CloseService();  ExitProcess(0);} ;
+  if(CheckDate(cmdline)) {CloseService();  ExitProcess(0);} ;
 #endif
 #if (! defined(CD_VER) )
 #if (! defined(SYSUNIX) )  && (! defined(FREEVER) )
- if(userList && userList->next && userList->next->next &&
-   user_name!=(about+sizeof(ABOUT_STR)+14) )
-    MessageBox(0,sNOW_THE_PROGRAM,"Warning",MB_ICONSTOP|MB_OK);
+  if(userList && userList->next && userList->next->next &&
+      user_name != (about + sizeof(ABOUT_STR) + 14) )
+    MessageBox(0, sNOW_THE_PROGRAM, "Warning", MB_ICONSTOP | MB_OK);
 #endif
- if(flog){ if( (ll=_lopen(flog,1))<0)ll=_lcreat(flog,0);
- _lclose(ll); }
+  if(flog) {
+    if( (ll = _lopen(flog, 1)) < 0)ll = _lcreat(flog, 0);
+    _lclose(ll);
+  }
 #endif
 #ifdef CD_VER1
- sprintf(b_prot+0x3000,"%.128s",def_dir);
- if(cddir.d.DirChkLngh|dirchk.DirChkSumX )
- {
-  CalcDirChkSum(b_prot+0x3000);
-  if(
-    dirchk.DirChkLngh!=cddir.d.DirChkLngh ||
-    dirchk.DirChkSumX!=cddir.d.DirChkSumX ||
-    dirchk.DirChkSum2X!=cddir.d.DirChkSum2X
-  )CloseServer();
- }
+  sprintf(b_prot + 0x3000, "%.128s", def_dir);
+  if(cddir.d.DirChkLngh | dirchk.DirChkSumX )
+  {
+    CalcDirChkSum(b_prot + 0x3000);
+    if(
+      dirchk.DirChkLngh != cddir.d.DirChkLngh ||
+      dirchk.DirChkSumX != cddir.d.DirChkSumX ||
+      dirchk.DirChkSum2X != cddir.d.DirChkSum2X
+    )CloseServer();
+  }
 #endif
 
 
- while(GetMessage( &msg, NULL, 0, 0 ))
- {
+  while(GetMessage( &msg, NULL, 0, 0 ))
+  {
 #if ! defined(FREEVER)
-  if( ( (!dwnd2) || !IsDialogMessage(dwnd2,&msg) ) )
+    if( ( (!dwnd2) || !IsDialogMessage(dwnd2, &msg) ) )
 #endif
-  {if( dwndc && IsDialogMessage(dwndc,&msg) )
-   {
-    if(msg.message!=WM_KEYDOWN)continue;
-    msg.hwnd=dwndc;
-   }
-   //else
-       if( (!dwndc) && msg.message == WM_LBUTTONDBLCLK)
-   {
-      DefProc(mwnd, WM_LBUTTONDBLCLK,msg.wParam, msg.lParam) ;
-      continue;
-   }
-  // else
-   {
-     TranslateMessage( &msg );
-     DispatchMessage( &msg );
-   }
-  }
-  if(s_aflg&AFL_ICO)
-  {if(((ulong)((ulong)ll-GetTickCount()))>0x1000ul)
-   {if(Shell_NotifyIcon(NIM_ADD,&nid))s_aflg&=~AFL_ICO;
-    ll=GetTickCount();
-   }
-  }
- };
+    { if( dwndc && IsDialogMessage(dwndc, &msg) )
+      {
+        if(msg.message != WM_KEYDOWN)continue;
+        msg.hwnd = dwndc;
+      }
+      //else
+      if( (!dwndc) && msg.message == WM_LBUTTONDBLCLK)
+      {
+        DefProc(mwnd, WM_LBUTTONDBLCLK, msg.wParam, msg.lParam) ;
+        continue;
+      }
+      // else
+      {
+        TranslateMessage( &msg );
+        DispatchMessage( &msg );
+      }
+    }
+    if(s_aflg & AFL_ICO)
+    { if(((ulong)((ulong)ll - GetTickCount())) > 0x1000ul)
+      { if(Shell_NotifyIcon(NIM_ADD, &nid))s_aflg &= ~AFL_ICO;
+        ll = GetTickCount();
+      }
+    }
+  };
 
- CloseServer();
- return 0;
+  CloseServer();
+  return 0;
 };
 #else
 char **__argv;

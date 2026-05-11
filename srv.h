@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2025 Maksim Feoktistov.
+ * Copyright (C) 1999-2026 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov
@@ -122,7 +122,17 @@ struct shs_mutex_t
 #define SHS_MUTEX_INITIALIZER  {0}
 #endif
 
-  void Init(){lock = 0;}
+  void Init()
+  {
+    lock = 0;
+#if defined(USE_SEM)
+    sem_state = 0;
+#elif defined(USE_PTHREAD_MUTEX)
+    pthread_mutex_init(&pmutex, 0);
+#elif defined(USE_WINMUTEX)
+    hSem = 0;
+#endif
+  }
   void Destroy();
 };
 

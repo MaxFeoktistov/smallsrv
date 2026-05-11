@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 
 #
-# Copyright (C) 1999-2025 Maksim Feoktistov.
+# Copyright (C) 1999-2026 Maksim Feoktistov.
 #
 # This file is part of Small HTTP server project.
 # Author: Maksim Feoktistov
@@ -132,6 +132,7 @@
    --withoutVPN         -- without VPN
    --withoutSYSPASS     -- without system password support
    --withoutTelnet      -- without Telnet (Telnet for ARM and other little platforms)
+   --withoutTFTP        -- without TFTP server
    --withoutGenTempSert -- Do not generate temporary certificate
    --commonLog          -- without separate log
    --only_vpncvlient    -- Build VPN Client only
@@ -740,6 +741,11 @@ N_DEP := $(N_FAKELIBS)
       s/-DTLSVPN//g;
       s/ vpn.o//g;
       s/ shs_vpnclient[^ ]*//g;
+    }
+    if($without{'TFTP'})
+    {
+      s/-DTFTP//g;
+      s/ tftp.o//g;
     }
     if($without{'SYSPASS'})
     {

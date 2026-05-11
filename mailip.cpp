@@ -22,7 +22,7 @@
  *
  */
 
-#define DEBUG_VERSION 1
+//#define DEBUG_VERSION 1
 
 #ifndef SRV_H
 #include "srv.h"
@@ -46,8 +46,6 @@
 #define  rtypePTR_BE  0xC00
 #define  rtypeAAAA_BE 0x1C00
 
-
-//char *dns_server_for_mail=0;
 struct d_msgt {
   ushort id,
          flags,
@@ -56,206 +54,195 @@ struct d_msgt {
          nscount,
          arcount;
 }
- msg_reqmx={0x100,0x1,0x100,0,0,0};
-
+msg_reqmx = {0x100, 0x1, 0x100, 0, 0, 0};
 
 char* CopyDName(char *t, char *s)
 {
- char *tt,*t1;
- strcpy(t+1,s);
- tt=t;
- do{
-    t1=strchr(tt+1,'.');
+  char *tt, *t1;
+  strcpy(t + 1, s);
+  tt = t;
+  do {
+    t1 = strchr(tt + 1, '.');
     if(!t1)
     {
-     *tt=strlen(tt+1);
-     break;
+      *tt = strlen(tt + 1);
+      break;
     }
-    *tt=t1-tt-1;
-    tt=t1;
-   }while((t-tt)<255);
- return  tt + (*tt)+2;
+    *tt = t1 - tt - 1;
+    tt = t1;
+  } while((t - tt) < 255);
+  return  tt + (*tt) + 2;
 };
-
 
 void  MHinfo::InitHst(uchar *t1)
 {
- char  b[80];
+  char  b[80];
 // uchar *t1;
- int   tl[8];
- int i,j,k;
- memset(ta,0,sizeof(ta)+20);
+  int   tl[8];
+  int i, j, k;
+  memset(ta, 0, sizeof(ta) + 20);
 // t1=beg+4;
- for(j=i=0;j++ <7;++i)
- {
-  t1=(uchar *)DecodeName(b //t2
-    ,(char *) t1, (char *) beg);
+  for(j = i = 0; j++ < 7; ++i)
+  {
+    t1 = (uchar *)DecodeName(b //t2
+                             , (char *) t1, (char *) beg);
 //  debug("%s %X",b,DWORD_PTR(*t1));
-  if(  DWORD_PTR(*t1)==0x01000F00 )
-  {
-   ta[i]=(char *) t1 +12;
-   tl[i]=htons(WORD_PTR(t1[10]));
-   FirstIP=t1=(uchar *)DecodeName(b,(char *) t1 +12, (char *) beg);
-  }
-  else
-  {
-    if(  DWORD_PTR(*t1)==0x01000100 || ! (t1[1]) ) break ;
-    FirstIP=t1=(uchar *)DecodeName(b,(char *) t1 +10, (char *) beg);
-    --i;
-  }
+    if(  DWORD_PTR(*t1) == 0x01000F00 )
+    {
+      ta[i] = (char *) t1 + 12;
+      tl[i] = htons(WORD_PTR(t1[10]));
+      FirstIP = t1 = (uchar *)DecodeName(b, (char *) t1 + 12, (char *) beg);
+    }
+    else
+    {
+      if(  DWORD_PTR(*t1) == 0x01000100 || ! (t1[1]) ) break ;
+      FirstIP = t1 = (uchar *)DecodeName(b, (char *) t1 + 10, (char *) beg);
+      --i;
+    }
 
 //  debug("MH:%s",b);
-  //if(!t1) break;
- }
- nhst_hst=i;
- LastIP=FirstIP;
- for(k=0; k<i; ++k)
-   for(j=k+1;j<i;++j)
-    if(tl[j]<tl[k])
-    {xchgp(ta[k],ta[j]);
-     xchg(tl[k],tl[j]);
-    }
+    //if(!t1) break;
+  }
+  nhst_hst = i;
+  LastIP = FirstIP;
+  for(k = 0; k < i; ++k)
+    for(j = k + 1; j < i; ++j)
+      if(tl[j] < tl[k])
+      { xchgp(ta[k], ta[j]);
+        xchg(tl[k], tl[j]);
+      }
 
 }
 uchar *MHinfo::GetNextMH(char *t)
 {
- char  b[80];
- char *t1;
- //debug("==========%X %X %X",LastIP,ta[0],ta[1]);
- if(DWORD_PTR(LastIP)==1)
- {
-  //debug("!!!!!! %X %X",ta[0],ta[1]);
-  strcpy(t,ta[0]);
-  LastIP=0;
-  t1=((char *)(ta+1))-10;
-  goto lbIP;
- }
+  char  b[80];
+  char *t1;
+//debug("==========%X %X %X",LastIP,ta[0],ta[1]);
+  if(DWORD_PTR(LastIP) == 1)
+  {
+    //debug("!!!!!! %X %X",ta[0],ta[1]);
+    strcpy(t, ta[0]);
+    LastIP = 0;
+    t1 = ((char *)(ta + 1)) - 10;
+    goto lbIP;
+  }
 tryNext: ;
- if(cur_hst>=nhst_hst) return 0;
- if( ((ulong) (ta[cur_hst]-(char *) beg)) >500ul )
- {
-  // debug("MH error %X %X %u",ta[cur_hst],(char *) beg,cur_hst);
-   return 0;
- }
- DecodeName(t,ta[cur_hst],(char *) beg);
- sip[0]=0;
- if(FirstIP)
- {
-   if(!LastIP)LastIP=FirstIP;
+  if(cur_hst >= nhst_hst) return 0;
+  if( ((ulong) (ta[cur_hst] - (char *) beg)) > 500ul )
+  {
+    // debug("MH error %X %X %u",ta[cur_hst],(char *) beg,cur_hst);
+    return 0;
+  }
+  DecodeName(t, ta[cur_hst], (char *) beg);
+  sip[0] = 0;
+  if(FirstIP)
+  {
+    if(!LastIP)LastIP = FirstIP;
 //   t[68]=0;
-   do
-   {
-    t1=DecodeName(b,(char *)LastIP,(char *) beg);
-//debug("FMH |%s| %X %s",b,DWORD_PTR(*t1),t);
-    if(WORD_PTR(*t1)!=0x0100) break;
-    LastIP=(uchar *) (t1+10+t1[9]);
-    if( DWORD_PTR(*t1)==0x01000100 &&
-        ! stricmp(t,b)
-      )
+    do
     {
- lbIP:
-     sprintf(sip,"%u.%u.%u.%u",((uchar *)t1)[10],((uchar *)t1)[11],((uchar *)t1)[12],((uchar *)t1)[13]);
+      t1 = DecodeName(b, (char *)LastIP, (char *) beg);
+//debug("FMH |%s| %X %s",b,DWORD_PTR(*t1),t);
+      if(WORD_PTR(*t1) != 0x0100) break;
+      LastIP = (uchar *) (t1 + 10 + t1[9]);
+      if( DWORD_PTR(*t1) == 0x01000100 &&
+          ! stricmp(t, b)
+        )
+      {
+lbIP:
+        sprintf(sip, "%u.%u.%u.%u", ((uchar *)t1)[10], ((uchar *)t1)[11], ((uchar *)t1)[12], ((uchar *)t1)[13]);
 //     debug("MHIP:%s %s",t,sip);
-     lIP=DWORD_PTR(t1[10]);
-     ++cur_ip;
-     return (uchar *)t;
+        lIP = DWORD_PTR(t1[10]);
+        ++cur_ip;
+        return (uchar *)t;
+      }
+    } while(1);
+    ++cur_hst;
+    LastIP = FirstIP;
+    if(cur_ip)
+    { cur_ip = 0;
+      goto tryNext;
     }
-   }while(1);
-   ++cur_hst;
-   LastIP=FirstIP;
-   if(cur_ip)
-   {cur_ip=0;
-    goto tryNext;
-   }
- }
- else ++cur_hst;
+  }
+  else ++cur_hst;
 
- return (uchar *)t;
+  return (uchar *)t;
 }
-
-//inline uchar * GetNextMH(uchar *beg) //,uchar *t1,char *t2)
-//{ return  ((MHinfo *)beg)->GetNextMH((char *)beg+512);}
 
 int  MHinfo::CheckIP(ulong ip)
 {
- struct hostent *hp;
- ulong **p;
+  struct hostent *hp;
+  ulong **p;
 
   while(GetNextMH((char *) name) )if(sip[0])
-  {
-   if(lIP ==ip )return 1;
-  }
-  else
-  {
-    if( (hp=gethostbyname((char *) name)) )
     {
-     for( p=(ulong **)  hp->h_addr_list; *p ; ++p )if(*p[0]==ip)return 1;
+      if(lIP == ip )return 1;
     }
-  }
+    else
+    {
+      if( (hp = gethostbyname((char *) name)) )
+      {
+        for( p = (ulong **)  hp->h_addr_list; *p ; ++p )if(*p[0] == ip)return 1;
+      }
+    }
   return 0;
 }
-
-//inline int CheckMHIP(uchar *beg,ulong ip) { return  ((MHinfo *)beg)->CheckIP(ip);}
 
 char *askDNS(char *adr, d_msg  *dmm, int type_be)
 {
   int dns_s;
-  //int addr_dns;
   struct sockaddr_in sa;
   int i;
-  int j=4;
+  int j = 4;
   char *t;
 
-
-
   if( (!dns_server_for_mail) ||
-    (dns_s= socket(AF_INET,SOCK_DGRAM,IPPROTO_UDP)) < 0)
+      (dns_s = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0)
   {
     return 0;
   }
   SetCloseExec(dns_s);
-  //addr_dns
   if(!dns_for_mail_ip)
-    dns_for_mail_ip=ConvertIP(t=dns_server_for_mail);
+    dns_for_mail_ip = ConvertIP(t = dns_server_for_mail);
 
   DBGLA("%s %X", adr, type_be)
 
   memset((char *)&sa, 0, sizeof(sa));
   sa.sin_addr.s_addr = dns_for_mail_ip;
-  sa.sin_family=AF_INET;
-  sa.sin_port=0x3500;  //htons(53);
+  sa.sin_family = AF_INET;
+  sa.sin_port = 0x3500; //htons(53);
   ++msg_reqmx.id;
   memcpy(dmm, &msg_reqmx, sizeof(msg_reqmx));
-  t=CopyDName(dmm->buf, adr);
-  WORD_PTR(*t)= type_be;     //type MX
-  WORD_PTR(t[2])=0x0100;   //class IN
+  t = CopyDName(dmm->buf, adr);
+  WORD_PTR(*t) = type_be;
+  WORD_PTR(t[2]) = 0x0100; //class IN
   t += 4;
 
-  do{
-    i=-1;
+  do {
+    i = -1;
 
-    if( (i=sendto(dns_s,(char *)dmm,t - ((char *)dmm),0,(sockaddr *)&sa ,sizeof(sockaddr) )) <=0)
+    if( (i = sendto(dns_s, (char *)dmm, t - ((char *)dmm), 0, (sockaddr *)&sa, sizeof(sockaddr) )) <= 0)
     {
       debug("SMTP DNS error send...");
       break;
     }
-    if(RESelect(2+j,0,1,dns_s)>0)
+    if(RESelect(2 + j, 0, 1, dns_s) > 0)
     {
-      i=recvfrom(dns_s,(char *)dmm,512,0,(sockaddr *)&sa, &(i=sizeof(sockaddr)));
+      i = recvfrom(dns_s, (char *)dmm, 512, 0, (sockaddr *)&sa, &(i = sizeof(sockaddr)));
       break;
     }
-  }while(--j>0);
+  } while(--j > 0);
 
   CloseSocket(dns_s);
   //debug("MAILIP: %d %X %u %X %X adr %X",i,dmm->flags,jchk,s_flgs[1]&FL1_MHST,t+4,adr);
-  if( i<=0 )
+  if( i <= 0 )
   {
     //dbg2("Resv error...");
     return 0;
   }
   DWORD_PTR( ((char*)dmm)[i] ) = 0;
 
-  if((dmm->flags&0xF00) || !dmm->ancount) {
+  if((dmm->flags & 0xF00) || !dmm->ancount) {
     DBGLA("Fail %s %X flags: %X ancount %d", adr, type_be, dmm->flags, dmm->ancount)
     return 0;
   }
@@ -265,47 +252,39 @@ char *askDNS(char *adr, d_msg  *dmm, int type_be)
 
 
 //---------
-char* GetMailHost(char *adr, d_msg  *dmm,int jchk)
+char* GetMailHost(char *adr, d_msg  *dmm, int jchk)
 {
- //d_msg  dm;
 #define dm  (*dmm)
- char *t;
- //debug("x %X,",(dmm->flags&0xF00));
- if(! dns_server_for_mail)  // (dmm->flags&0xF00) || ! (dmm->ancount) )
- {
-   struct hostent *hp;
-   //debug("|%s| %X %u",adr,!(s_flgs[1]&FL1_MHST),jchk);
+  char *t;
+  //debug("x %X,",(dmm->flags&0xF00));
+  if(! dns_server_for_mail)
+  {
+    struct hostent *hp;
+    //debug("|%s| %X %u",adr,!(s_flgs[1]&FL1_MHST),jchk);
 
-   if( (jchk)   ||
-     ((s_flgs[1]&FL1_MHST)==0ul)
-     ||  !(hp=gethostbyname(adr)) )
-     return 0;
-   //||
-   ;
+    if( (jchk)   ||
+        ((s_flgs[1]&FL1_MHST) == 0ul)
+        ||  !(hp = gethostbyname(adr)) )
+      return 0;
 
-   //debug("hp=%X %X",hp,hp?*(ulong *)(hp->h_addr):0);
-   // if( !(hp)  )return 0;
+    memset(((MHinfo *)dmm)->ta, 0, sizeof(((MHinfo *)dmm)->ta) + 20);
+    ((MHinfo *)dmm)->ta[0] = adr;
+    DWORD_PTR(((MHinfo *)dmm)->ta[1]) = *(ulong *)(hp->h_addr);
+    DWORD_PTR(((MHinfo *)dmm)->LastIP) = 1;
+  }
+  else
+  {
+    t = askDNS(adr, dmm, rtypeMX_BE);
 
-   memset(((MHinfo *)dmm)->ta,0,sizeof(((MHinfo *)dmm)->ta)+20);
-   ((MHinfo *)dmm)->ta[0]=adr;
-   DWORD_PTR(((MHinfo *)dmm)->ta[1])=*(ulong *)(hp->h_addr);
-   DWORD_PTR(((MHinfo *)dmm)->LastIP)=1;
- }
- else
- {
-   t = askDNS(adr, dmm, rtypeMX_BE); //type MX
+    if(!t)
+      return 0;
 
-   if(!t)
-     return 0;
-
-   if(!jchk)
-   {
-     //!!! DWORD_PTR( ((char*)dmm)[i] )=0;
-     // ((char*)dmm)[0]=0;
-     ((MHinfo *)dmm)->InitHst((uchar *)t);  // !!! +4);
-   }
- }
- return t; //!!! t+4;
+    if(!jchk)
+    {
+      ((MHinfo *)dmm)->InitHst((uchar *)t);
+    }
+  }
+  return t;
 };
 
 char* DNS_RR_ParseHelper::FindInfo()
@@ -335,12 +314,12 @@ int DNS_RR_ParseHelper::Next()
 {
   if(!next_info)
   {
-     if(!FindInfo())
-       return 0;
+    if(!FindInfo())
+      return 0;
   }
   next_rr = next_info->rdata + next_l;
   next_info = 0;
-  if((next_rr - beg) >  512)
+  if((next_rr - beg) > 512)
   {
     next_rr = 0;
     return 0;
@@ -415,7 +394,7 @@ int DNS_RR_ParseHelper::FindA(char *t, TSOCKADDR *sa_c)
 int CmpIPforHost(char *host, TSOCKADDR *sa_c)
 {
   d_msg dmm;
-  int typA_be = IsIPv6((sockaddr_in *) sa_c)? rtypeAAAA_BE : rtypeA_BE;
+  int typA_be = IsIPv6((sockaddr_in *) sa_c) ? rtypeAAAA_BE : rtypeA_BE;
   char *t = askDNS(host, &dmm, typA_be);
 
   DBGLA("Found A for %s %u", host, (int) !!t)
@@ -475,24 +454,6 @@ int DNS_RR_ParseHelper::cmpPTR(char *hst)
 
 #endif // DONT_USE_CPP_METHOD_POINTER
 
-/*
-int find_spf_patern(char *s, char *pat, char* prefix)
-{
-  int l = strlen(pat);
-  char *r;
-
-  while( (r = stristr(s, pat)) )
-  {
-    if(r[l] < '0' && r[l] !=':' && strchr(prefix, r[-1]))
-      return 1;
-
-    s = r + 1;
-  }
-
-  return 0;
-}
-*/
-
 int CheckSPF(char *host, TSOCKADDR *sa_c, d_msg *dmm, int type_be)
 {
   char *t;
@@ -550,11 +511,6 @@ int CheckSPF(char *host, TSOCKADDR *sa_c, d_msg *dmm, int type_be)
 
           if(stristr(rd, "-all")) ret = SPF_HARD;
           if(stristr(rd, "~all")) ret = SPF_SOFT;
-          /*
-          if(find_spf_patern(rd, "a", "+ \t\r\n"))   flags |= HAVE_A;
-          if(find_spf_patern(rd, "mx", "+ \t\r\n"))  flags |= HAVE_MX;
-          if(find_spf_patern(rd, "ptr", "+ \t\r\n")) flags |= HAVE_PTR;
-          */
           if(stristr(rd, " a "))   flags |= HAVE_A;
           if(stristr(rd, " mx "))  flags |= HAVE_MX;
           if(stristr(rd, " ptr ")) flags |= HAVE_PTR;
@@ -566,14 +522,14 @@ int CheckSPF(char *host, TSOCKADDR *sa_c, d_msg *dmm, int type_be)
           if(stristr(rd, " exists ")) flags |= 0x20;
 #endif
 
-          debug("Found SPF: '%s' (ret:%d flags:%X deep:%d)\r\n", rd, ret, flags, 5 - inc_limit);
+          debug("Found SPF: '%s' (ret:%d flags:%X depth:%d)\r\n", rd, ret, flags, 5 - inc_limit);
 
           found = strstr(rd, ip);
           if(found)
             return SPF_OK;
 
           do {
-            found = stristr(rd, is6 ? "ip6:":"ip4:");
+            found = stristr(rd, is6 ? "ip6:" : "ip4:");
             if(!found)
               break;
 
@@ -582,7 +538,7 @@ int CheckSPF(char *host, TSOCKADDR *sa_c, d_msg *dmm, int type_be)
             t = strpbrk(found, "/ \t\r\n");
             if(t && *t == '/')
             {
-              int nmsk = atoui(t+1);
+              int nmsk = atoui(t + 1);
 
               DBGLA("net %d (%.16s)", nmsk, found)
 
@@ -595,7 +551,7 @@ int CheckSPF(char *host, TSOCKADDR *sa_c, d_msg *dmm, int type_be)
 
                 IPv6Addr(net.us, found);
 
-                for(i = 0; i<4; i++)
+                for(i = 0; i < 4; i++)
                 {
                   if(nmsk > 32)
                   {
@@ -635,12 +591,12 @@ int CheckSPF(char *host, TSOCKADDR *sa_c, d_msg *dmm, int type_be)
             }
 
             rd = found + 1;
-          }while(1);
+          } while(1);
 
 
           for(found = (char *) parser.next_info->rdata ; (found = stristr(found, " a:")) ; )
           {
-            found+=3;
+            found += 3;
             t = strpbrk(found, " \t\r\n");
             if(t) *t = 0;
             if(!CmpIPforHost(found, sa_c))
@@ -672,19 +628,11 @@ int CheckSPF(char *host, TSOCKADDR *sa_c, d_msg *dmm, int type_be)
                       }
 #endif
 
-            //int typA_be = is6 ? rtypeAAAA_BE : rtypeA_BE;
-
             if(flags & HAVE_A)
             {
               DBGLA("Check A")
               if(!CmpIPforHost(host, sa_c))
                 return SPF_OK;
-              /*
-              t = askDNS(host, dmm, typA_be);
-              if(!t) return ret;
-
-              if(parser.FindA(t, sa_c)) return SPF_OK;
-              */
             }
 
             if(flags & HAVE_MX)
@@ -700,7 +648,7 @@ int CheckSPF(char *host, TSOCKADDR *sa_c, d_msg *dmm, int type_be)
                 if(pparser->FindA(t, sa_c))
                 {
                   DBGLA("Found A in MX reply")
-                ret_ok:
+ret_ok:
                   if(dmm2 != dmm) free(dmm2);
                   return SPF_OK;
                 }
@@ -827,7 +775,7 @@ int CheckSPF(char *host, TSOCKADDR *sa_c, d_msg *dmm, int type_be)
               }
             }
           }
-          else if((found=stristr((char *) parser.next_info->rdata, "redirect=")))
+          else if((found = stristr((char *) parser.next_info->rdata, "redirect=")))
             found += sizeof("redirect=") - 1;
 
           if(found)
@@ -837,8 +785,8 @@ int CheckSPF(char *host, TSOCKADDR *sa_c, d_msg *dmm, int type_be)
               debug("Too many SPF includes\r\n");
               break;
             }
-            if((t=strpbrk(found, " \t") ))
-              *t = 0;
+            if((t = strpbrk(found, " \t") ))
+              * t = 0;
 
             if(!stricmp(host, found))
             {

@@ -41,17 +41,17 @@
 
 
 
-struct linger lngr={1,0};
+struct linger lngr = {1, 0};
 shs_mutex_t MutexEr = SHS_MUTEX_INITIALIZER;
 int SrvChecker[16];
 int SrvErr[16];
 
 
 #if V_FULL
-int (Req::*FWrk[])()=
-{&Req::HttpReq,&Req::HttpReq,&Req::FTPReq,&Req::SMTPReq,&Req::POPReq,&Req::TLSReq
+int (Req::*FWrk[])() =
+{ &Req::HttpReq, &Req::HttpReq, &Req::FTPReq, &Req::SMTPReq, &Req::POPReq, &Req::TLSReq
 #ifdef TELNET
-    ,&Req::TReq
+  , &Req::TReq
 #endif
 };
 #endif
@@ -102,15 +102,14 @@ void RemoveAndDelKeepAlive(int i)
 // Function return -1, if remove anything, index of oldest if not
 int RemoveExpired()
 {
-  int r=0,i;
-  int deleted=0;
-  int fix_max_expired=0;
-  int fix_max_fd=0;
-  // int max=KeepAliveList[0]->KeepAliveExpired;
+  int r = 0, i;
+  int deleted = 0;
+  int fix_max_expired = 0;
+  int fix_max_fd = 0;
   time_t tt = time(0);
   DBGL("rm exp")
   MyLock(KeepAliveMutex);
-  for(i=0; i<KeepAliveCount; i++)
+  for(i = 0; i < KeepAliveCount; i++)
   {
     Req *preq;
     preq = KeepAliveList[i];
@@ -135,7 +134,7 @@ int RemoveExpired()
   }
   if(fix_max_fd) maxKeepAliveSet.Fix();
   MyUnlock(KeepAliveMutex);
-  return deleted? -1 : r;
+  return deleted ? -1 : r;
 }
 void RemoveOldestIfNeed()
 {
@@ -158,9 +157,9 @@ int TryToAddKeepAlive(Req *req)
   if(req->s == -1) return 1;
   DBGL("add keep alive required");
   if( !KeepAliveList ) goto lbCanT;
- // debug("KeepAlive connection %d\n", req->s);
+// debug("KeepAlive connection %d\n", req->s);
   RemoveOldestIfNeed();
-  if(req->Snd==&TLSSend)
+  if(req->Snd == &TLSSend)
     l = sizeof(Req) + sizeof(OpenSSLConnection);
   if(KeepAliveCount < maxKeepAlive && (preq = (Req *) malloc(l) ))
   {
@@ -179,7 +178,7 @@ int TryToAddKeepAlive(Req *req)
   }
   else
   {
-  lbCanT:
+lbCanT:
     //if(req->Snd==&TLSSend)SecClose((OpenSSLConnection*) req->Adv);
     req->fl &= ~F_KEEP_ALIVE;
     return 0;
@@ -195,21 +194,21 @@ int err_cnt;
 int SetFixExept(Req *preq)
 {
   int exceptsrv = -1;
-  if(! setjmp( preq->jmp_env ) ) { preq->thread_id=GetCurrentThreadId(); return 0; }
+  if(! setjmp( preq->jmp_env ) ) { preq->thread_id = GetCurrentThreadId(); return 0; }
 
   if(preq) {
-    preq->thread_id=0;
-    exceptsrv = preq->flsrv[1]& MAX_SERV_MASK;
+    preq->thread_id = 0;
+    exceptsrv = preq->flsrv[1] & MAX_SERV_MASK;
   }
-  if(err_cnt++>3)
+  if(err_cnt++ > 3)
   {
     is_no_exit = 0;
     s_aflg |= AFL_EXIT;
     StopSocket();
-    unsave_limit=1;
+    unsave_limit = 1;
     sleep(3);
     if( !vfork() )
-      execl(__argv[0],__argv[0],0);
+      execl(__argv[0], __argv[0], 0);
     exit(0);
   }
   debug("Try to recovery after exception (%d)\n", exceptsrv);
@@ -218,28 +217,28 @@ int SetFixExept(Req *preq)
 #endif
 
 #ifdef USE_FUTEX
-const  struct timespec timeout_10ms={0,10000000};
+const  struct timespec timeout_10ms = {0, 10000000};
 #endif
 
 void no_close_wait()
 {
-  int j=0;
-  while(no_close_req>0)
+  int j = 0;
+  while(no_close_req > 0)
   {
 #ifdef USE_FUTEX
-    if(++j>100)
+    if(++j > 100)
     {
-     no_close_req=0;
-     break;
+      no_close_req = 0;
+      break;
     }
     close_wait++;
-    futex((int *)&no_close_req,FUTEX_WAIT,no_close_req,&timeout_10ms,0,0);
+    futex((int *)&no_close_req, FUTEX_WAIT, no_close_req, &timeout_10ms, 0, 0);
 #else
     Sleep(1);
-    if(++j>1000)
+    if(++j > 1000)
     {
-     no_close_req=0;
-     break;
+      no_close_req = 0;
+      break;
     }
 #endif
   }
@@ -247,257 +246,258 @@ void no_close_wait()
 
 int WINAPI SetServ(uint fnc)
 {
- int clen,j; //,min_tick,min_tick_tsk;
- ulong k;
- union{int i; ulong *pi;};
+  int clen, j;
+  ulong k;
+  union {int i; ulong *pi;};
 #define sa_client req.sa_c
- int serv,serv2;
- Req req;
+  int serv, serv2;
+  Req req;
 
- memset(&req,0,sizeof(req) );
+  memset(&req, 0, sizeof(req) );
 
- serv=(serv2=fnc>>16) % MAX_SERV;
- req.ntsk=(fnc&0xFFF);
- runed[serv]++;
- req.timout=30;
+  serv = (serv2 = fnc >> 16) % MAX_SERV;
+  req.ntsk = (fnc & 0xFFF);
+  runed[serv]++;
+  req.timout = 30;
 // debug("Acc1 %d %d %X waited[serv2]=%u max_srv[serv]=%u runed[serv]=%u",serv,serv2,fnc,waited[serv2],max_srv[serv],runed[serv]);
 #ifndef SYSUNIX
- while(is_no_exit){
-  DBGLA("fnc = %X serv:%u", fnc, serv)
-  waited[serv2]++;
+  while(is_no_exit) {
+    DBGLA("fnc = %X serv:%u", fnc, serv)
+    waited[serv2]++;
 #else
-  waited[serv]=max_srv[serv]-runed[serv];
+  waited[serv] = max_srv[serv] - runed[serv];
 #endif
-  clen=sizeof(
+    clen = sizeof(
 #ifdef USE_IPV6
-  sockaddr_in6
+             sockaddr_in6
 #else
-  sockaddr_in
+             sockaddr_in
 #endif
-  );
-  if((req.s=accept( soc_srv[serv2],(sockaddr *)&sa_client,&clen)) <0)
-  {
+           );
+    if((req.s = accept( soc_srv[serv2], (sockaddr *)&sa_client, &clen)) < 0)
+    {
 
-   if(!is_no_exit)
+      if(!is_no_exit)
 #ifndef SYSUNIX
-   break;
+        break;
 #else
-   return 0;
+        return 0;
 #endif
-   debug( "Error %d. Can't accept (port %u,%d,%d,%d,%X)" SER ,WSAGetLastError(),soc_port[serv],serv2,soc_srv[serv2],clen,sa_client.sin_addr. S_ADDR  Xstrerror(errno) );
+      debug( "Error %d. Can't accept (port %u,%d,%d,%d,%X)" SER, WSAGetLastError(), soc_port[serv], serv2, soc_srv[serv2], clen, sa_client.sin_addr. S_ADDR  Xstrerror(errno) );
 
-   Sleep(10);
-   if(!MyTryLock(MutexEr)) return -1;
-   closesocket(soc_srv[serv2]);
-   debug( "Reinit port %u",soc_port[serv]);
+      Sleep(10);
+      if(!MyTryLock(MutexEr)) return -1;
+      closesocket(soc_srv[serv2]);
+      debug( "Reinit port %u", soc_port[serv]);
 
-   if( (SrvErr[serv]++)>2 && SrvChecker[serv]>3 )
-   {
-    MyUnlock(MutexEr);
-    Restart();
-    return -1;
-   }
-   CreateSrv(serv2);
-   MyUnlock(MutexEr);
-   return -1;
-  }
-  SrvChecker[serv]++;
-  SrvErr[serv]=0;
+      if( (SrvErr[serv]++) > 2 && SrvChecker[serv] > 3 )
+      {
+        MyUnlock(MutexEr);
+        Restart();
+        return -1;
+      }
+      CreateSrv(serv2);
+      MyUnlock(MutexEr);
+      return -1;
+    }
+    SrvChecker[serv]++;
+    SrvErr[serv] = 0;
 #ifdef SYSUNIX
-  if(!req.s)req.s=dup(req.s);
+    if(!req.s)req.s = dup(req.s);
 #endif
-  SetCloseExec(req.s);
-  req.tmout=GetTickCount();
-  req.bSpd=0;
-  req.Tout=0;
-  req.Tin=0;
-  DWORD_PTR(req.inf[0])=0;
+    SetCloseExec(req.s);
+    req.tmout = GetTickCount();
+    req.bSpd = 0;
+    req.Tout = 0;
+    req.Tin = 0;
+    DWORD_PTR(req.inf[0]) = 0;
 #ifdef FIX_EXCEPT
-  req.thread_id=0;
+    req.thread_id = 0;
 #endif
-  rreq[req.ntsk]=&req;
+    rreq[req.ntsk] = &req;
 
-  count_of_tr++;
+    count_of_tr++;
 
 
 #ifndef SYSUNIX
-  if( (waited[serv2]<=1) && (max_srv[serv]>runed[serv]) )CrThread(fnc&0xFFFF0000);
-  --waited[serv2];
+    if( (waited[serv2] <= 1) && (max_srv[serv] > runed[serv]) )CrThread(fnc & 0xFFFF0000);
+    --waited[serv2];
 #endif
 //debug("Accept %d(port %d) thread:%u",serv,soc_port[serv],count_of_tr);
-  req.fl = serv << 16; // fnc&0xFFFF0000;
+    req.fl = serv << 16; // fnc&0xFFFF0000;
 
-  DBGLA("fnc:%X fl:%X port:%u", fnc, req.fl, soc_port[serv])
+    DBGLA("fnc:%X fl:%X port:%u", fnc, req.fl, soc_port[serv])
 
-  req.Snd=(tfSnd) &JustSnd;
-  req.Rcv=(tfRcv) &JustRcv;
+    req.Snd = (tfSnd) &JustSnd;
+    req.Rcv = (tfRcv) &JustRcv;
 
 
 
-  j=0;
+    j = 0;
 #ifndef CD_VER
 #ifdef USE_IPV6
-  union{
-    LimitCntr *lip;
-    LimitCntrIPv6 *lip6;
-  };
+    union {
+      LimitCntr *lip;
+      LimitCntrIPv6 *lip6;
+    };
 #else
-  LimitCntr *lip;
+    LimitCntr *lip;
 #endif
 
-  if( (lip) && (lip->cnt&0x0F)>=12)
-  {req.HttpReturnError("DETECTED HACKER");
-   i=-1;
-   goto cnt;
-  }
+    if( (lip) && (lip->cnt & 0x0F) >= 12)
+    { req.HttpReturnError("DETECTED HACKER");
+      i = -1;
+      goto cnt;
+    }
 #else // CD_VER
-  if( IPv4addr(&sa_client) //sa_client.sin_addr. S_ADDR
-      == 0x7F000001)
-  {
-   req.HttpReturnError("Access deny");
-   i=-1;
-   goto cnt;
+    if( IPv4addr(&sa_client) //sa_client.sin_addr. S_ADDR
+        == 0x7F000001)
+    {
+      req.HttpReturnError("Access deny");
+      i = -1;
+      goto cnt;
 
-  }
+    }
 #endif
-  if( (req.IsInIPRange(ip_range)<=0
-      )   ||
-     ( serv!=SMTP_N &&
-       (req.IsInIPRange(serv<<1)<=0
-     ) )              ||
-     req.IsProxyRange(serv<<1)
-  )
-  { req.HttpReturnError( sACCESS_DE );
+    if( (req.IsInIPRange(ip_range) <= 0
+        )   ||
+        ( serv != SMTP_N &&
+          (req.IsInIPRange(serv << 1) <= 0
+          ) )              ||
+        req.IsProxyRange(serv << 1)
+      )
+    { req.HttpReturnError( sACCESS_DE );
 //    setsockopt(req.s,SOL_SOCKET,SO_LINGER,(char *)&lngr,sizeof(lngr));
-    i=-1;
-    goto cnt;}
+      i = -1;
+      goto cnt;
+    }
 #ifndef CD_VER
 
-  if(max_cln_host)
-  {
-    ++no_close_req;
+    if(max_cln_host)
     {
-      k =   IPv4addr(&sa_client);
-      for(i=0;i<max_tsk;i++)  if( ((u_long)(rreq[i])>1) &&
-        //       (rreq[i]->sa_c.sin_addr. S_ADDR == sa_client.sin_addr. S_ADDR )
-        (
-          #ifdef USE_IPV6
-          (k == 1)? ( IsIPv6(& rreq[i]->sa_c) && !memcmp( &rreq[i]->sa_c6.sin6_addr, & req.sa_c6.sin6_addr, 16 ) ) :
-          #endif
-          ( IPv4addr(& rreq[i]->sa_c) == k )
-        )
-      )
+      ++no_close_req;
       {
-        if((++j)>=max_cln_host)
-        {
-          req.HttpReturnError( sTOO_MANY_ );
-          //     setsockopt(req.s,SOL_SOCKET,SO_LINGER,(char *)&lngr,sizeof(lngr));
-          dec_no_close_req();
-          i=-1;
-          goto cnt;
-        }
-      }
-      if(KeepAliveCount)
-      {
-        MyLock(KeepAliveMutex);
-        for(i=0; i<KeepAliveCount; )
-        {
-          Req *preq;
-          preq = KeepAliveList[i];
-          if (
-            #ifdef USE_IPV6
-            (k == 1)? ( IsIPv6(& preq->sa_c) && !memcmp( &preq->sa_c6.sin6_addr, & req.sa_c6.sin6_addr, 16 ) ) :
-            #endif
-            ( IPv4addr(&preq->sa_c) == k )
-          )
+        k =   IPv4addr(&sa_client);
+        for(i = 0; i < max_tsk; i++)  if( ((u_long)(rreq[i]) > 1) &&
+                                            //       (rreq[i]->sa_c.sin_addr. S_ADDR == sa_client.sin_addr. S_ADDR )
+                                            (
+#ifdef USE_IPV6
+                                              (k == 1) ? ( IsIPv6(& rreq[i]->sa_c) && !memcmp( &rreq[i]->sa_c6.sin6_addr, & req.sa_c6.sin6_addr, 16 ) ) :
+#endif
+                                              ( IPv4addr(& rreq[i]->sa_c) == k )
+                                            )
+                                          )
           {
-            ++j;
-            if(j>3)RemoveAndDelKeepAlive(i);
+            if((++j) >= max_cln_host)
+            {
+              req.HttpReturnError( sTOO_MANY_ );
+              //     setsockopt(req.s,SOL_SOCKET,SO_LINGER,(char *)&lngr,sizeof(lngr));
+              dec_no_close_req();
+              i = -1;
+              goto cnt;
+            }
           }
-          else { i++; }
+        if(KeepAliveCount)
+        {
+          MyLock(KeepAliveMutex);
+          for(i = 0; i < KeepAliveCount; )
+          {
+            Req *preq;
+            preq = KeepAliveList[i];
+            if (
+#ifdef USE_IPV6
+              (k == 1) ? ( IsIPv6(& preq->sa_c) && !memcmp( &preq->sa_c6.sin6_addr, & req.sa_c6.sin6_addr, 16 ) ) :
+#endif
+              ( IPv4addr(&preq->sa_c) == k )
+            )
+            {
+              ++j;
+              if(j > 3)RemoveAndDelKeepAlive(i);
+            }
+            else { i++; }
+          }
+          MyUnlock(KeepAliveMutex);
         }
-        MyUnlock(KeepAliveMutex);
       }
+      dec_no_close_req();
     }
-    dec_no_close_req();
-  }
 #elif 0
-  if(sa_client.sin_addr. S_ADDR !=0x0100007F)
-  {req.HttpReturnError( sACCESS_DE0 ); goto cnt;}
+    if(sa_client.sin_addr. S_ADDR != 0x0100007F)
+    {req.HttpReturnError( sACCESS_DE0 ); goto cnt;}
 #endif
 
 
 #ifdef FIX_EXCEPT
 
 
- if(SetFixExept(&req) ) goto cnt;
- #define  END_TRY(th)  (th)->thread_id=0;
+    if(SetFixExept(&req) ) goto cnt;
+#define  END_TRY(th)  (th)->thread_id=0;
 
 #else
-  #define  EXCEPT_TRY(th,x...)
-  #define  END_TRY(th)
+#define  EXCEPT_TRY(th,x...)
+#define  END_TRY(th)
 #endif
 
 #if V_FULL
-  i=(req.*FWrk[serv])();
+    i = (req.*FWrk[serv])();
 #else
-  req.HttpReq();
+    req.HttpReq();
 #endif
-  if( ((req.fl & (F_KEEP_ALIVE|F_VPNANY)) == F_KEEP_ALIVE) && req.s != -1)
-  {
-    DBGLA("Add KeepAlive fnc:%X fl:%X\r\n", fnc, req.fl)
-    TryToAddKeepAlive(&req);
-  }
+    if( ((req.fl & (F_KEEP_ALIVE | F_VPNANY)) == F_KEEP_ALIVE) && req.s != -1)
+    {
+      DBGLA("Add KeepAlive fnc:%X fl:%X\r\n", fnc, req.fl)
+      TryToAddKeepAlive(&req);
+    }
 
 cnt:
-  no_close_wait();
+    no_close_wait();
 
-  if(rreq[req.ntsk]==&req)
-  {
-    rreq[req.ntsk]=0;
-    count_of_tr--;
-    if(count_of_tr<0)count_of_tr=0;
-  }
+    if(rreq[req.ntsk] == &req)
+    {
+      rreq[req.ntsk] = 0;
+      count_of_tr--;
+      if(count_of_tr < 0)count_of_tr = 0;
+    }
 
-/*
-  shutdown(req.s,2);
-  if(i<0 && runed[serv]>8 )
-  {
-   Sleep(128);
-   setsockopt(req.s,SOL_SOCKET,SO_LINGER,(char *)&lngr,sizeof(lngr));
-  }
-  closesocket( req.s );
- */
-  //if( req.s != -1 &&  ! (req.fl & F_KEEP_ALIVE) ) CloseSocket( req.s );
-  if( ! (req.fl & F_KEEP_ALIVE) ) req.Close();
+    /*
+      shutdown(req.s,2);
+      if(i<0 && runed[serv]>8 )
+      {
+       Sleep(128);
+       setsockopt(req.s,SOL_SOCKET,SO_LINGER,(char *)&lngr,sizeof(lngr));
+      }
+      closesocket( req.s );
+     */
+    //if( req.s != -1 &&  ! (req.fl & F_KEEP_ALIVE) ) CloseSocket( req.s );
+    if( ! (req.fl & F_KEEP_ALIVE) ) req.Close();
 
 #ifndef CD_VER
-  if(serv==1)proxy_chk.CheckProxy();
+    if(serv == 1)proxy_chk.CheckProxy();
 #endif
 
 #ifndef SYSUNIX
-  if(waited[serv2]>0)
-  {
-    //debug("cl %u %u %u",serv,serv2,waited[serv2] ) ;
+    if(waited[serv2] > 0)
+    {
+      //debug("cl %u %u %u",serv,serv2,waited[serv2] ) ;
 
-    FreeThreads();
-    runed[serv]--;
-    break;
+      FreeThreads();
+      runed[serv]--;
+      break;
+    }
   }
- }
 #else
- runed[serv]--;
- waited[serv]=max_srv[serv]-runed[serv];
- rreq[req.ntsk]=(Req *)1;
- pthread_exit(0);
+    runed[serv]--;
+    waited[serv] = max_srv[serv] - runed[serv];
+    rreq[req.ntsk] = (Req *)1;
+    pthread_exit(0);
 #endif
- return 0;
+  return 0;
 #undef sa_client
 };
 
 int WINAPI KeepAliveWike(Req *preq)
 {
-  int serv=preq->flsrv[1] & MAX_SERV_MASK;
+  int serv = preq->flsrv[1] & MAX_SERV_MASK;
   int ntsk = preq->ntsk;
 #ifdef FIX_EXCEPT
   if(SetFixExept(preq) )
@@ -508,9 +508,9 @@ int WINAPI KeepAliveWike(Req *preq)
   }
 #endif
   runed[serv]++;
-  preq->flsrv[0]=0;
-  preq->tmout=GetTickCount();
-  rreq[preq->ntsk]=preq;
+  preq->flsrv[0] = 0;
+  preq->tmout = GetTickCount();
+  rreq[preq->ntsk] = preq;
   count_of_tr++;
   DBGL("");
   preq->HttpReq();
@@ -518,14 +518,14 @@ int WINAPI KeepAliveWike(Req *preq)
 cnt:
   DBGL("");
   no_close_wait();
-  if(rreq[ntsk]==preq)
+  if(rreq[ntsk] == preq)
   {
-    rreq[ntsk]=0;
+    rreq[ntsk] = 0;
     count_of_tr--;
-    if(count_of_tr<0)count_of_tr=0;
+    if(count_of_tr < 0)count_of_tr = 0;
   }
 
-  if( (preq->fl & (F_KEEP_ALIVE|F_VPNANY)) == F_KEEP_ALIVE )
+  if( (preq->fl & (F_KEEP_ALIVE | F_VPNANY)) == F_KEEP_ALIVE )
   {
     RemoveOldestIfNeed();
     if( KeepAliveCount < maxKeepAlive )
@@ -558,7 +558,7 @@ int WINAPI KeepAliveThread(void *)
 {
   fd_set set;
   fd_set er_set;
-  int n,i,k,kk;
+  int n, i, k, kk;
   Req *preq;
   timeval  tval;
 
@@ -569,24 +569,24 @@ int WINAPI KeepAliveThread(void *)
     {
       memcpy(&set, &KeepAliveSet, sizeof(set) );
       n = KeepAliveCount;
-      for(i=0; i< sizeof(KeepAliveServers) ; i++ )
+      for(i = 0; i < sizeof(KeepAliveServers) ; i++ )
       {
-        k=KeepAliveServers[i];
+        k = KeepAliveServers[i];
         if( runed[k] < max_srv[k] )
           goto checkEach;
       }
       Sleep(1000);
       continue ;
-    checkEach:
-      for(i=0; i< sizeof(KeepAliveServers) && n>0 ; i++ )
+checkEach:
+      for(i = 0; i < sizeof(KeepAliveServers) && n > 0 ; i++ )
       {
-        k=KeepAliveServers[i];
+        k = KeepAliveServers[i];
         if(  max_srv[k] && runed[k] >= max_srv[k] )
         {
           MyLock(KeepAliveMutex);
-          for(kk=0; kk<KeepAliveCount && n>0; kk++)
+          for(kk = 0; kk < KeepAliveCount && n > 0; kk++)
           {
-            if( (KeepAliveList[kk]->flsrv[1] & MAX_SERV_MASK) == k) FD_CLR(KeepAliveList[kk]->s,&set);
+            if( (KeepAliveList[kk]->flsrv[1] & MAX_SERV_MASK) == k) FD_CLR(KeepAliveList[kk]->s, &set);
             n--;
           }
           MyUnlock(KeepAliveMutex);
@@ -595,22 +595,22 @@ int WINAPI KeepAliveThread(void *)
       if(!n) Sleep(1000);
       else
       {
-        tval.tv_sec=1;
-        tval.tv_usec=500000;
-        memcpy(&er_set,&set,sizeof(er_set));
-        if( (kk=select(keep_alive_max_fd+1,&set,0,&er_set,&tval))>0 )
+        tval.tv_sec = 1;
+        tval.tv_usec = 500000;
+        memcpy(&er_set, &set, sizeof(er_set));
+        if( (kk = select(keep_alive_max_fd + 1, &set, 0, &er_set, &tval)) > 0 )
         {
           MyLock(KeepAliveMutex);
-          for(k=0; k<KeepAliveCount; )
+          for(k = 0; k < KeepAliveCount; )
           {
             preq = KeepAliveList[k];
             // DBGLA("ka %d %d",k, preq->s);
-            if(FD_ISSET(preq->s,&er_set))
+            if(FD_ISSET(preq->s, &er_set))
             {
               // DBGLA("ka err %d %d",k, preq->s);
               RemoveAndDelKeepAlive(k);
             }
-            else if(FD_ISSET(preq->s,&set))
+            else if(FD_ISSET(preq->s, &set))
             {
               // DBGLA("ka select %d %d",k, preq->s);
               RemoveKeepAlive(k);
@@ -629,53 +629,53 @@ int WINAPI KeepAliveThread(void *)
 
 #endif
 
-int Req::HttpReturnError(char *err,int errcode)
-{char out_buf[2124];
- int l;
+int Req::HttpReturnError(char *err, int errcode)
+{ char out_buf[2124];
+  int l;
 #ifdef SEPLOG
-  l=flsrv[1] & MAX_SERV_MASK;
-  if(l>=N_LOG)l=0;
-  sepLog[l]->LAddToLog(err,s,&sa_c46 ,FmtShortErr);
+  l = flsrv[1] & MAX_SERV_MASK;
+  if(l >= N_LOG)l = 0;
+  sepLog[l]->LAddToLog(err, s, &sa_c46, FmtShortErr);
 #else
- AddToLog(err,s,&sa_c46 ,FmtShortErr);
+  AddToLog(err, s, &sa_c46, FmtShortErr);
 #endif
- SendChk(out_buf,msprintfchk(out_buf, out_buf + 2048,
- (l=fl&0xE0000)? //2,3,4
-  "%u %s\r\n\r\n":"HTTP/1.0 %u Error\r\nContent-Type: text/html\r\n\r\n"
- "<hr><pre><font size=+2><b>\n%.512s\n</b></font></pre><hr><br>%450s",errcode,err,""));
+  SendChk(out_buf, msprintfchk(out_buf, out_buf + 2048,
+                               (l = fl & 0xE0000) ? //2,3,4
+                               "%u %s\r\n\r\n" : "HTTP/1.0 %u Error\r\nContent-Type: text/html\r\n\r\n"
+                               "<hr><pre><font size=+2><b>\n%.512s\n</b></font></pre><hr><br>%450s", errcode, err, ""));
 // setsockopt(s,SOL_SOCKET,SO_LINGER,(char *)&lngr,sizeof(lngr));
- return 1;
+  return 1;
 };
 
 
 int Req::IsProxyRange(int a)
 {
- if(a==proxy_range || !max_prx)return 0;
- Req *r;
- int i;
- ++no_close_req;
- for(i=0;i<max_tsk;++i)
- {
-  if( ((u_long)(r=rreq[i]))>1 && (r->fl&F_SERV_MASK)==F_SERV_PROXY &&
-     r->trn &&
+  if(a == proxy_range || !max_prx)return 0;
+  Req *r;
+  int i;
+  ++no_close_req;
+  for(i = 0; i < max_tsk; ++i)
+  {
+    if( ((u_long)(r = rreq[i])) > 1 && (r->fl & F_SERV_MASK) == F_SERV_PROXY &&
+        r->trn &&
 #ifdef A_64
-     ((ulong)(u_long)(r->req_var))== IPv4addr(&sa_c) && //sa_c.sin_addr. S_ADDR &&
-     ((ulong)(u_long)(r->pst))==sa_c.sin_port
+        ((ulong)(u_long)(r->req_var)) == IPv4addr(&sa_c) && //sa_c.sin_addr. S_ADDR &&
+        ((ulong)(u_long)(r->pst)) == sa_c.sin_port
 #else
-     ((ulong)(r->req_var))== IPv4addr(&sa_c) && //sa_c.sin_addr. S_ADDR &&
-     ((ulong)(r->pst))==sa_c.sin_port
+        ((ulong)(r->req_var)) == IPv4addr(&sa_c) && //sa_c.sin_addr. S_ADDR &&
+        ((ulong)(r->pst)) == sa_c.sin_port
 #endif
-  )
-  {i=IsInIPRange(a);
-   dec_no_close_req();
-   return i<=0;
+      )
+    { i = IsInIPRange(a);
+      dec_no_close_req();
+      return i <= 0;
+    }
   }
- }
- dec_no_close_req();
- return 0;
+  dec_no_close_req();
+  return 0;
 };
 
-const char * lstNames[]=
+const char * lstNames[] =
 {
   "SMTP", //0
   "HTTP", //1
@@ -698,96 +698,96 @@ const char *ListName(uint lst)
   return lstNames[lst];
 }
 
-int FndLimit(int lst,LimitBase **ip, LimitBase **net, sockaddr_in *sa)
-{ulong x;
+int FndLimit(int lst, LimitBase **ip, LimitBase **net, sockaddr_in *sa)
+{ ulong x;
 #ifndef CD_VER
- *ip=0;
- *net=0;
- if(!(ltime[lst]))return 0;
- LimitCntr *lip,*lnet;
- x=time(0)-ltime[lst];
- if(!ipcnts[lst].n)ipcnts[lst].Push();
- if(ipcnts[lst].d[0].CheckLimit(limit[lst],ltime[lst]))
- {
-   debug("Limit for %u all %u > %u",lst,ipcnts[lst].d[0].cnt,limit[lst]);
+  *ip = 0;
+  *net = 0;
+  if(!(ltime[lst]))return 0;
+  LimitCntr *lip, *lnet;
+  x = time(0) - ltime[lst];
+  if(!ipcnts[lst].n)ipcnts[lst].Push();
+  if(ipcnts[lst].d[0].CheckLimit(limit[lst], ltime[lst]))
+  {
+    debug("Limit for %u all %u > %u", lst, ipcnts[lst].d[0].cnt, limit[lst]);
 
- lErrLim:
+lErrLim:
 
 
-   Sleep(0x4000);
- //  Send("421 limit overflow\r\n",sizeof("421 limit overflow\r\n")-1);
-   return 1;
- }
+    Sleep(0x4000);
+//  Send("421 limit overflow\r\n",sizeof("421 limit overflow\r\n")-1);
+    return 1;
+  }
 #ifdef USE_IPV6
- if(IsIPv6(sa)) //sa->sin_family==AF_INET6)
- {
-    LimitCntrIPv6 *lip6,*lnet6;
-    if(!(lip6= ipv6cnts[lst].Find(((sockaddr_in6 *) sa)->sin6_addr)))
+  if(IsIPv6(sa)) //sa->sin_family==AF_INET6)
+  {
+    LimitCntrIPv6 *lip6, *lnet6;
+    if(!(lip6 = ipv6cnts[lst].Find(((sockaddr_in6 *) sa)->sin6_addr)))
     {
-        ipv6cnts[lst].FreeOld(x);
-        lip6=ipv6cnts[lst].Push();
-        lip6->Set( ((sockaddr_in6 *) sa)->sin6_addr );
-        //lip6= AddToList(lst,sa);
+      ipv6cnts[lst].FreeOld(x);
+      lip6 = ipv6cnts[lst].Push();
+      lip6->Set( ((sockaddr_in6 *) sa)->sin6_addr );
+      //lip6= AddToList(lst,sa);
     }
     struct IPv6c n6;
     n6.Set(((sockaddr_in6 *) sa)->sin6_addr );
-    n6.ip.s6_addr32[3]&=0xFF;   //0xFF000000;
-    if(!(lnet6=ipv6cnts[lst].Find(n6.ip)))
+    n6.ip.s6_addr32[3] &= 0xFF; //0xFF000000;
+    if(!(lnet6 = ipv6cnts[lst].Find(n6.ip)))
     {
-      lnet6=ipv6cnts[lst].Push();
+      lnet6 = ipv6cnts[lst].Push();
       lnet6->Set(n6.ip);
     }
-    *ip =lip6 ;
-    *net=lnet6;
-    if(lnet6->CheckLimit(net_limit[lst],ltime[lst]))
+    *ip = lip6 ;
+    *net = lnet6;
+    if(lnet6->CheckLimit(net_limit[lst], ltime[lst]))
     {
       char bfr[64];
       IP2S(bfr, sa);
-      debug("Limit for %s [%s] IPv6 net %u > %u %u", ListName(lst), bfr, lnet6->cnt,net_limit[lst],lnet6-ipv6cnts[lst].d);
+      debug("Limit for %s [%s] IPv6 net %u > %u %u", ListName(lst), bfr, lnet6->cnt, net_limit[lst], lnet6 - ipv6cnts[lst].d);
       goto lErrLim;
     }
-    if(lip6->CheckLimit(ip_limit[lst],ltime[lst]))
+    if(lip6->CheckLimit(ip_limit[lst], ltime[lst]))
     {
       char bfr[64];
       IP2S(bfr, sa);
-      debug("Limit for %s [%s] IPv6 addr %u > %u %u", ListName(lst), bfr, lnet6->cnt,ip_limit[lst],lip6-ipv6cnts[lst].d);
+      debug("Limit for %s [%s] IPv6 addr %u > %u %u", ListName(lst), bfr, lnet6->cnt, ip_limit[lst], lip6 - ipv6cnts[lst].d);
 
       goto lErrLim;
     }
     return 0;
- }
+  }
 #endif
- int i=IPv4addr(sa); //sa->sin_addr. S_ADDR;
- if(!(lip= ipcnts[lst].Find(i)))
- {
-     ipcnts[lst].FreeOld(x);
-     lip=ipcnts[lst].Push();
-     lip->ip=i;
- }
- i&=0xFFFF;
- if(!(lnet=ipcnts[lst].Find(i)))
- {
-   lnet=ipcnts[lst].Push();
-   lnet->ip=i;
- }
- *ip =lip ;
- *net=lnet;
- if(lnet->CheckLimit(net_limit[lst],ltime[lst]))
- {
-   char bfr[64];
-   IP2S(bfr, sa);
-   debug("Limit for %s [%s] IPv4 net %u > %u", ListName(lst), bfr, lnet->cnt, net_limit[lst]);
-   goto lErrLim;
- }
- if(lip->CheckLimit(ip_limit[lst],ltime[lst]))
- {
-   char bfr[64];
-   IP2S(bfr, sa);
-   debug("Limit for %s [%s] IPv4 addr %u > %u", ListName(lst), bfr,lip->cnt,ip_limit[lst]);
-   goto lErrLim;
- }
+  int i = IPv4addr(sa); //sa->sin_addr. S_ADDR;
+  if(!(lip = ipcnts[lst].Find(i)))
+  {
+    ipcnts[lst].FreeOld(x);
+    lip = ipcnts[lst].Push();
+    lip->ip = i;
+  }
+  i &= 0xFFFF;
+  if(!(lnet = ipcnts[lst].Find(i)))
+  {
+    lnet = ipcnts[lst].Push();
+    lnet->ip = i;
+  }
+  *ip = lip ;
+  *net = lnet;
+  if(lnet->CheckLimit(net_limit[lst], ltime[lst]))
+  {
+    char bfr[64];
+    IP2S(bfr, sa);
+    debug("Limit for %s [%s] IPv4 net %u > %u", ListName(lst), bfr, lnet->cnt, net_limit[lst]);
+    goto lErrLim;
+  }
+  if(lip->CheckLimit(ip_limit[lst], ltime[lst]))
+  {
+    char bfr[64];
+    IP2S(bfr, sa);
+    debug("Limit for %s [%s] IPv4 addr %u > %u", ListName(lst), bfr, lip->cnt, ip_limit[lst]);
+    goto lErrLim;
+  }
 #endif
- return 0;
+  return 0;
 }
 
 
