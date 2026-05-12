@@ -197,7 +197,7 @@ int InitShmem(int n_log, int new_only)
         shm->reply = 0;
         shm->cmd = CMD_EXIT;
         if (shm->size == size)
-          status |= SHMST_DONT_RM;
+          shm->status |= SHMST_DONT_RM;
 #ifdef SYSUNIX
         if(shm->pid > 0 && kill(shm->pid, SIGUSR2) != -1)
         {
@@ -303,8 +303,6 @@ void  DoneShm()
   }
 }
 
-
-
 void PreInitSepLog(TLog *p)
 {
   for(int i = 0; i < ARRAY_SIZE(sepLog); i++) sepLog[i] = p;
@@ -350,7 +348,7 @@ void InitSepLog()
   if(FL3_SHMLOG & s_flgs[3])
   {
     int n_log = 1;
-    if( FL2_SEPARATELOG & s_flgs[2]     )
+    if(FL2_SEPARATELOG & s_flgs[2])
     {
       for(i = 1; i < 6; i++)
         if(max_srv[i]) n_log++;
@@ -375,7 +373,6 @@ void InitSepLog()
       //sepLog[0] = shm->sepLog[0];
     }
   }
-
 
   if( FL2_SEPARATELOG & s_flgs[2])
   {
@@ -407,6 +404,7 @@ void InitSepLog()
   }
 
 };
+
 void DoneSepLog()
 {
   int i;
@@ -415,6 +413,7 @@ void DoneSepLog()
   for(i = 1; i < ARRAY_SIZE(sepLog); i++) if(sepLog[i] != sepLog[0]) sepLog[i]->RelProt();
   DoneShm();
 }
+
 void UDoneSepLog()
 {
   int i;

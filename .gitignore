@@ -1,5 +1,6 @@
 depend.cpp
 makefile.orig
+*.orig
 Makefile
 t2icfghtm.cpp
 o

@@ -15,7 +15,7 @@ smallsrv (3.06.40) unstable; urgency=low
   * Updated VPN server.
   * Improved handling of HTTP requests requiring a default file name.
 
- -- Maksim Feoktistov <max@smallsrv.com>  Mon, 11 May 2026 08:54:17 +0400
+ -- Maksim Feoktistov <max@smallsrv.com>  Tue, 12 May 2026 09:07:32 +0400
 
 smallsrv (3.06.39) unstable; urgency=low
 
