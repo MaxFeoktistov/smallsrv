@@ -22,8 +22,8 @@
 #
 #
 
-VERSION=3.06.40
-VERSION_CODE=0x30640
+VERSION=3.06.41
+VERSION_CODE=0x30641
 
 prefix ?=/usr/local/
 CONFIG_BASE   ?= $(prefix:%/=%)/

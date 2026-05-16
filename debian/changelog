@@ -1,3 +1,9 @@
+smallsrv (3.06.41) unstable; urgency=low
+
+  * Fixed a bug with calling the spf_check from lists
+
+ -- Maksim Feoktistov <max@smallsrv.com>  Sat, 16 May 2026 11:25:18 +0400
+
 smallsrv (3.06.40) unstable; urgency=low
 
   * DNS server changes. Fixed a bug when loading a domain from a

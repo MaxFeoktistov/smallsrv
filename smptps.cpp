@@ -22,6 +22,7 @@
  *
  */
 
+//#define DEBUG_VERSION 1
 
 #ifndef SRV_H
 #include "srv.h"
@@ -422,6 +423,7 @@ int CheckUserList::Reg(char *x)
   vars[9] = checkhello;
   vars[11] = check_spf;
   rv.Init(vars, 0, 0);
+  DBGLA("LogAn %s", x)
   return rv.LogAn(x);
 }
 
@@ -502,10 +504,8 @@ int CheckUserList::Do(char *list, char *nm)
             }
           }
         }
-        if(strstr(t, "$check_spf") && ! (check_spf[0]) )
-        {
+        if(strstr(t, "$check_spf"))
           SPF_try();
-        }
 
         if(
           ( (t[1] == '?') ?
