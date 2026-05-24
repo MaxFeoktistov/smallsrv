@@ -1,3 +1,10 @@
+shs-vpnclient (3.06.42test1) unstable; urgency=low
+
+  * Version with memory debug.
+  * Added stack backtrace when error.
+
+ -- Maksim Feoktistov <max@smallsrv.com>  Sun, 24 May 2026 17:25:48 +0400
+
 shs-vpnclient (3.06.41) unstable; urgency=low
 
   * Mutexes have been updated. Semaphore-based synchronization has been

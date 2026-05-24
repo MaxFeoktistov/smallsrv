@@ -26,6 +26,44 @@
 #include "vpn.h"
 #endif
 
+#if defined(SYSUNIX) && ! defined(AT_ARM)
+#ifdef __has_include
+#if __has_include(<execinfo.h>)
+#include <execinfo.h>
+#define  USE_GLIBC_BACKTRACE  1
+#else
+#warning "No execinfo.h"
+#endif // __has_include(<execinfo.h>)
+#else
+#warning "__has_include undefined"
+#endif // __has_include
+#endif // SYSUNIX
+
+#ifndef USE_GLIBC_BACKTRACE
+#define ucontext_t void
+#endif
+
+extern char __executable_start[];
+
+extern "C" void dbg_backtrace()
+{
+#ifdef USE_GLIBC_BACKTRACE
+    void *btr[16];
+    char str[512];
+    char *pstr = str;
+    int  n;
+
+    n = backtrace(btr, 16);
+    for(int i = 1; i < n; i++)
+    {
+      if( btr[i] >  __executable_start && btr[i] < &end)
+        pstr += sprintf(pstr, " %XlX", (long) ((char *) (btr[i]) - __executable_start));
+    }
+
+    debug("Call trace: %s", str);
+#endif
+}
+
 timeval  TVal;
 void  SignalHandler(int)
 {
@@ -108,11 +146,6 @@ void signalHUP(int )
   }
 }
 
-#if ! (defined(ANDROID) || defined(LPC_ARM)  || defined(AT_ARM) )
-#include <execinfo.h>
-#else
-#define ucontext_t void
-#endif
 #include <sys/resource.h>
 
 typedef void (*tsighandler)(int, siginfo_t*, void*);
@@ -181,7 +214,8 @@ void DebugStack(u_long *esp1)
     esp++;
   }
 #ifdef x86_64
-  debug("In stack (%lX-%lX) found %u return address: %lX %lX %lX %lX %lX\n", esp1, mesp, i, rez[0], rez[1], rez[2], rez[3], rez[4]);
+  debug("In stack (%lX-%lX) found %u return address: %lX %lX %lX %lX %lX start: %lX\n",
+        esp1, mesp, i, rez[0], rez[1], rez[2], rez[3], rez[4], __executable_start);
 #else
   debug("In stack (%X-%X) found %u return address: %X %X %X %X %X\n", esp1, mesp, i, rez[0], rez[1], rez[2], rez[3], rez[4]);
 #endif
@@ -222,6 +256,9 @@ void signalSegv(int, siginfo_t* info, ucontext_t* ptr)
     debug("\r\nException at %X pid=%d code: %X thread %d stack:\r\n", info->si_addr, info->si_pid, info->si_code, ll);
 
 #endif
+
+    dbg_backtrace();
+
 // debug("\nExeption at %X\n last back in stack: %X %X\n",info->si_addr,i,ll);
 
 

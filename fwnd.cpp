@@ -50,9 +50,12 @@ extern "C" {
 
 };
 
+/*
 #define MALLOC(n) HeapAlloc(id_heap,HEAP_ZERO_MEMORY,n)
 #define REALLOC(p,n)  HeapReAlloc(id_heap,HEAP_ZERO_MEMORY,p,n)
 #define WFREE(p)  HeapFree(id_heap,0,p)
+*/
+
 /*
 
 void * operator new[](unsigned int s)
@@ -710,4 +713,77 @@ void ShowLogNow()
 #endif
   }
 }
+
+
+#ifdef MEMDBG
+
+struct dbg_mem
+{
+  int sign;
+  int l;
+  u8 d[4];
+};
+#define SIGN_START  0x12345678
+#define SIGN_END    0x12345670
+
+
+void * WMALLOC(int n)
+{
+  union {
+    void *r;
+    uint *d;
+    dbg_mem *dbg;
+  };
+  r = HeapAlloc(id_heap,HEAP_ZERO_MEMORY,n + sizeof(dbg_mem));
+  if(!r) return r;
+
+  dbg->sign = SIGN_START;
+  dbg->l = n;
+  DWORD_PTR(dbg->d[n]) = SIGN_END;
+
+  return dbg->d;
+}
+
+void * WREALLOC(void *p,int n)
+{
+  dbg_mem *dbg = container_of(p, dbg_mem, d);
+
+  if(dbg->sign != SIGN_START || DWORD_PTR(dbg->d[n]) != SIGN_END)
+  {
+    void *caller_address = __builtin_return_address(0);
+
+    debug("MEMERROR realloc %X -> %X: signs: %X, %X  call from %X ver: %s\r\n",  dbg->l, n,
+          dbg->sign, DWORD_PTR(dbg->d[n]), caller_address, STRVER);
+  }
+
+  dbg = (dbg_mem *) HeapReAlloc(id_heap, HEAP_ZERO_MEMORY, dbg, n + sizeof(dbg_mem));
+
+  if(!dbg) return 0;
+
+  dbg->l = n;
+  DWORD_PTR(dbg->d[n]) = SIGN_END;
+
+  return  dbg->d;
+}
+
+void   WFREE(void *p)
+{
+  dbg_mem *dbg = container_of(p, dbg_mem, d);
+
+  if(dbg->sign != SIGN_START || DWORD_PTR(dbg->d[dbg->l]) != SIGN_END)
+  {
+    void *caller_address = __builtin_return_address(0);
+
+    debug("MEMERROR: l=%X signs: %X, %X  call from %X  ver: %s\r\n", dbg->l,
+          dbg->sign, DWORD_PTR(dbg->d[dbg->l]), caller_address, STRVER);
+
+    return;
+  }
+
+  dbg->sign = 0;
+
+  HeapFree(id_heap, 0, dbg);
+}
+
+#endif
 

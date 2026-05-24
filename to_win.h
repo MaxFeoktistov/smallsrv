@@ -21,6 +21,7 @@
  *
  *
  */
+#pragma once
 
 #ifndef MINGW64
 #define _WINDOWS_
@@ -355,9 +356,17 @@ int FindNextFile_UTF(HANDLE a, LPWIN32_FIND_DATA lpFindFileData);
 
 #ifdef MINGW
 extern void *id_heap;
+
+#define MEMDBG
+#ifdef MEMDBG
+void * WMALLOC(int n);
+void * WREALLOC(void *p,int n);
+void   WFREE(void *p);
+#else
 inline void * WMALLOC(int n){return HeapAlloc(id_heap,HEAP_ZERO_MEMORY,n);}
 inline void * WREALLOC(void *p,int n){return  HeapReAlloc(id_heap,HEAP_ZERO_MEMORY,p,n); }
 inline void   WFREE(void *p) { HeapFree(id_heap,0,p); }
+#endif // MEMDBG
 #undef  malloc
 #undef  Malloc
 #undef  free

@@ -22,6 +22,45 @@
  *
  */
 
+#if defined(SYSUNIX) && ! defined(AT_ARM)
+#ifdef __has_include
+#if __has_include(<execinfo.h>)
+#include <execinfo.h>
+#define  USE_GLIBC_BACKTRACE  1
+#else
+#warning "No execinfo.h"
+#endif // __has_include(<execinfo.h>)
+#else
+#warning "__has_include undefined"
+#endif // __has_include
+#endif // SYSUNIX
+
+#ifndef USE_GLIBC_BACKTRACE
+#define ucontext_t void
+#endif
+
+extern char __executable_start[];
+
+extern "C" void dbg_backtrace()
+{
+#ifdef USE_GLIBC_BACKTRACE
+    void *btr[16];
+    char str[512];
+    char *pstr = str;
+    int  n;
+
+    n = backtrace(btr, 16);
+    for(int i = 1; i < n; i++)
+    {
+      if( btr[i] >  __executable_start && btr[i] < &end)
+        pstr += sprintf(pstr, " %XlX", (long) ((char *) (btr[i]) - __executable_start));
+    }
+
+    debug("Call trace: %s", str);
+#endif
+}
+
+
 
 timeval  TVal;
 void  SignalHandler(int)
@@ -163,6 +202,7 @@ void signalSegv(int, siginfo_t* info, ucontext_t* ptr)
 
 #endif
 // debug("\nExeption at %X\n last back in stack: %X %X\n",info->si_addr,i,ll);
+    dbg_backtrace();
 
 
     unsave_limit = 0x3F00;

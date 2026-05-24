@@ -137,13 +137,13 @@ void DNS_FREE(void *a)
 
 }
 
-#else
+#else // DEBUG_DNS_MEM
 #define DNS_ALLOC(a) (dnsheap->Alloc(a))
 //(Malloc(a))
 #define DNS_FREE(a) (dnsheap->Free(a))
 //(free(a))
-#endif
-#else
+#endif // DEBUG_DNS_MEM
+#else // SYSUNIX
 
 HANDLE wdnsheap;
 
@@ -151,7 +151,7 @@ HANDLE wdnsheap;
 //(malloc(a))
 #define DNS_FREE(a) HeapFree(wdnsheap,0,a)
 //(free(a))
-#endif
+#endif // SYSUNIX
 
 #define DOMSIZE 512
 
@@ -2165,7 +2165,7 @@ ulong WINAPI SetDNSServ(void * fwrk)
   //char *ptmp = 0, *t, *t1, *arpa, *et, *p, *lst, *ptyp, *pcn, *pns;
   char *ptmp = 0, *t, *t1, *arpa, *et;
 
-  NSRecord *hst; 
+  NSRecord *hst;
   FndRec   fnd;
   d_msg  *pdm;
   DNSReq *pdreq, *pdreq2;

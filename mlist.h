@@ -2,7 +2,7 @@
  * Copyright (C) 1999-2022 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
- * Author: Maksim Feoktistov 
+ * Author: Maksim Feoktistov
  *
  *
  * Small HTTP server is free software: you can redistribute it and/or modify it
@@ -15,11 +15,11 @@
  * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see https://www.gnu.org/licenses/ 
+ * along with this program.  If not, see https://www.gnu.org/licenses/
  *
  * Contact addresses for Email:  support@smallsrv.com
  *
- * 
+ *
  */
 
 
@@ -27,35 +27,36 @@
 #define MALLOC Malloc
 #define REALLOC realloc
 #else
-extern "C" void *id_heap;
-#define MALLOC(n) HeapAlloc(id_heap,HEAP_ZERO_MEMORY,n)
-#define REALLOC(p,n)  HeapReAlloc(id_heap,HEAP_ZERO_MEMORY,p,n)
+#include "to_win.h"
+
+#define MALLOC(n)      WMALLOC(n)
+#define REALLOC(p, n)  WREALLOC(p, n)
 
 #endif
 
 struct LimitBase
 {
-  ulong first,cnt;  
+  ulong first,cnt;
   int CheckLimit(ulong t1,ulong lst_tim);
-    
+
 };
 
 struct LimitCntr : public LimitBase
-{ 
-    
+{
+
   ulong  ip;
 };
 
 struct IPv6c
 {
-    
+
  union{
    in6_addr ip;
    unsigned long long s6_addr64[2];
  };
 // */
- 
- int operator==(in6_addr &sip){return !memcmp(&ip,&sip,16); }  
+
+ int operator==(in6_addr &sip){return !memcmp(&ip,&sip,16); }
  void Set(unsigned long long *addr64)
  {
     s6_addr64[0] =  addr64[0];
@@ -65,9 +66,9 @@ struct IPv6c
  void Set(in6_addr *sa){Set((unsigned long long *) sa->s6_addr32 );}
 };
 struct LimitCntrIPv6: public LimitBase
-{ 
+{
   IPv6c ip;
-  
+
   void Set(in6_addr &sa){ip.Set((u_long long *) sa.s6_addr32 );}
   void Set(in6_addr *sa){ip.Set((u_long long *) sa->s6_addr32 );}
 };
@@ -85,8 +86,8 @@ struct MListCntr
 
 #else
 
-// Upd. In modern version of gcc template without virtual member functions working better, just like defines.  
-// Ok. Now I try to use it carefull... 
+// Upd. In modern version of gcc template without virtual member functions working better, just like defines.
+// Ok. Now I try to use it carefull...
 
 extern "C++" template<class X,int ITEMS=1024>  struct MList
 #endif
@@ -110,39 +111,39 @@ public:
 
 #ifndef WITHOUTTEMPL
   template <class Y> X *FindT(Y x)  {X *r,*e;  for(e=(r=d)+n;r<e;++r)if(r->ip==x)return r;  return 0;}  ;
-#endif  
+#endif
   void FreeOldT(ulong told){ X *r,*e;  for(e=(r=d)+n;r<e;)if(r->first<told){Del(r); --e;} else ++r;} ;
-  
+
 };
 
 /*
 #ifndef WITHOUTTEMPL
-template<class X,int ITEMS=1024>   X * MList<X,ITEMS>::Find(ulong x)  
+template<class X,int ITEMS=1024>   X * MList<X,ITEMS>::Find(ulong x)
   {X *r,*e;  for(e=(r=d)+n;r<e;++r)if(r->ip==x)return r;  return 0;}
-template<class X,int ITEMS=1024>   void MList<X,ITEMS>::FreeOld(ulong told) 
+template<class X,int ITEMS=1024>   void MList<X,ITEMS>::FreeOld(ulong told)
   { X *r,*e;  for(e=(r=d)+n;r<e;)if(r->first<told){Del(r); --e;} else ++r;};
 #endif
 */
 
 
 #ifdef WITHOUTTEMPL
-  
+
 #undef X
 #undef ITEMS
 
 
 extern MListCntr ipcnts[10];
 #else
-struct MListCntr: public MList<LimitCntr,1024> 
+struct MListCntr: public MList<LimitCntr,1024>
 {
   LimitCntr *Find(ulong x);
-  void FreeOld(ulong told); 
+  void FreeOld(ulong told);
 };
 
-struct MListCntrIPv6: public MList<LimitCntrIPv6,1024> 
+struct MListCntrIPv6: public MList<LimitCntrIPv6,1024>
 {
   LimitCntrIPv6 *Find(in6_addr &x);
-  void FreeOld(ulong told); 
+  void FreeOld(ulong told);
 };
 
 extern MListCntr ipcnts[10];

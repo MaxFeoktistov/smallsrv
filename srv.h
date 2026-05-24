@@ -838,6 +838,7 @@ void SetKeepAliveSock(int s);
 int WINAPI KeepAliveThread(void *);
 char* IsSame(char *tt,char *pp);
 void UpdateVPNStatInfo(int force);
+void dbg_backtrace();
 
 #ifndef CD_VER
 
@@ -1491,7 +1492,6 @@ void SaveAllLog();
 extern "C" void edebug(const char *a,...);
 extern "C" void tlsdebug(const char *a,...);
 
-
 TLog *GetLogS(int s);
 TLog *GetLogR(Req *r,int def=0);
 //TLog *GetLogN(int n){ return (s_flgs2[2]&FL2_SEPARATELOG)?gLog:gLog[n]  };
@@ -1625,6 +1625,8 @@ inline void SendEvent(int &event, int val)
 };
 
 #define STRUCT_OFFSET(s, field) ((unsigned long) (void *) & (((s *)0)->field))
+#define container_of(ptr, type, member) (type *) (((u8 *)(void *)(ptr)) - STRUCT_OFFSET(type, member))
+
 void* RemoveFromList(void **list, void *object, int next_offset);
 
 };  // extern "C"

@@ -782,6 +782,12 @@ void MyUnlockOwn(shs_mutex_t &x) {
 
 
 #ifdef SYSUNIX
+
+#ifndef malloc
+#error  "used original malloc"
+#endif
+
+
 shs_mutex_t MemMtx = SHS_MUTEX_INITIALIZER;
 char * Malloc(int c)
 {
@@ -792,4 +798,132 @@ char * Malloc(int c)
   if(r) memset(r, 0, c);
   return r;
 };
+
+
+#ifdef MEMDBG
+
+#undef malloc
+#undef realloc
+#undef free
+
+#ifndef STRVER
+#define STRVERV(a) #a
+#define STRVERVS(a) STRVERV(a)
+#define STRVER STRVERVS(SHS_VERSION)
+#endif  // STRVER
+
+struct dbg_mem
+{
+  int sign;
+  int l;
+  u8 d[4];
+};
+#define SIGN_START  0x12345678
+#define SIGN_END    0x12345670
+
+void *dbg_malloc(int n)
+{
+  union {
+    void *r;
+    uint *d;
+    dbg_mem *dbg;
+  };
+  r = malloc(n + sizeof(dbg_mem));
+  if(!r) return r;
+
+  dbg->sign = SIGN_START;
+  dbg->l = n;
+  DWORD_PTR(dbg->d[n]) = SIGN_END;
+
+  return dbg->d;
+}
+
+#if 0
+int chk_dbg_mem(void *p)
+{
+  dbg_mem *dbg = container_of(p, dbg_mem, d);
+
+  if(dbg->sign == SIGN_START && DWORD_PTR(dbg->d[dbg->l]) == SIGN_END)
+    return 0;
+
+  {
+    void *caller_address = __builtin_return_address(0);
+
+    debug("MEMERROR: %lX l=%X signs: %X, %X  call from %lX ver: %s end: %lX", (long) p, dbg->l,
+            dbg->sign,
+            ((dbg->sign == SIGN_START) ? (int) DWORD_PTR(dbg->d[dbg->l]) : 0),
+            (long) caller_address, STRVER, (long) &end);
+
+    dbg_backtrace();
+  }
+
+  return -1;
+}
 #endif
+
+void *dbg_realloc(void *p, int n)
+{
+  dbg_mem *dbg = container_of(p, dbg_mem, d);
+
+  if(dbg->sign != SIGN_START || DWORD_PTR(dbg->d[n]) != SIGN_END)
+  {
+    void *caller_address = __builtin_return_address(0);
+
+    debug("MEMERROR realloc %X -> %X: signs: %X, %X  call from %X,%X ver: %s\r\n",  dbg->l, n,
+          dbg->sign,
+          ( (dbg->sign == SIGN_START) ? (int) DWORD_PTR(dbg->d[dbg->l]) : 0 ),
+          caller_address, STRVER);
+
+    dbg_backtrace();
+  }
+
+  dbg = (dbg_mem *) realloc(dbg, n + sizeof(dbg_mem));
+
+  if(!dbg) return 0;
+
+  dbg->l = n;
+  DWORD_PTR(dbg->d[n]) = SIGN_END;
+
+  return  dbg->d;
+}
+
+void dbg_free(void *p)
+{
+  dbg_mem *dbg = container_of(p, dbg_mem, d);
+
+  if(dbg->sign == SIGN_START && DWORD_PTR(dbg->d[dbg->l]) == SIGN_END)
+  {
+    dbg->sign = 0;
+    free(dbg);
+  }
+  else
+  {
+    void *caller_address = __builtin_return_address(0);
+
+    debug("MEMERROR: %lX l=%X signs: %X, %X  call from %lX ver: %s end: %lX", (long) p, dbg->l,
+          dbg->sign,
+          ((dbg->sign == SIGN_START) ? (int) DWORD_PTR(dbg->d[dbg->l]) : 0),
+          (long) caller_address, STRVER, (long) &end);
+
+#if 1
+    dbg_backtrace();
+#else
+    void *btr[16];
+    int  n;
+
+    n = backtrace(btr, 16);
+    for(int i = 0; i < n; i++) {
+      if( btr[i] >  __executable_start && btr[i] < &end)
+        debug(" from  %lX (+%lX)", (long) (btr[i]), (long) ((char *) (btr[i]) - __executable_start));
+      else debug(" from %lX", (long) (btr[i]));
+    }
+#endif
+  }
+
+}
+
+#endif // MEMDBG
+
+#endif //SYSUNIX
+
+

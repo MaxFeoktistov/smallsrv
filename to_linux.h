@@ -135,6 +135,20 @@ extern int __REDIRECT (fcntl32, (int __fd, int __cmd, ...), fcntl);
 
 extern "C"{
 
+
+#define MEMDBG
+#ifdef MEMDBG
+void *dbg_malloc(int n);
+void *dbg_realloc(void *p, int n);
+void dbg_free(void *p);
+
+#define malloc(a)     dbg_malloc(a)
+#define realloc(p, n) dbg_realloc(p, n)
+#define free(p)       dbg_free(p)
+
+#endif
+
+
 void Sleep(uint ms_time);
 #if 1
 #define THREADHANDLE pthread_t
