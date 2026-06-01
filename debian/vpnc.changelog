@@ -1,4 +1,4 @@
-shs-vpnclient (3.06.42test1) unstable; urgency=low
+shs-vpnclient (3.06.42test2) unstable; urgency=low
 
   * Version with memory debug.
   * Added stack backtrace when error.

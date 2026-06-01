@@ -36,6 +36,10 @@
 #endif // __has_include(<execinfo.h>)
 #else
 #warning "__has_include undefined"
+#if defined(__GLIBC__) && !defined(__UCLIBC__)
+#include <execinfo.h>
+#define  USE_GLIBC_BACKTRACE  1
+#endif // __GLIBC__
 #endif // __has_include
 #endif // SYSUNIX
 
@@ -57,7 +61,7 @@ extern "C" void dbg_backtrace()
     for(int i = 1; i < n; i++)
     {
       if( btr[i] >  __executable_start && btr[i] < &end)
-        pstr += sprintf(pstr, " %XlX", (long) ((char *) (btr[i]) - __executable_start));
+        pstr += sprintf(pstr, " %lX", (long) ((char *) (btr[i]) - __executable_start));
     }
 
     debug("Call trace: %s", str);

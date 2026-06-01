@@ -865,11 +865,11 @@ void *dbg_realloc(void *p, int n)
 {
   dbg_mem *dbg = container_of(p, dbg_mem, d);
 
-  if(dbg->sign != SIGN_START || DWORD_PTR(dbg->d[n]) != SIGN_END)
+  if(dbg->sign != SIGN_START || DWORD_PTR(dbg->d[dbg->l]) != SIGN_END)
   {
     void *caller_address = __builtin_return_address(0);
 
-    debug("MEMERROR realloc %X -> %X: signs: %X, %X  call from %X,%X ver: %s\r\n",  dbg->l, n,
+    debug("MEMERROR realloc %X -> %X: signs: %X, %X  call from %X,%X ver: %s\r\n",  n, dbg->l,
           dbg->sign,
           ( (dbg->sign == SIGN_START) ? (int) DWORD_PTR(dbg->d[dbg->l]) : 0 ),
           caller_address, STRVER);
