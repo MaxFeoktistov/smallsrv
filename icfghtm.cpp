@@ -504,7 +504,7 @@ void OutLimitLine(BFILE *bfl, char *nm, VPNUserLimit* p)
     FileTimeToSystemTime(&ft, &sTim2);
 #endif
     bfl->bprintf(
-      "<td>in:<b>%u</b> out:<b>%u</b> up to: %02u/%02u %02u:%02u</td>",
+      "<td>in:<b>%d</b> out:<b>%d</b> up to: %02u/%02u %02u:%02u</td>",
       (uint)((p->lim[i].in_bytes + 0x7ffffll) >> 20) - in,
       (uint)((p->lim[i].out_bytes + 0x7ffffll) >> 20) - out,
       ttm->tm_mday, ttm->tm_mon + 1, ttm->tm_hour, ttm->tm_min
