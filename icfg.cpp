@@ -665,8 +665,8 @@ CfgParam ConfigParams[] = {
   {"vpn_limit_out_h", 0, 0x7FFFFFFF, (uint *)&VPNOutLimitMb[0], CXS(S1T_13621147, "Limit of outgoing VPN traffic per hour. (Mb)"), 0, &VPNOutLimit[0], onChangeM2b64 },
   {"vpn_limit_in_d", 0, 0x7FFFFFFF, (uint *)&VPNInLimitMb[1], CXS(S1T_13176091, "Limit of incoming VPN traffic per day. (Mb)"), 0, &VPNInLimit[1], onChangeM2b64},
   {"vpn_limit_out_d", 0, 0x7FFFFFFF, (uint *)&VPNOutLimitMb[1], CXS(S1T_13233435, "Limit of outgoing VPN traffic per day. (Mb)"), 0, &VPNOutLimit[1], onChangeM2b64},
-  {"vpn_limit_in_m", 0, 0x7FFFFFFF, (uint *)&VPNInLimitMb[1], CXS(S1T_15886787, "Limit of incoming VPN traffic per mounth. (Mb)"), 0, &VPNInLimit[2], onChangeM2b64},
-  {"vpn_limit_out_m", 0, 0x7FFFFFFF, (uint *)&VPNOutLimitMb[1], CXS(S1T_16813405, "Limit of outgoing VPN traffic per  mounth. (Mb)"), 0, &VPNOutLimit[2], onChangeM2b64},
+  {"vpn_limit_in_m", 0, 0x7FFFFFFF, (uint *)&VPNInLimitMb[2], CXS(S1T_15886787, "Limit of incoming VPN traffic per mounth. (Mb)"), 0, &VPNInLimit[2], onChangeM2b64},
+  {"vpn_limit_out_m", 0, 0x7FFFFFFF, (uint *)&VPNOutLimitMb[2], CXS(S1T_16813405, "Limit of outgoing VPN traffic per  mounth. (Mb)"), 0, &VPNOutLimit[2], onChangeM2b64},
   {"vpn_limit_fname", 256, 0, (uint *)&vpn_limit_fname, CXS(S1T_12474961, "Save the state of limits in this file on exit")},
 
 
