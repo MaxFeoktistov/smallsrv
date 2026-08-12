@@ -1378,7 +1378,10 @@ lb_free:
 
   int send_echo_request(u32 ip, int len)
   {
-    struct icmp_echo icmp;
+    union {
+      struct icmp_echo icmp;
+      u8 bfr[600];
+    };
     int n = 5;
     int r = 0;
     struct sockaddr_in addr;
@@ -1399,7 +1402,7 @@ lb_free:
     addr.sin_addr.s_addr = ip;
 
     /* fill header files */
-    memset(&icmp, 0, sizeof(icmp));
+    memset(&icmp, 0, len);
     icmp.type = 8;
     icmp.code = 0;
     icmp.ident = 0x1234;
@@ -1446,6 +1449,7 @@ lb_free:
     int  reconnect = 0;
     uint id_ip = 0;
     VPNUserLimit *lmt = 0;
+    struct timeval x_time;
 
 
     //DBGL("");
@@ -1597,6 +1601,15 @@ found_free_ip:;
       cl->ipv4bcast = ip | ~msk; // ~vpn_nmask[isTap];
       cl->fl |= F_VPN_IPSET;
     }
+
+    {
+      gettimeofday(&x_time, 0);
+      int rnd = (x_time.tv_sec ^ x_time.tv_usec) & 0x7F;
+      l += sprintf(t + l, "Rnd: ");
+      memset(t+l, 'F', rnd);
+      l += rnd;
+      l += sprintf(t + l, "\r\n");
+    }
     l += sprintf(t + l, "\r\n");
     cl->Send(t, l);
     DBGLA("send: %s", t)
@@ -1622,12 +1635,12 @@ found_free_ip:;
     AddToLog(0, cl->s, & cl->sa_c46, ">>VPN Connection open %s %s %u.%u.%u.%u\r\n", cl->a_user ? cl->a_user->name : "",
              TUNTAPNames[isTap], ip & 0xFF, (ip >> 8) & 0xFF, (ip >> 16) & 0xFF, ip >> 24); // TODO: Big endian fix
 
-    if(vpn_limit_fname && next_save_limits < time(0))
+    if(vpn_limit_fname && next_save_limits < x_time.tv_sec)
       VPNSaveLimit();
 
     /* Send welcome ping: */
     Sleep(100);
-    send_echo_request(ip, 48);
+    send_echo_request(ip, 48 + ((x_time.tv_usec^ip) & 0x1FF));
 
     return 0;
   }

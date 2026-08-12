@@ -1516,6 +1516,7 @@ Now this program can create a VPN channel inside an HTTPS connection.
 On the host where the HTTP server is used, you can enable the VPN server in the settings.
 On other hosts you can install the program and enable the VPN client (only the VPN client is possible). Clients access the server using the HTTPS protocol,
 request a URL like this: <i>https://hostname.etc/$_vpn_$/</i>. You can choose any URL name by which the server will determine that this is a VPN request. When the HTTP server detects a VPN request, it passes the connection to the built-in VPN server.<br>
+<b>For the VPN to work, TLS must be configured: the library and certificates must be specified. For the VPN server, the TLS server must be enabled.</b>
 <li> <b>TAP and TUN</b> <br>
 The server supports both VPN types, and both VPNs can run simultaneously, but each type must be on its own subnet. The client can choose only one type, TUN or TAP, and it reports the required type to the server when connecting.<br>
 What is the difference? On a TAP connection, each packet also includes a 14-byte Ethernet header. This gives some advanced features, e.g. The TAP interface can be included in the bridge, and any type of packet can be broadcast through TAP. The TUN connection only supports IPv4 and IPv6 packets.

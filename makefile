@@ -22,7 +22,7 @@
 #
 #
 
-VERSION=3.06.42test3
+VERSION=3.06.42test4
 VERSIONT=3.06.42test
 VERSION_CODE=0x30642
 BUDIR=../site/30642/
@@ -634,7 +634,7 @@ wo/shvpnclient.exe: wo/stpdta_vpn.o wo/vpnclient/sethttp3.o wo/mstring1.o wo/upd
 wo/uninst.exe: wo/uninst.o
 	$(WINEGCC)  -s  $^ -o $@  -nodefaultlibs -L$(MGDIR)\\lib -luser32 -lkernel32 -lgdi32 -lcomdlg32 -ladvapi32 -lshell32 -Wl,--subsystem,windows -nostartfiles  -Xlinker -Map -Xlinker wo/flxmaps  -Xlinker --entry=_start  -nostartfiles -Xlinker -Map -Xlinker wo/flxmap  -Xlinker --entry=_start    -fno-optional-diags -momit-leaf-frame-pointer  -mno-red-zone -fno-exceptions  -fno-stack-protector -fno-ms-extensions -no-pie -fno-stack-check -mno-stack-arg-probe
 
-wo/stpdta.o: wo/stpdta.s wo/uninst.bin wo/http.bin wo/ind1.bin $(DST_LANG_WBIN) wo/lnotes.bin wo/lic.bin wo/vpn_if_up.bin wo/vpn_if_client_up.bin wo/vpn_if_client_down.bin wo/manifest.bin wo/vpnclient.bin wo/temp_sert.bin
+wo/stpdta.o: wo/stpdta.s wo/uninst.bin wo/http.bin wo/ind1.bin wo/ind1r.bin $(DST_LANG_WBIN) wo/lnotes.bin wo/lic.bin wo/vpn_if_up.bin wo/vpn_if_client_up.bin wo/vpn_if_client_down.bin wo/manifest.bin wo/vpnclient.bin wo/temp_sert.bin
 	 cd wo ;  $(WINEAS)  stpdta.s -o stpdta.o
 
 wo/stpdtar.o: wo/stpdtar.s wo/uninst.bin wo/http.bin wo/ind1r.bin wo/eshs_lang.bin wo/shs_lang.bin wo/lnotes.bin wo/licr.bin wo/vpn_if_up.bin wo/vpn_if_client_up.bin wo/vpn_if_client_down.bin wo/manifest.bin wo/vpnclient.bin wo/temp_sert.bin
@@ -1431,7 +1431,7 @@ o/gtemp_sert.pem: gnutls_sert_templ
 	certtool --generate-self-signed --load-privkey $@ --template gnutls_sert_templ >> $@
 
 clean_n:
-	rm -rf $(N_OBJS_TLS) $(N_OBJS) oo/fakelibs oo/httpd.exe oo/sndmsg oo/libsec111.so oo/libsecgnutls.so oo/httpd.exopenssl oo/httpd.exgnutls $(addprefix oo/,$(SECOBJ)) $(N_VPNCL)
+	rm -rf $(N_OBJS_TLS) $(N_OBJS) oo/fakelibs oo/httpd.exe oo/sndmsg oo/libsec111.so oo/libsecgnutls.so oo/httpd.exopenssl oo/httpd.exgnutls $(addprefix oo/,$(SECOBJ)) $(N_VPNCL) $(N_VPNCL_TLS)
 
 cleanobj:
 	rm -f $(OOBJS) $(OOBJS64) $(OOBJS64_TLS) $(OOBJS_TLS) $(ATOBJS) $(ATOBJS_TLS) $(addprefix o/,$(SECOBJ)) $(addprefix o64/,$(SECOBJ)) $(addprefix at/,$(SECOBJ)) $(N_OBJS_TLS) $(N_OBJS) $(OOVPNCL) $(OOVPNCL_TLS) $(OOVPNCL64) $(OOVPNCL64_TLS) $(N_VPNCL) $(ATVPNCL) $(WINVPNCLOBJ) $(WINOOBJS) $(ARMOBJ)

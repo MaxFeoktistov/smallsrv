@@ -136,7 +136,7 @@ extern int __REDIRECT (fcntl32, (int __fd, int __cmd, ...), fcntl);
 extern "C"{
 
 
-#define MEMDBG
+//#define MEMDBG
 #ifdef MEMDBG
 void *dbg_malloc(int n);
 void *dbg_realloc(void *p, int n);

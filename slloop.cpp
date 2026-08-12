@@ -383,10 +383,17 @@ int main
 
   if(setjmp(jmp_env))
   {
+    char *prc =__argv[0];
+    char bfr[128];
 
+    if(*prc != '/')
+    {
+      if(readlink("/proc/self/exe", bfr, 128) > 0)
+        prc = bfr;
+    }
     sleep(3);
     if( !vfork() )
-      execl(__argv[0], __argv[0], 0);
+      execl(prc, prc, 0);
     exit(0);
   }
 

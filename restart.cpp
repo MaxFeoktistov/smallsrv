@@ -138,8 +138,16 @@ void RestartServer(char *u, int cnt)
   DoneSepLog();
   sleep(1);
 #endif
-  { //fprintf(stderr, "Restart... (%d)\n",errno);
-    execl(__argv[0], __argv[0], 0);
+  {
+    char *prc =__argv[0];
+    char bfr[128];
+
+    if(*prc != '/') {
+      if(readlink("/proc/self/exe", bfr, 128) > 0)
+        prc = bfr;
+    }
+    //fprintf(stderr, "Restart... (%d)\n",errno);
+    execl(prc, prc, 0);
 //    fprintf(stderr, "Error, Can't exec %d %s\n",errno,strerror(errno));
     printf( "Error, Can't exec %d %s\n", errno, strerror(errno));
   }

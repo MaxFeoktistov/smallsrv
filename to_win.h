@@ -357,7 +357,7 @@ int FindNextFile_UTF(HANDLE a, LPWIN32_FIND_DATA lpFindFileData);
 #ifdef MINGW
 extern void *id_heap;
 
-#define MEMDBG
+//#define MEMDBG
 #ifdef MEMDBG
 void * WMALLOC(int n);
 void * WREALLOC(void *p,int n);

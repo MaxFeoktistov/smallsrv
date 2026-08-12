@@ -38,7 +38,7 @@
 #define STRVER STRVERVS(SHS_VERSION)  /* DONT_AUTO_CHANGE */
 
 #else
-#define STRVER  "3.06.42test3"   /* DONT_AUTO_CHANGE */
+#define STRVER  "3.06.42test4"   /* DONT_AUTO_CHANGE */
 #endif
 #define sSMALL_HTT "Small HTTP Server ver. " STRVER /* DONT_AUTO_CHANGE */
 
@@ -49,8 +49,6 @@
 #define sSTART_AS_ "Start as service..."
 #define sRUN_AS_AP "Run as application"
 #define s_FOR_UNIX " for UNIX"
-
-
 
 #define sCAN__T_SE "Can\'t send.."
 #define s_R_N____R "\r\n*** Restarting. Wait for clossing all"\

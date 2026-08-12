@@ -783,11 +783,6 @@ void MyUnlockOwn(shs_mutex_t &x) {
 
 #ifdef SYSUNIX
 
-#ifndef malloc
-#error  "used original malloc"
-#endif
-
-
 shs_mutex_t MemMtx = SHS_MUTEX_INITIALIZER;
 char * Malloc(int c)
 {
