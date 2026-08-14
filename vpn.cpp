@@ -1610,7 +1610,7 @@ found_free_ip:;
       cl->fl |= F_VPN_IPSET;
     }
 
-    l += AddRandomLine(x_time, t);
+    l += AddRandomLine(x_time, t + l);
     /* TODO: del
     {
       gettimeofday(&x_time, 0);
