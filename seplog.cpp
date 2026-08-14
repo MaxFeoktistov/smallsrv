@@ -75,6 +75,13 @@ void TLog::LAddToLog(char *t, int s, TSOCKADDR *psa, const char *fmt, ...)
   l = sizeof(xsa[0]);
   char *x, *y;
 
+  if(ChkShm())
+  {
+    //gLog. TODO
+    return;
+  }
+
+
 // printf("s=%d \n",s);
   if(s > 0) {
     if(!psa) {
@@ -279,7 +286,7 @@ int InitShmem(int n_log, int new_only)
 void  DoneShm()
 {
   if(shm) {
-
+    PreInitSepLog(&gLog);
 #ifdef SYSUNIX
     if (! (shm->status & SHMST_DONT_RM) ) {
       shm->status = SHMST_REMOVED;
@@ -299,7 +306,6 @@ void  DoneShm()
     CloseHandle(hMapFile);
 #endif
     shm = 0;
-    PreInitSepLog(&gLog);
   }
 }
 
@@ -460,7 +466,6 @@ void TLog::GetProt() {
   loldprot = lpprot;
 #endif
 };
-
 
 int TLog::Save(SYSTEMTIME *stime)
 {
@@ -725,8 +730,26 @@ extern "C" void TLog::Ldebug(const char *a, ...)
   Lvdebug(a, (mva_list) (void *) ((&a) + 1));
 #endif
 }
+
+int TLog::ChkShm()
+{
+  if (shm && shm->master_ptr != shm && this != &gLog) {
+  //  (pprot < lb_prot || pprot > (aabfr + sizeof(aabfr))
+  //if (shm && (pprot < shm || pprot > (shm->sepLog + max_srv)
+    //DoneShm()
+    PreInitSepLog(&gLog);
+    return -1;
+  }
+  return 0;
+}
+
 extern "C" void TLog::Lvdebug(const char *a, mva_list v)
 {
+  if(ChkShm())
+  {
+    gLog.Lvdebug(a, v);
+    return;
+  }
   GetProt();
   DWORD_PTR(*pprot) = 0x0A0D;
 #ifdef SYSUNIX

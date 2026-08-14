@@ -1415,6 +1415,7 @@ struct TLog
   int  Save(SYSTEMTIME *stime);
   int  Save();
   void SkipLastLF();
+  int  ChkShm();
 };
 
 extern TLog gLog;

@@ -1,10 +1,13 @@
-smallsrv (3.06.42test3) unstable; urgency=low
+smallsrv (3.06.42test5) unstable; urgency=low
 
-  * Version with memory debug.
+  * Fixed bug with shared memory when restart.
+  * Minor changes in VPN.
+  * Restart updated.
   * Added stack backtrace when error.
   * Updated output state of VPN limits
+  * Minor fix in VPN limits configuration
 
- -- Maksim Feoktistov <max@smallsrv.com>  Wed, 10 Jun 2026 21:40:44 +0400
+ -- Maksim Feoktistov <max@smallsrv.com>  Fri, 14 Aug 2026 09:46:22 +0400
 
 smallsrv (3.06.41) unstable; urgency=low
 

@@ -1343,6 +1343,17 @@ lb_free:
   }
 ///////////////////
 
+  int AddRandomLine(struct timeval &x_time, char *t)
+  {
+    gettimeofday(&x_time, 0);
+    int rnd = 1 + ((x_time.tv_sec ^ x_time.tv_usec) & 0x7F);
+    int l = sprintf(t + l, "Rnd: ");
+    memset(t + l, 'a' + (rnd >> 12) & 0xF , rnd);
+    l += rnd;
+    l += sprintf(t + l, "\r\n\r\n");
+    return l;
+  }
+
 #ifndef VPNCLIENT_ONLY
 
   u16 ip_checksum(u8* bfr, int len)
@@ -1432,9 +1443,6 @@ lb_free:
     closesocket(s);
     return r;
   }
-
-
-
 
   int Req::InsertVPNclient()
   {
@@ -1602,15 +1610,18 @@ found_free_ip:;
       cl->fl |= F_VPN_IPSET;
     }
 
+    l += AddRandomLine(x_time, t);
+    /* TODO: del
     {
       gettimeofday(&x_time, 0);
-      int rnd = (x_time.tv_sec ^ x_time.tv_usec) & 0x7F;
+      int rnd = 1 + ((x_time.tv_sec ^ x_time.tv_usec) & 0x7F);
       l += sprintf(t + l, "Rnd: ");
       memset(t+l, 'F', rnd);
       l += rnd;
       l += sprintf(t + l, "\r\n");
     }
     l += sprintf(t + l, "\r\n");
+    */
     cl->Send(t, l);
     DBGLA("send: %s", t)
     if(p && (mac = strtoll(SkipSpace(p), 0, 16)) )
@@ -2551,6 +2562,7 @@ ex2loop:
     char HA2Hex[40];
     int  tryes = 0;
     static int AuthBasic;
+    struct timeval x_time;
 
     vpn_cln_connected = 0;
     if(!vpn_remote_host) return -5;
@@ -2629,15 +2641,18 @@ agayn1:
                  "Authorization: %s\r\n"
                  "Host: %s\r\n"
                  "%s: %X %llX\r\n"
-                 "Connection: keep-alive\r\n\r\n", vpncln_name,
+                 "Connection: keep-alive\r\n", vpncln_name,
                  //vpn_user, r, bfr+1124,
                  bfr + 1024, vpn_remote_host,
                  TUNTAPNames[tun_index], vpn_client_ip, vpn_mac[tun_index]
                 );
     if(ipv4)
     {
-      l += sprintf(bfr + l - 2, "reconnect: %X\r\n\r\n", ipv4) - 2;
+      l += sprintf(bfr + l, "reconnect: %X\r\n", ipv4);
     }
+
+    l += AddRandomLine(x_time, bfr + l);
+    //l += sprintf(bfr + l, "\r\n");
 
     DBGLA("ClSend:%u: %s", l, bfr);
 
