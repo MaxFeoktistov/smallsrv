@@ -193,9 +193,8 @@ lbLogout:
               {
                 if( ((*cp->v) ? strcmp(u, *(char**)(cp->v)) : u[0] ))
                 { l = strlen(u);
-                  if( (*cp->v) && l < strlen(*(char**)cp->v) )
+                  if( (*cp->v) && if_heap_or_data(* (char **) cp->v) && l < strlen(*(char**)cp->v) )
                   {
-
                     if(*u)
                       strcpy(*(char**)(cp->v), u);
                     else

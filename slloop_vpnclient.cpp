@@ -56,7 +56,7 @@ extern "C" void dbg_backtrace()
     n = backtrace(btr, 16);
     for(int i = 1; i < n; i++)
     {
-      if( btr[i] >  __executable_start && btr[i] < &end)
+      if( btr[i] >  __executable_start && btr[i] < &_end)
         pstr += sprintf(pstr, " %lX", (long) ((char *) (btr[i]) - __executable_start));
     }
 

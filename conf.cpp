@@ -948,15 +948,24 @@ hst_found:
     j += PrepareTextCfg(bfr + j, ConfigParams2);
 
 
-
-
-
-    if( (h = _lcreat(fnm, 0)) > 0)
     {
-      _hwrite(h, bfr, j);
-      _lclose(h);
+      char old[256];
+
+      sprintf(old, "%.250s.old", fnm);
+      rename(fnm, old);
+
+      if( (h = _lcreat(fnm, 0)) > 0)
+      {
+        _hwrite(h, bfr, j);
+        _lclose(h);
+      }
+      else
+      {
+        debug( sERROR__CA, fnm);
+        if(FileSizeByName(fnm) <= 0)
+          rename(old, fnm);
+      }
     }
-    else debug( sERROR__CA, fnm);
 
 
 #endif

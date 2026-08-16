@@ -847,7 +847,7 @@ int chk_dbg_mem(void *p)
     debug("MEMERROR: %lX l=%X signs: %X, %X  call from %lX ver: %s end: %lX", (long) p, dbg->l,
             dbg->sign,
             ((dbg->sign == SIGN_START) ? (int) DWORD_PTR(dbg->d[dbg->l]) : 0),
-            (long) caller_address, STRVER, (long) &end);
+            (long) caller_address, STRVER, (long) &_end);
 
     dbg_backtrace();
   }
@@ -898,7 +898,7 @@ void dbg_free(void *p)
     debug("MEMERROR: %lX l=%X signs: %X, %X  call from %lX ver: %s end: %lX", (long) p, dbg->l,
           dbg->sign,
           ((dbg->sign == SIGN_START) ? (int) DWORD_PTR(dbg->d[dbg->l]) : 0),
-          (long) caller_address, STRVER, (long) &end);
+          (long) caller_address, STRVER, (long) &_end);
 
 #if 1
     dbg_backtrace();
@@ -908,7 +908,7 @@ void dbg_free(void *p)
 
     n = backtrace(btr, 16);
     for(int i = 0; i < n; i++) {
-      if( btr[i] >  __executable_start && btr[i] < &end)
+      if( btr[i] >  __executable_start && btr[i] < &_end)
         debug(" from  %lX (+%lX)", (long) (btr[i]), (long) ((char *) (btr[i]) - __executable_start));
       else debug(" from %lX", (long) (btr[i]));
     }

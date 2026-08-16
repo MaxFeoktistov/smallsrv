@@ -430,6 +430,7 @@ int AddASyncIO(tfASyncIOHelperCB cb, void  *par, HANDLE h);
 #define write(a,b,c) lwrite( (int) a,(char *) (b), c)
 #define lseek llseek
 #define close(a) CloseHandle((HANDLE) (a))
+inline int rename(const char *a, const char *b) {return ! MoveFileEx(a, b, MOVEFILE_REPLACE_EXISTING); }
 
 
 #define  tm_sec   wSecond
@@ -439,6 +440,8 @@ int AddASyncIO(tfASyncIOHelperCB cb, void  *par, HANDLE h);
 #define  tm_year  wYear-1900
 #define  tm_hour  wHour
 #define  tm_min   wMinute
+
+
 
 
 

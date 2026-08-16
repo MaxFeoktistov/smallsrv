@@ -869,16 +869,29 @@ extern uchar C3C9cnt,E589cnt;
 extern host_dir hsdr;
 #define  LOG_SIZE 0x8000
 extern char *smtp_name,*dns_server_for_mail,*out_path,*err_path
- ,*def_name,*error_file,*perl,*cgi_detect,*blacklist,*bad_hosts,*flog,*doc_dir,*phtml_dir,*nohosts,*fake,
-  end,*last_cfg,*eenv,*dnsblname;
+ ,*def_name,*error_file,*perl,*cgi_detect,*blacklist,*bad_hosts,*flog,*doc_dir,*phtml_dir,*nohosts,*fake
+ ,*last_cfg,*eenv,*dnsblname;
+
+#ifdef MINGW
+extern char _end__;
+extern char _data_start__;
+#define     _end         _end__
+#define     __data_start  _data_start__
+#else
+extern char _end;
+extern char __data_start;
+#endif
+
 extern uint dns_for_mail_ip;
 extern char *fcgi_detect;
 extern char *srv_str[];
 extern ulong max_msg_size,last_file,max_pfile,tmSpd;
 #define sent_path (smtp_chk.dir)
 
-inline void Free_if_heap(char *a){if(a>&end)delete a;}
-inline void Free_if_heap2(char *a){if(a>last_cfg && a>&end)delete a;}
+inline bool if_heap(char *a) {return (a > last_cfg && a > &_end);}
+inline bool if_heap_or_data(char *a) {return (a > &__data_start);}
+inline void Free_if_heap(char *a){if(a > &_end)delete a;}
+inline void Free_if_heap2(char *a){if(a > last_cfg && a> &_end) delete a;}
 #define FREE_IF_HEAP(a) Free_if_heap((char *)(a))
 #define FREE_IF_HEAP2(a) Free_if_heap2((char *)(a))
 
