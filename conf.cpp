@@ -456,7 +456,7 @@ l1:
 
         }
         else
-          comment = t;
+          comment = t + 1;
       }
 
       t = SkipSpace(ee);
@@ -518,8 +518,16 @@ fndCmnt:
   }
 
 // TODO:
-  char *first_coment = 0;
+  char *first_comment = 0;
 
+
+  bool IsNotDefaultComment(char *comment, CfgParam * cp)
+  {
+    for(; cp->desc || cp->name ; cp++ )
+      if ((!cp->name) && !strcmp(comment, cp->desc)) return 1;
+
+    return 0;
+  }
 
   int FindParamCP(char *conf_txt, char *comment, CfgParam * cp)
   {
@@ -562,7 +570,8 @@ fndCmnt:
             cp->comment = comment;
           else if(cp[1].desc && comment)
           {
-            if (strcmp(comment + 1, cp[1].desc)) {
+            if (IsNotDefaultComment(comment + 1, cp + 1)) //strcmp(comment + 1, cp[1].desc))
+            {
               cp->comment = comment;
             }
             else cp->comment = 0;
@@ -614,7 +623,7 @@ fndCmnt:
       //if(!*conf_txt) break;
 
       if(FindParam(conf_txt, comment)) cnt++;
-      else if( (!cnt) && !first_coment) first_coment = comment;
+      else if( (!cnt) && !first_comment) first_comment = comment;
 
       if(!e) break;
       conf_txt = SkipSpace(e); // + 1;
@@ -928,7 +937,7 @@ hst_found:
 
     int h;
 
-#ifdef SYSUNIX
+#ifndef SYSUNIX
     int j = 2;
     DWORD_PTR(*bfr) = 0x0A0D;
 #else
@@ -938,8 +947,8 @@ hst_found:
 
     debug("Save configuration...");
 
-    if (first_coment)
-      j += sprintf(bfr + j, "#%s\n", first_coment);
+    if (first_comment)
+      j += sprintf(bfr + j, "#%s\n", first_comment);
 
     j += PrepareTextCfg(bfr + j, ConfigParams);
 

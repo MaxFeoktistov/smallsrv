@@ -1210,6 +1210,8 @@ void SetCloseExec(int s);
 
 char* OutLL(long x0, long x1,char *t);
 extern time_t cur_time;
+extern struct timeval  tvlast_time, old_time;
+// TODO: #define cur_time tvlast_time.tv_sec
 extern int ChkThread;
 
 void AddToLogDNS(const char *t,int n,TSOCKADDR *sa,char *ad="");

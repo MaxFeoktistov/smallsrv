@@ -1,5 +1,8 @@
-smallsrv (3.06.42test5) unstable; urgency=low
+smallsrv (3.06.42test8) unstable; urgency=low
 
+  * A little fix in DNS server
+  * The server will now create a backup copy of the old configuration named *.old before overwriting it.
+  * Fixed update configuration error.
   * Fixed bug with shared memory when restart.
   * Minor changes in VPN.
   * Restart updated.
@@ -7,7 +10,7 @@ smallsrv (3.06.42test5) unstable; urgency=low
   * Updated output state of VPN limits
   * Minor fix in VPN limits configuration
 
- -- Maksim Feoktistov <max@smallsrv.com>  Fri, 14 Aug 2026 09:46:22 +0400
+ -- Maksim Feoktistov <max@smallsrv.com>  Sat, 22 Aug 2026 08:52:03 +0400
 
 smallsrv (3.06.41) unstable; urgency=low
 

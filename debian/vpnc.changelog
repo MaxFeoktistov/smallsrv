@@ -1,9 +1,9 @@
-shs-vpnclient (3.06.42test5) unstable; urgency=low
+shs-vpnclient (3.06.42test8) unstable; urgency=low
 
   * Fixed deb.
   * Added stack backtrace when error.
 
- -- Maksim Feoktistov <max@smallsrv.com>  Fri, 14 Aug 2026 09:46:22 +0400
+ -- Maksim Feoktistov <max@smallsrv.com>  Sun, 16 Aug 2026 13:52:08 +0400
 
 shs-vpnclient (3.06.41) unstable; urgency=low
 

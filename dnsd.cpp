@@ -91,6 +91,9 @@
 
 #define DDEBUG(a)
 // debug("%s:%u " a ,__FILE__,__LINE__  );
+#define DBGLAT(a,b...)
+// debug("%s:%u:%s " a "\r\n",__FILE__ , __LINE__, __func__, ## b );
+
 #ifdef SYSUNIX
 
 #include "heap.cpp"
@@ -811,7 +814,7 @@ void DNSLogRepeat::out()
   if(cnt > 1)
   {
     DBGLINE
-    sprintf(bt, "repeated %u times in the %us (:%2.2u:%2.2u - %2.2u:%2.2u)", cnt, last - first, (first / 60) % 60, first % 60, (last / 60) % 60, last % 60 );
+    sprintf(bt, "repeated %u times in the %us (:%2.2d:%2.2d - %2.2d:%2.2d)", cnt, last - first, ((u32) first / 60u) % 60u, (u32)first % 60u, ((u32)last / 60u) % 60u, (u32)last % 60u );
     AddToLogDNS(name, -3, &sa, bt);
   }
   cnt = 0;
@@ -2342,6 +2345,9 @@ lbDOH:
             DBGLA("3 %d %d %s", s, th.l, bfx);
 
             gettimeofday(&tvlast_time, 0);
+            cur_time = tvlast_time.tv_sec;
+            //DBGLAT("time: %X %X %d", tvlast_time.tv_sec, tvlast_time.tv_usec, tvlast_time.tv_sec % 60u)
+
             MyLock(nsmut);
             if(!(dmm.flags & 0x80))  //QUERY ?
             {
@@ -2824,6 +2830,8 @@ lbNS_notfound:
     if(cdreq > 0 && (  (!bind_a[SDNS_IND]) || sudp2 > 0 ) )
     {
       gettimeofday(&tvlast_time, 0);
+      cur_time = tvlast_time.tv_sec;
+
       if( Dtime(&tvlast_time, &old_time) >= 100000 )
       {
         MyLock(nsmut);
