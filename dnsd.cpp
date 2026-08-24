@@ -92,7 +92,7 @@
 #define DDEBUG(a)
 // debug("%s:%u " a ,__FILE__,__LINE__  );
 #define DBGLAT(a,b...)
-// debug("%s:%u:%s " a "\r\n",__FILE__ , __LINE__, __func__, ## b );
+//debug("%s:%u:%s " a "\r\n",__FILE__ , __LINE__, __func__, ## b );
 
 #ifdef SYSUNIX
 
@@ -473,11 +473,12 @@ NSRecord  * FindRec(NSRecordArray  * thi, NSRecord  *first, ulong hash, char *nm
 
   if(!thi) return 0;
 
+  DBGLAT("thi->hash_list_lo = %X", thi->hash_list_lo)
   if(thi->hash_list_lo)
   {
     return FastFindRec(thi, first, hash, nm);
   }
-  //DBGLA("%s thi:%lX first:%lX cnt:%u", nm, (long)thi, (long)first, thi->cnt)
+  DBGLAT("%s thi:%lX first:%lX cnt:%u", nm, (long)thi, (long)first, thi->cnt)
 
   if(!first)first = thi->d;
   do {
@@ -485,7 +486,7 @@ NSRecord  * FindRec(NSRecordArray  * thi, NSRecord  *first, ulong hash, char *nm
     //debug("find2 %u %s %X %X",thi->cnt,nm,first,last);
     if( first < thi->d || first >= last )
     {
-      //DBGLA("find2 outside %u %s %X %X",thi->cnt,nm,first,last);
+      DBGLAT("find2 outside %u %s %lX %lX",thi->cnt,nm, (long) first, (long) last);
       thi = thi->next;
       if(!thi)return 0;
       if(first == last)first = thi->d;
@@ -502,7 +503,7 @@ NSRecord  * FindRec(NSRecordArray  * thi, NSRecord  *first, ulong hash, char *nm
           if( (first->ttl < last_time) && first->ttl > (86400 * 60) )
           {
 
-            DDEBUG("")
+            DBGLAT("free type:%X  %s ttl:%X %X hash: %X", first->type, first->dt, first->ttl, last_time, first->hash)
 
             thi->DelHash(first->hash);
 
@@ -525,7 +526,7 @@ NSRecord  * FindRec(NSRecordArray  * thi, NSRecord  *first, ulong hash, char *nm
         }
         first++;
       }
-      DBGLA("not found %u %s %X %X", thi->cnt, nm, first, last);
+      DBGLAT("not found %u %s %lX %lX", thi->cnt, nm, (long) first, (long) last);
       thi = thi->next;
       if(!thi)return 0;
       first = thi->d;
@@ -1618,12 +1619,14 @@ int NSRecordLst::UpdateAList(NSRecordArray *a, AList *alist)
       f = 0;
       t = hst[j]->Data() + 2 * (hst[j]->type == rtypeMX);
       hash = MkName(t);
+      DBGLAT("%s %X", t, hash)
       while( (f = FindRec(a, f, hash, t) ) )
       {
         if(f->type == rtypeA )
         {
           if(! (alist->Add(f)) ) return alist->n;
           r |= 1 << j;
+          DBGLAT("ip = %X r=%X", f->ip, r)
         }
         ++f;
       }
@@ -1640,6 +1643,9 @@ void NSRecordLst::UpdateNS(char *tt, int fst)
   int j, on;
   ulong hash;
   on = n;
+
+  DBGLAT("n:%u fst:%u", n, fst)
+
   if( (s_flg & FL_DNSUPLVL) && !(n + fst)  )
   {
     if(ProviderNS[0])Add(ProviderNS[0]);
@@ -1663,9 +1669,11 @@ void NSRecordLst::UpdateNS(char *tt, int fst)
       }
       if(n != on)
       {
+        DBGLAT("n:%u on:%u", n, on)
         return ;
       }
     }
+
     if(tt == ROOTSERVERNAME )return;
     if( (tt = strchr(tt, '.') ) )
     {
@@ -2926,7 +2934,7 @@ int NSRecordArray::FillDomain(char *mem, char *dt, CheckPoint *cp)
 
   char *old_name = "";
   char *t, *t1, *t2, *t3, *t4;
-  ulong x, j, k, ttl, typ, mmi = 0;
+  ulong x, j, k, ttl = 0, typ, mmi = 0;
   Secondary **pseconds = &seconds;
   Secondary *sec ;
   NSRecord *prr = d;
@@ -3081,6 +3089,8 @@ lbEchk:
             if( (x = atoui(t1) ) )
             {
               ttl = x;
+              if(ttl > (86400 * 3))
+                ttl = (86400 * 3);
             }
             break;
           }
