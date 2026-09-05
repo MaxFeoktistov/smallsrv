@@ -22,7 +22,7 @@
 #
 #
 
-VERSION=3.06.42test9
+VERSION=3.06.42
 VERSION_CODE=0x30642
 
 prefix ?=/usr/local/

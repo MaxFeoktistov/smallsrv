@@ -1611,17 +1611,8 @@ found_free_ip:;
     }
 
     l += AddRandomLine(x_time, t + l);
-    /* TODO: del
-    {
-      gettimeofday(&x_time, 0);
-      int rnd = 1 + ((x_time.tv_sec ^ x_time.tv_usec) & 0x7F);
-      l += sprintf(t + l, "Rnd: ");
-      memset(t+l, 'F', rnd);
-      l += rnd;
-      l += sprintf(t + l, "\r\n");
-    }
-    l += sprintf(t + l, "\r\n");
-    */
+    //l += sprintf(bfr + l, "\r\n");
+
     cl->Send(t, l);
     DBGLA("send: %s", t)
     if(p && (mac = strtoll(SkipSpace(p), 0, 16)) )

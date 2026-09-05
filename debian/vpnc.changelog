@@ -1,4 +1,4 @@
-shs-vpnclient (3.06.42test8) unstable; urgency=low
+shs-vpnclient (3.06.42) unstable; urgency=low
 
   * Fixed deb.
   * Added stack backtrace when error.
