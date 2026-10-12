@@ -108,6 +108,7 @@ public:
   void Pop(){--n;}
 //  void FreeAll(){X *r,*e; for(e=(r=d)+n;r<e;++r)r->Free(); n=0;}
   void Del(X *x) {--n; if(n)memcpy(x,d+n,sizeof(X)); }
+  void Del(int i) {--n; if(n && i<n) memcpy(d+i, d+n, sizeof(X)); }
 
 #ifndef WITHOUTTEMPL
   template <class Y> X *FindT(Y x)  {X *r,*e;  for(e=(r=d)+n;r<e;++r)if(r->ip==x)return r;  return 0;}  ;

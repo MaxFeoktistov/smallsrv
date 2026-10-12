@@ -668,6 +668,7 @@ CfgParam ConfigParams[] = {
   {"vpn_limit_in_m", 0, 0x7FFFFFFF, (uint *)&VPNInLimitMb[2], CXS(S1T_15886787, "Limit of incoming VPN traffic per mounth. (Mb)"), 0, &VPNInLimit[2], onChangeM2b64},
   {"vpn_limit_out_m", 0, 0x7FFFFFFF, (uint *)&VPNOutLimitMb[2], CXS(S1T_16813405, "Limit of outgoing VPN traffic per  mounth. (Mb)"), 0, &VPNOutLimit[2], onChangeM2b64},
   {"vpn_limit_fname", 256, 0, (uint *)&vpn_limit_fname, CXS(S1T_12474961, "Save the state of limits in this file on exit")},
+  {"vpn_send_limit", 3,   FL3_VPN_SEND_LIMIT, (uint *)0, CXS(S1T_13449950, "Send limit status information to the user.")},
 
 
   {0, 0, 0, 0, CXS(S1t2T_1039342, "HTTP TLS VPN Client")},

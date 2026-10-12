@@ -283,6 +283,15 @@ int CRLF(char *t,int i)
  return i+j;
 };
 
+char *stristr_or_beg(char *where, const char *who)
+{
+  char *r = stristr(where, who);
+
+  if(r) return r;
+  if(striin(where, who + 1) ) return where - 1;
+  return 0;
+}
+
 FILE F1;
 int  SendMsg()
 {
@@ -301,8 +310,8 @@ int  SendMsg()
     }
     zbfr[j+=i]=0;
     j=CRLF(zbfr,j);
-    if((!(state&1)) && (p=stristr(zbfr,"\nFrom:")) && ExtractAddr(fromm,p+6) )state|=1;
-    if((!(state&2)) && (p=stristr(zbfr,"\nTo:")) && ExtractAddr(tomail,p+4) )state|=2;
+    if((!(state&1)) && (p=stristr_or_beg(zbfr,"\nFrom:")) && ExtractAddr(fromm,p+6) )state|=1;
+    if((!(state&2)) && (p=stristr_or_beg(zbfr,"\nTo:")) && ExtractAddr(tomail,p+4) )state|=2;
   }while( (state&3)!=3);
 
  GetSystemTime(&stime);

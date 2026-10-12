@@ -38,14 +38,14 @@
 inline char *memchrc(const void *a,int b,int c){return (char *) memchr(a,b,c); }
 #define memchr memchrc
 
-inline int strin(char *a, char *b)
+inline int strin(const char *a, const char *b)
 {
  while(*b && *a==*b){a++; b++;  }
  return !*b ;
 }
 
 
-inline int striin(char *a, char *b)
+inline int striin(const char *a, const char *b)
 {
  while(*b && ! (((*a ^ *b) & ~0x20)) ){a++; b++;}
  return !*b ;

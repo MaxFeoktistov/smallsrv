@@ -1345,10 +1345,11 @@ lb_free:
 
   int AddRandomLine(struct timeval &x_time, char *t)
   {
+    u32 rt;
     gettimeofday(&x_time, 0);
-    int rnd = 1 + ((x_time.tv_sec ^ x_time.tv_usec) & 0x7F);
-    int l = sprintf(t + l, "Rnd: ");
-    memset(t + l, 'a' + (rnd >> 12) & 0xF , rnd);
+    int rnd = 1 + ((rt = x_time.tv_sec ^ x_time.tv_usec) & 0x7F);
+    int l = sprintf(t, "Rnd: ");
+    memset(t + l, 'a' + ((rt >> 12) & 0xF) , rnd);
     l += rnd;
     l += sprintf(t + l, "\r\n\r\n");
     return l;
@@ -1610,11 +1611,24 @@ found_free_ip:;
       cl->fl |= F_VPN_IPSET;
     }
 
+    if(lmt &&  (s_flgs[3] & FL3_VPN_SEND_LIMIT))
+    {
+      l += sprintf(t + l, "Limits:");
+
+      for(int i=0; i<3; i++)
+        l += sprintf(t + l, " %X %X %X",
+                   (uint)((lmt->lim[i].in_bytes - lmt->in +  0x7ffffll) >> 20),
+                   (uint)((lmt->lim[i].out_bytes - lmt->out + 0x7ffffll) >> 20),
+                   lmt->lim[i].end);
+
+      l += sprintf(t + l, "\r\n");
+    }
+
     l += AddRandomLine(x_time, t + l);
     //l += sprintf(bfr + l, "\r\n");
 
     cl->Send(t, l);
-    DBGLA("send: %s", t)
+    DBGLA("send: |%s|", t)
     if(p && (mac = strtoll(SkipSpace(p), 0, 16)) )
     {
       cl->macl = mac;
@@ -1864,7 +1878,10 @@ found_free_ip:;
     for(k = 0; k < vpn_count; k++)
     {
       r = vpn_list[k]->SendIsUs(pkt, i);
-      if( r < 0 ) CloseVPNClient(k);
+      if( r < 0 ) {
+        DBGLA("Send error %d", r)
+        CloseVPNClient(k);
+      }
       else if(r > 0)
       {
         l++;
@@ -1940,11 +1957,16 @@ found_free_ip:;
         for(i = 0; i < vpn_count && j > 0; i++)
           if( FD_ISSET(vpn_list[i]->s, &set) )
           {
-            if(vpn_list[i]->RecvPkt() < 0 ) CloseVPNClient(i);
+            if(vpn_list[i]->RecvPkt() < 0 )
+            {
+              DBGLA("Recv error %d", j)
+              CloseVPNClient(i);
+            }
             j--;
           }
           else if( FD_ISSET(vpn_list[i]->s, &er_set) )
           {
+            DBGLA("Socket error %d", j)
             CloseVPNClient(i);
             j--;
           }
@@ -2857,6 +2879,46 @@ err_close:
   SetKeepAliveSock(s);
 
   debug("VPN client: Connection to the server has been established.\n");
+
+  t = GetVar(http_var, "Limits");
+  if(t && t[0])
+  {
+    uint  lm[10];
+    char *p = bfr;
+    static const char * arr_names[] = {"hour", "day", "month"};
+
+    for(i = 0; i<9; i++)
+    {
+      if(!t)
+        return 1;
+      t = SkipSpace(t);
+      lm[i] = strtoul(t, &t, 16);
+    }
+
+    for(i = 0; i < 3; i++)
+    {
+      int j = i * 3;
+      #ifdef SYSUNIX
+      struct tm *ttm;
+      ttm = localtime((time_t *) (lm + j + 2) );
+      #else
+      SYSTEMTIME sTim2;
+      SYSTEMTIME * const ttm = &sTim2;
+      FILETIME ft;
+      time2FileTime(lm[j + 2], ft);
+      FileTimeToSystemTime(&ft, &sTim2);
+      #endif
+      p += sprintf(p,
+                   "per %s:  in: %d out: %d up to: %02u/%02u %02u:%02u\r\n",
+                   arr_names[i],
+                   lm[j],
+                   lm[j + 1],
+                   ttm->tm_mday, ttm->tm_mon + 1, ttm->tm_hour, ttm->tm_min);
+    }
+    debug("Limit left:\r\n%s", bfr);
+  }
+
+
   return 1;
 }
 

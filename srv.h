@@ -600,6 +600,8 @@ int FndLimit(int lst,LimitBase **ip, LimitBase **net, sockaddr_in *sa );
 #define FL3_SMTP_SPF_MUST   0x04000000
 #define FL3_SMTP_SPF_CHECK  0x08000000
 
+#define FL3_VPN_SEND_LIMIT  0x10000000
+
 #define USE_TUN       (s_flgs[3] & FL3_VPN_TUN)
 #define USE_TAP       (s_flgs[3] & FL3_VPN_TAP)
 #define TAP_CLIENT    (s_flgs[3] & FL3_TAP_CLIENT)
