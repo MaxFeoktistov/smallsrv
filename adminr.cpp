@@ -767,7 +767,7 @@ lbStat:
 #endif
       break;
     case 0x72737573 x4CHAR("susr") :
-      HTTPUserStat();
+      HTTPUserStat(&bfl);
       break;
 
 #ifdef SYSUNIX

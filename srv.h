@@ -239,6 +239,8 @@ struct Req
 
 #define F_SERV_MASK 0xF0000
 
+ #define F_CON_CLOSED 0x800000
+
  #define F_JUSTPOOL  0x8000000
 
 
@@ -355,7 +357,7 @@ struct Req
  int Admin();
  int SSLReq();
  char *CheckAuth(char * &p);
- void HTTPUserStat();
+ void HTTPUserStat(BFILE *bfl);
  int HTTPOutStatistics(char *bfr,char *log,int tbl,int dt);
 
  int HTTPFOutStatistics(char *bfr,char *log,int tbl,int dt);

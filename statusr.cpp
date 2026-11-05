@@ -29,17 +29,17 @@
 
 char *selc[2] = {NullString, "selected"};
 
-char* OutListDays(char * p, int d, int n)
+int OutListDays(BFILE *bfl, int d, int n)
 { int i;
-  p += sprintf(p, "<select name=%c>", n);
-  for(i = 1; i <= 31; ++i)p += sprintf(p, "<option %s>%u", selc[i == d], i);
-  return p + sprintf(p, "</select> ");
+  bfl->bprintf("<select name=%c>", n);
+  for(i = 1; i <= 31; ++i)bfl->bprintf("<option %s>%u", selc[i == d], i);
+  return bfl->bprintf("</select> ");
 };
-char* OutListMonth(char * p, int d, int n)
+int OutListMonth(BFILE *bfl, int d, int n)
 { int i;
-  p += sprintf(p, "<select name=%c>", n);
-  for(i = 1; i <= 12; ++i)p += sprintf(p, "<option value=%u %s>%s", i, selc[i == d], month[i - 1]);
-  return p + sprintf(p, "</select> ");
+  bfl->bprintf( "<select name=%c>", n);
+  for(i = 1; i <= 12; ++i)bfl->bprintf( "<option value=%u %s>%s", i, selc[i == d], month[i - 1]);
+  return bfl->bprintf("</select> ");
 };
 char *GetVarS(char **varlist, char *var)
 {
@@ -248,37 +248,48 @@ const char **StatFppStr[] =
 
 
 
-void LL2Lc(ulong long *pars, int n)
+void LL2Lc(u64 *pars, int n)
 {
   while(n-- > 0)
-  { if(*pars > 0x40000000)
+  {
+    if(*pars > 0x40000000)
     {
       *pars >>= 10;
-      ((int *)pars)[1] = 'K';
+      if(*pars > 0x40000000)
+      {
+        *pars >>= 10;
+        ((int *)pars)[1] = 'M';
+      }
+      else
+        ((int *)pars)[1] = 'K';
     }
     else ((int *)pars)[1] = ' ';
     ++pars;
   }
 };
 
-void Req::HTTPUserStat()
+void Req::HTTPUserStat(BFILE *bfl)
 {
-  char *nm, *bfr, *p, *t, *tt;
+//  char *nm, *bfr, *p, *t, *tt;
+  char *nm, *bfr;
+  char *t;
   const char **strs;
 // ulong *dt;
   int typ, day2, mnt2, l, k, i, h;
   StatLog *tsl;
   uchar funcType[32];
   union {
-    ulong long pars[88];
+    u64   pars[88];
+    u32   upars[88];
     char  *cpars[172];
-    va_list  vl_pars;
+  //  va_list  vl_pars;
   };
   ulong ip;
 #define mnt1 (*(long*)pars)
 #define day1 (*(long*)(pars+1))
   const tfFind *fpFnc;
-  p = bfr = loc;
+ // p = bfr = loc;
+  bfr = loc + 0x8000;
 //  HTMLOutTop(s);
   memset(pars, 0, sizeof(pars));
   nm = GetVarS(req_var, "h");
@@ -288,9 +299,7 @@ void Req::HTTPUserStat()
   mnt1 = GetVarI(req_var, "d");
   mnt2 = GetVarI(req_var, "g");
 
-
-  p += sprintf(p,
-               "<form action=/$_admin_$susr method=get>"
+  bfl->bprintf( "<form action=/$_admin_$susr method=get>"
                "<center>"
                "<h1> Summary statistics<br>"
                "<select name=t>"
@@ -310,13 +319,13 @@ void Req::HTTPUserStat()
                , selc[typ == 3]
                , nm);
 
-  p = OutListDays(p, day1, 'f');
-  p = OutListMonth(p, mnt1, 'd');
-  p += sprintf(p, " To:");
-  p = OutListDays(p, day2, 'c');
-  p = OutListMonth(p, mnt2, 'g');
-  p += sprintf(p, "<br><br><input type=submit value=Show> <input type=reset></form><hr>");
-  Send(bfr, p - bfr);
+  OutListDays(bfl, day1, 'f');
+  OutListMonth(bfl, mnt1, 'd');
+  bfl->bprintf( " To:");
+  OutListDays(bfl, day2, 'c');
+  OutListMonth(bfl, mnt2, 'g');
+  bfl->bprintf( "<br><br><input type=submit value=Show> <input type=reset></form><hr>");
+ // Send(bfr, p - bfr);
 //*
   if( ! (s_flg & FL_LOGDAY) )
   {
@@ -324,7 +333,9 @@ void Req::HTTPUserStat()
 #undef MSG_LD
 #define MSG_LD "<h2>Это работает только если опция <i>Новый log файл каждый день</i> выбрана</h2>"
 #endif
-    Send(MSG_LD, sizeof(MSG_LD) - 1);
+    //Send(MSG_LD, sizeof(MSG_LD) - 1);
+    bfl->bprintf(MSG_LD);
+
   }
 //*/
   if(*nm)
@@ -335,24 +346,24 @@ void Req::HTTPUserStat()
     strs = StatFppStr[typ];
 
 //  dt=new ulong[12*32*4];
-    p = bfr + sprintf(bfr, "<table bgcolor=#f8f8ff border=1><tr><td>Date</td>");
+    bfl->bprintf("<table bgcolor=#f8f8ff border=1><tr><td> &nbsp; Date  &nbsp; </td>");
     k = 0xC0C0E0;
-    strcpy(bfr + 0x9000, "<td>Total</td>");
-    strcpy(bfr + 0x8000, "<td>%2.2u%c/%2.2u%c</td>");
-    tt = bfr + 0x9000 + sizeof("<td>Total</td>") - 1;
-    t = bfr + 0x8000 + sizeof("<td>%2.2u%c/%2.2u%c</td>") - 1;
+    //strcpy(bfr + 0x9000, "<td>Total</td>");
+    //strcpy(bfr + 0x8000, "<td>%2.2u%c/%2.2u%c</td>");
+    //tt = bfr + 0x9000 + sizeof("<td>Total</td>") - 1;
+    //t = bfr + 0x8000 + sizeof("<td>%2.2u%c/%2.2u%c</td>") - 1;
     for(i = 0; strs[i]; ++i)
     {
-      p += sprintf(p, "<td bgcolor=#%x><font size=1 class=f3>%s</font></td>", k, strs[i]);
-      t += sprintf(t, "<td bgcolor=#%x>%%u%%c</td>", k & 0xF0F8FF);
-      tt += sprintf(tt, "<td bgcolor=#%x><b>%%u%%c</b></td>", k);
+      bfl->bprintf( "<td bgcolor=#%x><font size=1 class=f3>%s</font></td>", k, strs[i]);
+      //t += sprintf(t, "<td bgcolor=#%x>%%u%%c</td>", k & 0xF0F8FF);
+      //tt += sprintf(tt, "<td bgcolor=#%x><b>%%u%%c</b></td>", k);
       k = (((k ^ (0x301020 >> ((i % 3) * 8))) + 0x010101) | 0xC3C3C3) & 0xFFFFFF;
     };
-    p += sprintf(p, "</tr><tr align=center>");
-    t += sprintf(t, "</tr><tr align=center>");
-    tt += sprintf(tt, "</tr></table><hr>");
+    bfl->bprintf( "</tr><tr align=center>");
+    //t += sprintf(t, "</tr><tr align=center>");
+    //tt += sprintf(tt, "</tr></table><hr>");
 
-    Send(bfr, p - bfr);
+    //Send(bfr, p - bfr);
 
     for(i = 0; fpFnc[i]; ++i) funcType[i] = GetFuncType(fpFnc[i]);
     do
@@ -371,8 +382,8 @@ void Req::HTTPUserStat()
         if((t = new char[l + 20]))
         { l = _hread(h, t, l);
           t[l] = 0;
-          memset(((ulong*)pars) + 3, 0, 40 * 8 + 4);
-          ((ulong*)pars)[1] = 0;
+          memset(pars + 2, 0, 40 * 8);
+          //((ulong*)pars)[1] = 0;
 
           tsl = ParseFile(t);
           for(; tsl; tsl = tsl->Next())
@@ -397,7 +408,8 @@ void Req::HTTPUserStat()
               }
             }
           }
-          LL2Lc(pars, 42);
+          LL2Lc(pars+2, 40);
+#if 0
 #if defined(LPC_ARM) || defined(AT_ARM) ||  defined(A_64)
           Send(bfr, vsprintf(bfr, bfr + 0x8000,
                              vl_pars    ));
@@ -411,6 +423,17 @@ void Req::HTTPUserStat()
                              pars
                             ));
 #endif
+#else
+          k = 0xC0C0E0;
+          bfl->bprintf("<td> %2.2u/%2.2u </td>", upars[0], upars[2]);
+          for(i = 0; strs[i]; ++i)
+          {
+            bfl->bprintf("<td bgcolor=#%x>%u%c</td>", k & 0xF0F8FF, upars[i*2 + 4], upars[i*2 + 5]);
+            k = (((k ^ (0x301020 >> ((i % 3) * 8))) + 0x010101) | 0xC3C3C3) & 0xFFFFFF;
+          };
+          bfl->bprintf( "</tr><tr align=center>");
+#endif
+
           delete t;
         }
         _lclose(h);
@@ -420,8 +443,12 @@ void Req::HTTPUserStat()
         if(mnt1 == mnt2)break;
         if(++mnt1 > 12)mnt1 = 1;
       }
-    } while( mnt1 != mnt2 || day1 <= day2);
+      if(fl & F_CON_CLOSED)
+        return;
+    } while(mnt1 != mnt2 || day1 <= day2);
     LL2Lc(pars + 42, 40);
+#if 0
+
 #if defined(LPC_ARM) || defined(AT_ARM) || defined(A_64)
     union {
       va_list *pvl;
@@ -439,11 +466,25 @@ void Req::HTTPUserStat()
 #endif
                        (pars + 42)));
 #endif
+#else
+          k = 0xC0C0E0;
+          bfl->bprintf("<td>Total:</td>");
+          for(i = 0; strs[i]; ++i)
+          {
+            bfl->bprintf("<td bgcolor=#%x>%u%c</td>", k, upars[i*2 + 84], upars[i*2 + 85]);
+            k = (((k ^ (0x301020 >> ((i % 3) * 8))) + 0x010101) | 0xC3C3C3) & 0xFFFFFF;
+          };
+          bfl->bprintf("</tr></table><hr>");
+
+#endif
+
+
 #undef mnt1
 #undef day2
 //  delete dt;
   }
 // HTMLOutBottom(s);
+  bfl->fflush();
 
 }
 

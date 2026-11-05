@@ -749,10 +749,16 @@ hst_found:
 
     if(th[1].v) {
       //printf("%s disable %s %X\n", th[0].name, th[1].name, *th[1].v);
+#ifdef A_64
+      if(!th[1].max)
+        * (void **) th[1].v = 0;
+      else
+#endif
       *th[1].v = 0;
     }
     return 0;
   }
+
 
   int onCfgChangeFlag(CfgParam *th)
   {

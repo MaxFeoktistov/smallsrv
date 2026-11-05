@@ -208,6 +208,9 @@ int BFILE::bvprintf(const char *fmt, void *v)
      case '+':  state|=2;    goto lb0;
      case '-':  state|=1;    state&=~0x40; goto lb0;
      case '#':  state|=4;    goto lb0;
+     case 'c':  *t++ = mva_arg(v, uint);
+                ++fmt;
+                break;
      case 'l':
 #if __SIZEOF_LONG__ != 8
                 state|=

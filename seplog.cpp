@@ -443,6 +443,10 @@ void TLog::MkFileName(char *t, int n)
   char *p;
   const char *suffix = SrvNameSufix[idx];
 //  sprintf(t,(n)?"%.240s%s%4.4u":"%.250s%s",flog,suffix,n);
+  if(!flog) {
+    *t = 0;
+    return;
+  }
   sprintf(t, "%.250s%s", flog, suffix);
   if(n)
   {
@@ -480,6 +484,8 @@ int TLog::Save(SYSTEMTIME *stime)
   char flogname[256];
   char ddir[280];
 
+  if(!flog)
+    return 0;
   MkFileName(flogname, 0);
   LOGDBG("%s l = %u", flogname, l)
 
@@ -497,7 +503,6 @@ int TLog::Save(SYSTEMTIME *stime)
       llastday = (localtime((time_t *) & (stt.st_ctime))->tm_mday);
     }
   }
-
 
   if((ll = open(flogname, O_APPEND | O_WRONLY)) > 0)
   {

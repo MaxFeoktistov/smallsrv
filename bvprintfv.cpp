@@ -213,6 +213,10 @@ lb0:
             case '+':  state |= 2;    goto lb0;
             case '-':  state |= 1;    state &= ~0x40; goto lb0;
             case '#':  state |= 4;    goto lb0;
+            case 'c':  *t++ = va_arg(vl, uint);
+                        ++fmt;
+                        break;
+
             case 'l':
 #if __SIZEOF_LONG__ != 8
               state |=

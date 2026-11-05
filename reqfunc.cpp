@@ -261,7 +261,10 @@ int JustSnd(Req *th, const void *b, int l)
   if(th->fl & F_CHUNKED && th->Rcv != &TLSRecv )
   {
     //DBGL("chunked!")
-    if( (r = BSend(th->s, chu, sprintf(chu, "%X\r\n", l) )) <= 0 ) return r;
+    if( (r = BSend(th->s, chu, sprintf(chu, "%X\r\n", l) )) <= 0 ) {
+      th->fl |= F_CON_CLOSED;
+      return r;
+    }
     th->Tout += r;
   }
   if((r = BSend(th->s, (char *)b, l)) > 0)
@@ -272,6 +275,9 @@ int JustSnd(Req *th, const void *b, int l)
       BSend(th->s, "\r\n", 2);
       th->Tout += 2;
     }
+  }
+  else if(l > 0) {
+    th->fl |= F_CON_CLOSED;
   }
   return r;
 };

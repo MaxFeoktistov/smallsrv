@@ -42,10 +42,10 @@ char *bad_list[] = {
 };
 
 
-char *tipes[] = {"text/html", "image/gif", "image/jpeg", "image/jpeg", "text/plain", "text/css", "application/octet-stream", "application/x-javascript", "*/*", "application/octet-stream", "*/*", "image/png", 0};
-const ulong *ext_types = (ulong *)(void *)".HTM.GIF.JPG.JPE.TXT.CSS.CLA.JS\x00.ASI.PNG\x00\x00\x00\x00\x00\x00";
+char *tipes[] = {"text/html", "image/gif", "image/jpeg", "image/jpeg", "text/plain", "text/css", "application/octet-stream", "application/x-javascript", "*/*", "application/octet-stream", "*/*", "image/png", "application/json", 0};
+const ulong *ext_types = (ulong *)(void *)".HTM.GIF.JPG.JPE.TXT.CSS.CLA.JS\x00.ASI.PNG.JSO\x00\x00\x00\x00\x00\x00";
 //                                         0   1   2   3   4   5   6  7      8
-
+#define CNT_TYPES ((sizeof(tipes) / sizeof(tipes[0])) - 1)
 
 char bbch[] = "/\\! \"#$%&\'()*+,-:;<=>?";
 
@@ -789,7 +789,7 @@ lcgi:
       if( (tpp = GetVar(http_var, "If_modified_since")) )
       {
         sprintf(p = out_buf, "%2.2u:%2.2u:%2.2u GMT", tm.wHour, tm.wMinute, tm.wSecond);
-        if(tpp = stristr(tpp, p))
+        if((tpp = stristr(tpp, p)))
         {
 #define NOT_MODIFID_REPLY     "HTTP/1.0 304 \r\nContent-Length: 0\r\nConnection: Keep-Alive\r\n\r\n"
           send(s, NOT_MODIFID_REPLY, sizeof(NOT_MODIFID_REPLY) - 1, 0);
@@ -804,7 +804,7 @@ lcgi:
       }
       //        else { DBGL("not found If_modified_since"); } //********
       tpp = tipes[ii];
-      if( (ii >= 9) && mime && t && t[1] )
+      if( (ii >= CNT_TYPES) && mime && t && t[1] )
       {
         DWORD_PTR(* (tpp = in_buf + 16384) ) = DWORD_PTR(*t);
         tpp[4] = 0;
