@@ -7,10 +7,10 @@ CONFIG_FILE2="/etc/smallsrv/vpnclient.cfg"
 if ! grep -q tls_lib $CONFIG_FILE ; then
     if ldconfig -p | grep -q libgnutls; then
         echo " tls_lib=/usr/lib/smallsrv/libsecgnutls.so" >> $CONFIG_FILE
-        sed -i "s/^tls_lib=.*/tls_lib=/usr/lib/smallsrv/libsecgnutls.so/" $CONFIG_FILE
+        sed -i "s@^tls_lib=.*@tls_lib=/usr/lib/smallsrv/libsecgnutls.so@" $CONFIG_FILE
     elif ldconfig -p | grep -q libssl; then
         echo " tls_lib=/usr/lib/smallsrv/libsec111.so" >> $CONFIG_FILE
-        sed -i "s/^tls_lib=.*/tls_lib=/usr/lib/smallsrv/libsec111.so/g; s/^tls_priority.*//g" $CONFIG_FILE
+        sed -i "s@^tls_lib=.*@tls_lib=/usr/lib/smallsrv/libsec111.so@g; s/^tls_priority.*//g" $CONFIG_FILE
     fi
 fi
 

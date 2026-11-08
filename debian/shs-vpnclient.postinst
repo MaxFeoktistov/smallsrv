@@ -11,9 +11,9 @@ if ! grep -q tls_lib $CONFIG_FILE ; then
     fi
 elif grep -q 'tls_lib="/usr/local/lib/smallsrv/libsecgnutls.so"' $CONFIG_FILE ; then
     if ldconfig -p | grep -q libgnutls; then
-        sed -i "s/^tls_lib=.*/tls_lib=/usr/lib/smallsrv/libsecgnutls.so/" $CONFIG_FILE
+        sed -i "s@^tls_lib=.*@tls_lib=/usr/lib/smallsrv/libsecgnutls.so@" $CONFIG_FILE
     elif ldconfig -p | grep -q libssl; then
-        sed -i "s/^tls_lib=.*/tls_lib=/usr/lib/smallsrv/libsec111.so/g; s/^tls_priority.*//g" $CONFIG_FILE
+        sed -i "s@^tls_lib=.*@tls_lib=/usr/lib/smallsrv/libsec111.so@g; s/^tls_priority.*//g" $CONFIG_FILE
     fi
 fi
 
