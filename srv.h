@@ -83,7 +83,17 @@ void xdie(char *);
 #include "to_linux.h"
 #endif
 
-extern "C"{
+#undef  EXTERN_C_BEG
+#define EXTERN_C_BEG extern "C"{
+#define EXTERN_C_END       }
+#define SKIP_NEXT   if(0) {
+#define END_SKIP    }
+
+#define SKIP_TO(a)  goto skip_lb # a;
+#define SKIP_UP(a)  skip_lb # a : ;
+
+
+EXTERN_C_BEG
 
 #include "mdef.h"
 #include "hton.h"
@@ -1649,7 +1659,7 @@ inline void SendEvent(int &event, int val)
 
 void* RemoveFromList(void **list, void *object, int next_offset);
 
-};  // extern "C"
+EXTERN_C_END  // extern "C"
 
 #ifndef SEPLOG
 

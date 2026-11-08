@@ -135,8 +135,7 @@ void TLog::LAddToLog(char *t, int s, TSOCKADDR *psa, const char *fmt, ...)
                    , pval);
   x = pprot;
   if(t)
-    pprot += //sprintf(pprot,fmt+1,t)-2;
-      msprintfchk(pprot, aabfr + 256, fmt + 1, t);
+    pprot += msprintfchk(pprot, aabfr + 256, fmt + 1, t);
   else
   {
 #ifdef  USEVALIST
@@ -334,10 +333,8 @@ void InitLogN(int i, int n)
 
 void InitSepLog()
 {
-//TLog *p;
   int i;
   int j = 1;
-  //gLog.Init("");
   if(sepLog[1])
   {
     if(sepLog[6] == sepLog[0] &&  max_srv[0] && ((FL2_NOERROUT | FL2_DUBSTDERR) & s_flgs[2]) )
@@ -376,7 +373,6 @@ void InitSepLog()
         memcpy(shm->sepLog[0].lb_prot, gLog.lb_prot, n);
         shm->sepLog[0].lpprot += n;
       }
-      //sepLog[0] = shm->sepLog[0];
     }
   }
 
@@ -667,11 +663,6 @@ void TLog::RelProt(SYSTEMTIME *stime)
 {
   int l;
   int tl;
-//SYSTEMTIME lTime;
-//FILETIME CrTime1,CrTime;
-//char flogname[256];
-//char ddir[280];
-// char *t;
 #ifdef SYSUNIX
   if(!(s_flg & FL_NOICON))printf("%s", loldprot);
 #endif
@@ -722,8 +713,6 @@ int TLog::Save()
   return Save(&stime);
 };
 
-
-
 extern "C" void TLog::Ldebug(const char *a, ...)
 {
 #ifdef  USEVALIST
@@ -739,8 +728,8 @@ extern "C" void TLog::Ldebug(const char *a, ...)
 int TLog::ChkShm()
 {
   if (shm && shm->master_ptr != shm && this != &gLog) {
-  //  (pprot < lb_prot || pprot > (aabfr + sizeof(aabfr))
-  //if (shm && (pprot < shm || pprot > (shm->sepLog + max_srv)
+    //  (pprot < lb_prot || pprot > (aabfr + sizeof(aabfr))
+    //if (shm && (pprot < shm || pprot > (shm->sepLog + max_srv)
     //DoneShm()
     PreInitSepLog(&gLog);
     return -1;
@@ -761,17 +750,7 @@ extern "C" void TLog::Lvdebug(const char *a, mva_list v)
 //char * t;
 //  t=pprot;
 #endif
-  pprot +=
-
-    /*
-    #ifndef SYSUNIX
-     wvsprintf
-    #else
-     vsprintf
-    #endif
-     (pprot+=2,a,v);
-    */
-    mvsprintfchk(pprot += 2, aabfr + 256, a, v);
+  pprot += mvsprintfchk(pprot += 2, aabfr + 256, a, v);
   DWORD_PTR(*pprot) = 0x0A0D;
   pprot += 2;
 #ifdef SYSUNIX

@@ -1,8 +1,10 @@
-shs-vpnclient (3.06.43test2) unstable; urgency=low
+shs-vpnclient (3.06.43test3) unstable; urgency=low
 
   * Now VPN client can show limits state from the server
+  * Updated .deb package for compatibility with newer versions of
+    Debian/Ubuntu
 
- -- Maksim Feoktistov <max@smallsrv.com>  Mon, 12 Oct 2026 22:16:44 +0400
+ -- Maksim Feoktistov <max@smallsrv.com>  Sun, 08 Nov 2026 10:50:35 +0400
 
 shs-vpnclient (3.06.42) unstable; urgency=low
 

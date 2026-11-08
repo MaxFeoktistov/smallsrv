@@ -9,7 +9,6 @@ Homepage: https://smallsrv.com
 Package: shs-vpnclient
 Version: 3.06.29
 Architecture: any
-Multi-Arch: foreign
-Depends: libc6 (>= 2.14), libgnutls30 (>= 3.0.0), libssl1.1 (>= 1.1.0), ${misc:Depends}, ${shlibs:Depends}
+Depends: libc6 (>= 2.14), libgnutls30 (>= 3.0.0) | libgnutls30t64 | libssl1.1 | libssl3, ${misc:Depends}, ${shlibs:Depends}
 Description:  VPN client for Small HTTP server
  Can connect to Small HTTP server, by https protocol and setup VPN channel.

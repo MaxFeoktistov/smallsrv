@@ -9,8 +9,7 @@ Homepage: https://smallsrv.com
 Package: smallsrv
 Version: 3.06.29
 Architecture: any
-Multi-Arch: foreign
-Depends: libc6 (>= 2.14), libgnutls30 (>= 3.0.0), libssl1.1 (>= 1.1.0), ${misc:Depends}, ${shlibs:Depends}
+Depends: libc6 (>= 2.14), libcrypt1, libgnutls30 (>= 3.0.0) | libgnutls30t64 | libssl1.1 | libssl3, ${misc:Depends}
 Description: Web, Mail, DNS, FTP, DHCP servers, HTTPS VPN server and client.
  HTTP server support:
   Server Side Includes. Regular expression in SSI.
@@ -27,6 +26,7 @@ Description: Web, Mail, DNS, FTP, DHCP servers, HTTPS VPN server and client.
  FTP server support:
   Virtual directories for FTP
   FTP proxy.
+ TFTP server, read only mode.
  HTTP proxy server support:
   HTTP, FTP, HTTPS request supported
   Store lot of traffic, fast access.

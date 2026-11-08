@@ -603,7 +603,7 @@ lbCmnHosts:
       }
 
 lbOutUPg:
-      HTTPOutUsersPage(&bfl); //b);
+      HTTPOutUsersPage(&bfl);
       break;
     case 0x74617473 x4CHAR("stat") :
       DBGLINE

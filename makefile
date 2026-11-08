@@ -22,7 +22,7 @@
 #
 #
 
-VERSION=3.06.43test1
+VERSION=3.06.43test3
 VERSIONT=3.06.43test
 VERSION_CODE=0x30643
 BUDIR=../site/30643/
@@ -1465,7 +1465,7 @@ bvprintfv.cpp cstat.cpp get4def.pl ico.h mrc.cpp onelog.cpp regular.h S5_lf.hh s
 WSRC = $(addprefix winclude/,winsock_IPv6.h zconf.h zlib.h tap-windows.h nethdr.h)
 LSRC = $(SRC_LANG_FILES)
 SSRC = $(addprefix script_examples/,vpn_if_client_down.bat vpn_if_client_down.sh vpn_if_client_up.bat vpn_if_client_up.sh vpn_if_up.bat vpn_if_up.sh)
-DSRC = $(addprefix debian/,changelog rules copyright smallsrv.manpages)
+DSRC = $(addprefix debian/,changelog rules copyright smallsrv.manpages postinst)
 DSRCVPNC = $(addprefix debian/,rules copyright shs-vpnclient.manpages)
 ASRC = license.ssl notes.ssl
 src_name=o/smallsrv-$(VERSION).tar.gz
@@ -1501,6 +1501,7 @@ vpncdeb: vpncsources
 	cd o ; tar -xzf $(vpncsrc_dir).tar.gz
 	mkdir -p o/$(vpncsrc_dir)/debian ; sed "s/^Version:.*/Version: $(VERSION)/" debian/vpnc.control >o/$(vpncsrc_dir)/debian/control
 	cp debian/vpnc.changelog o/$(vpncsrc_dir)/debian/changelog
+	cp debian/shs-vpnclient.postinst o/$(vpncsrc_dir)/debian/postinst
 	cd o/$(vpncsrc_dir) ; DEBEMAIL="max@smallsrv.com" ; DEBFULLNAME="Maksim Feoktistov" ; debmake -b "binarypackage:bin" ; debuild -i -us -uc -b
 
 fix_style: $(wildcard *.cpp)
