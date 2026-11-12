@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2020 Maksim Feoktistov.
+ * Copyright (C) 1999-2026 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov
@@ -82,6 +82,20 @@ inline ulong DIVMODLL(ulong a,ulong b,ulong d,
 }
 #endif
 
+inline u32 chendian32(u32 a)
+{
+  union {
+    u8 r8[4];
+    u32 r;
+  };
+
+  r8[0] = a >> 24;
+  r8[1] = a >> 16;
+  r8[2] = a >> 8;
+  r8[3] = a ;
+
+  return r;
+};
 
 #else
 inline int intel16(int a)
@@ -176,6 +190,8 @@ inline int IMULDIV(int a,int b,int c)
 #undef htons
 #define htonl intel32
 #define htons intel16
+#define chendian32 intel32
+
 
 inline ulong rol(ulong a,int b){
  asm volatile("\n"

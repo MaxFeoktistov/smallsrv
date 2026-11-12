@@ -1,14 +1,15 @@
-smallsrv (3.06.43test3) unstable; urgency=low
+smallsrv (3.06.43test4) unstable; urgency=low
 
   * Now VPN server can send limits state to the clients and VPN
     client can show limits state from the server
   * An issue related to the "nolog" key has been fixed.
   * MIME type "application/json" has been added.
   * The "Summary Statistics" page has been fixed for 64-bit systems.
+  * The "Summary Statistics" page updated to support separate logs.
   * Updated .deb package for compatibility with newer versions of
     Debian/Ubuntu
 
- -- Maksim Feoktistov <max@smallsrv.com>  Sun, 08 Nov 2026 10:50:35 +0400
+ -- Maksim Feoktistov <max@smallsrv.com>  Thu, 12 Nov 2026 08:22:03 +0400
 
 smallsrv (3.06.42) unstable; urgency=low
 

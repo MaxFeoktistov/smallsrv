@@ -242,15 +242,17 @@ const tfFind *StatFppFnc[4] =
 
 const char **StatFppStr[] =
 {afIPStr, afUsrStr, afHstStr, afFileStr};
+const u8  sel_file_mask[] = {0x3F, 0x1F, 1, 0x7};
 
 void LL2Lc(u64 *pars, int n)
 {
   while(n-- > 0)
   {
-    if(*pars > 0x40000000)
+    if(*pars > 10240)
     {
       *pars >>= 10;
-      if(*pars > 0x40000000)
+      //if(*pars > 0x40000000)
+      if(*pars > 102400)
       {
         *pars >>= 10;
         ((int *)pars)[1] = 'M';
@@ -270,15 +272,24 @@ void Req::HTTPUserStat(BFILE *bfl)
   const char **strs;
   int typ, day2, mnt2, l, k, i, h;
   StatLog *tsl;
-  uchar funcType[32];
+  union {
+    uchar funcType[32];
+    u32    fvar_l;
+    char  fvar_s[3];
+  };
   union {
     u64   pars[88];
     u32   upars[88];
     char  *cpars[172];
+    u32   mnt1;
   };
+//#define mnt1 (*(long*)pars)
+//#define day1 (*(long*)(pars+1))
+#define day1 (upars[2])
+
   ulong ip;
-#define mnt1 (*(long*)pars)
-#define day1 (*(long*)(pars+1))
+  u32  file_msk = 0;
+  int date_found;
   const tfFind *fpFnc;
   bfr = loc + 0x8000;
   memset(pars, 0, sizeof(pars));
@@ -288,10 +299,26 @@ void Req::HTTPUserStat(BFILE *bfl)
   day2 = GetVarI(req_var, "c");
   mnt1 = GetVarI(req_var, "d");
   mnt2 = GetVarI(req_var, "g");
+  fvar_l = ENDIAN_DEPEND32('f');
+  for(i=0; i<6; i++)
+  {
+    fvar_s[1] = '0' + i;
+    if(GetVar(req_var, fvar_s))
+      file_msk |= 1<<i;
+    else
+      file_msk &= ~(1<<i);
+  }
+
+  file_msk &= sel_file_mask[typ];
+  if(!file_msk)
+    file_msk = 1;
+
+
 
   bfl->bprintf( "<form action=/$_admin_$susr method=get>"
                 "<center>"
                 "<h1> Summary statistics<br>"
+                "</h1>"
                 "<select name=t>"
                 "<option value=0 %s>IP"
                 "<option value=1 %s>User"
@@ -299,10 +326,7 @@ void Req::HTTPUserStat(BFILE *bfl)
                 "<option value=3 %s>File"
                 "</select> "
                 "<input type=text name=h value='%s'>"
-                "</h1>"
-
-
-                "Since:"
+                " Since:"
                 , selc[typ == 0]
                 , selc[typ == 1]
                 , selc[typ == 2]
@@ -314,6 +338,23 @@ void Req::HTTPUserStat(BFILE *bfl)
   bfl->bprintf( " To:");
   OutListDays(bfl, day2, 'c');
   OutListMonth(bfl, mnt2, 'g');
+  if(s_flgs[2] & FL2_SEPARATELOG) {
+    bfl->bprintf( "<br> Find in: "
+          "<input type=checkbox name=f0 %s> HTTP "
+          "<input type=checkbox name=f1 %s> Proxy "
+          "<input type=checkbox name=f2 %s> FTP "
+          "<input type=checkbox name=f3 %s> SMTP "
+          "<input type=checkbox name=f4 %s> POP3 "
+          "<input type=checkbox name=f5 %s> DNS "
+          , (file_msk & 1) ? "checked" : ""
+          , (file_msk & 2) ? "checked" : ""
+          , (file_msk & 4) ? "checked" : ""
+          , (file_msk & 8) ? "checked" : ""
+          , (file_msk & 0x10) ? "checked" : ""
+          , (file_msk & 0x20) ? "checked" : ""
+         );
+
+  }
   bfl->bprintf( "<br><br><input type=submit value=Show> <input type=reset></form><hr>");
 //*
   if( ! (s_flg & FL_LOGDAY) )
@@ -344,50 +385,68 @@ void Req::HTTPUserStat(BFILE *bfl)
     for(i = 0; fpFnc[i]; ++i) funcType[i] = GetFuncType(fpFnc[i]);
     do
     {
-      l = sprintf(bfr, "%s", flog);
-      if( !(t = strrchr(bfr, '.')) )t = bfr + l;
-      sprintf(t, "%2.2u%2.2u", mnt1, day1);
+      date_found = 0;
 
-      if((h = _lopen(bfr, 0)) > 0)
-      { l = FileSize(h);
-        if((t = new char[l + 20]))
-        { l = _hread(h, t, l);
-          t[l] = 0;
-          memset(pars + 2, 0, 40 * 8);
-          tsl = ParseFile(t);
-          for(; tsl; tsl = tsl->Next())
-          { for(i = 0; fpFnc[i]; ++i)
-            {
+      memset(pars + 2, 0, 40 * 8);
 
-              if((k = (fpFnc[i])(tsl, bfr)))
-              {
-                if( (!funcType[i]) )k = 1;
-              };
-
-              if( ( (!typ) ? (ip == tsl->ip) : (typ == 3) ?
-#ifdef A_64
-                    NULL !=
+#ifdef SEPLOG
+      for(int ii=0; ii<6; ii++) if(file_msk & (1<<ii)) {
+        sepLog[(ii == 5) ? 7 : ii]->MkFileName(bfr, mnt1 * 100 + day1);
 #else
-                    (int)
+        l = sprintf(bfr, "%s", flog);
+        if( !(t = strrchr(bfr, '.')) )t = bfr + l;
+        sprintf(t, "%2.2u%2.2u", mnt1, day1);
 #endif
-                    stristr(bfr, nm) : (!stricmp(nm, bfr)) ) )
-              { pars[i + 2] += k; pars[i + 42] += k;
+        if((h = _lopen(bfr, 0)) > 0)
+        { l = FileSize(h);
+          if((t = new char[l + 20]))
+          {
+            date_found++;
+            l = _hread(h, t, l);
+            t[l] = 0;
+            tsl = ParseFile(t);
+            for(; tsl; tsl = tsl->Next())
+            { for(i = 0; fpFnc[i]; ++i)
+              {
+
+                if((k = (fpFnc[i])(tsl, bfr)))
+                {
+                  if( (!funcType[i]) )k = 1;
+                };
+
+                if( ( (!typ) ? (ip == tsl->ip) : (typ == 3) ?
+                  #ifdef A_64
+                  NULL !=
+                  #else
+                  (int)
+                  #endif
+                  stristr(bfr, nm) : (!stricmp(nm, bfr)) ) )
+                { pars[i + 2] += k; pars[i + 42] += k;
+                }
               }
             }
+
+            delete t;
           }
-          LL2Lc(pars + 2, 40);
-          k = 0xC0C0E0;
-          bfl->bprintf("<td> %2.2u/%2.2u </td>", upars[0], upars[2]);
-          for(i = 0; strs[i]; ++i)
-          {
-            bfl->bprintf("<td bgcolor=#%x>%u%c</td>", k & 0xF0F8FF, upars[i * 2 + 4], upars[i * 2 + 5]);
-            k = (((k ^ (0x301020 >> ((i % 3) * 8))) + 0x010101) | 0xC3C3C3) & 0xFFFFFF;
-          };
-          bfl->bprintf( "</tr><tr align=center>");
-          delete t;
+          _lclose(h);
         }
-        _lclose(h);
+#ifdef SEPLOG
       }
+#endif
+      if(date_found)
+      {
+        LL2Lc(pars + 2, 40);
+        k = 0xC0C0E0;
+        bfl->bprintf("<td> %2.2u/%2.2u </td>", upars[0], upars[2]);
+        for(i = 0; strs[i]; ++i)
+        {
+          bfl->bprintf("<td bgcolor=#%x>%u%c</td>", k & 0xF0F8FF, upars[i * 2 + 4], upars[i * 2 + 5]);
+          k = (((k ^ (0x301020 >> ((i % 3) * 8))) + 0x010101) | 0xC3C3C3) & 0xFFFFFF;
+        };
+        bfl->bprintf( "</tr><tr align=center>");
+      }
+
+
       if(++day1 >= 32)
       { day1 = 1;
         if(mnt1 == mnt2)break;

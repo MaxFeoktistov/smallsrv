@@ -69,9 +69,16 @@ void xdie(char *);
 
 #if __BYTE_ORDER__  ==  __ORDER_BIG_ENDIAN__
 #define BIG_ENDIAN 1
+#define ENDIAN_DEPEND32(a)  chendian32(a)
+#define LE32(a)  chendian32(a)
+#define BE32(a)  (a)
 #else
 #undef BIG_ENDIAN
+#define ENDIAN_DEPEND32(a)  (a)
+#define LE32(a)  (a)
+#define BE32(a)  chendian32(a)
 #endif
+
 
 #include "config.h"
 
