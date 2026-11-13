@@ -1,4 +1,4 @@
-shs-vpnclient (3.06.43test3) unstable; urgency=low
+shs-vpnclient (3.06.43test5) unstable; urgency=low
 
   * Now VPN client can show limits state from the server
   * Updated .deb package for compatibility with newer versions of

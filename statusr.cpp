@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2020 Maksim Feoktistov.
+ * Copyright (C) 1999-2026 Maksim Feoktistov.
  *
  * This file is part of Small HTTP server project.
  * Author: Maksim Feoktistov
@@ -146,7 +146,7 @@ const char* afUsrStr[] =
 const tfFind afIPFnd[] =
 {
   &fFindEventSumary,
-  &fFindHTTPUser,
+  &fFindHTTPfUser,
   &fFindHTTPIn,
   &fFindHTTPOut,
   &fFindProxyUser,
@@ -242,7 +242,7 @@ const tfFind *StatFppFnc[4] =
 
 const char **StatFppStr[] =
 {afIPStr, afUsrStr, afHstStr, afFileStr};
-const u8  sel_file_mask[] = {0x3F, 0x1F, 1, 0x7};
+const u8  sel_file_mask[] = {0x3F, 0x1E, 1, 0x7};
 
 void LL2Lc(u64 *pars, int n)
 {
@@ -399,6 +399,9 @@ void Req::HTTPUserStat(BFILE *bfl)
 #endif
         if((h = _lopen(bfr, 0)) > 0)
         { l = FileSize(h);
+
+          DBGLA("%s %u %X", bfr, l, ip);
+
           if((t = new char[l + 20]))
           {
             date_found++;
@@ -406,7 +409,10 @@ void Req::HTTPUserStat(BFILE *bfl)
             t[l] = 0;
             tsl = ParseFile(t);
             for(; tsl; tsl = tsl->Next())
-            { for(i = 0; fpFnc[i]; ++i)
+            {
+              DBGLA("%X:%u", tsl->ip, tsl->port);
+
+              for(i = 0; fpFnc[i]; ++i)
               {
 
                 if((k = (fpFnc[i])(tsl, bfr)))

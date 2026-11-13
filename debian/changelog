@@ -1,4 +1,4 @@
-smallsrv (3.06.43test4) unstable; urgency=low
+smallsrv (3.06.43test5) unstable; urgency=low
 
   * Now VPN server can send limits state to the clients and VPN
     client can show limits state from the server
@@ -9,7 +9,7 @@ smallsrv (3.06.43test4) unstable; urgency=low
   * Updated .deb package for compatibility with newer versions of
     Debian/Ubuntu
 
- -- Maksim Feoktistov <max@smallsrv.com>  Thu, 12 Nov 2026 08:22:03 +0400
+ -- Maksim Feoktistov <max@smallsrv.com>  Thu, 12 Nov 2026 23:18:51 +0400
 
 smallsrv (3.06.42) unstable; urgency=low
 

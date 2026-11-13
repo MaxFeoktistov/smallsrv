@@ -27,6 +27,8 @@
 #include "g4strc.h"
 #endif
 
+#define DEBUG_VERSION 1
+
 #ifndef SRV_H
 #include "srv.h"
 #endif
@@ -67,14 +69,23 @@ struct StatLog
   ulong stt;              //12
   ushort port;            //16
   ulong  hsh;             //18
-  ushort ip6[8];
-  void Parse();           //22
+  union {
+    ushort ip6[8];        //22
+    char   data0[0];
+  };
+  char   data1[0];        //38
+
+  void Parse();
   int Addr(char *bfr);
   int NetAddr(char *bfr);
-  char *find(char *what) {return strstr( ((char *)this) + sizeof(StatLog), what ); }
+  char *data(){ return (~ip)? data0 : data1; }
+  char *find(char *what);
 } PACKED;
 
-
+char * StatLog::find(char *what)
+{
+  return strstr(data() , what);
+}
 
 void StatLog::Parse()
 { char *p, *pp;
@@ -91,7 +102,7 @@ void StatLog::Parse()
     lip = ConvertIP(p);
   else {
     p = IPv6Addr(ipv6, p);
-    lip = (ulong) - 1;
+    lip = ~0;
     ++p;
   }
 
@@ -104,12 +115,13 @@ void StatLog::Parse()
   port = i6;
   stt = 0;
   hsh = 0;
-  if(lip == 0xFFFFffff)memcpy(ip6, ipv6, 16);
+  if(~lip)
+    memcpy(ip6, ipv6, 16);
 };
 
 int StatLog::Addr(char *bfr)
 {
-  return (ip != 0xFFFFFFFF) ?
+  return (~ip) ?
          sprintf(bfr, "%u.%u.%u.%u", cip[0], cip[1], cip[2], cip[3]) :
          sprintf(bfr, "%X:%X:%X:%X:%X:%X:%X:%X",
                  htons(ip6[0]), htons(ip6[1]), htons(ip6[2]), htons(ip6[3])
@@ -118,7 +130,7 @@ int StatLog::Addr(char *bfr)
 
 int StatLog::NetAddr(char *bfr)
 {
-  return (ip != 0xFFFFFFFF) ?
+  return (~ip) ?
          sprintf(bfr, "%u.%u.%u.%u", cip[0], cip[1], (cip[0] < 191) ? 0 : cip[2], 0) :
          sprintf(bfr, "%X:%X:%X:%X:%X:%X:0:0",
                  htons(ip6[0]), htons(ip6[1]), htons(ip6[2]), htons(ip6[3])
@@ -136,8 +148,8 @@ char* TmpStr2(char *t, char &tc, char *fnd)
 };
 
 char* fFindSubStr(StatLog *psl, char *bfr, char *s)
-{ char *t, *t2, t2c; 
-  if( !(t = stristr(((char*)psl) + sizeof(StatLog), s)))return 0;
+{ char *t, *t2, t2c;
+  if( !(t = stristr(psl->data(), s)))return 0;
   t += strlen(s);
   if((t2 = TmpStr(t, t2c)))
   { strncpy(bfr, t, 80);
@@ -158,7 +170,7 @@ inline int IfFindSubStr(StatLog *psl, char *bfr, char *s) {char *t = fFindSubStr
 
 char* fFindSubStr2(StatLog *psl, char *bfr, char *s, char *brk)
 { char *t, *t2, t2c;
-  if( !(t = strstr(((char*)psl) + sizeof(StatLog), s)))return 0;
+  if( !(t = psl->find(s)))return 0;
   t += strlen(s);
   if((t2 = TmpStr2(t, t2c, brk))) {
     strncpy(bfr, t, 80);
@@ -188,7 +200,7 @@ uint fFindProxyInAll(StatLog *psl, char *bfr, int n)
   txt = "Proxy in:";
   if(n & 0x10) {prt = http_port; prt2 = ssl_port; txt = "HTTP  in:"; n &= ~0x10;}
 
-  if( (psl->port == prt || psl->port == prt2) && (t = strstr(((char*)psl) + sizeof(StatLog), txt) ) &&
+  if( (psl->port == prt || psl->port == prt2) && (t = psl->find(txt) ) &&
       (t1 = strstr(t, "out:")) )
   { if(n & 0x20)
     { if(!(t2 = strstr(t1, " Time:")))return 0;
@@ -237,7 +249,7 @@ uint fFindHTTPTimeU(StatLog *psl, char *bfr) {return fFindProxyInAll(psl, bfr, 0
 uint fFindHTTPSpeed(StatLog *psl, char *bfr) {return fFindProxyInAll(psl, bfr, 0x73);}
 
 uint fFindHTTPHour(StatLog *psl, char *bfr)
-{ if( (psl->port == http_port || psl->port == ssl_port) && !strstr(((char*)psl) + sizeof(StatLog), "HTTP  in:"))
+{ if( (psl->port == http_port || psl->port == ssl_port) && !psl->find("HTTP  in:"))
   { sprintf(bfr, "%2.2u", (psl->time / 3600) % 24);
     return 1;
   }
@@ -254,6 +266,10 @@ uint fFindPortUser(StatLog *psl, char *bfr, int xport)
 uint fFindHTTPUser(StatLog *psl, char *bfr) {return fFindPortUser(psl, bfr, http_port);}
 uint fFindHTTPUNet(StatLog *psl, char *bfr) { return (http_port == psl->port) ? psl->NetAddr(bfr) : 0;}
 
+uint fFindHTTPfUser(StatLog *psl, char *bfr) { return (http_port == psl->port || ssl_port == psl->port) ? psl->Addr(bfr) : 0;}
+uint fFindHTTPfUNet(StatLog *psl, char *bfr) { return (http_port == psl->port || ssl_port == psl->port) ? psl->NetAddr(bfr) : 0;}
+
+
 #if V_FULL
 uint fFindProxyUser(StatLog *psl, char *bfr) {return fFindPortUser(psl, bfr, proxy_port);}
 uint fFindSMTPUser(StatLog *psl, char *bfr) {return fFindPortUser(psl, bfr, smtp_port);}
@@ -266,17 +282,16 @@ uint fFindDNSHost(StatLog *psl, char *bfr) {if(53 == psl->port) return IfFindSub
 
 uint fFindEventSumary(StatLog *psl, char *bfr)
 { char *t;
-  if( (t = strstr(((char*)psl) + sizeof(StatLog), " in:")
-      ) &&
-      t < strchr(((char*)psl) + sizeof(StatLog), '\n') ) return 0;
+  if( (t = psl->find(" in:")) &&
+      t < strchr(psl->data(), '\n') ) return 0;
   return sprintf(bfr, "%u", psl->port);
 }
 uint fFindErrors(StatLog *psl, char *bfr)
 { char *t, *t2, t2c;
 // if( !(t=strstr(((char*)psl)+sizeof(StatLog),"\r\n" )))return 0;
 // t+=2; if(*t==FSLUSH && t!=(char*)(psl->Next()) && (t2=TmpStr(t,t2c)))
-  if( strstr(((char*)psl) + sizeof(StatLog), "\r\n" ) &&
-      (t = strstr(((char*)psl) + sizeof(StatLog), ") >" FSLUSHS )) &&
+  if( psl->find("\r\n" ) &&
+      (t = psl->find(") >" FSLUSHS )) &&
       (t2 = TmpStr(t += 3, t2c))
     )
   {
@@ -295,7 +310,7 @@ uint fFindPOPLogin(StatLog *psl, char *bfr) {return IfFindSubStr(psl, bfr, "\r\n
 uint fFindSMTPx(StatLog *psl, char *bfr, char *s)
 { char *t;
   if((psl->port == smtp_port) && fFindSubStr(psl, bfr, s) && *bfr &&
-      (t = strstr( ((char*)psl) + sizeof(StatLog), "\r\nSMTP:"))
+      (t = psl->find("\r\nSMTP:"))
     )return atoui(t + sizeof("\r\nSMTP:")); //|0x80000000;
   return 0;
 };
@@ -316,7 +331,7 @@ uint fFindSMTPxIP(StatLog *psl, char *bfr)
 uint fFindPOPx(StatLog *psl, char *bfr)
 { char *t;
   if((psl->port == pop_port) && fFindSubStr(psl, bfr, "bytes for ") &&
-      (t = strstr( ((char*)psl) + sizeof(StatLog), "+OK"))
+      (t = psl->find("+OK"))
     )return atoui(t + sizeof("+OK")); //|0x80000000;
   return 0;
 };

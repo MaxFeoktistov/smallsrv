@@ -42,10 +42,21 @@ char *bad_list[] = {
 };
 
 
-char *tipes[] = {"text/html", "image/gif", "image/jpeg", "image/jpeg", "text/plain", "text/css", "application/octet-stream", "application/x-javascript", "*/*", "application/octet-stream", "*/*", "image/png", "application/json", 0};
-const ulong *ext_types = (ulong *)(void *)".HTM.GIF.JPG.JPE.TXT.CSS.CLA.JS\x00.ASI.PNG.JSO\x00\x00\x00\x00\x00\x00";
+char *tipes[] = {"text/html",  // HTM  0
+                 "image/gif",  // GIF  1
+                 "image/jpeg", // JPG  2
+                 "image/jpeg", // JPE  3
+                 "text/plain", // TXT  4
+                 "text/css",   // CSS  5
+                 "application/x-javascript", // JS  6
+                 "*/*",                      // ASI 7
+                 "image/png",                // PNG 8
+                 "application/json",         // JSO 9
+                 "application/octet-stream", // 10
+                 "*/*", 0};
+const ulong *ext_types = (ulong *)(void *)".HTM.GIF.JPG.JPE.TXT.CSS.JS\x00.ASI.PNG.JSO\x00\x00\x00\x00\x00\x00";
 //                                         0   1   2   3   4   5   6  7      8
-#define CNT_TYPES ((sizeof(tipes) / sizeof(tipes[0])) - 1)
+#define CNT_TYPES  10
 
 char bbch[] = "/\\! \"#$%&\'()*+,-:;<=>?";
 
